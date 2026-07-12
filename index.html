@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v5 — aperçu vidéo + audio universel</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v6 — WAV studio pro</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -371,8 +371,9 @@ let lastVideoUrl = null;
 let lastVideoDur = 0;
 let lipVideoSource = null;   // URL fal ou dataURL de la vidéo importée
 let lipVideoDur = 0;         // durée de la vidéo source (s)
-let lipAudioBuffer = null;   // AudioBuffer décodé de l'audio complet
-let lipAudioDataUrl = null;  // extrait final envoyé à Kling (WAV)
+let lipAudioBuffer = null;   // AudioBuffer décodé (MP3/M4A/AAC…)
+let lipWavMeta = null;       // WAV pro lu manuellement { file, fmt, data, duration }
+let lipAudioDataUrl = null;  // extrait final envoyé à Kling (WAV 16 bits)
 
 function pickLipSource(which) {
   const useLast = document.getElementById("lipUseLast");
@@ -385,7 +386,7 @@ function pickLipSource(which) {
     const pv = document.getElementById("lipPreview");
     pv.src = lastVideoUrl; pv.classList.remove("hidden");
   }
-  autoTrimIfNeeded();
+  maybePrepareAudio();
   refreshLip();
 }
 
@@ -398,7 +399,78 @@ function refreshLip() {
   document.getElementById("num3").classList.toggle("on", ready);
 }
 
-// Encode un AudioBuffer en WAV 16 bits (format universel accepté par Kling)
+function getAudioDur() {
+  if (lipWavMeta) return lipWavMeta.duration;
+  if (lipAudioBuffer) return lipAudioBuffer.duration;
+  return 0;
+}
+
+// — Lecteur WAV professionnel : lit l'en-tête RIFF (16/24/32 bits int, 32 bits float, BWF de studio) —
+async function parseWav(file) {
+  const dv = async (off, len) => new DataView(await file.slice(off, off + len).arrayBuffer());
+  const tag = (v, o) => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
+  try {
+    const head = await dv(0, 12);
+    if (tag(head, 0) !== "RIFF" || tag(head, 8) !== "WAVE") return null;
+    let off = 12, fmt = null, data = null, guard = 0;
+    while (off + 8 <= file.size && guard++ < 64) {
+      const h = await dv(off, 8);
+      const id = tag(h, 0), sz = h.getUint32(4, true);
+      if (id === "fmt ") {
+        const f = await dv(off + 8, Math.min(sz, 16));
+        fmt = { format: f.getUint16(0, true), ch: f.getUint16(2, true), rate: f.getUint32(4, true), bits: f.getUint16(14, true) };
+      }
+      if (id === "data") { data = { off: off + 8, size: Math.min(sz, file.size - off - 8) }; break; }
+      off += 8 + sz + (sz % 2);
+    }
+    if (!fmt || !data || !fmt.rate || !fmt.ch) return null;
+    const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
+    return { file, fmt, data, duration: data.size / byteRate };
+  } catch (e) { return null; }
+}
+
+// — Extrait [start → start+dur] d'un WAV pro, converti en WAV 16 bits stéréo max, sans charger tout le fichier —
+async function wavExtractDataUrl(meta, startSec, durSec) {
+  const { file, fmt, data } = meta;
+  const block = fmt.ch * fmt.bits / 8;
+  let startFrame = Math.floor(startSec * fmt.rate);
+  let frames = Math.floor(durSec * fmt.rate);
+  const maxFrames = Math.floor(data.size / block);
+  startFrame = Math.max(0, Math.min(startFrame, maxFrames));
+  frames = Math.max(0, Math.min(frames, maxFrames - startFrame));
+  const startByte = data.off + startFrame * block;
+  const ab = await file.slice(startByte, startByte + frames * block).arrayBuffer();
+  const src = new DataView(ab);
+  const outCh = Math.min(2, fmt.ch);
+  const out = new ArrayBuffer(44 + frames * outCh * 2);
+  const v = new DataView(out);
+  const wStr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  const dlen = frames * outCh * 2;
+  wStr(0, "RIFF"); v.setUint32(4, 36 + dlen, true); wStr(8, "WAVE"); wStr(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, outCh, true);
+  v.setUint32(24, fmt.rate, true); v.setUint32(28, fmt.rate * outCh * 2, true);
+  v.setUint16(32, outCh * 2, true); v.setUint16(34, 16, true); wStr(36, "data"); v.setUint32(40, dlen, true);
+  const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits === 32);
+  let o = 44;
+  for (let i = 0; i < frames; i++) {
+    for (let c = 0; c < outCh; c++) {
+      const p = (i * fmt.ch + c) * (fmt.bits / 8);
+      let s = 0;
+      if (fmt.bits === 16) s = src.getInt16(p, true) / 0x8000;
+      else if (fmt.bits === 24) {
+        const b = (src.getUint8(p)) | (src.getUint8(p + 1) << 8) | (src.getUint8(p + 2) << 16);
+        s = (b > 0x7FFFFF ? b - 0x1000000 : b) / 0x800000;
+      } else if (fmt.bits === 32) s = isFloat ? src.getFloat32(p, true) : src.getInt32(p, true) / 0x80000000;
+      else if (fmt.bits === 8) s = (src.getUint8(p) - 128) / 128;
+      s = Math.max(-1, Math.min(1, s));
+      v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); o += 2;
+    }
+  }
+  const blob = new Blob([out], { type: "audio/wav" });
+  return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+}
+
+// Encode un AudioBuffer en WAV 16 bits
 function bufferToWavDataUrl(buffer) {
   const nCh = Math.min(2, buffer.numberOfChannels);
   const rate = buffer.sampleRate;
@@ -420,33 +492,52 @@ function bufferToWavDataUrl(buffer) {
   return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
 }
 
-// Coupe l'audio décodé : [début → début + durée vidéo] et le convertit en WAV
+// Coupe l'audio (WAV pro OU audio décodé) et prépare l'extrait final
 async function trimAudio(startSec) {
-  if (!lipAudioBuffer) return;
-  const target = lipVideoDur > 0 ? lipVideoDur : Math.min(lipAudioBuffer.duration, 10);
-  const start = Math.max(0, Math.min(startSec || 0, Math.max(0, lipAudioBuffer.duration - target)));
-  const rate = lipAudioBuffer.sampleRate;
-  const nCh = Math.min(2, lipAudioBuffer.numberOfChannels);
-  const frames = Math.floor(Math.min(target, lipAudioBuffer.duration - start) * rate);
-  const ctx = new OfflineAudioContext(nCh, frames, rate);
-  const src = ctx.createBufferSource();
-  src.buffer = lipAudioBuffer;
-  src.connect(ctx.destination);
-  src.start(0, start, frames / rate);
-  const rendered = await ctx.startRendering();
-  lipAudioDataUrl = await bufferToWavDataUrl(rendered);
+  const adur = getAudioDur();
+  if (!adur) return;
+  const target = lipVideoDur > 0 ? lipVideoDur : Math.min(adur, 10);
+  const start = Math.max(0, Math.min(startSec || 0, Math.max(0, adur - 0.5)));
+  const dur = Math.min(target, adur - start);
+  if (lipWavMeta) {
+    lipAudioDataUrl = await wavExtractDataUrl(lipWavMeta, start, dur);
+  } else {
+    const rate = lipAudioBuffer.sampleRate;
+    const nCh = Math.min(2, lipAudioBuffer.numberOfChannels);
+    const frames = Math.floor(dur * rate);
+    const ctx = new OfflineAudioContext(nCh, frames, rate);
+    const srcN = ctx.createBufferSource();
+    srcN.buffer = lipAudioBuffer;
+    srcN.connect(ctx.destination);
+    srcN.start(0, start, dur);
+    const rendered = await ctx.startRendering();
+    lipAudioDataUrl = await bufferToWavDataUrl(rendered);
+  }
   document.getElementById("trimInfo").innerHTML =
-    `<span style="color:var(--ok)">✓ Extrait prêt : ${fmtTime(start)} → ${fmtTime(start + frames / rate)} (${Math.round(frames / rate)} s, calé sur la vidéo)</span>`;
+    `<span style="color:var(--ok)">✓ Extrait prêt : ${fmtTime(start)} → ${fmtTime(start + dur)} (${Math.round(dur)} s${lipVideoDur ? ", calé sur la vidéo" : ""})</span>`;
   refreshLip();
 }
 
-function autoTrimIfNeeded() {
-  if (!lipAudioBuffer || !lipVideoDur) return;
-  if (lipAudioBuffer.duration > lipVideoDur + 0.3) {
-    document.getElementById("trimZone").classList.remove("hidden");
-    document.getElementById("trimInfo").textContent =
-      `Audio ${fmtTime(lipAudioBuffer.duration)} > vidéo ${lipVideoDur} s → coupe automatique appliquée. Change le début (ex : 45 pour le refrain) puis « Couper ».`;
-    trimAudio(parseFloat(document.getElementById("trimStart").value) || 0);
+// Décide quoi faire selon les durées audio/vidéo
+function maybePrepareAudio() {
+  const adur = getAudioDur();
+  if (!adur) return;
+  const trimZone = document.getElementById("trimZone");
+  if (!lipVideoDur) {
+    if (adur <= 10.5) { trimZone.classList.add("hidden"); trimAudio(0); }
+    else {
+      trimZone.classList.remove("hidden");
+      document.getElementById("trimInfo").textContent =
+        `Audio ${fmtTime(adur)} — choisis d'abord la vidéo source, la coupe se fera automatiquement à sa durée.`;
+    }
+    return;
+  }
+  if (adur > lipVideoDur + 0.3) {
+    trimZone.classList.remove("hidden");
+    trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
+  } else {
+    trimZone.classList.add("hidden");
+    trimAudio(0);
   }
 }
 
@@ -463,13 +554,11 @@ function setupLipsync() {
       return;
     }
     document.getElementById("lipVideoName").textContent = "⏳ Lecture de la vidéo…";
-    // Durée via un lecteur invisible
     const probe = document.createElement("video");
     probe.preload = "metadata";
     probe.onloadedmetadata = () => {
       lipVideoDur = Math.round(probe.duration * 10) / 10;
       const warn = (lipVideoDur < 2 || lipVideoDur > 10.5) ? " ⚠️ Kling exige 2 à 10 s !" : "";
-      // Aperçu immédiat de la vidéo importée
       const pv = document.getElementById("lipPreview");
       pv.src = probe.src; pv.classList.remove("hidden");
       const r = new FileReader();
@@ -478,7 +567,7 @@ function setupLipsync() {
         document.getElementById("lipUseLast").classList.remove("on");
         document.getElementById("lipImportBtn").classList.add("on");
         document.getElementById("lipVideoName").textContent = `✓ ${f.name} (${lipVideoDur} s)${warn}`;
-        autoTrimIfNeeded();
+        maybePrepareAudio();
         refreshLip();
       };
       r.readAsDataURL(f);
@@ -492,7 +581,21 @@ function setupLipsync() {
   aInput.onchange = async (e) => {
     const f = e.target.files[0];
     if (!f) return;
-    document.getElementById("lipAudioName").textContent = "⏳ Décodage de l'audio…";
+    document.getElementById("lipAudioName").textContent = "⏳ Analyse de l'audio…";
+    lipWavMeta = null; lipAudioBuffer = null; lipAudioDataUrl = null;
+
+    // 1) WAV (y compris studio 24/32 bits, gros fichiers) : lecture manuelle, aucune limite de taille
+    const meta = await parseWav(f);
+    if (meta) {
+      lipWavMeta = meta;
+      document.getElementById("lipAudioName").textContent =
+        `✓ ${f.name} — ${fmtTime(meta.duration)} (WAV ${meta.fmt.bits} bits)`;
+      maybePrepareAudio();
+      refreshLip();
+      return;
+    }
+
+    // 2) MP3 / M4A / AAC… : décodage par le téléphone
     try {
       const buf = await f.arrayBuffer();
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -500,31 +603,23 @@ function setupLipsync() {
       lipAudioBuffer = await ctx.decodeAudioData(buf);
       ctx.close();
       document.getElementById("lipAudioName").textContent = `✓ ${f.name} — ${fmtTime(lipAudioBuffer.duration)}`;
-      if (lipVideoDur && lipAudioBuffer.duration > lipVideoDur + 0.3) {
-        autoTrimIfNeeded();
-      } else {
-        // Audio déjà à la bonne taille : conversion directe en WAV
-        document.getElementById("trimZone").classList.add("hidden");
-        lipAudioDataUrl = await bufferToWavDataUrl(lipAudioBuffer);
-        refreshLip();
-      }
+      maybePrepareAudio();
+      refreshLip();
     } catch (err) {
-      // Plan B : l'iPhone ne sait pas décoder ce format, mais Kling accepte MP3/OGG/WAV/M4A/AAC directement
-      lipAudioBuffer = null;
+      // 3) Dernier recours : envoi tel quel si ≤ 5 Mo
       document.getElementById("trimZone").classList.add("hidden");
       if (f.size <= 4.8 * 1024 * 1024) {
         const r = new FileReader();
         r.onload = () => {
           lipAudioDataUrl = r.result;
           document.getElementById("lipAudioName").textContent =
-            `✓ ${f.name} — envoyé tel quel à Kling (coupe auto indisponible pour ce format : assure-toi qu'il dure ≤ 60 s).`;
+            `✓ ${f.name} — envoyé tel quel à Kling (coupe auto indisponible : durée ≤ 60 s exigée).`;
           refreshLip();
         };
         r.readAsDataURL(f);
       } else {
-        lipAudioDataUrl = null;
         document.getElementById("lipAudioName").textContent =
-          "⚠️ Format non décodable ET trop lourd (max 5 Mo). Exporte un extrait court en MP3, M4A ou WAV 16 bits, puis réessaie.";
+          "⚠️ Format non pris en charge et trop lourd. Exporte en WAV, MP3 ou M4A puis réessaie.";
         refreshLip();
       }
     }
