@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v8 — WAV + AIFF studio</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v9 — audio universel blindé</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -431,24 +431,29 @@ async function parseWav(file) {
     // ——— WAV / RF64 (little-endian) ———
     if ((magic === "RIFF" || magic === "RF64") && tag4(head, 8) === "WAVE") {
       let off = 12, fmt = null, data = null, ds64Size = 0, guard = 0;
-      while (off + 8 <= file.size && guard++ < 128) {
+      while (off + 8 <= file.size && guard++ < 256) {
         const h = await readSlice(file, off, 8);
         const id = tag4(h, 0);
-        let sz = h.getUint32(4, true);
+        const sz = h.getUint32(4, true);
         if (id === "ds64") { const d = await readSlice(file, off + 8, 16); ds64Size = d.getUint32(8, true); }
         if (id === "fmt ") {
           const f = await readSlice(file, off + 8, 16);
           fmt = { format: f.getUint16(0, true), ch: f.getUint16(2, true), rate: f.getUint32(4, true), bits: f.getUint16(14, true) };
         }
         if (id === "data") {
-          if (sz === 0xFFFFFFFF && ds64Size) sz = ds64Size;
-          data = { off: off + 8, size: Math.min(sz, file.size - off - 8) };
-          break;
+          // Beaucoup d'exports studio « en flux » écrivent une taille fausse (0 ou FFFFFFFF) :
+          // on calcule alors la vraie taille depuis le fichier lui-même.
+          let ds = sz;
+          const invalid = (ds === 0 || ds === 0xFFFFFFFF || off + 8 + ds > file.size);
+          if (sz === 0xFFFFFFFF && ds64Size) ds = ds64Size;
+          else if (invalid) ds = file.size - (off + 8);
+          data = { off: off + 8, size: ds };
+          if (fmt || invalid) break;   // si la taille est fausse on ne peut pas sauter plus loin
         }
         off += 8 + sz + (sz % 2);
       }
       if (!fmt || !data || !fmt.rate || !fmt.ch || !fmt.bits) return null;
-      const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits === 32);
+      const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits >= 32) || fmt.bits === 64;
       const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
       return { kind: "WAV", file, fmt, dataOff: data.off, dataSize: data.size, le: true, isFloat, unsigned8: true, duration: data.size / byteRate };
     }
@@ -517,6 +522,7 @@ async function wavExtractDataUrl(meta, startSec, durSec) {
         s = (b > 0x7FFFFF ? b - 0x1000000 : b) / 0x800000;
       }
       else if (fmt.bits === 32) s = meta.isFloat ? src.getFloat32(p, le) : src.getInt32(p, le) / 0x80000000;
+      else if (fmt.bits === 64) s = src.getFloat64(p, le);
       else if (fmt.bits === 8) s = meta.unsigned8 ? (src.getUint8(p) - 128) / 128 : src.getInt8(p) / 128;
       s = Math.max(-1, Math.min(1, s));
       v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); o += 2;
