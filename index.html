@@ -145,10 +145,18 @@
     <div class="estimate" id="lipVideoName">Génère une vidéo ci-dessus, ou importe un MP4/MOV de 2–10 s (max 30 Mo).</div>
     <input type="file" id="lipVideoInput" accept="video/*,.mp4,.mov,.m4v" class="hidden">
 
-    <div class="label">Extrait audio de ta chanson (≤ 60 s, ≤ 5 Mo — MP3/M4A/WAV)</div>
-    <button class="btn" id="lipAudioBtn">Choisir l'extrait audio</button>
+    <div class="label">Extrait audio de ta chanson (tous formats acceptés)</div>
+    <button class="btn" id="lipAudioBtn">Choisir l'audio</button>
     <div class="estimate" id="lipAudioName"></div>
-    <input type="file" id="lipAudioInput" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg" class="hidden">
+    <div id="trimZone" class="hidden" style="margin-top:10px;">
+      <div class="label" style="margin-top:0;">✂️ Coupe automatique — début de l'extrait (en secondes)</div>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+        <input type="text" id="trimStart" inputmode="decimal" value="0" style="width:90px;">
+        <button class="btn" id="trimBtn">Couper</button>
+      </div>
+      <div class="estimate" id="trimInfo"></div>
+    </div>
+    <input type="file" id="lipAudioInput" class="hidden">
 
     <button class="master" id="lipGo" disabled style="margin-top:16px;">Choisis une vidéo et un audio</button>
     <div class="status" id="lipStatus" style="margin-top:12px;"><div id="lipStatusText"></div><div class="bar"><div class="fill" id="lipFill"></div></div></div>
@@ -156,7 +164,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v3 — lip-sync</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v4 — coupe audio auto</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -293,6 +301,7 @@ document.getElementById("go").onclick = async () => {
 
     setStatus("<span class='okc'>✓ Vidéo générée !</span>", 100);
     lastVideoUrl = videoUrl;
+    lastVideoDur = parseInt(dur);
     document.getElementById("resultZone").innerHTML = `
       <div class="card">
         <h2>🎬 Ta vidéo</h2>
@@ -358,17 +367,22 @@ async function saveVideo(url) {
 
 // ——— Lip-sync (Kling LipSync : vidéo + audio → lèvres synchronisées) ———
 let lastVideoUrl = null;
+let lastVideoDur = 0;
 let lipVideoSource = null;   // URL fal ou dataURL de la vidéo importée
-let lipAudioDataUrl = null;
+let lipVideoDur = 0;         // durée de la vidéo source (s)
+let lipAudioBuffer = null;   // AudioBuffer décodé de l'audio complet
+let lipAudioDataUrl = null;  // extrait final envoyé à Kling (WAV)
 
 function pickLipSource(which) {
   const useLast = document.getElementById("lipUseLast");
   const imp = document.getElementById("lipImportBtn");
   if (which === "last") {
     lipVideoSource = lastVideoUrl;
+    lipVideoDur = lastVideoDur;
     useLast.classList.add("on"); imp.classList.remove("on");
-    document.getElementById("lipVideoName").textContent = "✓ Dernière vidéo générée sélectionnée.";
+    document.getElementById("lipVideoName").textContent = `✓ Dernière vidéo générée (${lipVideoDur} s).`;
   }
+  autoTrimIfNeeded();
   refreshLip();
 }
 
@@ -379,6 +393,58 @@ function refreshLip() {
   go.textContent = ready ? "🎤 Synchroniser les lèvres (≈ 0,03 $)" : "Choisis une vidéo et un audio";
   document.getElementById("dot3").classList.toggle("on", ready);
   document.getElementById("num3").classList.toggle("on", ready);
+}
+
+// Encode un AudioBuffer en WAV 16 bits (format universel accepté par Kling)
+function bufferToWavDataUrl(buffer) {
+  const nCh = Math.min(2, buffer.numberOfChannels);
+  const rate = buffer.sampleRate;
+  const len = buffer.length * nCh * 2;
+  const ab = new ArrayBuffer(44 + len);
+  const v = new DataView(ab);
+  const wStr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  wStr(0, "RIFF"); v.setUint32(4, 36 + len, true); wStr(8, "WAVE"); wStr(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, nCh, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * nCh * 2, true);
+  v.setUint16(32, nCh * 2, true); v.setUint16(34, 16, true); wStr(36, "data"); v.setUint32(40, len, true);
+  let off = 44;
+  const chans = []; for (let c = 0; c < nCh; c++) chans.push(buffer.getChannelData(c));
+  for (let i = 0; i < buffer.length; i++) for (let c = 0; c < nCh; c++) {
+    const s = Math.max(-1, Math.min(1, chans[c][i]));
+    v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true); off += 2;
+  }
+  const blob = new Blob([ab], { type: "audio/wav" });
+  return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+}
+
+// Coupe l'audio décodé : [début → début + durée vidéo] et le convertit en WAV
+async function trimAudio(startSec) {
+  if (!lipAudioBuffer) return;
+  const target = lipVideoDur > 0 ? lipVideoDur : Math.min(lipAudioBuffer.duration, 10);
+  const start = Math.max(0, Math.min(startSec || 0, Math.max(0, lipAudioBuffer.duration - target)));
+  const rate = lipAudioBuffer.sampleRate;
+  const nCh = Math.min(2, lipAudioBuffer.numberOfChannels);
+  const frames = Math.floor(Math.min(target, lipAudioBuffer.duration - start) * rate);
+  const ctx = new OfflineAudioContext(nCh, frames, rate);
+  const src = ctx.createBufferSource();
+  src.buffer = lipAudioBuffer;
+  src.connect(ctx.destination);
+  src.start(0, start, frames / rate);
+  const rendered = await ctx.startRendering();
+  lipAudioDataUrl = await bufferToWavDataUrl(rendered);
+  document.getElementById("trimInfo").innerHTML =
+    `<span style="color:var(--ok)">✓ Extrait prêt : ${fmtTime(start)} → ${fmtTime(start + frames / rate)} (${Math.round(frames / rate)} s, calé sur la vidéo)</span>`;
+  refreshLip();
+}
+
+function autoTrimIfNeeded() {
+  if (!lipAudioBuffer || !lipVideoDur) return;
+  if (lipAudioBuffer.duration > lipVideoDur + 0.3) {
+    document.getElementById("trimZone").classList.remove("hidden");
+    document.getElementById("trimInfo").textContent =
+      `Audio ${fmtTime(lipAudioBuffer.duration)} > vidéo ${lipVideoDur} s → coupe automatique appliquée. Change le début (ex : 45 pour le refrain) puis « Couper ».`;
+    trimAudio(parseFloat(document.getElementById("trimStart").value) || 0);
+  }
 }
 
 function setupLipsync() {
@@ -394,35 +460,56 @@ function setupLipsync() {
       return;
     }
     document.getElementById("lipVideoName").textContent = "⏳ Lecture de la vidéo…";
-    const r = new FileReader();
-    r.onload = () => {
-      lipVideoSource = r.result;
-      document.getElementById("lipUseLast").classList.remove("on");
-      document.getElementById("lipImportBtn").classList.add("on");
-      document.getElementById("lipVideoName").textContent = "✓ " + f.name + " (rappel : 2 à 10 s)";
-      refreshLip();
+    // Durée via un lecteur invisible
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.onloadedmetadata = () => {
+      lipVideoDur = Math.round(probe.duration * 10) / 10;
+      const warn = (lipVideoDur < 2 || lipVideoDur > 10.5) ? " ⚠️ Kling exige 2 à 10 s !" : "";
+      const r = new FileReader();
+      r.onload = () => {
+        lipVideoSource = r.result;
+        document.getElementById("lipUseLast").classList.remove("on");
+        document.getElementById("lipImportBtn").classList.add("on");
+        document.getElementById("lipVideoName").textContent = `✓ ${f.name} (${lipVideoDur} s)${warn}`;
+        autoTrimIfNeeded();
+        refreshLip();
+      };
+      r.readAsDataURL(f);
     };
-    r.readAsDataURL(f);
+    probe.onerror = () => { document.getElementById("lipVideoName").textContent = "⚠️ Vidéo illisible — utilise un MP4 ou MOV."; };
+    probe.src = URL.createObjectURL(f);
   };
 
   const aInput = document.getElementById("lipAudioInput");
   document.getElementById("lipAudioBtn").onclick = () => aInput.click();
-  aInput.onchange = (e) => {
+  aInput.onchange = async (e) => {
     const f = e.target.files[0];
     if (!f) return;
-    if (f.size > 4.8 * 1024 * 1024) {
-      document.getElementById("lipAudioName").textContent = "⚠️ Audio trop lourd (max 5 Mo) — exporte un extrait court en M4A/MP3.";
-      return;
-    }
-    const r = new FileReader();
-    r.onload = () => {
-      lipAudioDataUrl = r.result;
-      document.getElementById("lipAudioName").textContent = "✓ " + f.name;
+    document.getElementById("lipAudioName").textContent = "⏳ Décodage de l'audio…";
+    try {
+      const buf = await f.arrayBuffer();
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      lipAudioBuffer = await ctx.decodeAudioData(buf);
+      ctx.close();
+      document.getElementById("lipAudioName").textContent = `✓ ${f.name} — ${fmtTime(lipAudioBuffer.duration)}`;
+      if (lipVideoDur && lipAudioBuffer.duration > lipVideoDur + 0.3) {
+        autoTrimIfNeeded();
+      } else {
+        // Audio déjà à la bonne taille : conversion directe en WAV
+        document.getElementById("trimZone").classList.add("hidden");
+        lipAudioDataUrl = await bufferToWavDataUrl(lipAudioBuffer);
+        refreshLip();
+      }
+    } catch (err) {
+      lipAudioBuffer = null; lipAudioDataUrl = null;
+      document.getElementById("lipAudioName").textContent = "⚠️ Format audio illisible sur cet appareil — exporte en MP3, M4A ou WAV et réessaie.";
       refreshLip();
-    };
-    r.readAsDataURL(f);
+    }
   };
 
+  document.getElementById("trimBtn").onclick = () => trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
   document.getElementById("lipGo").onclick = runLipsync;
 }
 
