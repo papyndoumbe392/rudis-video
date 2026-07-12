@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v6 — WAV studio pro</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v7 — analyse audio garantie</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -578,50 +578,65 @@ function setupLipsync() {
 
   const aInput = document.getElementById("lipAudioInput");
   document.getElementById("lipAudioBtn").onclick = () => aInput.click();
+
+  // Lecture de fichier fiable (certains fournisseurs iOS sont lents ou capricieux)
+  const readFileBuffer = (file) => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error("lecture impossible"));
+    r.readAsArrayBuffer(file);
+  });
+  const readFileDataUrl = (file) => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error("lecture impossible"));
+    r.readAsDataURL(file);
+  });
+
   aInput.onchange = async (e) => {
     const f = e.target.files[0];
     if (!f) return;
-    document.getElementById("lipAudioName").textContent = "⏳ Analyse de l'audio…";
+    const nameEl = document.getElementById("lipAudioName");
+    nameEl.textContent = "⏳ Analyse de l'audio…";
     lipWavMeta = null; lipAudioBuffer = null; lipAudioDataUrl = null;
-
-    // 1) WAV (y compris studio 24/32 bits, gros fichiers) : lecture manuelle, aucune limite de taille
-    const meta = await parseWav(f);
-    if (meta) {
-      lipWavMeta = meta;
-      document.getElementById("lipAudioName").textContent =
-        `✓ ${f.name} — ${fmtTime(meta.duration)} (WAV ${meta.fmt.bits} bits)`;
-      maybePrepareAudio();
-      refreshLip();
-      return;
-    }
-
-    // 2) MP3 / M4A / AAC… : décodage par le téléphone
     try {
-      const buf = await f.arrayBuffer();
+      // 1) WAV (y compris studio 24/32 bits, gros fichiers) : lecture manuelle, aucune limite de taille
+      const meta = await parseWav(f);
+      if (meta && meta.duration > 0.5) {
+        lipWavMeta = meta;
+        nameEl.textContent = `✓ ${f.name} — ${fmtTime(meta.duration)} (WAV ${meta.fmt.bits} bits)`;
+        maybePrepareAudio();
+        return;
+      }
+
+      // 2) MP3 / M4A / AAC… : décodeur du téléphone, surveillé par un chien de garde de 20 s
+      //    (bug iOS connu : decodeAudioData peut ne jamais répondre)
+      nameEl.textContent = "⏳ Décodage (max 20 s)…";
+      const buf = await readFileBuffer(f);
       const Ctx = window.AudioContext || window.webkitAudioContext;
       const ctx = new Ctx();
-      lipAudioBuffer = await ctx.decodeAudioData(buf);
-      ctx.close();
-      document.getElementById("lipAudioName").textContent = `✓ ${f.name} — ${fmtTime(lipAudioBuffer.duration)}`;
+      const decoded = await Promise.race([
+        ctx.decodeAudioData(buf),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 20000)),
+      ]).finally(() => { try { ctx.close(); } catch (_) {} });
+      lipAudioBuffer = decoded;
+      nameEl.textContent = `✓ ${f.name} — ${fmtTime(decoded.duration)}`;
       maybePrepareAudio();
-      refreshLip();
     } catch (err) {
       // 3) Dernier recours : envoi tel quel si ≤ 5 Mo
       document.getElementById("trimZone").classList.add("hidden");
       if (f.size <= 4.8 * 1024 * 1024) {
-        const r = new FileReader();
-        r.onload = () => {
-          lipAudioDataUrl = r.result;
-          document.getElementById("lipAudioName").textContent =
-            `✓ ${f.name} — envoyé tel quel à Kling (coupe auto indisponible : durée ≤ 60 s exigée).`;
-          refreshLip();
-        };
-        r.readAsDataURL(f);
+        try {
+          lipAudioDataUrl = await readFileDataUrl(f);
+          nameEl.textContent = `✓ ${f.name} — envoyé tel quel à Kling (coupe auto indisponible : durée ≤ 60 s exigée).`;
+        } catch (e2) {
+          nameEl.textContent = "⚠️ Impossible de lire ce fichier. Copie-le d'abord dans « Sur mon iPhone » puis réessaie.";
+        }
       } else {
-        document.getElementById("lipAudioName").textContent =
-          "⚠️ Format non pris en charge et trop lourd. Exporte en WAV, MP3 ou M4A puis réessaie.";
-        refreshLip();
+        nameEl.textContent = "⚠️ Format non pris en charge et trop lourd. Exporte en WAV, MP3 ou M4A puis réessaie.";
       }
+    } finally {
+      refreshLip();
     }
   };
 
