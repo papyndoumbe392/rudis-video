@@ -1,0 +1,11 @@
+RUDIS VIDEO STUDIO — Installation
+
+Fichiers : index.html, manifest.json, sw.js, icon-192.png, icon-512.png
+
+1. Héberge les 5 fichiers sur GitHub Pages (gratuit) — voir les étapes dans la conversation Claude.
+2. Ouvre l'adresse https://TONNOM.github.io/rudis-video/ 
+   - iPhone : Safari → Partager → "Sur l'écran d'accueil"
+   - Android : Chrome → menu ⋮ → "Installer l'application"
+3. Dans l'app : colle ta clé fal.ai (fal.ai → Keys), ajoute ta photo, écris ton prompt, Générer.
+
+Chaque vidéo est payée sur ton crédit fal.ai (≈0,28 $ pour 5 s en mode Éco).

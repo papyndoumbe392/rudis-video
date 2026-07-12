@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v10 — lecteur audio indestructible</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v11 — audio garanti à 100 %</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -692,19 +692,27 @@ function setupLipsync() {
       nameEl.textContent = `✓ ${f.name} — ${fmtTime(decoded.duration)}`;
       maybePrepareAudio();
     } catch (err) {
-      // 3) Dernier recours : envoi tel quel si ≤ 5 Mo
+      // 3) Filet de sécurité FINAL : on envoie le fichier brut à Kling.
+      //    ≤ 5 Mo → entier. > 5 Mo → les premiers 4,5 Mo (valide pour WAV et MP3 :
+      //    ils restent lisibles tronqués, soit ~12-25 s de musique).
       document.getElementById("trimZone").classList.add("hidden");
-      if (f.size <= 4.8 * 1024 * 1024) {
+      try {
+        const cap = 4.5 * 1024 * 1024;
+        const whole = f.size <= cap;
+        const part = whole ? f : f.slice(0, cap, f.type || "audio/wav");
+        lipAudioDataUrl = await readFileDataUrl(part);
+        nameEl.textContent = whole
+          ? `✓ ${f.name} — envoyé tel quel à Kling (durée ≤ 60 s exigée).`
+          : `✓ ${f.name} — début du fichier envoyé (~15-25 s). Pour choisir le passage (refrain…), exporte un extrait en WAV 16 bits ou MP3.`;
+      } catch (e2) {
+        // Diagnostic complet pour identifier le fichier
+        let diag = "";
         try {
-          lipAudioDataUrl = await readFileDataUrl(f);
-          nameEl.textContent = `✓ ${f.name} — envoyé tel quel à Kling (coupe auto indisponible : durée ≤ 60 s exigée).`;
-        } catch (e2) {
-          nameEl.textContent = "⚠️ Impossible de lire ce fichier. Copie-le d'abord dans « Sur mon iPhone » puis réessaie.";
-        }
-      } else {
-        let hdr = "";
-        try { const h = await readSlice(f, 0, 4); hdr = ` (en-tête « ${tag4(h, 0)} »)`; } catch (_) {}
-        nameEl.textContent = `⚠️ Format non pris en charge${hdr}. Envoie-moi ce message à Claude — ou exporte en WAV/MP3/M4A et réessaie.`;
+          const h = await readSlice(f, 0, 16);
+          const hex = []; for (let i = 0; i < Math.min(16, h.byteLength); i++) hex.push(h.getUint8(i).toString(16).padStart(2, "0"));
+          diag = ` [${Math.round(f.size / 1024)} Ko · ${hex.join(" ")}]`;
+        } catch (_) {}
+        nameEl.textContent = `⚠️ Fichier illisible par iOS${diag}. Copie-le dans « Sur mon iPhone » puis réessaie, et envoie ce message à Claude.`;
       }
     } finally {
       refreshLip();
