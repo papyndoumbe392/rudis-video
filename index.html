@@ -274,9 +274,10 @@ document.getElementById("go").onclick = async () => {
       <div class="card">
         <h2>🎬 Ta vidéo</h2>
         <video src="${videoUrl}" controls playsinline></video>
-        <a class="dl btn" href="${videoUrl}" download="rudis-video.mp4" target="_blank">⬇ Télécharger la vidéo</a>
-        <div class="estimate">Astuce iPhone : appui long sur la vidéo → Enregistrer, ou ouvre le lien et partage vers Photos.</div>
+        <button class="dl btn" id="saveBtn">📲 Enregistrer dans Photos</button>
+        <div class="estimate" id="saveHint"></div>
       </div>`;
+    document.getElementById("saveBtn").onclick = () => saveVideo(videoUrl);
   } catch (err) {
     setStatus("<span class='err'>✗ " + err.message + "</span>", 0);
   } finally {
@@ -284,6 +285,35 @@ document.getElementById("go").onclick = async () => {
     refresh();
   }
 };
+
+// ——— Enregistrer la vidéo (partage natif iOS/Android) ———
+async function saveVideo(url) {
+  const btn = document.getElementById("saveBtn");
+  const hint = document.getElementById("saveHint");
+  btn.textContent = "⏳ Préparation…";
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    const file = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+      hint.textContent = "Dans le menu qui s'ouvre, touche « Enregistrer la vidéo » pour la mettre dans Photos.";
+    } else {
+      // Repli : téléchargement classique
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "rudis-video.mp4";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      hint.textContent = "Vidéo téléchargée dans tes Fichiers.";
+    }
+  } catch (e) {
+    hint.textContent = "Astuce : lis la vidéo ci-dessus en plein écran, puis appui long → Enregistrer la vidéo.";
+  } finally {
+    btn.textContent = "📲 Enregistrer dans Photos";
+  }
+}
 
 refresh();
 
