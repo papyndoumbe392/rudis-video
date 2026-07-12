@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v11 — audio garanti à 100 %</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v12 — coupe auto même en secours</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -692,20 +692,37 @@ function setupLipsync() {
       nameEl.textContent = `✓ ${f.name} — ${fmtTime(decoded.duration)}`;
       maybePrepareAudio();
     } catch (err) {
-      // 3) Filet de sécurité FINAL : on envoie le fichier brut à Kling.
-      //    ≤ 5 Mo → entier. > 5 Mo → les premiers 4,5 Mo (valide pour WAV et MP3 :
-      //    ils restent lisibles tronqués, soit ~12-25 s de musique).
+      // 3) Filet de sécurité FINAL : envoi du fichier brut, MAIS coupé à la durée de la vidéo.
+      //    On mesure la durée avec le lecteur audio du téléphone (décodeur plus tolérant),
+      //    puis on tranche proportionnellement les octets — exact pour WAV, très proche pour MP3.
       document.getElementById("trimZone").classList.add("hidden");
       try {
-        const cap = 4.5 * 1024 * 1024;
-        const whole = f.size <= cap;
-        const part = whole ? f : f.slice(0, cap, f.type || "audio/wav");
+        const getDurViaElement = (file) => new Promise(res => {
+          const a = document.createElement("audio");
+          const u = URL.createObjectURL(file);
+          let done = false;
+          const finish = (d) => { if (done) return; done = true; URL.revokeObjectURL(u); res(d); };
+          a.preload = "metadata";
+          a.onloadedmetadata = () => finish(isFinite(a.duration) ? a.duration : 0);
+          a.onerror = () => finish(0);
+          setTimeout(() => finish(0), 8000);
+          a.src = u;
+        });
+        const D = await getDurViaElement(f);
+        const target = lipVideoDur || 10;
+        let part = f, note = "";
+        if (D > 0.5 && D > target + 0.5) {
+          const bytes = Math.min(f.size, Math.ceil(f.size * (target / D)) + 65536);
+          part = f.slice(0, bytes, f.type || "audio/wav");
+          note = ` — coupé aux ${Math.round(target)} premières s (sur ${fmtTime(D)}), calé sur la vidéo`;
+        } else if (D <= 0.5 && f.size > 4.5 * 1024 * 1024) {
+          part = f.slice(0, 4.5 * 1024 * 1024, f.type || "audio/wav");
+          note = " — début du fichier (~15-25 s)";
+        }
+        if (part.size > 4.8 * 1024 * 1024) part = part.slice(0, 4.5 * 1024 * 1024, part.type);
         lipAudioDataUrl = await readFileDataUrl(part);
-        nameEl.textContent = whole
-          ? `✓ ${f.name} — envoyé tel quel à Kling (durée ≤ 60 s exigée).`
-          : `✓ ${f.name} — début du fichier envoyé (~15-25 s). Pour choisir le passage (refrain…), exporte un extrait en WAV 16 bits ou MP3.`;
+        nameEl.textContent = `✓ ${f.name}${note}`;
       } catch (e2) {
-        // Diagnostic complet pour identifier le fichier
         let diag = "";
         try {
           const h = await readSlice(f, 0, 16);
@@ -748,13 +765,15 @@ async function runLipsync() {
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
     let pct = 8;
+    const t0 = Date.now();
+    const elapsed = () => { const s = Math.floor((Date.now() - t0) / 1000); return `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")} s`; };
     for (let i = 0; i < 200; i++) {
       await new Promise(r => setTimeout(r, 5000));
       const st = await fetch(statusUrl, { headers: { "Authorization": "Key " + key } });
       const sj = await st.json();
       pct = Math.min(pct + 1, 95);
-      if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"})… Ce modèle peut prendre 5 à 12 min, laisse l'app ouverte.`, pct);
-      else if (sj.status === "IN_PROGRESS") setLipStatus("Kling synchronise les lèvres… (5 à 12 min, laisse l'app ouverte)", pct);
+      if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"}) — ${elapsed()} écoulées. Normal jusqu'à 12 min, laisse l'app ouverte.`, pct);
+      else if (sj.status === "IN_PROGRESS") setLipStatus(`Kling synchronise les lèvres — ${elapsed()} écoulées (normal : 5 à 12 min). Laisse l'app ouverte, écran allumé.`, pct);
       else if (sj.status === "COMPLETED") break;
       if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le lip-sync a échoué côté Kling. Vérifie que la vidéo fait 2 à 10 s, puis réessaie.");
     }
