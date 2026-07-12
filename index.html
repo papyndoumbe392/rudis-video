@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v9 — audio universel blindé</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v10 — lecteur audio indestructible</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -425,64 +425,71 @@ function ext80(v, o) {
 
 async function parseWav(file) {
   try {
-    const head = await readSlice(file, 0, 12);
-    const magic = tag4(head, 0);
+    // UNE SEULE lecture du début du fichier (512 Ko) : tout s'analyse ensuite en mémoire.
+    const v = await readSlice(file, 0, Math.min(524288, file.size));
+    const n = v.byteLength;
+    if (n < 44) return null;
+    const magic = tag4(v, 0);
+
+    // Scan brut : cherche un marqueur de 4 octets n'importe où dans le tampon
+    const findTag = (s, from) => {
+      const a = [s.charCodeAt(0), s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3)];
+      for (let i = from; i < n - 8; i++) {
+        if (v.getUint8(i) === a[0] && v.getUint8(i + 1) === a[1] && v.getUint8(i + 2) === a[2] && v.getUint8(i + 3) === a[3]) return i;
+      }
+      return -1;
+    };
 
     // ——— WAV / RF64 (little-endian) ———
-    if ((magic === "RIFF" || magic === "RF64") && tag4(head, 8) === "WAVE") {
-      let off = 12, fmt = null, data = null, ds64Size = 0, guard = 0;
-      while (off + 8 <= file.size && guard++ < 256) {
-        const h = await readSlice(file, off, 8);
-        const id = tag4(h, 0);
-        const sz = h.getUint32(4, true);
-        if (id === "ds64") { const d = await readSlice(file, off + 8, 16); ds64Size = d.getUint32(8, true); }
-        if (id === "fmt ") {
-          const f = await readSlice(file, off + 8, 16);
-          fmt = { format: f.getUint16(0, true), ch: f.getUint16(2, true), rate: f.getUint32(4, true), bits: f.getUint16(14, true) };
-        }
-        if (id === "data") {
-          // Beaucoup d'exports studio « en flux » écrivent une taille fausse (0 ou FFFFFFFF) :
-          // on calcule alors la vraie taille depuis le fichier lui-même.
-          let ds = sz;
-          const invalid = (ds === 0 || ds === 0xFFFFFFFF || off + 8 + ds > file.size);
-          if (sz === 0xFFFFFFFF && ds64Size) ds = ds64Size;
-          else if (invalid) ds = file.size - (off + 8);
-          data = { off: off + 8, size: ds };
-          if (fmt || invalid) break;   // si la taille est fausse on ne peut pas sauter plus loin
-        }
+    if ((magic === "RIFF" || magic === "RF64") && tag4(v, 8) === "WAVE") {
+      let off = 12, fmt = null, dataOff = -1, dataSz = 0, ds64 = 0, guard = 0;
+      // 1) Marche des chunks (le chemin propre)
+      while (off + 8 <= n && guard++ < 512) {
+        const id = tag4(v, off), sz = v.getUint32(off + 4, true);
+        if (id === "ds64" && off + 24 <= n) ds64 = v.getUint32(off + 16, true);
+        if (id === "fmt " && off + 24 <= n) fmt = { format: v.getUint16(off + 8, true), ch: v.getUint16(off + 10, true), rate: v.getUint32(off + 12, true), bits: v.getUint16(off + 22, true) };
+        if (id === "data") { dataOff = off + 8; dataSz = sz; break; }
+        if (sz === 0 || sz > file.size) break;   // chaîne cassée → on passera au scan
         off += 8 + sz + (sz % 2);
       }
-      if (!fmt || !data || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      // 2) Secours : scan brut si la marche a échoué (chunks de métadonnées cassés, etc.)
+      if (!fmt) { const fi = findTag("fmt ", 12); if (fi >= 0 && fi + 24 <= n) fmt = { format: v.getUint16(fi + 8, true), ch: v.getUint16(fi + 10, true), rate: v.getUint32(fi + 12, true), bits: v.getUint16(fi + 22, true) }; }
+      if (dataOff < 0) { const di = findTag("data", 12); if (di >= 0) { dataOff = di + 8; dataSz = v.getUint32(di + 4, true); } }
+      if (!fmt || dataOff < 0 || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      // 3) Taille : ne jamais faire confiance à l'en-tête s'il ment
+      if (dataSz === 0xFFFFFFFF && ds64) dataSz = ds64;
+      if (dataSz === 0 || dataSz === 0xFFFFFFFF || dataOff + dataSz > file.size) dataSz = file.size - dataOff;
       const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits >= 32) || fmt.bits === 64;
       const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
-      return { kind: "WAV", file, fmt, dataOff: data.off, dataSize: data.size, le: true, isFloat, unsigned8: true, duration: data.size / byteRate };
+      return { kind: "WAV", file, fmt, dataOff, dataSize: dataSz, le: true, isFloat, unsigned8: true, duration: dataSz / byteRate };
     }
 
     // ——— AIFF / AIFC (big-endian, export studio classique) ———
-    if (magic === "FORM" && (tag4(head, 8) === "AIFF" || tag4(head, 8) === "AIFC")) {
-      let off = 12, fmt = null, data = null, comp = "NONE", guard = 0;
-      while (off + 8 <= file.size && guard++ < 128) {
-        const h = await readSlice(file, off, 8);
-        const id = tag4(h, 0), sz = h.getUint32(4, false);
-        if (id === "COMM") {
-          const c = await readSlice(file, off + 8, Math.min(sz, 22));
-          fmt = { ch: c.getUint16(0, false), frames: c.getUint32(2, false), bits: c.getUint16(6, false), rate: Math.round(ext80(c, 8)) };
-          if (sz >= 22) comp = tag4(c, 18);
+    if (magic === "FORM" && (tag4(v, 8) === "AIFF" || tag4(v, 8) === "AIFC")) {
+      let off = 12, fmt = null, dataOff = -1, dataSz = 0, comp = "NONE", guard = 0;
+      while (off + 8 <= n && guard++ < 512) {
+        const id = tag4(v, off), sz = v.getUint32(off + 4, false);
+        if (id === "COMM" && off + 26 <= n) {
+          fmt = { ch: v.getUint16(off + 8, false), bits: v.getUint16(off + 14, false), rate: Math.round(ext80(v, off + 16)) };
+          if (sz >= 22 && off + 30 <= n) comp = tag4(v, off + 26);
         }
-        if (id === "SSND") {
-          const s = await readSlice(file, off + 8, 8);
-          const dataStart = off + 16 + s.getUint32(0, false);
-          data = { off: dataStart, size: Math.min(sz - 8 - s.getUint32(0, false), file.size - dataStart) };
-          break;
+        if (id === "SSND" && off + 16 <= n) {
+          const o2 = v.getUint32(off + 8, false);
+          dataOff = off + 16 + o2; dataSz = sz - 8 - o2; break;
         }
+        if (sz === 0 || sz > file.size) break;
         off += 8 + sz + (sz % 2);
       }
-      if (!fmt || !data || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      if (!fmt) { const ci = findTag("COMM", 12); if (ci >= 0 && ci + 26 <= n) { fmt = { ch: v.getUint16(ci + 8, false), bits: v.getUint16(ci + 14, false), rate: Math.round(ext80(v, ci + 16)) }; const cz = v.getUint32(ci + 4, false); if (cz >= 22 && ci + 30 <= n) comp = tag4(v, ci + 26); } }
+      if (dataOff < 0) { const si = findTag("SSND", 12); if (si >= 0 && si + 16 <= n) { const o2 = v.getUint32(si + 8, false); dataOff = si + 16 + o2; dataSz = v.getUint32(si + 4, false) - 8 - o2; } }
+      if (!fmt || dataOff < 0 || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      if (dataSz <= 0 || dataOff + dataSz > file.size) dataSz = file.size - dataOff;
       const le = comp === "sowt";                       // AIFC little-endian
-      const isFloat = comp === "fl32" || comp === "FL32";
-      if (!["NONE", "sowt", "fl32", "FL32", "\u0000\u0000\u0000\u0000"].includes(comp) && comp.trim() !== "") return null; // compressé : non géré
+      const isFloat = /fl32/i.test(comp);
+      const compOk = ["NONE", "sowt", "fl32", "FL32"].includes(comp) || comp.trim() === "" || comp === "\u0000\u0000\u0000\u0000";
+      if (!compOk) return null; // compressé : non géré, le décodeur du téléphone prendra le relais
       const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
-      return { kind: "AIFF", file, fmt, dataOff: data.off, dataSize: data.size, le, isFloat, unsigned8: false, duration: data.size / byteRate };
+      return { kind: "AIFF", file, fmt, dataOff, dataSize: dataSz, le, isFloat, unsigned8: false, duration: dataSz / byteRate };
     }
 
     return null;
