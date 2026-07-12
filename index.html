@@ -143,6 +143,7 @@
       <button class="chip" id="lipImportBtn">📂 Importer une vidéo</button>
     </div>
     <div class="estimate" id="lipVideoName">Génère une vidéo ci-dessus, ou importe un MP4/MOV de 2–10 s (max 30 Mo).</div>
+    <video id="lipPreview" class="hidden" controls playsinline style="width:100%; border-radius:12px; margin-top:10px; background:#000;"></video>
     <input type="file" id="lipVideoInput" accept="video/*,.mp4,.mov,.m4v" class="hidden">
 
     <div class="label">Extrait audio de ta chanson (tous formats acceptés)</div>
@@ -164,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v4 — coupe audio auto</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v5 — aperçu vidéo + audio universel</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -381,6 +382,8 @@ function pickLipSource(which) {
     lipVideoDur = lastVideoDur;
     useLast.classList.add("on"); imp.classList.remove("on");
     document.getElementById("lipVideoName").textContent = `✓ Dernière vidéo générée (${lipVideoDur} s).`;
+    const pv = document.getElementById("lipPreview");
+    pv.src = lastVideoUrl; pv.classList.remove("hidden");
   }
   autoTrimIfNeeded();
   refreshLip();
@@ -466,6 +469,9 @@ function setupLipsync() {
     probe.onloadedmetadata = () => {
       lipVideoDur = Math.round(probe.duration * 10) / 10;
       const warn = (lipVideoDur < 2 || lipVideoDur > 10.5) ? " ⚠️ Kling exige 2 à 10 s !" : "";
+      // Aperçu immédiat de la vidéo importée
+      const pv = document.getElementById("lipPreview");
+      pv.src = probe.src; pv.classList.remove("hidden");
       const r = new FileReader();
       r.onload = () => {
         lipVideoSource = r.result;
@@ -503,9 +509,24 @@ function setupLipsync() {
         refreshLip();
       }
     } catch (err) {
-      lipAudioBuffer = null; lipAudioDataUrl = null;
-      document.getElementById("lipAudioName").textContent = "⚠️ Format audio illisible sur cet appareil — exporte en MP3, M4A ou WAV et réessaie.";
-      refreshLip();
+      // Plan B : l'iPhone ne sait pas décoder ce format, mais Kling accepte MP3/OGG/WAV/M4A/AAC directement
+      lipAudioBuffer = null;
+      document.getElementById("trimZone").classList.add("hidden");
+      if (f.size <= 4.8 * 1024 * 1024) {
+        const r = new FileReader();
+        r.onload = () => {
+          lipAudioDataUrl = r.result;
+          document.getElementById("lipAudioName").textContent =
+            `✓ ${f.name} — envoyé tel quel à Kling (coupe auto indisponible pour ce format : assure-toi qu'il dure ≤ 60 s).`;
+          refreshLip();
+        };
+        r.readAsDataURL(f);
+      } else {
+        lipAudioDataUrl = null;
+        document.getElementById("lipAudioName").textContent =
+          "⚠️ Format non décodable ET trop lourd (max 5 Mo). Exporte un extrait court en MP3, M4A ou WAV 16 bits, puis réessaie.";
+        refreshLip();
+      }
     }
   };
 
