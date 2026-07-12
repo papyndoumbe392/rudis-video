@@ -274,9 +274,10 @@ document.getElementById("go").onclick = async () => {
       <div class="card">
         <h2>🎬 Ta vidéo</h2>
         <video src="${videoUrl}" controls playsinline></video>
-        <button class="dl btn" id="saveBtn">📲 Enregistrer dans Photos</button>
+        <button class="dl btn" id="saveBtn">⏳ Préparation de l'enregistrement…</button>
         <div class="estimate" id="saveHint"></div>
       </div>`;
+    prepareVideoFile(videoUrl);
     document.getElementById("saveBtn").onclick = () => saveVideo(videoUrl);
   } catch (err) {
     setStatus("<span class='err'>✗ " + err.message + "</span>", 0);
@@ -287,32 +288,45 @@ document.getElementById("go").onclick = async () => {
 };
 
 // ——— Enregistrer la vidéo (partage natif iOS/Android) ———
-async function saveVideo(url) {
+let videoFile = null;
+
+async function prepareVideoFile(url) {
   const btn = document.getElementById("saveBtn");
-  const hint = document.getElementById("saveHint");
-  btn.textContent = "⏳ Préparation…";
   try {
     const resp = await fetch(url);
     const blob = await resp.blob();
-    const file = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file] });
-      hint.textContent = "Dans le menu qui s'ouvre, touche « Enregistrer la vidéo » pour la mettre dans Photos.";
-    } else {
-      // Repli : téléchargement classique
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "rudis-video.mp4";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      hint.textContent = "Vidéo téléchargée dans tes Fichiers.";
-    }
+    videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
+    if (btn) btn.textContent = "📲 Enregistrer dans Photos";
   } catch (e) {
-    hint.textContent = "Astuce : lis la vidéo ci-dessus en plein écran, puis appui long → Enregistrer la vidéo.";
-  } finally {
-    btn.textContent = "📲 Enregistrer dans Photos";
+    videoFile = null;
+    if (btn) btn.textContent = "🔗 Ouvrir la vidéo pour l'enregistrer";
   }
+}
+
+async function saveVideo(url) {
+  const hint = document.getElementById("saveHint");
+  // Cas 1 : fichier prêt → menu de partage iOS immédiat
+  if (videoFile && navigator.canShare && navigator.canShare({ files: [videoFile] })) {
+    try {
+      await navigator.share({ files: [videoFile] });
+      hint.textContent = "Dans le menu : touche « Enregistrer la vidéo » → elle va dans Photos.";
+    } catch (e) { /* l'utilisateur a fermé le menu, rien à faire */ }
+    return;
+  }
+  // Cas 2 : fichier prêt mais partage indisponible → téléchargement direct
+  if (videoFile) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(videoFile);
+    a.download = "rudis-video.mp4";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    hint.textContent = "Vidéo téléchargée — retrouve-la dans Fichiers → Téléchargements.";
+    return;
+  }
+  // Cas 3 : pas encore prêt → ouvrir la vidéo dans un onglet (Partager → Enregistrer la vidéo)
+  hint.textContent = "Sur la page qui s'ouvre : bouton Partager (carré + flèche ↑) → « Enregistrer la vidéo ».";
+  window.open(url, "_blank");
 }
 
 refresh();
