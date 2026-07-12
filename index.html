@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v7 — analyse audio garantie</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v8 — WAV + AIFF studio</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -405,42 +405,96 @@ function getAudioDur() {
   return 0;
 }
 
-// — Lecteur WAV professionnel : lit l'en-tête RIFF (16/24/32 bits int, 32 bits float, BWF de studio) —
+// — Lecteur audio studio universel : WAV, RF64, AIFF/AIFC (8/16/24/32 bits, int/float, LE/BE) —
+function readSlice(file, off, len) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(new DataView(r.result));
+    r.onerror = () => rej(new Error("lecture impossible"));
+    r.readAsArrayBuffer(file.slice(off, Math.min(off + len, file.size)));
+  });
+}
+const tag4 = (v, o) => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
+
+// Nombre flottant 80 bits (sample rate AIFF)
+function ext80(v, o) {
+  const exp = v.getUint16(o, false) & 0x7FFF;
+  const hi = v.getUint32(o + 2, false), lo = v.getUint32(o + 6, false);
+  return (hi * 4294967296 + lo) * Math.pow(2, exp - 16383 - 63);
+}
+
 async function parseWav(file) {
-  const dv = async (off, len) => new DataView(await file.slice(off, off + len).arrayBuffer());
-  const tag = (v, o) => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
   try {
-    const head = await dv(0, 12);
-    if (tag(head, 0) !== "RIFF" || tag(head, 8) !== "WAVE") return null;
-    let off = 12, fmt = null, data = null, guard = 0;
-    while (off + 8 <= file.size && guard++ < 64) {
-      const h = await dv(off, 8);
-      const id = tag(h, 0), sz = h.getUint32(4, true);
-      if (id === "fmt ") {
-        const f = await dv(off + 8, Math.min(sz, 16));
-        fmt = { format: f.getUint16(0, true), ch: f.getUint16(2, true), rate: f.getUint32(4, true), bits: f.getUint16(14, true) };
+    const head = await readSlice(file, 0, 12);
+    const magic = tag4(head, 0);
+
+    // ——— WAV / RF64 (little-endian) ———
+    if ((magic === "RIFF" || magic === "RF64") && tag4(head, 8) === "WAVE") {
+      let off = 12, fmt = null, data = null, ds64Size = 0, guard = 0;
+      while (off + 8 <= file.size && guard++ < 128) {
+        const h = await readSlice(file, off, 8);
+        const id = tag4(h, 0);
+        let sz = h.getUint32(4, true);
+        if (id === "ds64") { const d = await readSlice(file, off + 8, 16); ds64Size = d.getUint32(8, true); }
+        if (id === "fmt ") {
+          const f = await readSlice(file, off + 8, 16);
+          fmt = { format: f.getUint16(0, true), ch: f.getUint16(2, true), rate: f.getUint32(4, true), bits: f.getUint16(14, true) };
+        }
+        if (id === "data") {
+          if (sz === 0xFFFFFFFF && ds64Size) sz = ds64Size;
+          data = { off: off + 8, size: Math.min(sz, file.size - off - 8) };
+          break;
+        }
+        off += 8 + sz + (sz % 2);
       }
-      if (id === "data") { data = { off: off + 8, size: Math.min(sz, file.size - off - 8) }; break; }
-      off += 8 + sz + (sz % 2);
+      if (!fmt || !data || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits === 32);
+      const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
+      return { kind: "WAV", file, fmt, dataOff: data.off, dataSize: data.size, le: true, isFloat, unsigned8: true, duration: data.size / byteRate };
     }
-    if (!fmt || !data || !fmt.rate || !fmt.ch) return null;
-    const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
-    return { file, fmt, data, duration: data.size / byteRate };
+
+    // ——— AIFF / AIFC (big-endian, export studio classique) ———
+    if (magic === "FORM" && (tag4(head, 8) === "AIFF" || tag4(head, 8) === "AIFC")) {
+      let off = 12, fmt = null, data = null, comp = "NONE", guard = 0;
+      while (off + 8 <= file.size && guard++ < 128) {
+        const h = await readSlice(file, off, 8);
+        const id = tag4(h, 0), sz = h.getUint32(4, false);
+        if (id === "COMM") {
+          const c = await readSlice(file, off + 8, Math.min(sz, 22));
+          fmt = { ch: c.getUint16(0, false), frames: c.getUint32(2, false), bits: c.getUint16(6, false), rate: Math.round(ext80(c, 8)) };
+          if (sz >= 22) comp = tag4(c, 18);
+        }
+        if (id === "SSND") {
+          const s = await readSlice(file, off + 8, 8);
+          const dataStart = off + 16 + s.getUint32(0, false);
+          data = { off: dataStart, size: Math.min(sz - 8 - s.getUint32(0, false), file.size - dataStart) };
+          break;
+        }
+        off += 8 + sz + (sz % 2);
+      }
+      if (!fmt || !data || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      const le = comp === "sowt";                       // AIFC little-endian
+      const isFloat = comp === "fl32" || comp === "FL32";
+      if (!["NONE", "sowt", "fl32", "FL32", "\u0000\u0000\u0000\u0000"].includes(comp) && comp.trim() !== "") return null; // compressé : non géré
+      const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
+      return { kind: "AIFF", file, fmt, dataOff: data.off, dataSize: data.size, le, isFloat, unsigned8: false, duration: data.size / byteRate };
+    }
+
+    return null;
   } catch (e) { return null; }
 }
 
-// — Extrait [start → start+dur] d'un WAV pro, converti en WAV 16 bits stéréo max, sans charger tout le fichier —
+// — Extrait [start → start+dur], converti en WAV 16 bits stéréo max, sans charger tout le fichier —
 async function wavExtractDataUrl(meta, startSec, durSec) {
-  const { file, fmt, data } = meta;
+  const { file, fmt } = meta;
   const block = fmt.ch * fmt.bits / 8;
   let startFrame = Math.floor(startSec * fmt.rate);
   let frames = Math.floor(durSec * fmt.rate);
-  const maxFrames = Math.floor(data.size / block);
+  const maxFrames = Math.floor(meta.dataSize / block);
   startFrame = Math.max(0, Math.min(startFrame, maxFrames));
   frames = Math.max(0, Math.min(frames, maxFrames - startFrame));
-  const startByte = data.off + startFrame * block;
-  const ab = await file.slice(startByte, startByte + frames * block).arrayBuffer();
-  const src = new DataView(ab);
+  const startByte = meta.dataOff + startFrame * block;
+  const src = await readSlice(file, startByte, frames * block);
   const outCh = Math.min(2, fmt.ch);
   const out = new ArrayBuffer(44 + frames * outCh * 2);
   const v = new DataView(out);
@@ -450,18 +504,20 @@ async function wavExtractDataUrl(meta, startSec, durSec) {
   v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, outCh, true);
   v.setUint32(24, fmt.rate, true); v.setUint32(28, fmt.rate * outCh * 2, true);
   v.setUint16(32, outCh * 2, true); v.setUint16(34, 16, true); wStr(36, "data"); v.setUint32(40, dlen, true);
-  const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits === 32);
+  const le = meta.le;
   let o = 44;
   for (let i = 0; i < frames; i++) {
     for (let c = 0; c < outCh; c++) {
       const p = (i * fmt.ch + c) * (fmt.bits / 8);
       let s = 0;
-      if (fmt.bits === 16) s = src.getInt16(p, true) / 0x8000;
+      if (fmt.bits === 16) s = src.getInt16(p, le) / 0x8000;
       else if (fmt.bits === 24) {
-        const b = (src.getUint8(p)) | (src.getUint8(p + 1) << 8) | (src.getUint8(p + 2) << 16);
+        const b0 = src.getUint8(p), b1 = src.getUint8(p + 1), b2 = src.getUint8(p + 2);
+        const b = le ? (b0 | (b1 << 8) | (b2 << 16)) : (b2 | (b1 << 8) | (b0 << 16));
         s = (b > 0x7FFFFF ? b - 0x1000000 : b) / 0x800000;
-      } else if (fmt.bits === 32) s = isFloat ? src.getFloat32(p, true) : src.getInt32(p, true) / 0x80000000;
-      else if (fmt.bits === 8) s = (src.getUint8(p) - 128) / 128;
+      }
+      else if (fmt.bits === 32) s = meta.isFloat ? src.getFloat32(p, le) : src.getInt32(p, le) / 0x80000000;
+      else if (fmt.bits === 8) s = meta.unsigned8 ? (src.getUint8(p) - 128) / 128 : src.getInt8(p) / 128;
       s = Math.max(-1, Math.min(1, s));
       v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); o += 2;
     }
@@ -604,7 +660,7 @@ function setupLipsync() {
       const meta = await parseWav(f);
       if (meta && meta.duration > 0.5) {
         lipWavMeta = meta;
-        nameEl.textContent = `✓ ${f.name} — ${fmtTime(meta.duration)} (WAV ${meta.fmt.bits} bits)`;
+        nameEl.textContent = `✓ ${f.name} — ${fmtTime(meta.duration)} (${meta.kind} ${meta.fmt.bits} bits)`;
         maybePrepareAudio();
         return;
       }
@@ -633,7 +689,9 @@ function setupLipsync() {
           nameEl.textContent = "⚠️ Impossible de lire ce fichier. Copie-le d'abord dans « Sur mon iPhone » puis réessaie.";
         }
       } else {
-        nameEl.textContent = "⚠️ Format non pris en charge et trop lourd. Exporte en WAV, MP3 ou M4A puis réessaie.";
+        let hdr = "";
+        try { const h = await readSlice(f, 0, 4); hdr = ` (en-tête « ${tag4(h, 0)} »)`; } catch (_) {}
+        nameEl.textContent = `⚠️ Format non pris en charge${hdr}. Envoie-moi ce message à Claude — ou exporte en WAV/MP3/M4A et réessaie.`;
       }
     } finally {
       refreshLip();
