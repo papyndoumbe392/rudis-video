@@ -270,15 +270,27 @@ document.getElementById("go").onclick = async () => {
     if (!videoUrl) throw new Error("Vidéo introuvable dans la réponse. Réessaie.");
 
     setStatus("<span class='okc'>✓ Vidéo générée !</span>", 100);
+    lastVideoUrl = videoUrl;
     document.getElementById("resultZone").innerHTML = `
       <div class="card">
         <h2>🎬 Ta vidéo</h2>
         <video src="${videoUrl}" controls playsinline></video>
         <button class="dl btn" id="saveBtn">⏳ Préparation de l'enregistrement…</button>
         <div class="estimate" id="saveHint"></div>
+      </div>
+      <div class="card">
+        <h2>🎤 Lip-sync — fais-la chanter</h2>
+        <div class="sub" style="margin:0 0 10px;">Ajoute un extrait de ta chanson (même durée que la vidéo, max 5 Mo — MP3/M4A/WAV). Kling synchronise les lèvres. Coût : ≈ 0,03 $.</div>
+        <button class="btn" id="lipAudioBtn">Choisir l'extrait audio</button>
+        <span class="estimate" id="lipAudioName" style="margin-left:8px;"></span>
+        <input type="file" id="lipAudioInput" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg" class="hidden">
+        <button class="master" id="lipGo" style="display:none; margin-top:14px;">🎤 Synchroniser les lèvres (≈ 0,03 $)</button>
+        <div class="status" id="lipStatus" style="margin-top:12px;"><div id="lipStatusText"></div><div class="bar"><div class="fill" id="lipFill"></div></div></div>
+        <div id="lipResult"></div>
       </div>`;
     prepareVideoFile(videoUrl);
     document.getElementById("saveBtn").onclick = () => saveVideo(videoUrl);
+    setupLipsync();
   } catch (err) {
     setStatus("<span class='err'>✗ " + err.message + "</span>", 0);
   } finally {
@@ -327,6 +339,83 @@ async function saveVideo(url) {
   // Cas 3 : pas encore prêt → ouvrir la vidéo dans un onglet (Partager → Enregistrer la vidéo)
   hint.textContent = "Sur la page qui s'ouvre : bouton Partager (carré + flèche ↑) → « Enregistrer la vidéo ».";
   window.open(url, "_blank");
+}
+
+// ——— Lip-sync (Kling LipSync : vidéo générée + audio → lèvres synchronisées) ———
+let lastVideoUrl = null;
+let lipAudioDataUrl = null;
+
+function setupLipsync() {
+  const input = document.getElementById("lipAudioInput");
+  document.getElementById("lipAudioBtn").onclick = () => input.click();
+  input.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 4.8 * 1024 * 1024) {
+      document.getElementById("lipAudioName").textContent = "⚠️ Fichier trop lourd (max 5 Mo) — exporte un extrait court en M4A/MP3.";
+      return;
+    }
+    const r = new FileReader();
+    r.onload = () => {
+      lipAudioDataUrl = r.result;
+      document.getElementById("lipAudioName").textContent = "✓ " + f.name;
+      document.getElementById("lipGo").style.display = "block";
+    };
+    r.readAsDataURL(f);
+  };
+  document.getElementById("lipGo").onclick = runLipsync;
+}
+
+function setLipStatus(html, pct) {
+  document.getElementById("lipStatus").classList.add("show");
+  document.getElementById("lipStatusText").innerHTML = html;
+  if (pct !== undefined) document.getElementById("lipFill").style.width = pct + "%";
+}
+
+async function runLipsync() {
+  const key = localStorage.getItem("falKey") || document.getElementById("falKey").value.trim();
+  const path = "fal-ai/kling-video/lipsync/audio-to-video";
+  document.getElementById("lipGo").disabled = true;
+  setLipStatus("Envoi de la vidéo et de l'audio…", 5);
+  try {
+    const submit = await fetch(`https://queue.fal.run/${path}`, {
+      method: "POST",
+      headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
+      body: JSON.stringify({ video_url: lastVideoUrl, audio_url: lipAudioDataUrl }),
+    });
+    if (!submit.ok) throw new Error("Envoi refusé (" + submit.status + "). " + (await submit.text()).slice(0, 140));
+    const job = await submit.json();
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    let pct = 8;
+    for (let i = 0; i < 200; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const st = await fetch(statusUrl, { headers: { "Authorization": "Key " + key } });
+      const sj = await st.json();
+      pct = Math.min(pct + 1, 95);
+      if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"})… Ce modèle peut prendre 5 à 12 min, laisse l'app ouverte.`, pct);
+      else if (sj.status === "IN_PROGRESS") setLipStatus("Kling synchronise les lèvres… (5 à 12 min, laisse l'app ouverte)", pct);
+      else if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le lip-sync a échoué côté Kling. Réessaie.");
+    }
+    const resp = await fetch(responseUrl, { headers: { "Authorization": "Key " + key } });
+    const data = await resp.json();
+    const outUrl = data.video?.url || data.response?.video?.url;
+    if (!outUrl) throw new Error("Vidéo introuvable dans la réponse.");
+    setLipStatus("<span class='okc'>✓ Lip-sync terminé !</span>", 100);
+    lastVideoUrl = outUrl;
+    videoFile = null;
+    prepareVideoFile(outUrl);
+    document.getElementById("lipResult").innerHTML = `
+      <video src="${outUrl}" controls playsinline style="margin-top:14px;"></video>
+      <button class="dl btn" id="lipSaveBtn">📲 Enregistrer dans Photos</button>
+      <div class="estimate" id="saveHint2"></div>`;
+    document.getElementById("lipSaveBtn").onclick = () => saveVideo(outUrl);
+  } catch (err) {
+    setLipStatus("<span class='err'>✗ " + err.message + "</span>", 0);
+  } finally {
+    document.getElementById("lipGo").disabled = false;
+  }
 }
 
 refresh();
