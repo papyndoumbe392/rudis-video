@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StarClip Studio — Le Guide en BD</title>
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg:#100D16; --panel:#1A1523; --up:#241D30; --line:#352B45;
+    --gold:#F2B33D; --violet:#8B6CF2; --text:#EFEAF7; --dim:#9C92AE; --ok:#5DD9A0;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
+    background-image:radial-gradient(ellipse 70% 40% at 50% -5%, rgba(139,108,242,.18), transparent);
+  }
+  .wrap { max-width:640px; margin:0 auto; padding:32px 16px 60px; }
+  .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; text-align:center; }
+  h1 { font-size:clamp(28px,7vw,40px); text-align:center; line-height:1.15; }
+  h1 span { color:var(--gold); }
+  .intro { text-align:center; color:var(--dim); font-size:15px; margin-top:10px; line-height:1.6; }
+
+  /* Mascotte + bulle */
+  .stella { display:flex; gap:12px; align-items:flex-start; margin:26px 0 8px; }
+  .stella .star { font-size:44px; flex-shrink:0; filter:drop-shadow(0 0 10px rgba(242,179,61,.6)); }
+  .bubble {
+    background:var(--gold); color:#1A1204; border-radius:16px; padding:12px 16px;
+    font-size:15px; font-weight:600; line-height:1.5; position:relative;
+  }
+  .bubble::before {
+    content:""; position:absolute; left:-8px; top:16px;
+    border:8px solid transparent; border-right-color:var(--gold); border-left:0;
+  }
+
+  /* Cases de BD */
+  .panel {
+    background:var(--panel); border:2px solid var(--line); border-radius:18px;
+    padding:20px 18px; margin-top:18px; position:relative; overflow:hidden;
+  }
+  .panel.gold { border-color:var(--gold); }
+  .num {
+    position:absolute; top:-2px; left:-2px;
+    width:46px; height:46px; border-radius:0 0 18px 0;
+    background:var(--gold); color:#1A1204;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; font-weight:800;
+  }
+  .scene { font-size:56px; text-align:center; margin:10px 0 14px; letter-spacing:6px; }
+  .panel h2 { font-size:19px; text-align:center; margin-bottom:8px; }
+  .panel p { font-size:15px; color:var(--dim); line-height:1.65; text-align:center; }
+  .panel p b { color:var(--text); }
+  .tip {
+    margin-top:12px; background:var(--up); border-left:3px solid var(--violet);
+    border-radius:8px; padding:10px 12px; font-size:13.5px; color:var(--dim); line-height:1.55;
+  }
+  .tip b { color:var(--violet); }
+  .price { display:inline-block; margin-top:10px; background:rgba(93,217,160,.12);
+    border:1px solid var(--ok); color:var(--ok); border-radius:999px;
+    padding:4px 14px; font-size:13px; font-weight:600; }
+
+  .divider { text-align:center; font-size:24px; margin:26px 0 6px; letter-spacing:10px; opacity:.5; }
+  .grown { background:var(--up); border-radius:14px; padding:16px; margin-top:18px; font-size:13.5px; color:var(--dim); line-height:1.7; }
+  .grown b { color:var(--gold); }
+  .back {
+    display:block; text-align:center; margin-top:30px; padding:15px;
+    background:linear-gradient(135deg, var(--gold), #E08E2B); color:#1A1204;
+    border-radius:12px; font-weight:800; font-size:16px; text-decoration:none;
+  }
+  footer { margin-top:30px; text-align:center; font-size:12px; color:var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Studio Rudis · Douala</div>
+  <h1>Star<span>Clip</span> Studio<br>📖 Le Guide en BD</h1>
+  <p class="intro">Deviens la star de ton propre clip vidéo en 6 étapes.<br>Si tu sais prendre une photo, tu sais tout faire ! ✨</p>
+
+  <div class="stella">
+    <div class="star">🌟</div>
+    <div class="bubble">Salut ! Moi c'est Stella, l'étoile du studio. Suis-moi, je te montre tout — c'est facile comme bonjour !</div>
+  </div>
+
+  <!-- CASE 1 -->
+  <div class="panel">
+    <div class="num">1</div>
+    <div class="scene">🤳 ➜ 😃</div>
+    <h2>Mets ta plus belle photo</h2>
+    <p>Touche <b>« Choisir une photo »</b>.<br>Choisis une photo où on voit <b>bien ton visage</b>, de face, avec de la lumière — comme pour une photo de classe !</p>
+    <div class="tip"><b>Astuce de Stella :</b> pas de main devant la bouche, pas de casquette qui cache les yeux. Ton visage, c'est la star ! 🌟</div>
+  </div>
+
+  <!-- CASE 2 -->
+  <div class="panel">
+    <div class="num">2</div>
+    <div class="scene">👔 ✨ 👑</div>
+    <h2>Change de costume (si tu veux !)</h2>
+    <p>Tenue royale <b>Toghu</b>, style <b>Afrobeats</b>, <b>smoking</b> de star ou pagne wax…<br>Touche une tenue puis <b>« Transformer »</b> — tes habits changent, mais <b>ton visage reste le tien</b> !</p>
+    <span class="price">≈ 25 FCFA la transformation</span>
+    <div class="tip"><b>Magie :</b> tu peux même écrire ta propre tenue, comme « maillot des Lions Indomptables » ⚽</div>
+  </div>
+
+  <!-- CASE 3 -->
+  <div class="panel">
+    <div class="num">3</div>
+    <div class="scene">💭 ➜ 📝</div>
+    <h2>Raconte ton rêve à l'assistant</h2>
+    <p>Écris ton idée <b>en français, avec tes mots</b> :<br><i>« je chante sur la plage au coucher du soleil »</i><br>Touche <b>« ✨ Écrire mon scénario professionnel »</b> — l'assistant transforme ton idée en scénario de réalisateur !</p>
+    <div class="tip"><b>Stella dit :</b> plage, concert, fusée, jungle, château… Tout est possible. C'est TON clip ! 🚀</div>
+  </div>
+
+  <!-- CASE 4 -->
+  <div class="panel gold">
+    <div class="num">4</div>
+    <div class="scene">🎬 ⏳ 🍿</div>
+    <h2>Appuie sur le grand bouton doré !</h2>
+    <p>Choisis <b>5 ou 10 secondes</b>, puis touche <b>« Générer la vidéo »</b>.<br>Le studio travaille pendant <b>1 à 3 minutes</b> — le temps d'un dessin animé très court. Et là… <b>tu apparais dans ta vidéo !</b></p>
+    <span class="price">≈ 170 à 650 FCFA la vidéo</span>
+  </div>
+
+  <!-- CASE 5 -->
+  <div class="panel">
+    <div class="num">5</div>
+    <div class="scene">🎵 ➕ 🎬 = 🎤</div>
+    <h2>Fais-toi chanter ta chanson</h2>
+    <p>Descends au volet <b>« Lip-sync »</b>.<br>Ta vidéo est déjà choisie ✓ — ajoute ta <b>chanson</b> (l'app la coupe toute seule à la bonne longueur !) puis touche <b>« 🎤 Synchroniser les lèvres »</b>.</p>
+    <p style="margin-top:8px;">⏳ C'est l'étape la plus longue : <b>5 à 12 minutes</b>. Laisse l'écran allumé et va boire un jus — Stella surveille le chrono pour toi.</p>
+    <span class="price">≈ 20 FCFA</span>
+  </div>
+
+  <!-- CASE 6 -->
+  <div class="panel">
+    <div class="num">6</div>
+    <div class="scene">✂️ 📲 🏆</div>
+    <h2>Coupe la fin et garde ton chef-d'œuvre</h2>
+    <p>Si la vidéo continue après la fin du chant, touche <b>« ✂️ Couper »</b> — le bon moment est déjà écrit dans la case.<br>Puis touche <b>« 📲 Enregistrer dans Photos »</b> → <b>« Enregistrer la vidéo »</b>.</p>
+    <div class="tip"><b>Et voilà !</b> Ta vidéo est dans tes Photos, prête pour WhatsApp, TikTok ou le concert de famille 🎉</div>
+  </div>
+
+  <div class="stella">
+    <div class="star">🌟</div>
+    <div class="bubble">Bravo, tu es officiellement une star de clip ! Recommence avec d'autres tenues et d'autres décors — chaque vidéo est une nouvelle aventure.</div>
+  </div>
+
+  <!-- CASE 7 : PAYER -->
+  <div class="panel gold">
+    <div class="num">💰</div>
+    <div class="scene">📱 ➜ 💬 ➜ 🎬</div>
+    <h2>Comment payer ? (pour les grands)</h2>
+    <p>Pas de carte bancaire ? Pas de problème !<br>Paie avec le téléphone, comme au marché :</p>
+    <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:2; margin-top:10px; text-align:left;">
+      <b>NDOUMBE EPOUPA Pierre</b> — Studio Rudis<br>
+      🟠 Orange Money : <b>695 535 475</b><br>
+      🟡 MTN Mobile Money : <b>653 072 700</b>
+    </div>
+    <p style="margin-top:10px;">1️⃣ Envoie le montant · 2️⃣ Envoie la capture + ta photo + ta chanson sur <b>WhatsApp</b> · 3️⃣ Reçois ta vidéo de star ⚡</p>
+    <a href="https://wa.me/237695535475?text=Bonjour%20Studio%20Rudis%20!%20Je%20veux%20ma%20vid%C3%A9o%20StarClip." 
+       style="display:block; text-align:center; margin-top:12px; padding:12px; border-radius:10px; background:#25D366; color:#06300f; font-weight:800; font-size:15px; text-decoration:none;">
+      💬 Commander sur WhatsApp
+    </a>
+    <div class="tip" style="margin-top:12px;"><b>Tarifs :</b> vidéo 5 s → 1 000 F · vidéo 10 s → 1 500 F · vidéo chantée → 2 500 F · tenue → +500 F · clip complet → 10 000 F</div>
+  </div>
+
+  <div class="divider">· · ·</div>
+
+  <!-- Coin des grands -->
+  <div class="grown">
+    <b>ℹ️ Le coin des grands :</b> chaque création est débitée du crédit du studio (paiement à l'usage, aucun abonnement). Prix indicatifs : vidéo 5 s ≈ 0,28 $ (Éco) · vidéo Pro ≈ 0,14 $/s · lip-sync ≈ 0,03 $ · changement de tenue ≈ 0,04 $ · coupe ≈ 0,01 $. Les vidéos de 2 à 10 secondes fonctionnent pour le lip-sync. Pour un clip complet, créez plusieurs segments et assemblez-les dans une app de montage (CapCut) avec l'audio original. Paiement : Orange Money 695 535 475 / MTN MoMo 653 072 700 (NDOUMBE EPOUPA Pierre) — envoyez la preuve sur WhatsApp. Service fourni par Studio Rudis, Douala.
+  </div>
+
+  <a class="back" href="index.html">🎬 Ouvrir StarClip Studio</a>
+  <footer>StarClip Studio · par Studio Rudis · Douala 🇨🇲</footer>
+</div>
+</body>
+</html>

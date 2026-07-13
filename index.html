@@ -80,6 +80,7 @@
     <div class="eyebrow">Studio Rudis · Douala</div>
     <h1>Star<span>Clip</span> Studio</h1>
     <p class="sub">Ta photo + ta chanson → ton clip vidéo professionnel, créé par l'intelligence artificielle du studio. Chante, danse, change de tenue — deviens la star de ton clip. ✨</p>
+    <a href="guide.html" style="display:inline-block; margin-top:12px; padding:8px 16px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); text-decoration:none; font-size:13px; font-weight:600;">📖 Guide en BD — pour petits et grands</a>
   </header>
 
   <!-- RÉGLAGES / CLÉ -->
@@ -184,8 +185,40 @@
     <div id="lipResult"></div>
   </section>
 
+  <!-- PAIEMENT MOBILE -->
+  <section class="card" style="border-color:var(--gold);">
+    <h2><span class="num" style="background:var(--gold); color:#1A1204;">💰</span> Commander ta vidéo — paiement mobile</h2>
+    <p class="sub" style="margin:0 0 12px;">Pas besoin de carte bancaire : paie par Orange Money ou MTN Mobile Money, envoie ta photo et ta chanson sur WhatsApp, et reçois ta vidéo de star !</p>
+
+    <div class="label" style="margin-top:0;">Tarifs</div>
+    <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:2;">
+      🎬 Vidéo de star (5 s) — <b style="color:var(--gold);">1 000 FCFA</b><br>
+      🎬 Vidéo de star (10 s) — <b style="color:var(--gold);">1 500 FCFA</b><br>
+      🎤 Vidéo chantée (lip-sync) — <b style="color:var(--gold);">2 500 FCFA</b><br>
+      👔 Changement de tenue — <b style="color:var(--gold);">+ 500 FCFA</b><br>
+      🏆 Clip complet (montage 5 segments) — <b style="color:var(--gold);">10 000 FCFA</b>
+    </div>
+
+    <div class="label">Étape 1 — Envoie le montant à</div>
+    <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:1.9;">
+      <b>NDOUMBE EPOUPA Pierre</b><br>
+      🟠 Orange Money : <b id="omNum">695 535 475</b>
+      <button class="btn small" onclick="copyNum('695535475', this)">Copier</button><br>
+      🟡 MTN Mobile Money : <b id="momoNum">653 072 700</b>
+      <button class="btn small" onclick="copyNum('653072700', this)">Copier</button>
+    </div>
+
+    <div class="label">Étape 2 — Envoie sur WhatsApp</div>
+    <p class="sub" style="margin:6px 0 10px;">Ta capture du paiement + ta photo + ta chanson + ton idée de clip.</p>
+    <a href="https://wa.me/237695535475?text=Bonjour%20Studio%20Rudis%20!%20Je%20viens%20de%20payer%20pour%20ma%20vid%C3%A9o%20StarClip.%20Voici%20ma%20preuve%20de%20paiement%2C%20ma%20photo%20et%20ma%20chanson." 
+       style="display:block; text-align:center; padding:13px; border-radius:10px; background:#25D366; color:#06300f; font-weight:800; font-size:15px; text-decoration:none;">
+      💬 Commander sur WhatsApp
+    </a>
+    <div class="estimate" style="margin-top:10px;">Étape 3 — Reçois ta vidéo sur WhatsApp, généralement en moins d'une heure ⚡ (Bientôt : paiement automatique intégré.)</div>
+  </section>
+
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v17 — assistant magique</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v19 — paiement mobile</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -264,6 +297,15 @@ function refresh() {
   go.textContent = go.disabled ? "Complète les étapes pour générer" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
 }
 document.getElementById("prompt").addEventListener("input", refresh);
+
+// ——— Copier un numéro de paiement ———
+function copyNum(num, btn) {
+  const ta = document.createElement("textarea");
+  ta.value = num; document.body.appendChild(ta); ta.select();
+  document.execCommand("copy"); ta.remove();
+  const t = btn.textContent; btn.textContent = "Copié ✓";
+  setTimeout(() => btn.textContent = t, 1500);
+}
 
 // ——— Assistant magique : idée en français → prompt professionnel ———
 document.getElementById("ideaGo").onclick = async () => {
