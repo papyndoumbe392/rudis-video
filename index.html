@@ -165,7 +165,7 @@
   </section>
 
   <footer>
-    Rudis Video Studio <b style="color:var(--gold)">v12 — coupe auto même en secours</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
+    Rudis Video Studio <b style="color:var(--gold)">v13 — testé sur ton fichier</b> · La génération tourne sur les serveurs Kling via fal.ai — chaque vidéo est débitée de ton crédit fal.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -414,6 +414,18 @@ function readSlice(file, off, len) {
     r.readAsArrayBuffer(file.slice(off, Math.min(off + len, file.size)));
   });
 }
+const readFileBuffer = (file) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(r.result);
+  r.onerror = () => rej(new Error("lecture impossible"));
+  r.readAsArrayBuffer(file);
+});
+const readFileDataUrl = (file) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(r.result);
+  r.onerror = () => rej(new Error("lecture impossible"));
+  r.readAsDataURL(file);
+});
 const tag4 = (v, o) => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
 
 // Nombre flottant 80 bits (sample rate AIFF)
@@ -423,15 +435,11 @@ function ext80(v, o) {
   return (hi * 4294967296 + lo) * Math.pow(2, exp - 16383 - 63);
 }
 
-async function parseWav(file) {
+function parseWavCore(v, fileSize) {
   try {
-    // UNE SEULE lecture du début du fichier (512 Ko) : tout s'analyse ensuite en mémoire.
-    const v = await readSlice(file, 0, Math.min(524288, file.size));
     const n = v.byteLength;
     if (n < 44) return null;
     const magic = tag4(v, 0);
-
-    // Scan brut : cherche un marqueur de 4 octets n'importe où dans le tampon
     const findTag = (s, from) => {
       const a = [s.charCodeAt(0), s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3)];
       for (let i = from; i < n - 8; i++) {
@@ -440,31 +448,26 @@ async function parseWav(file) {
       return -1;
     };
 
-    // ——— WAV / RF64 (little-endian) ———
     if ((magic === "RIFF" || magic === "RF64") && tag4(v, 8) === "WAVE") {
       let off = 12, fmt = null, dataOff = -1, dataSz = 0, ds64 = 0, guard = 0;
-      // 1) Marche des chunks (le chemin propre)
       while (off + 8 <= n && guard++ < 512) {
         const id = tag4(v, off), sz = v.getUint32(off + 4, true);
         if (id === "ds64" && off + 24 <= n) ds64 = v.getUint32(off + 16, true);
         if (id === "fmt " && off + 24 <= n) fmt = { format: v.getUint16(off + 8, true), ch: v.getUint16(off + 10, true), rate: v.getUint32(off + 12, true), bits: v.getUint16(off + 22, true) };
         if (id === "data") { dataOff = off + 8; dataSz = sz; break; }
-        if (sz === 0 || sz > file.size) break;   // chaîne cassée → on passera au scan
+        if (sz === 0 || sz > fileSize) break;
         off += 8 + sz + (sz % 2);
       }
-      // 2) Secours : scan brut si la marche a échoué (chunks de métadonnées cassés, etc.)
       if (!fmt) { const fi = findTag("fmt ", 12); if (fi >= 0 && fi + 24 <= n) fmt = { format: v.getUint16(fi + 8, true), ch: v.getUint16(fi + 10, true), rate: v.getUint32(fi + 12, true), bits: v.getUint16(fi + 22, true) }; }
       if (dataOff < 0) { const di = findTag("data", 12); if (di >= 0) { dataOff = di + 8; dataSz = v.getUint32(di + 4, true); } }
       if (!fmt || dataOff < 0 || !fmt.rate || !fmt.ch || !fmt.bits) return null;
-      // 3) Taille : ne jamais faire confiance à l'en-tête s'il ment
       if (dataSz === 0xFFFFFFFF && ds64) dataSz = ds64;
-      if (dataSz === 0 || dataSz === 0xFFFFFFFF || dataOff + dataSz > file.size) dataSz = file.size - dataOff;
+      if (dataSz === 0 || dataSz === 0xFFFFFFFF || dataOff + dataSz > fileSize) dataSz = fileSize - dataOff;
       const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits >= 32) || fmt.bits === 64;
       const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
-      return { kind: "WAV", file, fmt, dataOff, dataSize: dataSz, le: true, isFloat, unsigned8: true, duration: dataSz / byteRate };
+      return { kind: "WAV", fmt, dataOff, dataSize: dataSz, le: true, isFloat, unsigned8: true, duration: dataSz / byteRate };
     }
 
-    // ——— AIFF / AIFC (big-endian, export studio classique) ———
     if (magic === "FORM" && (tag4(v, 8) === "AIFF" || tag4(v, 8) === "AIFC")) {
       let off = 12, fmt = null, dataOff = -1, dataSz = 0, comp = "NONE", guard = 0;
       while (off + 8 <= n && guard++ < 512) {
@@ -477,23 +480,43 @@ async function parseWav(file) {
           const o2 = v.getUint32(off + 8, false);
           dataOff = off + 16 + o2; dataSz = sz - 8 - o2; break;
         }
-        if (sz === 0 || sz > file.size) break;
+        if (sz === 0 || sz > fileSize) break;
         off += 8 + sz + (sz % 2);
       }
       if (!fmt) { const ci = findTag("COMM", 12); if (ci >= 0 && ci + 26 <= n) { fmt = { ch: v.getUint16(ci + 8, false), bits: v.getUint16(ci + 14, false), rate: Math.round(ext80(v, ci + 16)) }; const cz = v.getUint32(ci + 4, false); if (cz >= 22 && ci + 30 <= n) comp = tag4(v, ci + 26); } }
       if (dataOff < 0) { const si = findTag("SSND", 12); if (si >= 0 && si + 16 <= n) { const o2 = v.getUint32(si + 8, false); dataOff = si + 16 + o2; dataSz = v.getUint32(si + 4, false) - 8 - o2; } }
       if (!fmt || dataOff < 0 || !fmt.rate || !fmt.ch || !fmt.bits) return null;
-      if (dataSz <= 0 || dataOff + dataSz > file.size) dataSz = file.size - dataOff;
-      const le = comp === "sowt";                       // AIFC little-endian
+      if (dataSz <= 0 || dataOff + dataSz > fileSize) dataSz = fileSize - dataOff;
+      const le = comp === "sowt";
       const isFloat = /fl32/i.test(comp);
       const compOk = ["NONE", "sowt", "fl32", "FL32"].includes(comp) || comp.trim() === "" || comp === "\u0000\u0000\u0000\u0000";
-      if (!compOk) return null; // compressé : non géré, le décodeur du téléphone prendra le relais
+      if (!compOk) return null;
       const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
-      return { kind: "AIFF", file, fmt, dataOff, dataSize: dataSz, le, isFloat, unsigned8: false, duration: dataSz / byteRate };
+      return { kind: "AIFF", fmt, dataOff, dataSize: dataSz, le, isFloat, unsigned8: false, duration: dataSz / byteRate };
     }
 
     return null;
   } catch (e) { return null; }
+}
+
+async function parseWav(file) {
+  // Essai 1 : lecture d'une tranche de 512 Ko (rapide)
+  try {
+    const v1 = await readSlice(file, 0, Math.min(524288, file.size));
+    const m1 = parseWavCore(v1, file.size);
+    if (m1) return Object.assign(m1, { file });
+  } catch (e) {}
+  // Essai 2 : relecture COMPLÈTE du fichier (fichiers iCloud / fournisseurs capricieux :
+  // la lecture par tranches échoue parfois, la lecture entière force le téléchargement)
+  try {
+    if (file.size <= 64 * 1024 * 1024) {
+      const buf = await readFileBuffer(file);
+      const v = new DataView(buf);
+      const m = parseWavCore(v, buf.byteLength);
+      if (m) return Object.assign(m, { file, _view: v });
+    }
+  } catch (e) {}
+  return null;
 }
 
 // — Extrait [start → start+dur], converti en WAV 16 bits stéréo max, sans charger tout le fichier —
@@ -506,7 +529,9 @@ async function wavExtractDataUrl(meta, startSec, durSec) {
   startFrame = Math.max(0, Math.min(startFrame, maxFrames));
   frames = Math.max(0, Math.min(frames, maxFrames - startFrame));
   const startByte = meta.dataOff + startFrame * block;
-  const src = await readSlice(file, startByte, frames * block);
+  const src = meta._view
+    ? new DataView(meta._view.buffer, meta._view.byteOffset + startByte, frames * block)
+    : await readSlice(file, startByte, frames * block);
   const outCh = Math.min(2, fmt.ch);
   const out = new ArrayBuffer(44 + frames * outCh * 2);
   const v = new DataView(out);
@@ -648,19 +673,7 @@ function setupLipsync() {
   const aInput = document.getElementById("lipAudioInput");
   document.getElementById("lipAudioBtn").onclick = () => aInput.click();
 
-  // Lecture de fichier fiable (certains fournisseurs iOS sont lents ou capricieux)
-  const readFileBuffer = (file) => new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = () => rej(new Error("lecture impossible"));
-    r.readAsArrayBuffer(file);
-  });
-  const readFileDataUrl = (file) => new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = () => rej(new Error("lecture impossible"));
-    r.readAsDataURL(file);
-  });
+  // (lecteurs de fichiers : définis au niveau global, près de readSlice)
 
   aInput.onchange = async (e) => {
     const f = e.target.files[0];
@@ -753,11 +766,22 @@ async function runLipsync() {
   document.getElementById("lipGo").disabled = true;
   setLipStatus("Envoi de la vidéo et de l'audio…", 5);
   try {
-    const submit = await fetch(`https://queue.fal.run/${path}`, {
-      method: "POST",
-      headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
-      body: JSON.stringify({ video_url: lipVideoSource, audio_url: lipAudioDataUrl }),
-    });
+    const body = JSON.stringify({ video_url: lipVideoSource, audio_url: lipAudioDataUrl });
+    let submit = null;
+    for (let a = 1; a <= 3; a++) {
+      try {
+        submit = await fetch(`https://queue.fal.run/${path}`, {
+          method: "POST",
+          headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
+          body,
+        });
+        break;
+      } catch (netErr) {
+        if (a === 3) throw new Error("Connexion interrompue pendant l'envoi (fichiers lourds sur réseau mobile). Passe en Wi-Fi si possible, puis réessaie.");
+        setLipStatus(`Envoi interrompu — nouvelle tentative ${a}/2…`, 5);
+        await new Promise(r => setTimeout(r, 2500));
+      }
+    }
     if (submit.status === 401 || submit.status === 403) throw new Error("Clé fal.ai invalide.");
     if (submit.status === 402) throw new Error("Crédit fal.ai épuisé — recharge sur fal.ai.");
     if (!submit.ok) throw new Error("Envoi refusé (" + submit.status + "). " + (await submit.text()).slice(0, 140));
