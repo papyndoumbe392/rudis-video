@@ -42,6 +42,13 @@
   </div>
 
   <div class="card">
+    <label>Clé fal.ai (à coller une seule fois, ou pour la remplacer)</label>
+    <input type="text" id="falkey" placeholder="Colle ici ta clé fal.ai (fal.ai → Keys → Copie Clé)" autocapitalize="off" autocorrect="off">
+    <button id="savekey">🔑 Enregistrer la clé</button>
+    <div id="keymsg" style="margin-top:10px; font-size:13.5px; line-height:1.5;"></div>
+  </div>
+
+  <div class="card">
     <button class="ghost" id="list">📋 Voir tous les codes et leurs soldes</button>
     <div id="listOut"></div>
   </div>
@@ -55,6 +62,15 @@ async function api(path, body) {
   if (!r.ok) throw new Error(d.error || ("Erreur " + r.status));
   return d;
 }
+$("savekey").onclick = async () => {
+  $("keymsg").innerHTML = "Enregistrement…";
+  try {
+    const d = await api("/admin/setkey", { pin: $("pin").value.trim(), key: $("falkey").value });
+    $("keymsg").innerHTML = `<span class="ok">✓ Clé enregistrée (${d.longueur} caractères, commence par ${d.debut}). Teste maintenant une génération dans l'app.</span>`;
+    $("falkey").value = "";
+  } catch (e) { $("keymsg").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
+};
+
 $("create").onclick = async () => {
   $("msg").innerHTML = "Création…"; $("newCodes").innerHTML = "";
   try {
