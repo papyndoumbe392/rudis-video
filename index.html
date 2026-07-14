@@ -85,12 +85,13 @@
 
   <!-- RÉGLAGES / CLÉ -->
   <section class="card">
-    <h2><span class="num" id="numKey">🔑</span> Clé API fal.ai <span class="dot" id="dotKey"></span></h2>
+    <h2><span class="num" id="numKey">🎟️</span> Ton code StarClip <span class="dot" id="dotKey"></span></h2>
     <div class="keyrow">
-      <input type="password" id="falKey" placeholder="Colle ta clé fal.ai ici (Keys → Add key)">
-      <button class="btn" id="saveKey">OK</button>
+      <input type="text" id="starCode" placeholder="Ex : STAR-7K3M" autocapitalize="characters" autocomplete="off">
+      <button class="btn" id="saveCode">OK</button>
     </div>
-    <div class="estimate">Ta clé reste sur ton appareil. Crée-la sur <b>fal.ai/dashboard/keys</b> après avoir ajouté du crédit.</div>
+    <div class="estimate" id="codeInfo"></div>
+    <div class="estimate">Pas encore de code ? Commande-le en bas de la page 👇 (Orange Money / MTN MoMo).</div>
   </section>
 
   <!-- PHOTO -->
@@ -188,16 +189,15 @@
   <!-- PAIEMENT MOBILE -->
   <section class="card" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1A1204;">💰</span> Commander ta vidéo — paiement mobile</h2>
-    <p class="sub" style="margin:0 0 12px;">Pas besoin de carte bancaire : paie par Orange Money ou MTN Mobile Money, envoie ta photo et ta chanson sur WhatsApp, et reçois ta vidéo de star !</p>
+    <p class="sub" style="margin:0 0 12px;">Pas besoin de carte bancaire : paie par Orange Money ou MTN Mobile Money, et reçois ton CODE StarClip sur WhatsApp — tu crées ensuite tes vidéos toi-même, ici, dans l'app !</p>
 
     <div class="label" style="margin-top:0;">Tarifs</div>
     <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:2;">
-      ⭐ <b>Essai Star</b> — ta 1ʳᵉ vidéo chantée (5 s) — <b style="color:var(--ok);">1 500 FCFA</b><br>
-      🎬 Vidéo de star — 5 s : <b style="color:var(--gold);">1 000 F</b> · 10 s : <b style="color:var(--gold);">1 500 F</b><br>
-      🎤 Vidéo chantée (lip-sync) — <b style="color:var(--gold);">2 500 FCFA</b><br>
-      👔 Changement de tenue — <b style="color:var(--gold);">+ 500 FCFA</b><br>
-      🏆 <b>Clip Découverte</b> — 5 scènes montées sur toute ta chanson — <b style="color:var(--gold);">10 000 FCFA</b><br>
-      💎 <b>Clip Premium</b> — 15 scènes, qualité cinéma, tenues multiples — <b style="color:var(--gold);">25 000 FCFA</b>
+      ⭐ <b>Essai Star</b> — code <b>1 vidéo</b> (chant + tenue inclus) — <b style="color:var(--ok);">1 500 FCFA</b><br>
+      🎟️ Code <b>5 vidéos</b> — <b style="color:var(--gold);">6 000 FCFA</b><br>
+      🎟️ Code <b>12 vidéos</b> — <b style="color:var(--gold);">12 000 FCFA</b><br>
+      🏆 <b>Clip Découverte</b> — le studio crée pour toi (5 scènes montées) — <b style="color:var(--gold);">10 000 FCFA</b><br>
+      💎 <b>Clip Premium</b> — 15 scènes, qualité cinéma, montage pro — <b style="color:var(--gold);">25 000 FCFA</b>
     </div>
 
     <div class="label">Étape 1 — Envoie le montant à</div>
@@ -211,19 +211,20 @@
 
     <div class="label">Étape 2 — Envoie sur WhatsApp</div>
     <p class="sub" style="margin:6px 0 10px;">Ta capture du paiement + ta photo + ta chanson + ton idée de clip.</p>
-    <a href="https://wa.me/237695535475?text=Bonjour%20Studio%20Rudis%20!%20Je%20viens%20de%20payer%20pour%20ma%20vid%C3%A9o%20StarClip.%20Voici%20ma%20preuve%20de%20paiement%2C%20ma%20photo%20et%20ma%20chanson." 
+    <a href="https://wa.me/237695535475?text=Bonjour%20Studio%20Rudis%20!%20Je%20viens%20de%20payer%20—%20voici%20ma%20preuve.%20Je%20veux%20mon%20CODE%20StarClip%20!" 
        style="display:block; text-align:center; padding:13px; border-radius:10px; background:#25D366; color:#06300f; font-weight:800; font-size:15px; text-decoration:none;">
       💬 Commander sur WhatsApp
     </a>
-    <div class="estimate" style="margin-top:10px;">Étape 3 — Reçois ta vidéo sur WhatsApp, généralement en moins d'une heure ⚡ (Bientôt : paiement automatique intégré.)</div>
+    <div class="estimate" style="margin-top:10px;">Étape 3 — Reçois ton CODE sur WhatsApp en quelques minutes ⚡ Entre-le en haut de l'app et crée tes vidéos toi-même, quand tu veux !</div>
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v20 — formules et essai à 1500 F</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v21 — codes clients</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
 
+<script src="config.js"></script>
 <script>
 // ——— État ———
 let photoDataUrl = null;
@@ -235,13 +236,47 @@ const MODELS = {
 };
 
 // ——— Clé API ———
-const falKeyInput = document.getElementById("falKey");
-falKeyInput.value = localStorage.getItem("falKey") || "";
-document.getElementById("saveKey").onclick = () => {
-  localStorage.setItem("falKey", falKeyInput.value.trim());
+const codeInput = document.getElementById("starCode");
+codeInput.value = localStorage.getItem("starCode") || "";
+function getCode() { return (codeInput.value || localStorage.getItem("starCode") || "").trim().toUpperCase(); }
+
+async function checkCode() {
+  const code = getCode();
+  localStorage.setItem("starCode", code);
+  const info = document.getElementById("codeInfo");
+  if (!code) { info.textContent = ""; refresh(); return; }
+  if (WORKER_URL.includes("COLLE_ICI")) { info.innerHTML = "<span class='err'>⚙️ Serveur non configuré — remplis le fichier config.js.</span>"; refresh(); return; }
+  info.textContent = "Vérification du code…";
+  try {
+    const r = await fetch(WORKER_URL + "/balance", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Code inconnu.");
+    info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}.</span>`;
+  } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
   refresh();
-};
-falKeyInput.addEventListener("input", refresh);
+}
+document.getElementById("saveCode").onclick = checkCode;
+codeInput.addEventListener("input", refresh);
+if (codeInput.value) checkCode();
+
+// ——— Liaison avec le serveur secret du studio ———
+async function apiSubmit(modelPath, payload) {
+  if (WORKER_URL.includes("COLLE_ICI")) throw new Error("Serveur non configuré (fichier config.js).");
+  const code = getCode();
+  if (!code) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+  const r = await fetch(WORKER_URL + "/gen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, path: modelPath, payload }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || ("Envoi refusé (" + r.status + ")"));
+  if (typeof d.left === "number") {
+    const ci = document.getElementById("codeInfo");
+    if (ci) ci.innerHTML = `<span style="color:var(--ok)">🎟️ ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ce code.</span>`;
+  }
+  return d;
+}
+async function apiPoll(u) {
+  const r = await fetch(WORKER_URL + "/poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: getCode(), url: u }) });
+  return r.json();
+}
 
 // ——— Photo ———
 const photoInput = document.getElementById("photoInput");
@@ -281,7 +316,7 @@ function pickDur(el) {
 
 // ——— UI ———
 function refresh() {
-  const hasKey = (falKeyInput.value.trim().length > 10);
+  const hasKey = (codeInput.value.trim().length >= 5);
   const hasPhoto = !!photoDataUrl;
   const hasPrompt = document.getElementById("prompt").value.trim().length > 5;
   document.getElementById("dotKey").classList.toggle("on", hasKey);
@@ -310,35 +345,27 @@ function copyNum(num, btn) {
 
 // ——— Assistant magique : idée en français → prompt professionnel ———
 document.getElementById("ideaGo").onclick = async () => {
-  const key = localStorage.getItem("falKey") || document.getElementById("falKey").value.trim();
   const idea = document.getElementById("ideaFr").value.trim();
   const info = document.getElementById("ideaInfo");
   if (!idea) { info.textContent = "Décris d'abord ton idée en une ou deux phrases."; return; }
-  if (!key || key.length < 10) { info.textContent = "Colle d'abord ta clé en haut de l'app."; return; }
   const btn = document.getElementById("ideaGo");
   btn.disabled = true; info.textContent = "✨ L'assistant écrit ton scénario…";
   try {
     const path = "fal-ai/any-llm";
-    const submit = await fetch(`https://queue.fal.run/${path}`, {
-      method: "POST",
-      headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const job = await apiSubmit(path, ({
         model: "google/gemini-2.5-flash",
         system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux. Transforme l'idée de l'utilisateur en UN prompt professionnel EN ANGLAIS de 60 à 90 mots : décris la scène, la lumière, le mouvement de caméra, l'ambiance et l'énergie. Contraintes obligatoires : the person's face must remain fully visible and front-facing, no microphone or hands covering the mouth. Termine par : high realism, natural skin texture, identity preserved. Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
         prompt: idea,
-      }),
-    });
-    if (!submit.ok) throw new Error("Refusé (" + submit.status + ")");
-    const job = await submit.json();
+      }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
     for (let i = 0; i < 20; i++) {
       await new Promise(r => setTimeout(r, 2000));
-      const sj = await (await fetch(statusUrl, { headers: { "Authorization": "Key " + key } })).json();
+      const sj = await apiPoll(statusUrl);
       if (sj.status === "COMPLETED") break;
       if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("L'assistant n'a pas répondu. Réessaie.");
     }
-    const data = await (await fetch(responseUrl, { headers: { "Authorization": "Key " + key } })).json();
+    const data = await apiPoll(responseUrl);
     const text = (data.output || data.response?.output || "").trim();
     if (!text) throw new Error("Réponse vide. Réessaie.");
     document.getElementById("prompt").value = text;
@@ -381,37 +408,29 @@ const OUTFITS = [
 })();
 
 async function transformOutfit() {
-  const key = localStorage.getItem("falKey") || document.getElementById("falKey").value.trim();
   const info = document.getElementById("outfitInfo");
   if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
-  if (!key || key.length < 10) { info.textContent = "Colle d'abord ta clé en haut de l'app."; return; }
   const desc = outfitSel === "custom" ? document.getElementById("outfitCustom").value.trim() : OUTFITS.find(o => o[0] === outfitSel)[2];
   if (!desc) { info.textContent = "Décris la tenue souhaitée."; return; }
   const btn = document.getElementById("outfitGo");
   btn.disabled = true; info.textContent = "👔 Transformation en cours (10-30 s)…";
   try {
     const path = "fal-ai/nano-banana/edit";
-    const submit = await fetch(`https://queue.fal.run/${path}`, {
-      method: "POST",
-      headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const job = await apiSubmit(path, ({
         prompt: `Change the person's outfit to ${desc}. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
         image_urls: [photoDataUrl],
         num_images: 1,
-      }),
-    });
-    if (!submit.ok) throw new Error("Refusé (" + submit.status + ") " + (await submit.text()).slice(0, 120));
-    const job = await submit.json();
+      }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
     for (let i = 0; i < 40; i++) {
       await new Promise(r => setTimeout(r, 3000));
-      const sj = await (await fetch(statusUrl, { headers: { "Authorization": "Key " + key } })).json();
+      const sj = await apiPoll(statusUrl);
       if (sj.status === "COMPLETED") break;
       if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La transformation a échoué. Réessaie ou change la description.");
       info.textContent = `👔 Transformation en cours… (${(i + 1) * 3} s)`;
     }
-    const data = await (await fetch(responseUrl, { headers: { "Authorization": "Key " + key } })).json();
+    const data = await apiPoll(responseUrl);
     const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) throw new Error("Image transformée introuvable. Réessaie.");
     stylePhotoUrl = url;
@@ -441,7 +460,6 @@ function setStatus(html, pct) {
 }
 
 document.getElementById("go").onclick = async () => {
-  const key = falKeyInput.value.trim();
   const basePrompt = document.getElementById("prompt").value.trim();
   const lipOptim = document.getElementById("lipOptim").checked;
   const prompt = lipOptim
@@ -453,21 +471,12 @@ document.getElementById("go").onclick = async () => {
   setStatus("Envoi de ta photo au studio de rendu…", 8);
 
   try {
-    // 1. Soumettre le job à la file fal.ai
-    const submit = await fetch(`https://queue.fal.run/${m.path}`, {
-      method: "POST",
-      headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const job = await apiSubmit(m.path, ({
         prompt: prompt,
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
         negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : ""),
-      }),
-    });
-    if (submit.status === 401 || submit.status === 403) throw new Error("Clé fal.ai invalide — vérifie-la sur fal.ai/dashboard/keys");
-    if (submit.status === 402) throw new Error("Crédit fal.ai épuisé — recharge ton compte sur fal.ai");
-    if (!submit.ok) throw new Error("Envoi refusé (" + submit.status + "). " + (await submit.text()).slice(0, 140));
-    const job = await submit.json();
+      }));
 
     // 2. Attendre le rendu (60 s à 5 min selon le modèle)
     const statusUrl = job.status_url || `https://queue.fal.run/${m.path}/requests/${job.request_id}/status`;
@@ -475,8 +484,7 @@ document.getElementById("go").onclick = async () => {
     let pct = 12;
     for (let i = 0; i < 150; i++) {
       await new Promise(r => setTimeout(r, 4000));
-      const st = await fetch(statusUrl, { headers: { "Authorization": "Key " + key } });
-      const sj = await st.json();
+      const sj = await apiPoll(statusUrl);
       pct = Math.min(pct + 3, 92);
       if (sj.status === "IN_QUEUE") setStatus(`En file d'attente (position ${sj.queue_position ?? "…"})…`, pct);
       else if (sj.status === "IN_PROGRESS") setStatus("Le studio crée ta vidéo… (1 à 5 min)", pct);
@@ -485,8 +493,7 @@ document.getElementById("go").onclick = async () => {
     }
 
     // 3. Récupérer la vidéo
-    const resp = await fetch(responseUrl, { headers: { "Authorization": "Key " + key } });
-    const data = await resp.json();
+    const data = await apiPoll(responseUrl);
     const videoUrl = data.video?.url || data.response?.video?.url;
     if (!videoUrl) throw new Error("Vidéo introuvable dans la réponse. Réessaie.");
 
@@ -958,32 +965,22 @@ function setLipStatus(html, pct) {
 }
 
 async function runLipsync() {
-  const key = localStorage.getItem("falKey") || document.getElementById("falKey").value.trim();
-  if (!key || key.length < 10) { setLipStatus("<span class='err'>✗ Colle d'abord ta clé fal.ai en haut de l'app.</span>", 0); return; }
   const path = "fal-ai/kling-video/lipsync/audio-to-video";
   document.getElementById("lipGo").disabled = true;
   setLipStatus("Envoi de la vidéo et de l'audio…", 5);
   try {
-    const body = JSON.stringify({ video_url: lipVideoSource, audio_url: lipAudioDataUrl });
-    let submit = null;
+    let job = null;
     for (let a = 1; a <= 3; a++) {
       try {
-        submit = await fetch(`https://queue.fal.run/${path}`, {
-          method: "POST",
-          headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
-          body,
-        });
+        job = await apiSubmit(path, { video_url: lipVideoSource, audio_url: lipAudioDataUrl });
         break;
       } catch (netErr) {
-        if (a === 3) throw new Error("Connexion interrompue pendant l'envoi (fichiers lourds sur réseau mobile). Passe en Wi-Fi si possible, puis réessaie.");
+        const reseau = /Load failed|Failed to fetch|NetworkError/i.test(netErr.message);
+        if (a === 3 || !reseau) throw (reseau ? new Error("Connexion interrompue pendant l'envoi (fichiers lourds sur réseau mobile). Passe en Wi-Fi si possible, puis réessaie.") : netErr);
         setLipStatus(`Envoi interrompu — nouvelle tentative ${a}/2…`, 5);
         await new Promise(r => setTimeout(r, 2500));
       }
     }
-    if (submit.status === 401 || submit.status === 403) throw new Error("Clé fal.ai invalide.");
-    if (submit.status === 402) throw new Error("Crédit fal.ai épuisé — recharge sur fal.ai.");
-    if (!submit.ok) throw new Error("Envoi refusé (" + submit.status + "). " + (await submit.text()).slice(0, 140));
-    const job = await submit.json();
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
     let pct = 8;
@@ -991,16 +988,14 @@ async function runLipsync() {
     const elapsed = () => { const s = Math.floor((Date.now() - t0) / 1000); return `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")} s`; };
     for (let i = 0; i < 200; i++) {
       await new Promise(r => setTimeout(r, 5000));
-      const st = await fetch(statusUrl, { headers: { "Authorization": "Key " + key } });
-      const sj = await st.json();
+      const sj = await apiPoll(statusUrl);
       pct = Math.min(pct + 1, 95);
       if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"}) — ${elapsed()} écoulées. Normal jusqu'à 12 min, laisse l'app ouverte.`, pct);
       else if (sj.status === "IN_PROGRESS") setLipStatus(`Le studio synchronise les lèvres — ${elapsed()} écoulées (normal : 5 à 12 min). Laisse l'app ouverte, écran allumé.`, pct);
       else if (sj.status === "COMPLETED") break;
       if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le lip-sync a échoué côté serveur. Vérifie que la vidéo fait 2 à 10 s, puis réessaie.");
     }
-    const resp = await fetch(responseUrl, { headers: { "Authorization": "Key " + key } });
-    const data = await resp.json();
+    const data = await apiPoll(responseUrl);
     const outUrl = data.video?.url || data.response?.video?.url;
     if (!outUrl) throw new Error("Vidéo introuvable dans la réponse. Réessaie.");
     setLipStatus("<span class='okc'>✓ Lip-sync terminé !</span>", 100);
@@ -1035,29 +1030,22 @@ function renderTrimRow(container, videoUrl, defaultEnd) {
   container.appendChild(row);
   const [inp, btn, info, out] = [row.querySelector("input"), row.querySelector("button"), row.children[2], row.children[3]];
   btn.onclick = async () => {
-    const key = localStorage.getItem("falKey") || document.getElementById("falKey").value.trim();
     const end = parseFloat(inp.value.replace(",", "."));
     if (!end || end < 1) { info.textContent = "Indique la seconde de fin (ex : 9.85)."; return; }
     btn.disabled = true; info.textContent = "✂️ Coupe en cours (quelques secondes)…";
     try {
       const path = "fal-ai/workflow-utilities/trim-video";
-      const submit = await fetch(`https://queue.fal.run/${path}`, {
-        method: "POST",
-        headers: { "Authorization": "Key " + key, "Content-Type": "application/json" },
-        body: JSON.stringify({ video_url: videoUrl, start_time: 0, end_time: end }),
-      });
-      if (!submit.ok) throw new Error("Refusé (" + submit.status + ") " + (await submit.text()).slice(0, 120));
-      const job = await submit.json();
+      const job = await apiSubmit(path, { video_url: videoUrl, start_time: 0, end_time: end });
       const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
       const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
       for (let i = 0; i < 60; i++) {
         await new Promise(r => setTimeout(r, 3000));
-        const sj = await (await fetch(statusUrl, { headers: { "Authorization": "Key " + key } })).json();
+        const sj = await apiPoll(statusUrl);
         if (sj.status === "COMPLETED") break;
         if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La coupe a échoué côté serveur. Réessaie.");
         info.textContent = `✂️ Coupe en cours… (${(i + 1) * 3} s)`;
       }
-      const data = await (await fetch(responseUrl, { headers: { "Authorization": "Key " + key } })).json();
+      const data = await apiPoll(responseUrl);
       const newUrl = data.video?.url || data.response?.video?.url || data.video_url;
       if (!newUrl) throw new Error("Vidéo coupée introuvable dans la réponse.");
       info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo coupée à ${end.toFixed(2)} s</span>`;
