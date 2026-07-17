@@ -247,7 +247,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v26 — onglet tenue-photo réparé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v27 — essayage renforcé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -479,7 +479,7 @@ async function transformOutfit() {
     if (tryTarget === "me") {
       if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1) — ou choisis un mannequin."; return; }
       images = [photoDataUrl, outfitPhotoUrl];
-      tryPrompt = "Dress the person from the first image in the exact outfit shown in the second image (same garments, colors, patterns and style). Keep the person's face, identity, skin tone, hairstyle, pose and background completely unchanged. Photorealistic, seamless, high quality.";
+      tryPrompt = "Completely REPLACE all clothing worn by the person in the first image with the outfit shown in the second image. Copy the second image's garments faithfully: exact same fabric, exact same pattern (checks, prints, embroidery), exact same colors, buttons, lapels and cut, applied to the corresponding garments (jacket replaces jacket, trousers replace trousers). No element of the original clothing may remain visible. Keep the person's face, identity, skin tone, hairstyle, pose, body and background completely unchanged. Photorealistic, seamless, high quality.";
     } else {
       images = [outfitPhotoUrl];
       const who = tryTarget === "homme" ? "male" : "female";
