@@ -247,7 +247,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v27 — essayage renforcé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v28 — enregistrement renforcé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -619,17 +619,27 @@ document.getElementById("go").onclick = async () => {
 let videoFile = null;
 
 async function prepareVideoFile(url) {
-  const btn = document.getElementById("saveBtn");
-  try {
-    const resp = await fetch(url);
-    const blob = await resp.blob();
-    videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
-    if (btn) btn.textContent = "📲 Enregistrer dans Photos";
-  } catch (e) {
-    videoFile = null;
-    if (btn) btn.textContent = "🔗 Ouvrir la vidéo pour l'enregistrer";
+  const btn = document.getElementById("saveBtn") || document.getElementById("lipSaveBtn");
+  lastPrepareUrl = url;
+  for (let essai = 1; essai <= 3; essai++) {
+    try {
+      if (btn && essai > 1) btn.textContent = `⏳ Téléchargement… (essai ${essai}/3)`;
+      const resp = await fetch(url, { cache: "no-store" });
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const blob = await resp.blob();
+      if (!blob || blob.size < 20000) throw new Error("Fichier vidéo incomplet");
+      videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
+      if (btn) btn.textContent = "📲 Enregistrer dans Photos";
+      return;
+    } catch (e) {
+      videoFile = null;
+      if (essai < 3) await new Promise(r => setTimeout(r, 2500));
+    }
   }
+  if (btn) btn.textContent = "🔁 Réessayer le téléchargement";
 }
+
+let lastPrepareUrl = null;
 
 async function saveVideo(url) {
   const hint = document.getElementById("saveHint");
@@ -652,9 +662,15 @@ async function saveVideo(url) {
     hint.textContent = "Vidéo téléchargée — retrouve-la dans Fichiers → Téléchargements.";
     return;
   }
-  // Cas 3 : pas encore prêt → ouvrir la vidéo dans un onglet (Partager → Enregistrer la vidéo)
-  hint.textContent = "Sur la page qui s'ouvre : bouton Partager (carré + flèche ↑) → « Enregistrer la vidéo ».";
-  window.open(url, "_blank");
+  // Cas 3 : fichier pas prêt → on relance le téléchargement (3 essais) puis on retente l'enregistrement
+  hint.textContent = "⏳ Nouvelle tentative de téléchargement de la vidéo…";
+  await prepareVideoFile(url);
+  if (videoFile) {
+    hint.textContent = "";
+    return saveVideo(url);
+  }
+  // Cas 4 : toujours impossible → le fichier côté serveur est inaccessible
+  hint.innerHTML = "<span class='err'>✗ Impossible de récupérer cette vidéo (fichier expiré ou réseau instable). Passe en Wi-Fi si possible et retouche le bouton. Si ça persiste, relance une génération : le lien précédent n'est plus valide.</span>";
 }
 
 // ——— Lip-sync (Kling LipSync : vidéo + audio → lèvres synchronisées) ———
