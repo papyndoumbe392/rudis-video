@@ -105,6 +105,17 @@
       </div>
     </div>
     <input type="file" id="photoInput" accept="image/*" class="hidden">
+
+    <div id="ratioZone" class="hidden" style="margin-top:14px;">
+      <div class="label" style="margin-top:0;">📐 Format de l'image</div>
+      <div class="chips">
+        <button class="chip on" data-ratio="orig" onclick="pickRatio(this)">Original</button>
+        <button class="chip" data-ratio="9:16" onclick="pickRatio(this)">📱 9:16 Vertical</button>
+        <button class="chip" data-ratio="16:9" onclick="pickRatio(this)">🖥️ 16:9 Horizontal</button>
+        <button class="chip" data-ratio="1:1" onclick="pickRatio(this)">◻️ 1:1 Carré</button>
+      </div>
+      <div class="estimate">Le sujet reste entier — l'espace autour est complété avec un fond flouté agrandi, jamais coupé.</div>
+    </div>
   </section>
 
   <!-- PROMPT -->
@@ -149,7 +160,7 @@
 
     <label style="display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:13px; color:var(--dim); cursor:pointer;">
       <input type="checkbox" id="lipOptim" checked style="margin-top:2px; accent-color:var(--gold);">
-      <span>🎤 Optimiser pour le lip-sync — visage dégagé, <b>pas de micro devant la bouche</b> (indispensable pour que les lèvres soient bien synchronisées ensuite)</span>
+      <span>🎤 Optimiser pour le chant — <b>plan rapproché, visage grand et dégagé</b>, pas de micro devant la bouche. C'est LA condition d'un lip-sync réaliste : plus le visage est grand à l'écran, plus la bouche s'anime naturellement. (Décoche pour les plans larges de danse.)</span>
     </label>
 
     <div class="label">Durée</div>
@@ -182,6 +193,7 @@
     <video id="lipPreview" class="hidden" controls playsinline style="width:100%; border-radius:12px; margin-top:10px; background:#000;"></video>
     <input type="file" id="lipVideoInput" accept="video/*,.mp4,.mov,.m4v" class="hidden">
 
+    <div class="estimate" style="background:var(--up); border-left:3px solid var(--gold); border-radius:8px; padding:10px 12px; margin-bottom:10px;">💡 <b>Secret d'un chant réaliste :</b> la bouche s'anime d'autant mieux que le visage est <b>grand à l'écran</b>. Utilise une vidéo en plan rapproché (poitrine/visage) pour les parties chantées — garde les plans en pied pour la danse, et assemble les deux dans CapCut comme un vrai clip.</div>
     <div class="label">Extrait audio de ta chanson (tous formats acceptés)</div>
     <button class="btn" id="lipAudioBtn">Choisir l'audio</button>
     <div class="estimate" id="lipAudioName"></div>
@@ -247,7 +259,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v28 — enregistrement renforcé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v29 — chant réaliste + fidélité du scénario</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -310,27 +322,67 @@ async function apiPoll(u) {
 const photoInput = document.getElementById("photoInput");
 document.getElementById("photoBtn").onclick = () => photoInput.click();
 document.getElementById("photoSlot").onclick = () => photoInput.click();
+let originalPhotoImg = null; // image source intacte, pour changer de format sans perte
 photoInput.onchange = (e) => {
   const f = e.target.files[0];
   if (!f) return;
-  // Compression légère pour l'envoi (max 1280px)
   const img = new Image();
   img.onload = () => {
-    const c = document.createElement("canvas");
-    const scale = Math.min(1, 1280 / Math.max(img.width, img.height));
-    c.width = img.width * scale; c.height = img.height * scale;
-    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-    photoDataUrl = c.toDataURL("image/jpeg", 0.9);
-    stylePhotoUrl = null;
-    const op = document.getElementById("outfitPreview"); if (op) op.innerHTML = "";
-    const slot = document.getElementById("photoSlot");
-    slot.style.backgroundImage = `url(${photoDataUrl})`;
-    slot.textContent = ""; slot.classList.add("filled");
-    document.getElementById("photoLabel").textContent = f.name;
-    refresh();
+    originalPhotoImg = img;
+    document.getElementById("ratioZone").classList.remove("hidden");
+    document.getElementById("ratioZone").querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    document.getElementById("ratioZone").querySelector('[data-ratio="orig"]').classList.add("on");
+    applyPhotoRatio("orig", f.name);
   };
   img.src = URL.createObjectURL(f);
 };
+
+function pickRatio(el) {
+  el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  el.classList.add("on");
+  applyPhotoRatio(el.dataset.ratio, document.getElementById("photoLabel").textContent);
+}
+
+// Recadre au format choisi SANS jamais couper le sujet : fond flouté agrandi en arrière-plan,
+// image complète posée par-dessus (comme Instagram/Canva "étendre l'arrière-plan").
+function applyPhotoRatio(ratio, label) {
+  const img = originalPhotoImg;
+  if (!img) return;
+  const c = document.createElement("canvas");
+  let tw, th;
+  const MAXD = 1280;
+  if (ratio === "orig") {
+    const scale = Math.min(1, MAXD / Math.max(img.width, img.height));
+    tw = img.width * scale; th = img.height * scale;
+    c.width = tw; c.height = th;
+    c.getContext("2d").drawImage(img, 0, 0, tw, th);
+  } else {
+    const [rw, rh] = ratio.split(":").map(Number);
+    const targetRatio = rw / rh;
+    if (targetRatio >= 1) { tw = MAXD; th = Math.round(MAXD / targetRatio); }
+    else { th = MAXD; tw = Math.round(MAXD * targetRatio); }
+    c.width = tw; c.height = th;
+    const ctx = c.getContext("2d");
+    // 1) fond : image agrandie (cover) + floutée, remplit tout le cadre
+    const coverScale = Math.max(tw / img.width, th / img.height) * 1.15;
+    const cw = img.width * coverScale, ch = img.height * coverScale;
+    ctx.filter = "blur(28px) brightness(0.7)";
+    ctx.drawImage(img, (tw - cw) / 2, (th - ch) / 2, cw, ch);
+    ctx.filter = "none";
+    // 2) sujet : image entière, jamais coupée, centrée par-dessus
+    const containScale = Math.min(tw / img.width, th / img.height);
+    const iw = img.width * containScale, ih = img.height * containScale;
+    ctx.drawImage(img, (tw - iw) / 2, (th - ih) / 2, iw, ih);
+  }
+  photoDataUrl = c.toDataURL("image/jpeg", 0.9);
+  stylePhotoUrl = null;
+  const op = document.getElementById("outfitPreview"); if (op) op.innerHTML = "";
+  const slot = document.getElementById("photoSlot");
+  slot.style.backgroundImage = `url(${photoDataUrl})`;
+  slot.textContent = ""; slot.classList.add("filled");
+  document.getElementById("photoLabel").textContent = label;
+  refresh();
+}
 
 // ——— Choix ———
 function pickModel(el) {
@@ -382,7 +434,7 @@ document.getElementById("ideaGo").onclick = async () => {
     const path = "fal-ai/any-llm";
     const job = await apiSubmit(path, ({
         model: "google/gemini-2.5-flash",
-        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux. Transforme l'idée de l'utilisateur en UN prompt professionnel EN ANGLAIS de 60 à 90 mots : décris la scène, la lumière, le mouvement de caméra, l'ambiance et l'énergie. Contraintes obligatoires : the person's face must remain fully visible and front-facing, no microphone or hands covering the mouth. Termine par : high realism, natural skin texture, identity preserved. Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
+        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco). Transforme son idée en UN prompt professionnel EN ANGLAIS de 60 à 90 mots : commence par le lieu et l'action exacts demandés, puis la lumière, le mouvement de caméra, l'ambiance. Si la personne chante : medium close-up framing, face large in the frame. Contraintes : face fully visible and front-facing, no microphone or hands covering the mouth. Termine par : high realism, natural skin texture, identity preserved. Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
         prompt: idea,
       }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -556,7 +608,7 @@ document.getElementById("go").onclick = async () => {
   const basePrompt = document.getElementById("prompt").value.trim();
   const lipOptim = document.getElementById("lipOptim").checked;
   const prompt = lipOptim
-    ? basePrompt + ". IMPORTANT: face fully visible and unobstructed at all times, no microphone or hands covering the mouth, mouth relaxed and clearly visible, moderate head movement, front-facing."
+    ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
     : basePrompt;
   const m = MODELS[model];
   document.getElementById("go").disabled = true;
@@ -619,27 +671,17 @@ document.getElementById("go").onclick = async () => {
 let videoFile = null;
 
 async function prepareVideoFile(url) {
-  const btn = document.getElementById("saveBtn") || document.getElementById("lipSaveBtn");
-  lastPrepareUrl = url;
-  for (let essai = 1; essai <= 3; essai++) {
-    try {
-      if (btn && essai > 1) btn.textContent = `⏳ Téléchargement… (essai ${essai}/3)`;
-      const resp = await fetch(url, { cache: "no-store" });
-      if (!resp.ok) throw new Error("HTTP " + resp.status);
-      const blob = await resp.blob();
-      if (!blob || blob.size < 20000) throw new Error("Fichier vidéo incomplet");
-      videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
-      if (btn) btn.textContent = "📲 Enregistrer dans Photos";
-      return;
-    } catch (e) {
-      videoFile = null;
-      if (essai < 3) await new Promise(r => setTimeout(r, 2500));
-    }
+  const btn = document.getElementById("saveBtn");
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
+    if (btn) btn.textContent = "📲 Enregistrer dans Photos";
+  } catch (e) {
+    videoFile = null;
+    if (btn) btn.textContent = "🔗 Ouvrir la vidéo pour l'enregistrer";
   }
-  if (btn) btn.textContent = "🔁 Réessayer le téléchargement";
 }
-
-let lastPrepareUrl = null;
 
 async function saveVideo(url) {
   const hint = document.getElementById("saveHint");
@@ -662,15 +704,9 @@ async function saveVideo(url) {
     hint.textContent = "Vidéo téléchargée — retrouve-la dans Fichiers → Téléchargements.";
     return;
   }
-  // Cas 3 : fichier pas prêt → on relance le téléchargement (3 essais) puis on retente l'enregistrement
-  hint.textContent = "⏳ Nouvelle tentative de téléchargement de la vidéo…";
-  await prepareVideoFile(url);
-  if (videoFile) {
-    hint.textContent = "";
-    return saveVideo(url);
-  }
-  // Cas 4 : toujours impossible → le fichier côté serveur est inaccessible
-  hint.innerHTML = "<span class='err'>✗ Impossible de récupérer cette vidéo (fichier expiré ou réseau instable). Passe en Wi-Fi si possible et retouche le bouton. Si ça persiste, relance une génération : le lien précédent n'est plus valide.</span>";
+  // Cas 3 : pas encore prêt → ouvrir la vidéo dans un onglet (Partager → Enregistrer la vidéo)
+  hint.textContent = "Sur la page qui s'ouvre : bouton Partager (carré + flèche ↑) → « Enregistrer la vidéo ».";
+  window.open(url, "_blank");
 }
 
 // ——— Lip-sync (Kling LipSync : vidéo + audio → lèvres synchronisées) ———
