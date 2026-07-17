@@ -185,6 +185,20 @@
     <div class="label">Extrait audio de ta chanson (tous formats acceptés)</div>
     <button class="btn" id="lipAudioBtn">Choisir l'audio</button>
     <div class="estimate" id="lipAudioName"></div>
+
+    <audio id="lipAudioPlayer" class="hidden" controls playsinline style="width:100%; margin-top:10px;"></audio>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      <button class="btn" id="autoVocal" style="display:none;">🔍 Détection auto du départ</button>
+      <button class="btn" id="markVocal" style="display:none;">🎯 Le chant commence ICI (pro)</button>
+    </div>
+    <div class="estimate" id="markInfo" style="display:none;">Écoute ta chanson ci-dessus, et touche le bouton PILE au moment où la voix démarre — l'extrait se calera automatiquement dessus.</div>
+
+    <div class="label">🎚️ Réglage fin (ms, optionnel)</div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="text" id="syncLead" inputmode="decimal" value="0" style="width:90px;">
+      <div class="estimate" style="margin:0;">Ajuste par petites touches (ex : 200) si le calage mérite d'être avancé d'un poil, puis touche « Couper ».</div>
+    </div>
+
     <div id="trimZone" class="hidden" style="margin-top:10px;">
       <div class="label" style="margin-top:0;">✂️ Coupe automatique — début de l'extrait (en secondes)</div>
       <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
@@ -233,7 +247,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v22 — essayage de tenue</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v25 — calage auto + marqueur pro</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -863,12 +877,70 @@ function bufferToWavDataUrl(buffer) {
   return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
 }
 
+// 🔍 Détection du départ (bêta) : RMS par trames de ~46 ms, première montée soutenue
+async function detectVocalStart() {
+  let samples = null, rate = 0;
+  if (lipAudioBuffer) {
+    rate = lipAudioBuffer.sampleRate;
+    const a = lipAudioBuffer.getChannelData(0);
+    const b = lipAudioBuffer.numberOfChannels > 1 ? lipAudioBuffer.getChannelData(1) : null;
+    samples = { length: a.length, get: (i) => b ? (a[i] + b[i]) / 2 : a[i] };
+  } else if (lipWavMeta && lipWavMeta.file.size <= 64 * 1024 * 1024) {
+    const buf = await readFileBuffer(lipWavMeta.file);
+    const v = new DataView(buf);
+    const { fmt, dataOff, dataSize, le, isFloat, unsigned8 } = lipWavMeta;
+    rate = fmt.rate;
+    const block = fmt.ch * fmt.bits / 8;
+    const n = Math.floor(dataSize / block);
+    const bytesPerSample = fmt.bits / 8;
+    const readS = (p) => {
+      if (fmt.bits === 16) return v.getInt16(p, le) / 0x8000;
+      if (fmt.bits === 24) { const b0=v.getUint8(p),b1=v.getUint8(p+1),b2=v.getUint8(p+2); const x= le?(b0|(b1<<8)|(b2<<16)):(b2|(b1<<8)|(b0<<16)); return (x>0x7FFFFF?x-0x1000000:x)/0x800000; }
+      if (fmt.bits === 32) return isFloat ? v.getFloat32(p, le) : v.getInt32(p, le) / 0x80000000;
+      if (fmt.bits === 64) return v.getFloat64(p, le);
+      if (fmt.bits === 8) return unsigned8 ? (v.getUint8(p) - 128) / 128 : v.getInt8(p) / 128;
+      return 0;
+    };
+    samples = { length: n, get: (i) => readS(dataOff + i * block) }; // canal 1
+  } else return null;
+
+  const frame = Math.round(rate * 0.046);
+  const stride = 4; // 1 échantillon sur 4 suffit pour le RMS
+  const nFrames = Math.floor(samples.length / frame);
+  if (nFrames < 20) return null;
+  const rms = new Array(nFrames);
+  for (let fIdx = 0; fIdx < nFrames; fIdx++) {
+    let sum = 0, cnt = 0;
+    const base = fIdx * frame;
+    for (let i = 0; i < frame; i += stride) { const s = samples.get(base + i); sum += s * s; cnt++; }
+    rms[fIdx] = Math.sqrt(sum / cnt);
+  }
+  const peak = Math.max(...rms);
+  if (peak < 0.005) return null;
+  // bruit de fond : médiane des 10 premières trames
+  const head = rms.slice(0, 10).sort((a, b) => a - b);
+  const noise = head[Math.floor(head.length / 2)] || 0.0005;
+  const seuil = Math.max(0.12 * peak, 3 * noise);
+  // première trame au-dessus du seuil, soutenue (4 des 6 trames suivantes)
+  for (let i = 0; i < nFrames - 6; i++) {
+    if (rms[i] >= seuil) {
+      let ok = 0;
+      for (let j = 1; j <= 6; j++) if (rms[i + j] >= seuil * 0.7) ok++;
+      if (ok >= 4) return Math.max(0, (i * frame) / rate - 0.05);
+    }
+  }
+  return null;
+}
+
 // Coupe l'audio (WAV pro OU audio décodé) et prépare l'extrait final
 async function trimAudio(startSec) {
   const adur = getAudioDur();
   if (!adur) return;
   const target = lipVideoDur > 0 ? lipVideoDur : Math.min(adur, 10);
-  const start = Math.max(0, Math.min(startSec || 0, Math.max(0, adur - 0.5)));
+  const leadEl = document.getElementById("syncLead");
+  const leadMs = leadEl ? (parseFloat(leadEl.value) || 0) : 0;
+  const requested = Math.max(0, (startSec || 0) - leadMs / 1000); // avance : démarre plus tôt
+  const start = Math.max(0, Math.min(requested, Math.max(0, adur - 0.5)));
   const dur = Math.min(target, adur - start);
   if (lipWavMeta) {
     lipAudioDataUrl = await wavExtractDataUrl(lipWavMeta, start, dur);
@@ -885,8 +957,9 @@ async function trimAudio(startSec) {
     lipAudioDataUrl = await bufferToWavDataUrl(rendered);
   }
   lipExtractDur = dur;
+  const leadNote = leadMs ? ` · avance ${leadMs} ms` : "";
   document.getElementById("trimInfo").innerHTML =
-    `<span style="color:var(--ok)">✓ Extrait prêt : ${fmtTime(start)} → ${fmtTime(start + dur)} (${Math.round(dur)} s${lipVideoDur ? ", calé sur la vidéo" : ""})</span>`;
+    `<span style="color:var(--ok)">✓ Extrait prêt : ${fmtTime(start)} → ${fmtTime(start + dur)} (${Math.round(dur)} s${lipVideoDur ? ", calé sur la vidéo" : ""}${leadNote})</span>`;
   refreshLip();
 }
 
@@ -895,20 +968,18 @@ function maybePrepareAudio() {
   const adur = getAudioDur();
   if (!adur) return;
   const trimZone = document.getElementById("trimZone");
+  trimZone.classList.remove("hidden"); // toujours visible : permet de retoucher l'avance de synchro
   if (!lipVideoDur) {
-    if (adur <= 10.5) { trimZone.classList.add("hidden"); trimAudio(0); }
+    if (adur <= 10.5) { trimAudio(0); }
     else {
-      trimZone.classList.remove("hidden");
       document.getElementById("trimInfo").textContent =
         `Audio ${fmtTime(adur)} — choisis d'abord la vidéo source, la coupe se fera automatiquement à sa durée.`;
     }
     return;
   }
   if (adur > lipVideoDur + 0.3) {
-    trimZone.classList.remove("hidden");
     trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
   } else {
-    trimZone.classList.add("hidden");
     trimAudio(0);
     if (adur < lipVideoDur - 0.5) {
       document.getElementById("lipAudioName").textContent +=
@@ -963,6 +1034,15 @@ function setupLipsync() {
     const nameEl = document.getElementById("lipAudioName");
     nameEl.textContent = "⏳ Analyse de l'audio…";
     lipWavMeta = null; lipAudioBuffer = null; lipAudioDataUrl = null;
+    // Lecteur d'écoute + marqueur "le chant commence ici"
+    try {
+      const pl = document.getElementById("lipAudioPlayer");
+      pl.src = URL.createObjectURL(f);
+      pl.classList.remove("hidden");
+      document.getElementById("markVocal").style.display = "block";
+      document.getElementById("autoVocal").style.display = "block";
+      document.getElementById("markInfo").style.display = "block";
+    } catch (_) {}
     try {
       // 1) WAV (y compris studio 24/32 bits, gros fichiers) : lecture manuelle, aucune limite de taille
       const meta = await parseWav(f);
@@ -1033,6 +1113,37 @@ function setupLipsync() {
   };
 
   document.getElementById("trimBtn").onclick = () => trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
+
+  // 🔍 Détection automatique du départ (bêta) : première montée d'énergie soutenue
+  document.getElementById("autoVocal").onclick = async () => {
+    const info = document.getElementById("markInfo");
+    info.style.display = "block";
+    info.textContent = "🔍 Analyse du morceau…";
+    try {
+      const t = await detectVocalStart();
+      if (t === null) { info.innerHTML = "<span class='err'>Détection incertaine sur ce morceau — utilise le marqueur 🎯 (plus précis).</span>"; return; }
+      document.getElementById("trimStart").value = t.toFixed(2);
+      document.getElementById("trimZone").classList.remove("hidden");
+      await trimAudio(t);
+      const pl = document.getElementById("lipAudioPlayer");
+      pl.currentTime = t;
+      info.innerHTML = `<span style="color:var(--ok)">🔍 Départ détecté à ${fmtTime(t)} (bêta) — le lecteur est calé dessus : écoute pour vérifier, et ajuste avec 🎯 si besoin.</span>`;
+    } catch (e) {
+      info.innerHTML = "<span class='err'>Analyse impossible sur ce fichier — utilise le marqueur 🎯.</span>";
+    }
+  };
+
+  // 🎯 Marqueur : cale l'extrait sur l'instant exact où le chant démarre
+  document.getElementById("markVocal").onclick = () => {
+    const pl = document.getElementById("lipAudioPlayer");
+    const t = pl.currentTime || 0;
+    pl.pause();
+    document.getElementById("trimStart").value = t.toFixed(2);
+    document.getElementById("trimZone").classList.remove("hidden");
+    trimAudio(t);
+    document.getElementById("markInfo").innerHTML =
+      `<span style="color:var(--ok)">🎯 Marque posée à ${fmtTime(t)} — l'extrait démarre pile sur le chant. Ré-écoute et re-marque si besoin.</span>`;
+  };
   document.getElementById("lipGo").onclick = runLipsync;
 }
 
