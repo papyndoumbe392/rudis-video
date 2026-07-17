@@ -112,6 +112,20 @@
     <h2><span class="num" style="background:var(--up);">👔</span> Tenue — change les habits <span class="dot" id="dotOutfit"></span></h2>
     <div class="chips" id="outfitChips"></div>
     <input type="text" id="outfitCustom" placeholder="Décris la tenue… Ex : chemise en pagne wax bleu et or, chapeau fedora" class="hidden" style="width:100%; margin-top:10px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
+    <div id="outfitPhotoZone" class="hidden" style="margin-top:12px;">
+      <div class="label" style="margin-top:0;">📷 Photo de la tenue (vêtement seul ou porté)</div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <div id="outfitSlot" style="width:84px; height:84px; border-radius:10px; border:1.5px dashed var(--line); background:var(--up); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:22px; cursor:pointer; flex-shrink:0;">＋</div>
+        <button class="btn" id="outfitPhotoBtn">Choisir la photo de tenue</button>
+      </div>
+      <input type="file" id="outfitPhotoInput" accept="image/*" class="hidden">
+      <div class="label">Habiller qui ?</div>
+      <div class="chips">
+        <button class="chip on" data-target="me" onclick="pickTryTarget(this)">Ma photo (volet 1)</button>
+        <button class="chip" data-target="homme" onclick="pickTryTarget(this)">Mannequin homme</button>
+        <button class="chip" data-target="femme" onclick="pickTryTarget(this)">Mannequin femme</button>
+      </div>
+    </div>
     <button class="btn" id="outfitGo" style="display:none; margin-top:12px;">👔 Transformer la tenue (≈ 0,04 $)</button>
     <div class="estimate" id="outfitInfo">Le visage, la pose et le décor restent identiques — seuls les habits changent.</div>
     <div id="outfitPreview"></div>
@@ -143,11 +157,6 @@
       <button class="chip on" data-dur="5" onclick="pickDur(this)">5 secondes</button>
       <button class="chip" data-dur="10" onclick="pickDur(this)">10 secondes</button>
     </div>
-
-    <div class="tip" style="margin-top:16px;">
-      <b>💡 Astuce :</b> pour une vidéo en <b>format paysage (16:9)</b>, prends directement ta photo en <b>mode paysage</b> (téléphone à l'horizontale). La vidéo suit automatiquement le format de la photo de départ.
-    </div>
-
     <div class="estimate" id="estimate">Coût estimé : ≈ 0,28 $</div>
   </section>
 
@@ -224,7 +233,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v25 — stable, astuce format photo</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v22 — essayage de tenue</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -403,6 +412,7 @@ const OUTFITS = [
       box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
       b.classList.add("on");
       document.getElementById("outfitCustom").classList.toggle("hidden", id !== "custom");
+      document.getElementById("outfitPhotoZone").classList.toggle("hidden", id !== "photo");
       document.getElementById("outfitGo").style.display = (id === "keep") ? "none" : "block";
       if (id === "keep") { stylePhotoUrl = null; document.getElementById("outfitPreview").innerHTML = ""; document.getElementById("outfitInfo").textContent = "Le visage, la pose et le décor restent identiques — seuls les habits changent."; }
       document.getElementById("dotOutfit").classList.toggle("on", id !== "keep");
@@ -410,20 +420,68 @@ const OUTFITS = [
     box.appendChild(b);
   });
   document.getElementById("outfitGo").onclick = transformOutfit;
+
+  // — Essayage d'après photo de tenue —
+  const opInput = document.getElementById("outfitPhotoInput");
+  const openOp = () => opInput.click();
+  document.getElementById("outfitPhotoBtn").onclick = openOp;
+  document.getElementById("outfitSlot").onclick = openOp;
+  opInput.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const scale = Math.min(1, 1024 / Math.max(img.width, img.height));
+      c.width = img.width * scale; c.height = img.height * scale;
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      outfitPhotoUrl = c.toDataURL("image/jpeg", 0.9);
+      const slot = document.getElementById("outfitSlot");
+      slot.style.backgroundImage = `url(${outfitPhotoUrl})`;
+      slot.textContent = "";
+      document.getElementById("outfitInfo").textContent = "✓ Photo de tenue chargée — choisis qui habiller puis touche Transformer.";
+    };
+    img.src = URL.createObjectURL(f);
+  };
 })();
+
+let outfitPhotoUrl = null;
+let tryTarget = "me";
+function pickTryTarget(el) {
+  tryTarget = el.dataset.target;
+  el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  el.classList.add("on");
+}
 
 async function transformOutfit() {
   const info = document.getElementById("outfitInfo");
-  if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
-  const desc = outfitSel === "custom" ? document.getElementById("outfitCustom").value.trim() : OUTFITS.find(o => o[0] === outfitSel)[2];
-  if (!desc) { info.textContent = "Décris la tenue souhaitée."; return; }
+  let desc = outfitSel === "custom" ? document.getElementById("outfitCustom").value.trim() : OUTFITS.find(o => o[0] === outfitSel)[2];
+  let images = [photoDataUrl];
+  let tryPrompt = null;
+
+  if (outfitSel === "photo") {
+    if (!outfitPhotoUrl) { info.textContent = "Ajoute d'abord la photo de la tenue."; return; }
+    if (tryTarget === "me") {
+      if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1) — ou choisis un mannequin."; return; }
+      images = [photoDataUrl, outfitPhotoUrl];
+      tryPrompt = "Dress the person from the first image in the exact outfit shown in the second image (same garments, colors, patterns and style). Keep the person's face, identity, skin tone, hairstyle, pose and background completely unchanged. Photorealistic, seamless, high quality.";
+    } else {
+      images = [outfitPhotoUrl];
+      const who = tryTarget === "homme" ? "male" : "female";
+      tryPrompt = `A photorealistic full-body ${who} African fashion model wearing the exact outfit shown in the image (same garments, colors, patterns and style), standing in a professional photo studio with soft lighting, front view, natural pose, high quality.`;
+    }
+  } else {
+    if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
+    if (!desc) { info.textContent = "Décris la tenue souhaitée."; return; }
+  }
+
   const btn = document.getElementById("outfitGo");
   btn.disabled = true; info.textContent = "👔 Transformation en cours (10-30 s)…";
   try {
     const path = "fal-ai/nano-banana/edit";
     const job = await apiSubmit(path, ({
-        prompt: `Change the person's outfit to ${desc}. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
-        image_urls: [photoDataUrl],
+        prompt: tryPrompt || `Change the person's outfit to ${desc}. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
+        image_urls: images,
         num_images: 1,
       }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -438,11 +496,26 @@ async function transformOutfit() {
     const data = await apiPoll(responseUrl);
     const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) throw new Error("Image transformée introuvable. Réessaie.");
-    stylePhotoUrl = url;
-    info.innerHTML = `<span style="color:var(--ok)">✓ Tenue transformée — c'est cette photo qui sera utilisée pour la vidéo.</span>`;
+    const isMannequin = outfitSel === "photo" && tryTarget !== "me";
+    if (!isMannequin) {
+      stylePhotoUrl = url;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Tenue transformée — c'est cette photo qui sera utilisée pour la vidéo.</span>`;
+    } else {
+      info.innerHTML = `<span style="color:var(--ok)">✓ Mannequin généré. Touche l'image pour l'utiliser comme photo de départ, ou télécharge-la simplement.</span>`;
+    }
     document.getElementById("outfitPreview").innerHTML = `
-      <img src="${url}" style="width:100%; border-radius:12px; margin-top:12px;">
-      <button class="btn small" id="outfitRevert" style="margin-top:8px;">↩ Revenir à la photo originale</button>`;
+      <img src="${url}" id="outfitResultImg" style="width:100%; border-radius:12px; margin-top:12px; cursor:${isMannequin ? "pointer" : "default"};">
+      <button class="btn small" id="outfitRevert" style="margin-top:8px;">↩ ${isMannequin ? "Effacer le résultat" : "Revenir à la photo originale"}</button>`;
+    if (isMannequin) {
+      document.getElementById("outfitResultImg").onclick = () => {
+        photoDataUrl = url;
+        const slot = document.getElementById("photoSlot");
+        slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled");
+        document.getElementById("photoLabel").textContent = "Mannequin (tenue essayée)";
+        info.innerHTML = `<span style="color:var(--ok)">✓ Mannequin utilisé comme photo de départ (volet 1) !</span>`;
+        refresh();
+      };
+    }
     document.getElementById("outfitRevert").onclick = () => {
       stylePhotoUrl = null;
       document.getElementById("outfitPreview").innerHTML = "";
