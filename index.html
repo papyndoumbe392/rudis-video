@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio <b style="color:var(--gold)">v16 — tenues + nouveau nom</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio. Astuce pro : crée des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original. Studio</title>
+<title>StarClip Studio <b style="color:var(--gold)">v30 — anti-duplication d'objets</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio. Astuce pro : crée des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original. Studio</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -259,7 +259,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v29 — chant réaliste + fidélité du scénario</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v30 — anti-duplication d'objets</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -434,7 +434,7 @@ document.getElementById("ideaGo").onclick = async () => {
     const path = "fal-ai/any-llm";
     const job = await apiSubmit(path, ({
         model: "google/gemini-2.5-flash",
-        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco). Transforme son idée en UN prompt professionnel EN ANGLAIS de 60 à 90 mots : commence par le lieu et l'action exacts demandés, puis la lumière, le mouvement de caméra, l'ambiance. Si la personne chante : medium close-up framing, face large in the frame. Contraintes : face fully visible and front-facing, no microphone or hands covering the mouth. Termine par : high realism, natural skin texture, identity preserved. Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
+        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco). Transforme son idée en UN prompt professionnel EN ANGLAIS de 60 à 90 mots : commence par le lieu et l'action exacts demandés, puis la lumière, le mouvement de caméra, l'ambiance. Si la personne chante : medium close-up framing, face large in the frame. Contraintes : face fully visible and front-facing, no microphone or hands covering the mouth. N'invente et n'ajoute JAMAIS un objet, accessoire ou prop qui n'est pas déjà visible sur la photo ou explicitement demandé par l'utilisateur (ex : ne jamais ajouter un deuxième cigare, verre, bijou, chapeau, etc. en plus de celui déjà présent). Termine par : high realism, natural skin texture, identity preserved, exact same props and objects as the original photo, no duplicated or added items. Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
         prompt: idea,
       }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -607,9 +607,10 @@ function setStatus(html, pct) {
 document.getElementById("go").onclick = async () => {
   const basePrompt = document.getElementById("prompt").value.trim();
   const lipOptim = document.getElementById("lipOptim").checked;
-  const prompt = lipOptim
+  const objectGuard = " Keep exactly the same objects, props and accessories as in the original photo — do not add, duplicate or multiply any item (e.g. if there is already a cigar, glass, jewelry or hat, keep only that single one, never add a second one or a new one in the hands).";
+  const prompt = (lipOptim
     ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
-    : basePrompt;
+    : basePrompt) + objectGuard;
   const m = MODELS[model];
   document.getElementById("go").disabled = true;
   document.getElementById("resultZone").innerHTML = "";
@@ -620,7 +621,7 @@ document.getElementById("go").onclick = async () => {
         prompt: prompt,
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
-        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : ""),
+        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : ""),
       }));
 
     // 2. Attendre le rendu (60 s à 5 min selon le modèle)
