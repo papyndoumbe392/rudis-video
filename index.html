@@ -140,7 +140,7 @@
         <button class="chip" data-ratio="16:9" onclick="pickRatio(this)">🖥️ 16:9 Horizontal</button>
         <button class="chip" data-ratio="1:1" onclick="pickRatio(this)">◻️ 1:1 Carré</button>
       </div>
-      <div class="estimate">Le sujet reste entier — l'espace autour est complété avec un fond flouté agrandi, jamais coupé.</div>
+      <div class="estimate">🎨 L'IA prolonge le vrai décor de ta photo (comme Runway) — jamais de flou, jamais de duplication. (≈ 0,04 $ par changement de format)</div>
     </div>
   </section>
 
@@ -487,7 +487,74 @@ photoInput.onchange = (e) => {
 function pickRatio(el) {
   el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
   el.classList.add("on");
-  applyPhotoRatio(el.dataset.ratio, document.getElementById("photoLabel").textContent);
+  const ratio = el.dataset.ratio;
+  if (ratio === "orig") {
+    applyPhotoRatio("orig", document.getElementById("photoLabel").textContent);
+  } else {
+    // v31.1 : extension IA du décor (outpainting) — le vrai décor est prolongé, comme Runway
+    aiExtendPhoto(ratio);
+  }
+}
+
+// ——— v31.1 : Extension IA du décor (remplace le fond flouté) ———
+// L'image est posée sur un canevas au bon format avec des zones vides,
+// puis nano-banana prolonge RÉELLEMENT le décor dans ces zones.
+async function aiExtendPhoto(ratio) {
+  const img = originalPhotoImg;
+  if (!img) return;
+  const label = document.getElementById("photoLabel");
+  const prevLabel = label.textContent;
+  label.innerHTML = "<span style='color:var(--violet)'>🎨 L'IA prolonge le décor de ta photo… (10-30 s)</span>";
+
+  // 1) Canevas au format cible, image entière centrée, zones vides en blanc neutre
+  const [rw, rh] = ratio.split(":").map(Number);
+  const targetRatio = rw / rh;
+  const MAXD = 1280;
+  let tw, th;
+  if (targetRatio >= 1) { tw = MAXD; th = Math.round(MAXD / targetRatio); }
+  else { th = MAXD; tw = Math.round(MAXD * targetRatio); }
+  const c = document.createElement("canvas");
+  c.width = tw; c.height = th;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, tw, th);
+  const containScale = Math.min(tw / img.width, th / img.height);
+  const iw = img.width * containScale, ih = img.height * containScale;
+  ctx.drawImage(img, (tw - iw) / 2, (th - ih) / 2, iw, ih);
+  const compositeUrl = c.toDataURL("image/jpeg", 0.92);
+
+  try {
+    const path = "fal-ai/nano-banana/edit";
+    const job = await apiSubmit(path, {
+      prompt: "Extend and continue the real background scenery seamlessly into the plain white areas on the sides of this image. Prolong the exact same environment: same lighting, same colors, same architecture, same street, same sky, same textures, perfectly continuous with the existing photo. Keep the person and everything already visible completely unchanged. Photorealistic outpainting, no borders, no white areas remaining, no mirroring, no duplication of existing elements.",
+      image_urls: [compositeUrl],
+      num_images: 1,
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("extension échouée");
+      label.innerHTML = `<span style='color:var(--violet)'>🎨 L'IA prolonge le décor… (${(i + 1) * 3} s)</span>`;
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) throw new Error("image introuvable");
+    photoDataUrl = url;
+    stylePhotoUrl = null;
+    const op = document.getElementById("outfitPreview"); if (op) op.innerHTML = "";
+    const slot = document.getElementById("photoSlot");
+    slot.style.backgroundImage = `url(${url})`;
+    slot.textContent = ""; slot.classList.add("filled");
+    label.innerHTML = `<span style="color:var(--ok)">✓ Décor prolongé par l'IA au format ${ratio} — vrai décor, sans duplication.</span>`;
+    refresh();
+  } catch (err) {
+    // Repli : ancien fond flouté si l'IA échoue
+    label.innerHTML = "<span class='err'>⚠️ Extension IA indisponible — fond flouté appliqué à la place.</span>";
+    applyPhotoRatio(ratio, prevLabel);
+  }
 }
 
 // Recadre au format choisi SANS jamais couper le sujet : fond flouté agrandi en arrière-plan,
@@ -769,7 +836,7 @@ document.getElementById("go").onclick = async () => {
         prompt: prompt,
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
-        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
+        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
       }));
 
     // 2. Attendre le rendu (60 s à 5 min selon le modèle)
