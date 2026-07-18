@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio <b style="color:var(--gold)">v30 — anti-duplication d'objets</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio. Astuce pro : crée des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original. Studio</title>
+<title>StarClip Studio v31 — préservation visage IA · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -72,6 +72,13 @@
   footer { margin-top:36px; padding-top:14px; border-top:1px solid var(--line); font-size:11.5px;
     color:var(--dim); line-height:1.6; }
   .hidden { display:none; }
+  .face-ref-slot {
+    width:72px; height:72px; border-radius:10px; border:1.5px dashed var(--violet);
+    background:var(--up); display:flex; align-items:center; justify-content:center;
+    color:var(--violet); font-size:20px; cursor:pointer; background-size:cover;
+    background-position:center; flex-shrink:0;
+  }
+  .face-ref-slot.filled { border-style:solid; border-color:var(--violet); }
 </style>
 </head>
 <body>
@@ -105,6 +112,25 @@
       </div>
     </div>
     <input type="file" id="photoInput" accept="image/*" class="hidden">
+
+    <!-- RÉFÉRENCES VISAGE v31 -->
+    <div id="faceRefToggle" class="hidden" style="margin-top:12px;">
+      <button class="btn small" id="faceRefBtn" onclick="toggleFaceRef()" style="border-color:var(--violet); color:var(--violet);">
+        👤 + Ajouter des photos de référence visage <span id="faceRefCount"></span>
+      </button>
+      <div class="estimate">Améliore la ressemblance — envoie 1 à 3 photos nettes de ton visage.</div>
+    </div>
+    <div id="faceRefZone" class="hidden" style="margin-top:12px; background:var(--up); border-radius:10px; padding:12px;">
+      <div class="label" style="margin-top:0; color:var(--violet);">👤 Photos de référence visage (optionnel — max 3)</div>
+      <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
+        <div class="face-ref-slot" data-idx="0">＋</div>
+        <div class="face-ref-slot" data-idx="1">＋</div>
+        <div class="face-ref-slot" data-idx="2">＋</div>
+      </div>
+      <input type="file" id="faceRefInput" accept="image/*" class="hidden">
+      <div class="estimate" id="faceRefStatus" style="margin-top:8px;"></div>
+      <div class="estimate" style="margin-top:4px; font-style:italic;">L'IA analyse tes photos et décrit ton visage précisément pour mieux le préserver dans la vidéo.</div>
+    </div>
 
     <div id="ratioZone" class="hidden" style="margin-top:14px;">
       <div class="label" style="margin-top:0;">📐 Format de l'image</div>
@@ -259,7 +285,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v30 — anti-duplication d'objets</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v31 — préservation visage IA</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -270,6 +296,125 @@
 let photoDataUrl = null;
 let model = "eco";
 let dur = "5";
+
+// ——— Références visage v31 ———
+let faceRefUrls = [null, null, null]; // jusqu'à 3 photos
+let faceRefOpen = false;
+let faceRefDescription = ""; // description IA du visage
+let faceRefCurrentSlot = 0;
+
+function toggleFaceRef() {
+  faceRefOpen = !faceRefOpen;
+  document.getElementById("faceRefZone").classList.toggle("hidden", !faceRefOpen);
+  document.getElementById("faceRefBtn").style.borderColor = faceRefOpen ? "var(--ok)" : "var(--violet)";
+  document.getElementById("faceRefBtn").style.color = faceRefOpen ? "var(--ok)" : "var(--violet)";
+}
+
+function updateFaceRefCount() {
+  const n = faceRefUrls.filter(Boolean).length;
+  const el = document.getElementById("faceRefCount");
+  el.textContent = n > 0 ? `(${n} photo${n > 1 ? "s" : ""})` : "";
+  el.style.color = n > 0 ? "var(--ok)" : "";
+}
+
+// Initialise les slots de référence visage
+function initFaceRefSlots() {
+  const slots = document.querySelectorAll(".face-ref-slot");
+  const input = document.getElementById("faceRefInput");
+
+  slots.forEach(slot => {
+    slot.onclick = () => {
+      faceRefCurrentSlot = parseInt(slot.dataset.idx);
+      input.click();
+    };
+  });
+
+  input.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const scale = Math.min(1, 512 / Math.max(img.width, img.height));
+      c.width = img.width * scale; c.height = img.height * scale;
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      const dataUrl = c.toDataURL("image/jpeg", 0.85);
+      faceRefUrls[faceRefCurrentSlot] = dataUrl;
+      const slot = slots[faceRefCurrentSlot];
+      slot.style.backgroundImage = `url(${dataUrl})`;
+      slot.textContent = "";
+      slot.classList.add("filled");
+      updateFaceRefCount();
+      // Lancer l'analyse IA du visage
+      analyzeFaceRefs();
+    };
+    img.src = URL.createObjectURL(f);
+    input.value = "";
+  };
+}
+
+// Analyse IA des photos de référence via Claude API
+async function analyzeFaceRefs() {
+  const refs = faceRefUrls.filter(Boolean);
+  if (refs.length === 0) { faceRefDescription = ""; return; }
+  const statusEl = document.getElementById("faceRefStatus");
+  statusEl.innerHTML = "<span style='color:var(--violet)'>🔍 Analyse du visage en cours…</span>";
+  try {
+    const messages = [{
+      role: "user",
+      content: [
+        ...refs.map(url => ({
+          type: "image",
+          source: { type: "base64", media_type: "image/jpeg", data: url.split(",")[1] }
+        })),
+        {
+          type: "text",
+          text: "Décris précisément le visage de cette personne en anglais en 40-60 mots pour un prompt de génération vidéo IA. Inclus : teinte de peau, forme du visage, sourcils, yeux, nez, barbe/moustache si présente, traits distinctifs. Commence directement par la description, sans introduction. Ex: 'light brown skin, oval face, thick black eyebrows, dark almond-shaped eyes, broad nose, short trimmed beard, defined jawline, high cheekbones'."
+        }
+      ]
+    }];
+
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 150,
+        messages
+      })
+    });
+    const data = await resp.json();
+    const desc = (data.content?.[0]?.text || "").trim();
+    if (desc.length > 10) {
+      faceRefDescription = desc;
+      statusEl.innerHTML = `<span style="color:var(--ok)">✓ Visage analysé — la ressemblance sera améliorée automatiquement.</span>`;
+    } else {
+      throw new Error("Description vide");
+    }
+  } catch (e) {
+    statusEl.innerHTML = `<span style="color:var(--dim)">⚠️ Analyse impossible — les photos seront quand même utilisées.</span>`;
+    faceRefDescription = "";
+  }
+}
+
+// Construit le suffixe de préservation visage à injecter dans le prompt
+function buildFaceGuard() {
+  const refs = faceRefUrls.filter(Boolean);
+  if (refs.length === 0 && !faceRefDescription) return "";
+  let guard = " CRITICAL FACE PRESERVATION: ";
+  if (faceRefDescription) {
+    guard += `The person has exactly these facial features: ${faceRefDescription}. `;
+  }
+  guard += "DO NOT change the face, skin tone, facial hair, or identity of the person. DO NOT generate a different person. Preserve exact same face throughout the entire video. identity preserved, exact same person.";
+  return guard;
+}
+
+// Suffixe negative prompt pour la préservation visage
+function buildFaceNegative() {
+  const refs = faceRefUrls.filter(Boolean);
+  if (refs.length === 0 && !faceRefDescription) return "";
+  return ", different person, changed face, altered identity, different skin tone, different ethnicity, identity change, face replacement, new face";
+}
 const MODELS = {
   eco: { path: "fal-ai/kling-video/v2.1/standard/image-to-video", price5: 0.28, price10: 0.56 },
   pro: { path: "fal-ai/kling-video/v3/turbo/pro/image-to-video", perSec: 0.14 },
@@ -333,6 +478,8 @@ photoInput.onchange = (e) => {
     document.getElementById("ratioZone").querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
     document.getElementById("ratioZone").querySelector('[data-ratio="orig"]').classList.add("on");
     applyPhotoRatio("orig", f.name);
+    // Afficher la zone références visage
+    document.getElementById("faceRefToggle").classList.remove("hidden");
   };
   img.src = URL.createObjectURL(f);
 };
@@ -608,9 +755,10 @@ document.getElementById("go").onclick = async () => {
   const basePrompt = document.getElementById("prompt").value.trim();
   const lipOptim = document.getElementById("lipOptim").checked;
   const objectGuard = " Keep exactly the same objects, props and accessories as in the original photo — do not add, duplicate or multiply any item (e.g. if there is already a cigar, glass, jewelry or hat, keep only that single one, never add a second one or a new one in the hands).";
+  const faceGuard = buildFaceGuard();
   const prompt = (lipOptim
     ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
-    : basePrompt) + objectGuard;
+    : basePrompt) + objectGuard + faceGuard;
   const m = MODELS[model];
   document.getElementById("go").disabled = true;
   document.getElementById("resultZone").innerHTML = "";
@@ -621,7 +769,7 @@ document.getElementById("go").onclick = async () => {
         prompt: prompt,
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
-        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : ""),
+        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
       }));
 
     // 2. Attendre le rendu (60 s à 5 min selon le modèle)
@@ -1303,6 +1451,7 @@ function renderTrimRow(container, videoUrl, defaultEnd) {
 }
 
 setupLipsync();
+initFaceRefSlots();
 refresh();
 
 // ——— PWA : service worker ———
