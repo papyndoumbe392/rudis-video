@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v31.4 — analyse visage fiabilisée · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v32 — visage stable (Kling O1) · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -182,7 +182,9 @@
     <div class="chips">
       <button class="chip on" data-model="eco" onclick="pickModel(this)">Éco — ≈0,28 $ / 5 s</button>
       <button class="chip" data-model="pro" onclick="pickModel(this)">Pro (lip-sync) — 0,14 $ / s</button>
+      <button class="chip" data-model="ref" onclick="pickModel(this)">⭐ Visage stable — 0,112 $ / s</button>
     </div>
+    <div class="estimate" id="modelInfo" style="display:none; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-top:8px;">⭐ <b>Visage stable :</b> le moteur ancre ton identité sur tes <b>photos de référence visage</b> (volet 1) — le visage ne change plus, même en marchant ou en dansant. Ajoute au moins 1 photo de référence pour utiliser ce mode.</div>
 
     <label style="display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:13px; color:var(--dim); cursor:pointer;">
       <input type="checkbox" id="lipOptim" checked style="margin-top:2px; accent-color:var(--gold);">
@@ -285,7 +287,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v31.4 — analyse visage fiabilisée</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v32 — visage stable (Kling O1)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -418,6 +420,7 @@ function buildFaceNegative() {
 const MODELS = {
   eco: { path: "fal-ai/kling-video/v2.1/standard/image-to-video", price5: 0.28, price10: 0.56 },
   pro: { path: "fal-ai/kling-video/v3/turbo/pro/image-to-video", perSec: 0.14 },
+  ref: { path: "fal-ai/kling-video/o1/reference-to-video", perSec: 0.112 },
 };
 
 // ——— Clé API ———
@@ -619,7 +622,10 @@ function applyPhotoRatio(ratio, label) {
 // ——— Choix ———
 function pickModel(el) {
   document.querySelectorAll("[data-model]").forEach(c => c.classList.remove("on"));
-  el.classList.add("on"); model = el.dataset.model; refresh();
+  el.classList.add("on"); model = el.dataset.model;
+  const mi = document.getElementById("modelInfo");
+  if (mi) mi.style.display = (model === "ref") ? "block" : "none";
+  refresh();
 }
 function pickDur(el) {
   document.querySelectorAll("[data-dur]").forEach(c => c.classList.remove("on"));
@@ -638,7 +644,7 @@ function refresh() {
   document.getElementById("num2").classList.toggle("on", hasPrompt);
   const cost = model === "eco"
     ? (dur === "5" ? MODELS.eco.price5 : MODELS.eco.price10)
-    : MODELS.pro.perSec * parseInt(dur);
+    : (model === "ref" ? MODELS.ref.perSec : MODELS.pro.perSec) * parseInt(dur);
   document.getElementById("estimate").textContent = `Coût estimé : ≈ ${cost.toFixed(2)} $`;
   const go = document.getElementById("go");
   go.disabled = !(hasKey && hasPhoto && hasPrompt);
@@ -847,15 +853,43 @@ document.getElementById("go").onclick = async () => {
   const m = MODELS[model];
   document.getElementById("go").disabled = true;
   document.getElementById("resultZone").innerHTML = "";
+
+  // ⭐ Mode Visage stable : exige au moins 1 photo de référence visage
+  const faceRefs = faceRefUrls.filter(Boolean);
+  if (model === "ref" && faceRefs.length === 0) {
+    setStatus("<span class='err'>⭐ Le mode Visage stable a besoin d'au moins 1 photo de référence visage — ajoute-la dans le volet 1 (bouton violet sous ta photo).</span>", 0);
+    document.getElementById("go").disabled = false;
+    return;
+  }
   setStatus("Envoi de ta photo au studio de rendu…", 8);
 
   try {
-    const job = await apiSubmit(m.path, ({
+    let payload;
+    if (model === "ref") {
+      // O1 Reference : la photo principale = @Image1 (start frame),
+      // le visage du client = @Element1 (identité ancrée structurellement).
+      const ratioChip = document.querySelector("#ratioZone .chip.on");
+      const r = ratioChip ? ratioChip.dataset.ratio : "orig";
+      const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
+      payload = {
+        prompt: "Take @Image1 as the start frame. The person in the video is @Element1 — keep their exact face, skin tone and identity unchanged at all times. " + prompt,
+        image_urls: [stylePhotoUrl || photoDataUrl],
+        elements: [{
+          frontal_image_url: faceRefs[0],
+          reference_image_urls: faceRefs.slice(1),
+        }],
+        duration: dur,
+        aspect_ratio: aspect,
+      };
+    } else {
+      payload = {
         prompt: prompt,
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
         negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
-      }));
+      };
+    }
+    const job = await apiSubmit(m.path, payload);
 
     // 2. Attendre le rendu (60 s à 5 min selon le modèle)
     const statusUrl = job.status_url || `https://queue.fal.run/${m.path}/requests/${job.request_id}/status`;
