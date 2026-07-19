@@ -871,13 +871,12 @@ document.getElementById("go").onclick = async () => {
       const ratioChip = document.querySelector("#ratioZone .chip.on");
       const r = ratioChip ? ratioChip.dataset.ratio : "orig";
       const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
+      const elem = { frontal_image_url: faceRefs[0] };
+      if (faceRefs.length > 1) elem.reference_image_urls = faceRefs.slice(1);
       payload = {
         prompt: "Take @Image1 as the start frame. The person in the video is @Element1 — keep their exact face, skin tone and identity unchanged at all times. " + prompt,
         image_urls: [stylePhotoUrl || photoDataUrl],
-        elements: [{
-          frontal_image_url: faceRefs[0],
-          reference_image_urls: faceRefs.slice(1),
-        }],
+        elements: [elem],
         duration: dur,
         aspect_ratio: aspect,
       };
@@ -908,7 +907,10 @@ document.getElementById("go").onclick = async () => {
     // 3. Récupérer la vidéo
     const data = await apiPoll(responseUrl);
     const videoUrl = data.video?.url || data.response?.video?.url;
-    if (!videoUrl) throw new Error("Vidéo introuvable dans la réponse. Réessaie.");
+    if (!videoUrl) {
+      const diag = JSON.stringify(data.detail || data.error || data).slice(0, 220);
+      throw new Error("Vidéo introuvable dans la réponse. Détail serveur : " + diag);
+    }
 
     setStatus("<span class='okc'>✓ Vidéo générée !</span>", 100);
     lastVideoUrl = videoUrl;
