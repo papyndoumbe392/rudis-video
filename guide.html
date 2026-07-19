@@ -69,12 +69,27 @@
     border-radius:12px; font-weight:800; font-size:16px; text-decoration:none;
   }
   footer { margin-top:30px; text-align:center; font-size:12px; color:var(--dim); }
+
+  /* Sélecteur de langue */
+  .langbar { display:flex; justify-content:center; gap:8px; margin-top:14px; }
+  .langbtn {
+    padding:7px 22px; border-radius:999px; border:1.5px solid var(--line);
+    background:var(--panel); color:var(--dim); font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .langbtn.on { border-color:var(--gold); color:var(--gold); background:rgba(242,179,61,.08); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="eyebrow">Studio Rudis · Douala</div>
   <h1>Star<span>Clip</span> Studio<br>📖 Le Guide en BD</h1>
+  
+  <div class="langbar">
+    <button class="langbtn on" id="btnFr" onclick="setLang('fr')">🇫🇷 Français</button>
+    <button class="langbtn" id="btnEn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
+  <div id="lang-fr">
   <p class="intro">Deviens la star de ton propre clip vidéo en 6 étapes.<br>Si tu sais prendre une photo, tu sais tout faire ! ✨</p>
 
   <div class="stella">
@@ -167,11 +182,124 @@
 
   <!-- Coin des grands -->
   <div class="grown">
-    <b>ℹ️ Le coin des grands :</b> Le calage précis des lèvres dépend du moteur IA et peut varier légèrement selon le clip — un réglage d'avance (ms) est disponible dans l'app pour ajuster. chaque création est débitée du crédit du studio (paiement à l'usage, aucun abonnement). Prix indicatifs : vidéo 5 s ≈ 0,28 $ (Éco) · vidéo Pro ≈ 0,14 $/s · lip-sync ≈ 0,03 $ · changement de tenue ≈ 0,04 $ · coupe ≈ 0,01 $. Les vidéos de 2 à 10 secondes fonctionnent pour le lip-sync. Pour un clip complet, créez plusieurs segments et assemblez-les dans une app de montage (CapCut) avec l'audio original. Paiement : Orange Money 695 535 475 / MTN MoMo 653 072 700 (NDOUMBE EPOUPA Pierre) — envoyez la preuve sur WhatsApp. Service fourni par Studio Rudis, Douala.
+    <b>ℹ️ Le coin des grands :</b> Le calage précis des lèvres dépend du moteur IA et peut varier légèrement selon le clip — un réglage d'avance (ms) est disponible dans l'app pour ajuster. chaque création est débitée du crédit du studio (paiement à l'usage, aucun abonnement). Prix indicatifs : vidéo 5 s ≈ 0,28 $ (Éco) · vidéo Pro ≈ 0,14 $/s · Visage stable ≈ 0,112 $/s · lip-sync ≈ 0,03 $ · changement de tenue ≈ 0,04 $ · coupe ≈ 0,01 $. Les vidéos de 2 à 10 secondes fonctionnent pour le lip-sync. Pour un clip complet, créez plusieurs segments et assemblez-les dans une app de montage (CapCut) avec l'audio original. Paiement : Orange Money 695 535 475 / MTN MoMo 653 072 700 (NDOUMBE EPOUPA Pierre) — envoyez la preuve sur WhatsApp. Service fourni par Studio Rudis, Douala.
+  </div>
+  </div>
+
+  <div id="lang-en" style="display:none">
+  <p class="intro">Become the star of your own music video in 6 steps.<br>If you can take a photo, you can do it all! ✨</p>
+
+  <div class="stella">
+    <div class="star">🌟</div>
+    <div class="bubble">Hi! I'm Stella, the studio star. Follow me — it's as easy as pie!</div>
+  </div>
+
+  <!-- PANEL 1 -->
+  <div class="panel">
+    <div class="num">1</div>
+    <div class="scene">🤳 ➜ 😃</div>
+    <h2>Add your best photo</h2>
+    <p>Tap <b>"Choisir une photo"</b> (Choose a photo).<br>Pick a photo where your <b>face is clearly visible</b>, front-facing, with good light — like a school picture!</p>
+    <div class="tip"><b>Stella's tip:</b> no hand in front of your mouth, no cap hiding your eyes. Your face is the star! 🌟<br><br>📐 <b>Format:</b> right below your photo, choose vertical 9:16 for TikTok/Reels, horizontal 16:9 for YouTube/TV, or square. Your face is never cropped — <b>the AI extends the real background</b> of your photo on the sides, like magic! 🎨<br><br>👤 <b>Superpower:</b> tap the green button <b>"+ Ajouter des photos de référence visage"</b> (add face reference photos) and add 1 to 3 sharp photos of your face. The app learns your face by heart so it stays <b>exactly yours</b> in the video!</div>
+  </div>
+
+  <!-- PANEL 2 -->
+  <div class="panel">
+    <div class="num">2</div>
+    <div class="scene">👔 ✨ 👑</div>
+    <h2>Change your outfit (if you want!)</h2>
+    <p>Royal <b>Toghu</b>, <b>Afrobeats</b> style, star <b>tuxedo</b> or wax print…<br>Tap an outfit then <b>"Transformer"</b> — your clothes change, but <b>your face stays yours</b>!</p>
+    <span class="price">≈ 25 FCFA per transformation</span>
+    <div class="tip"><b>Magic:</b> you can even type your own outfit ("Indomitable Lions jersey" ⚽)… or better: <b>send a photo of a real outfit</b> 📷 — the app dresses you in it, or dresses a <b>male or female model</b> wearing it!</div>
+  </div>
+
+  <!-- PANEL 3 -->
+  <div class="panel">
+    <div class="num">3</div>
+    <div class="scene">💭 ➜ 📝</div>
+    <h2>Tell your dream to the assistant</h2>
+    <p>Write your idea <b>in your own words</b>:<br><i>"I sing on the beach at sunset"</i><br>Tap <b>"✨ Écrire mon scénario professionnel"</b> — the assistant turns your idea into a director's script!</p>
+    <div class="tip"><b>Stella says:</b> beach, concert, rocket, jungle, castle… Anything is possible. It's YOUR video! 🚀</div>
+  </div>
+
+  <!-- PANEL 4 -->
+  <div class="panel gold">
+    <div class="num">4</div>
+    <div class="scene">🎬 ⏳ 🍿</div>
+    <h2>Press the big golden button!</h2>
+    <p>Choose your quality, <b>5 or 10 seconds</b>, then tap <b>"Générer la vidéo"</b>.<br>The studio works for <b>1 to 3 minutes</b> — the length of a very short cartoon. And then… <b>you appear in your video!</b></p>
+    <span class="price">≈ 170 to 700 FCFA per video</span>
+    <div class="tip">⭐ <b>Stella's golden advice:</b> if you <b>walk</b> or <b>dance</b> in your video, choose the <b>"Visage stable"</b> (Stable Face) quality! The engine keeps your face identical from start to finish, even in motion. You just need at least 1 face reference photo (step 1). 🌟</div>
+  </div>
+
+  <!-- PANEL 5 -->
+  <div class="panel">
+    <div class="num">5</div>
+    <div class="scene">🎵 ➕ 🎬 = 🎤</div>
+    <h2>Make yourself sing your song</h2>
+    <p>Scroll down to the <b>"Lip-sync"</b> section.<br>Your video is already selected ✓ — add your <b>song</b>, then two ways to set where the singing starts: <b>🔍 Auto detection</b> (the app finds the start by itself — double-check by ear) or <b>🎯 "Le chant commence ICI"</b> (the singing starts HERE) for pros: listen and mark exactly when the voice begins! Then tap <b>"🎤 Synchroniser les lèvres"</b>.</p>
+    <p style="margin-top:8px;">⏳ This is the longest step: <b>5 to 12 minutes</b>. Keep the screen on and go grab a juice — Stella watches the clock for you.</p>
+    <span class="price">≈ 20 FCFA</span>
+  </div>
+
+  <!-- PANEL 6 -->
+  <div class="panel">
+    <div class="num">6</div>
+    <div class="scene">✂️ 📲 🏆</div>
+    <h2>Trim the end and save your masterpiece</h2>
+    <p>If the video keeps going after the singing ends, tap <b>"✂️ Couper"</b> — the right moment is already filled in.<br>Then tap <b>"📲 Enregistrer dans Photos"</b> → <b>"Save video"</b>.</p>
+    <div class="tip"><b>That's it!</b> Your video is in your Photos, ready for WhatsApp, TikTok or the family concert 🎉</div>
+  </div>
+
+  <div class="stella">
+    <div class="star">🌟</div>
+    <div class="bubble">Congratulations, you're officially a music-video star! Try again with other outfits and other settings — every video is a new adventure.</div>
+  </div>
+
+  <!-- PANEL 7: PAY -->
+  <div class="panel gold">
+    <div class="num">💰</div>
+    <div class="scene">📱 ➜ 💬 ➜ 🎬</div>
+    <h2>How to pay? (for grown-ups)</h2>
+    <p>No bank card? No problem!<br>Pay with your phone, like at the market:</p>
+    <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:2; margin-top:10px; text-align:left;">
+      <b>NDOUMBE EPOUPA Pierre</b> — Studio Rudis<br>
+      🟠 Orange Money: <b>695 535 475</b><br>
+      🟡 MTN Mobile Money: <b>653 072 700</b>
+    </div>
+    <p style="margin-top:10px;">1️⃣ Send the amount · 2️⃣ Send <b>your payment screenshot</b> on <b>WhatsApp</b> · 3️⃣ Receive your <b>StarClip CODE</b> (e.g. STAR-7K3M) · 4️⃣ Enter it at the top of the app… and create your videos yourself! 🎬</p>
+    <a href="https://wa.me/237695535475?text=Hello%20Studio%20Rudis!%20I%20want%20my%20StarClip%20video." 
+       style="display:block; text-align:center; margin-top:12px; padding:12px; border-radius:10px; background:#25D366; color:#06300f; font-weight:800; font-size:15px; text-decoration:none;">
+      💬 Order on WhatsApp
+    </a>
+    <div class="tip" style="margin-top:12px;"><b>Code prices:</b> ⭐ Star Trial (1 video, singing + outfit included) → <b>1,500 F</b> · 🎟️ 5 videos → 6,000 F · 🎟️ 12 videos → 12,000 F · 🏆 Discovery Clip (the studio creates for you) → 10,000 F · 💎 Premium Clip → 25,000 F</div>
+  </div>
+
+  <div class="divider">· · ·</div>
+
+  <!-- Grown-ups corner -->
+  <div class="grown">
+    <b>ℹ️ Grown-ups corner:</b> Precise lip timing depends on the AI engine and may vary slightly per clip — a fine-tune setting (ms) is available in the app. Every creation is deducted from the studio credit (pay-as-you-go, no subscription). Indicative prices: 5s video ≈ $0.28 (Eco) · Pro video ≈ $0.14/s · Stable Face ≈ $0.112/s · lip-sync ≈ $0.03 · outfit change ≈ $0.04 · trim ≈ $0.01. Videos from 2 to 10 seconds work for lip-sync. For a full music video, create several segments and assemble them in an editing app (CapCut) with the original audio. Payment: Orange Money 695 535 475 / MTN MoMo 653 072 700 (NDOUMBE EPOUPA Pierre) — send proof on WhatsApp. Service provided by Studio Rudis, Douala.
+  </div>
+
   </div>
 
   <a class="back" href="index.html">🎬 Ouvrir StarClip Studio</a>
   <footer>StarClip Studio · par Studio Rudis · Douala 🇨🇲</footer>
 </div>
+<script>
+function setLang(l) {
+  document.getElementById('lang-fr').style.display = (l === 'fr') ? '' : 'none';
+  document.getElementById('lang-en').style.display = (l === 'en') ? '' : 'none';
+  document.getElementById('btnFr').classList.toggle('on', l === 'fr');
+  document.getElementById('btnEn').classList.toggle('on', l === 'en');
+  document.documentElement.lang = l;
+  try { localStorage.setItem('starclip_guide_lang', l); } catch(e) {}
+}
+try {
+  const saved = localStorage.getItem('starclip_guide_lang');
+  if (saved === 'en') setLang('en');
+} catch(e) {}
+</script>
 </body>
 </html>
