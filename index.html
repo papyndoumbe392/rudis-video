@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v32 — visage stable (Kling O1) · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v32.3 — retouche ciblée · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -288,7 +288,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v32 — visage stable (Kling O1)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v32.3 — retouche ciblée</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -679,7 +679,7 @@ document.getElementById("ideaGo").onclick = async () => {
     const path = "fal-ai/any-llm";
     const job = await apiSubmit(path, ({
         model: "google/gemini-2.5-flash",
-        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco). Transforme son idée en UN prompt professionnel EN ANGLAIS de 60 à 90 mots : commence par le lieu et l'action exacts demandés, puis la lumière, le mouvement de caméra, l'ambiance. Si la personne chante : medium close-up framing, face large in the frame. Contraintes : face fully visible and front-facing, no microphone or hands covering the mouth. N'invente et n'ajoute JAMAIS un objet, accessoire ou prop qui n'est pas déjà visible sur la photo ou explicitement demandé par l'utilisateur (ex : ne jamais ajouter un deuxième cigare, verre, bijou, chapeau, etc. en plus de celui déjà présent). Termine par : high realism, natural skin texture, identity preserved, exact same props and objects as the original photo, no duplicated or added items. Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
+        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS de 70 à 110 mots, structuré ainsi : (1) le lieu et l'action exacts demandés en premier ; (2) si une autre personne est présente dans la scène (hôtesse, danseurs, invités…), décris son interaction précise avec le sujet (ex : verse une boisson, danse à ses côtés) avec un mouvement physique réaliste et correct ; (3) éclairage cinématographique riche (ex : warm golden light, soft highlights, realistic reflections) adapté au lieu ; (4) UN SEUL mouvement de caméra clair et lent (ex : slow dolly-in, slow tracking shot) — jamais plusieurs plans ou coupes dans un même prompt ; (5) mouvement corporel naturel et discret (gentle breathing, soft eye blinking, slight head movement) — jamais de mouvement ample, rapide, de saut ou de rotation brusque. Si la personne chante : medium close-up framing, face large in the frame, no microphone or hands covering the mouth. N'invente et n'ajoute JAMAIS un objet, accessoire ou prop qui n'est pas déjà visible sur la photo ou explicitement demandé (ex : jamais un deuxième cigare, verre, bijou, chapeau en plus de celui déjà présent). Termine TOUJOURS par cette phrase de garde-fous, mot pour mot : 'high realism, natural skin texture, identity preserved, exact same props and objects as the original photo, no duplicated or added items, no extra fingers, no hand distortion, no body distortion, no floating objects, no unnatural motion, no artifacts.' Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
         prompt: idea,
       }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -696,6 +696,16 @@ document.getElementById("ideaGo").onclick = async () => {
     document.getElementById("prompt").value = text;
     document.getElementById("prompt").dispatchEvent(new Event("input"));
     info.innerHTML = `<span style="color:var(--ok)">✓ Scénario professionnel écrit ! Tu peux le modifier ci-dessous si tu veux.</span>`;
+
+    // Suggestion auto du mode Visage stable si le scénario implique mouvement/interaction
+    const riskyWords = /walk|dance|dancing|moving|steps|pour|serving|hug|embrace|kiss|hands touching|interact/i;
+    if (riskyWords.test(text)) {
+      const faceRefs = faceRefUrls.filter(Boolean);
+      const hint = faceRefs.length > 0
+        ? `⭐ Cette scène a du mouvement — pense à choisir <b>« Visage stable »</b> dans Qualité/Prix pour garder ton visage identique !`
+        : `⭐ Cette scène a du mouvement — <b>ajoute une photo de référence visage</b> (volet 1) puis choisis <b>« Visage stable »</b> ci-dessous, pour garder ton visage identique !`;
+      info.innerHTML += `<div class="estimate" style="margin-top:8px; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:8px 10px;">${hint}</div>`;
+    }
   } catch (err) {
     info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
   } finally { btn.disabled = false; }
@@ -853,10 +863,13 @@ document.getElementById("go").onclick = async () => {
   const basePrompt = document.getElementById("prompt").value.trim();
   const lipOptim = document.getElementById("lipOptim").checked;
   const objectGuard = " Keep exactly the same objects, props and accessories as in the original photo — do not add, duplicate or multiply any item (e.g. if there is already a cigar, glass, jewelry or hat, keep only that single one, never add a second one or a new one in the hands).";
+  // v32.2 : garde-fous de qualité UNIVERSELS — injectés dans chaque génération,
+  // que le scénario vienne de l'assistant OU soit écrit/collé à la main par le client.
+  const qualityGuard = " Framing: keep every person fully in frame at all times, heads and shoulders never cropped, no reframing that cuts subjects. Faces: eyes naturally open throughout, natural relaxed expressions. Physics: any liquid, pouring, or object interaction must be physically realistic and subtle (e.g. champagne pours as a thin clear stream with minimal foam). Motion: smooth, slow, natural — no sudden or exaggerated movement. no extra fingers, no hand distortion, no body distortion, no floating objects, no artifacts.";
   const faceGuard = buildFaceGuard();
   const prompt = (lipOptim
     ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
-    : basePrompt) + objectGuard + faceGuard;
+    : basePrompt) + objectGuard + qualityGuard + faceGuard;
   const m = MODELS[model];
   document.getElementById("go").disabled = true;
   document.getElementById("resultZone").innerHTML = "";
@@ -928,10 +941,18 @@ document.getElementById("go").onclick = async () => {
         <video src="${videoUrl}" controls playsinline></video>
         <button class="dl btn" id="saveBtn">⏳ Préparation de l'enregistrement…</button>
         <div class="estimate" id="saveHint"></div>
+      </div>
+      <div class="card" style="margin-top:12px; border-color:var(--violet);">
+        <h2>🔧 Un détail te gêne ?</h2>
+        <p class="sub" style="margin:4px 0 10px;">Décris UNIQUEMENT ce qui ne va pas (ex : « ouvre les yeux de l'homme », « la tête de la femme ne doit pas être coupée », « le champagne doit couler normalement, pas de mousse »). Le reste de la vidéo reste identique — c'est une <b>retouche</b>, pas une nouvelle vidéo.</p>
+        <textarea id="fixPrompt" rows="2" placeholder="Ex : garde les yeux ouverts pendant toute la vidéo"></textarea>
+        <button class="btn" id="fixGo" style="margin-top:8px; width:100%;">🔧 Corriger ce détail (≈ ${(0.168 * lastVideoDur).toFixed(2)} $)</button>
+        <div class="estimate" id="fixInfo" style="margin-top:6px;"></div>
       </div>`;
     prepareVideoFile(videoUrl);
     document.getElementById("saveBtn").onclick = () => saveVideo(videoUrl);
     renderTrimRow(document.querySelector("#resultZone .card"), videoUrl, Math.max(2, lastVideoDur - 0.1));
+    document.getElementById("fixGo").onclick = () => runVideoFix(videoUrl);
     // Active la source "Dernière vidéo générée" dans le volet lip-sync
     const useLast = document.getElementById("lipUseLast");
     useLast.disabled = false;
@@ -1536,6 +1557,50 @@ async function runLipsync() {
 }
 
 // ——— Coupe de fin de vidéo (fal workflow-utilities/trim-video, < 0,01 $) ———
+// v32.3 : correction ciblée d'UN SEUL défaut sur une vidéo déjà générée,
+// via fal-ai/kling-video/o1/standard/video-to-video/edit — au lieu de tout
+// regénérer (et retomber sur d'autres défauts aléatoires), le moteur ne
+// touche que ce que le client décrit, en gardant le reste identique.
+let fixDur = 0;
+async function runVideoFix(videoUrl) {
+  const btn = document.getElementById("fixGo");
+  const info = document.getElementById("fixInfo");
+  const userFix = document.getElementById("fixPrompt").value.trim();
+  if (!userFix) { info.innerHTML = "<span class='err'>Décris d'abord ce qui doit changer.</span>"; return; }
+  btn.disabled = true;
+  info.innerHTML = "Envoi de ta vidéo pour retouche ciblée…";
+  try {
+    const path = "fal-ai/kling-video/o1/standard/video-to-video/edit";
+    const editPrompt = "Keep everything in @Video1 exactly the same — same person, same face, same outfit, same background, same camera movement, same duration. The ONLY change to make: " + userFix + ". Do not alter anything else in the scene.";
+    const job = await apiSubmit(path, { prompt: editPrompt, video_url: videoUrl });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La retouche a échoué. Réessaie avec une description plus simple.");
+      info.innerHTML = `🔧 Retouche en cours… (${(i + 1) * 3} s)`;
+    }
+    const data = await apiPoll(responseUrl);
+    const fixedUrl = data.video?.url || data.response?.video?.url;
+    if (!fixedUrl) {
+      const diag = JSON.stringify(data.detail || data.error || data).slice(0, 220);
+      throw new Error("Vidéo retouchée introuvable. Détail serveur : " + diag);
+    }
+    lastVideoUrl = fixedUrl;
+    document.querySelector("#resultZone video").src = fixedUrl;
+    prepareVideoFile(fixedUrl);
+    document.getElementById("saveBtn").onclick = () => saveVideo(fixedUrl);
+    info.innerHTML = `<span style="color:var(--ok)">✓ Corrigé ! Regarde la vidéo ci-dessus — recommence si besoin.</span>`;
+    document.getElementById("fixPrompt").value = "";
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 function renderTrimRow(container, videoUrl, defaultEnd) {
   const row = document.createElement("div");
   row.innerHTML = `
