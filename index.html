@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v32.3 — retouche ciblée · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.1 — Multi-plans 3.0 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -209,6 +209,22 @@
 
   <div id="resultZone"></div>
 
+  <!-- v33.1 — MULTI-PLANS 3.0 (Kling 3.0, storyboard) -->
+  <section class="card" style="border-color:var(--gold);">
+    <h2>🎬 Multi-plans 3.0 — ton mini-clip <span class="dot" id="dotMS"></span></h2>
+    <p class="sub" style="margin-top:4px;">Enchaîne <b>2 à 6 plans</b> dans UNE seule vidéo (15 s max au total), générée d'un coup par <b>Kling 3.0</b>, le moteur du rendu cinéma. Ton visage est ancré sur tes <b>photos de référence</b> (volet 1) et reste identique d'un plan à l'autre.</p>
+    <div id="msPlans"></div>
+    <button class="btn" id="msAdd" style="margin-top:10px;">＋ Ajouter un plan</button>
+    <div class="estimate" id="msInfo"></div>
+    <button class="master" id="msGo" style="margin-top:10px;" disabled>Complète les plans pour générer</button>
+    <div class="estimate" id="msCost" style="margin-top:8px;"></div>
+    <div class="status" id="msStatus">
+      <div id="msStatusText">…</div>
+      <div class="bar"><div class="fill" id="msFill"></div></div>
+    </div>
+    <div id="msResultZone"></div>
+  </section>
+
   <!-- LIP-SYNC (volet permanent, double source) -->
   <section class="card">
     <h2><span class="num" id="num3">3</span> Lip-sync — fais chanter ta vidéo <span class="dot" id="dot3"></span></h2>
@@ -288,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v32.3 — retouche ciblée</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.1 — Multi-plans 3.0 (Kling 3.0)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -427,7 +443,7 @@ function buildFaceNegative() {
 const MODELS = {
   eco: { path: "fal-ai/kling-video/v2.1/standard/image-to-video", price5: 0.28, price10: 0.56 },
   pro: { path: "fal-ai/kling-video/v3/turbo/pro/image-to-video", perSec: 0.14 },
-  ref: { path: "fal-ai/kling-video/o1/reference-to-video", perSec: 0.112 },
+  ref: { path: "fal-ai/kling-video/o3/pro/reference-to-video", perSec: 0.112 }, // v33.1 : Kling 3.0 (o3), sans audio natif = même prix
 };
 
 // ——— Clé API ———
@@ -656,6 +672,7 @@ function refresh() {
   const go = document.getElementById("go");
   go.disabled = !(hasKey && hasPhoto && hasPrompt);
   go.textContent = go.disabled ? "Complète les étapes pour générer" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
+  if (window.__msReady) msRefresh();
 }
 document.getElementById("prompt").addEventListener("input", refresh);
 
@@ -859,13 +876,17 @@ function setStatus(html, pct) {
   if (pct !== undefined) fill.style.width = pct + "%";
 }
 
+// v33.1 : garde-fous partagés entre la génération simple et le Multi-plans
+const OBJECT_GUARD = " Keep exactly the same objects, props and accessories as in the original photo — do not add, duplicate or multiply any item (e.g. if there is already a cigar, glass, jewelry or hat, keep only that single one, never add a second one or a new one in the hands).";
+const QUALITY_GUARD = " Framing: keep every person fully in frame at all times, heads and shoulders never cropped, no reframing that cuts subjects. Faces: eyes naturally open throughout, natural relaxed expressions. Physics: any liquid, pouring, or object interaction must be physically realistic and subtle (e.g. champagne pours as a thin clear stream with minimal foam). Motion: smooth, slow, natural — no sudden or exaggerated movement. no extra fingers, no hand distortion, no body distortion, no floating objects, no artifacts.";
+
 document.getElementById("go").onclick = async () => {
   const basePrompt = document.getElementById("prompt").value.trim();
   const lipOptim = document.getElementById("lipOptim").checked;
-  const objectGuard = " Keep exactly the same objects, props and accessories as in the original photo — do not add, duplicate or multiply any item (e.g. if there is already a cigar, glass, jewelry or hat, keep only that single one, never add a second one or a new one in the hands).";
+  const objectGuard = OBJECT_GUARD;
   // v32.2 : garde-fous de qualité UNIVERSELS — injectés dans chaque génération,
   // que le scénario vienne de l'assistant OU soit écrit/collé à la main par le client.
-  const qualityGuard = " Framing: keep every person fully in frame at all times, heads and shoulders never cropped, no reframing that cuts subjects. Faces: eyes naturally open throughout, natural relaxed expressions. Physics: any liquid, pouring, or object interaction must be physically realistic and subtle (e.g. champagne pours as a thin clear stream with minimal foam). Motion: smooth, slow, natural — no sudden or exaggerated movement. no extra fingers, no hand distortion, no body distortion, no floating objects, no artifacts.";
+  const qualityGuard = QUALITY_GUARD;
   const faceGuard = buildFaceGuard();
   const prompt = (lipOptim
     ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
@@ -899,6 +920,7 @@ document.getElementById("go").onclick = async () => {
         elements: [elem],
         duration: dur,
         aspect_ratio: aspect,
+        generate_audio: false,
       };
     } else {
       payload = {
@@ -968,8 +990,8 @@ document.getElementById("go").onclick = async () => {
 // ——— Enregistrer la vidéo (partage natif iOS/Android) ———
 let videoFile = null;
 
-async function prepareVideoFile(url) {
-  const btn = document.getElementById("saveBtn");
+async function prepareVideoFile(url, btnEl) {
+  const btn = btnEl || document.getElementById("saveBtn");
   try {
     const resp = await fetch(url);
     const blob = await resp.blob();
@@ -981,8 +1003,8 @@ async function prepareVideoFile(url) {
   }
 }
 
-async function saveVideo(url) {
-  const hint = document.getElementById("saveHint");
+async function saveVideo(url, hintEl) {
+  const hint = hintEl || document.getElementById("saveHint") || { textContent: "" };
   // Cas 1 : fichier prêt → menu de partage iOS immédiat
   if (videoFile && navigator.canShare && navigator.canShare({ files: [videoFile] })) {
     try {
@@ -1649,6 +1671,152 @@ refresh();
 
 // ——— PWA : service worker ———
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+
+// ——— v33.1 : MULTI-PLANS 3.0 (Kling 3.0, multi_prompt) ———
+// 2 à 6 plans, 15 s max au total, identité @Element1 (photos de référence visage).
+// Tarif : 2 vidéos débitées du code (appliqué par le serveur, affiché en toutes lettres).
+let msPlans = [{ prompt: "", d: 5 }, { prompt: "", d: 5 }];
+function msTotal() { return msPlans.reduce((s, p) => s + p.d, 0); }
+
+function msRender() {
+  const zone = document.getElementById("msPlans");
+  zone.innerHTML = "";
+  msPlans.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.style.cssText = "margin-top:10px; padding:10px 12px; background:var(--up); border:1px solid var(--line); border-radius:10px;";
+    const delBtn = msPlans.length > 2 ? `<button class="chip" data-del="${i}">✕ Retirer</button>` : "";
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <b style="font-size:13px; color:var(--gold);">Plan ${i + 1}</b>${delBtn}
+      </div>
+      <textarea data-idx="${i}" rows="2" placeholder="Ex : je marche vers la caméra sur la plage au coucher du soleil" style="width:100%; margin-top:8px; background:var(--panel); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:8px 10px; font-size:14px; line-height:1.5; resize:vertical;"></textarea>
+      <div class="chips" style="margin-top:8px;">
+        ${[3, 4, 5].map(s => `<button class="chip ${p.d === s ? "on" : ""}" data-dur-idx="${i}" data-sec="${s}">${s} s</button>`).join("")}
+      </div>`;
+    div.querySelector("textarea").value = p.prompt;
+    zone.appendChild(div);
+  });
+  zone.querySelectorAll("textarea").forEach(t => t.addEventListener("input", e => {
+    msPlans[+e.target.dataset.idx].prompt = e.target.value; msRefresh();
+  }));
+  zone.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    msPlans.splice(+b.dataset.del, 1); msRender();
+  });
+  zone.querySelectorAll("[data-dur-idx]").forEach(b => b.onclick = () => {
+    msPlans[+b.dataset.durIdx].d = +b.dataset.sec; msRender();
+  });
+  msRefresh();
+}
+
+function msRefresh() {
+  const total = msTotal();
+  const hasKey = getCode().length >= 5;
+  const hasPhoto = !!photoDataUrl;
+  const hasFace = faceRefUrls.filter(Boolean).length > 0;
+  const filled = msPlans.every(p => p.prompt.trim().length > 5);
+  const okDur = total <= 15;
+  document.getElementById("msInfo").innerHTML =
+    `Total : <b>${total} s</b> sur 15 s max · ${msPlans.length} plans` +
+    (okDur ? "" : ` — <span class="err">trop long, réduis les durées !</span>`);
+  const go = document.getElementById("msGo");
+  go.disabled = !(hasKey && hasPhoto && hasFace && filled && okDur && msPlans.length >= 2);
+  go.textContent = go.disabled
+    ? "Complète les plans pour générer"
+    : "🎬 Générer le multi-plans (− 2 vidéos de ton code)";
+  document.getElementById("msCost").innerHTML = go.disabled
+    ? (hasFace ? "" : `⭐ Ajoute au moins <b>1 photo de référence visage</b> (volet 1, bouton violet) — c'est elle qui garde ton visage identique d'un plan à l'autre.`)
+    : `Ce mini-clip débite <b>2 vidéos</b> de ton code (au lieu de 1) — normal : il vaut jusqu'à 15 s de cinéma en un seul rendu. Coût studio ≈ ${(0.112 * total).toFixed(2)} $.`;
+}
+
+function msSetStatus(html, pct) {
+  const s = document.getElementById("msStatus");
+  s.classList.add("show");
+  document.getElementById("msStatusText").innerHTML = html;
+  if (pct !== undefined) document.getElementById("msFill").style.width = pct + "%";
+}
+
+document.getElementById("msAdd").onclick = () => {
+  if (msPlans.length >= 6) return;
+  msPlans.push({ prompt: "", d: 3 });
+  msRender();
+};
+
+document.getElementById("msGo").onclick = async () => {
+  const goBtn = document.getElementById("msGo");
+  goBtn.disabled = true;
+  document.getElementById("msResultZone").innerHTML = "";
+  try {
+    const faceRefs = faceRefUrls.filter(Boolean);
+    const elem = { frontal_image_url: faceRefs[0] };
+    if (faceRefs.length > 1) elem.reference_image_urls = faceRefs.slice(1);
+    const ratioChip = document.querySelector("#ratioZone .chip.on");
+    const r = ratioChip ? ratioChip.dataset.ratio : "orig";
+    const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
+    const faceGuard = buildFaceGuard();
+    const mp = msPlans.map((p, i) => ({
+      prompt: (i === 0
+        ? "Take @Image1 as the visual starting point. The person in every shot is @Element1 — keep their exact face, skin tone and identity unchanged at all times. "
+        : "Same person @Element1, exact same face and identity as the previous shot. ")
+        + p.prompt.trim() + QUALITY_GUARD + faceGuard,
+      duration: String(p.d),
+    }));
+    const payload = {
+      multi_prompt: mp,
+      image_urls: [stylePhotoUrl || photoDataUrl],
+      elements: [elem],
+      aspect_ratio: aspect,
+      shot_type: "customize",
+      generate_audio: false,
+    };
+    msSetStatus("Envoi de ton storyboard au studio de rendu…", 8);
+    const job = await apiSubmit(MODELS.ref.path, payload);
+    const statusUrl = job.status_url || `https://queue.fal.run/${MODELS.ref.path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${MODELS.ref.path}/requests/${job.request_id}`;
+    let pct = 10;
+    for (let i = 0; i < 200; i++) {
+      await new Promise(rs => setTimeout(rs, 4000));
+      const sj = await apiPoll(statusUrl);
+      pct = Math.min(pct + 2, 92);
+      if (sj.status === "IN_QUEUE") msSetStatus(`En file d'attente (position ${sj.queue_position ?? "…"})…`, pct);
+      else if (sj.status === "IN_PROGRESS") msSetStatus(`Kling 3.0 tourne tes ${msPlans.length} plans… (2 à 8 min)`, pct);
+      else if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR")
+        throw new Error("La création a échoué côté serveur. Réessaie — si ça se reproduit, envoie ce message au studio sur WhatsApp.");
+    }
+    const data = await apiPoll(responseUrl);
+    const videoUrl = data.video?.url || data.response?.video?.url;
+    if (!videoUrl) {
+      const diag = JSON.stringify(data.detail || data.error || data).slice(0, 220);
+      throw new Error("Vidéo introuvable dans la réponse. Détail serveur : " + diag);
+    }
+    msSetStatus(`<span class="okc">✓ Mini-clip de ${msTotal()} s généré !</span>`, 100);
+    lastVideoUrl = videoUrl;
+    lastVideoDur = msTotal();
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.marginTop = "12px";
+    card.innerHTML = `
+      <h2>🎬 Ton mini-clip multi-plans</h2>
+      <video src="${videoUrl}" controls playsinline></video>
+      <button class="dl btn" id="msSaveBtn">⏳ Préparation de l'enregistrement…</button>
+      <div class="estimate" id="msSaveHint"></div>`;
+    document.getElementById("msResultZone").appendChild(card);
+    prepareVideoFile(videoUrl, document.getElementById("msSaveBtn"));
+    document.getElementById("msSaveBtn").onclick = () => saveVideo(videoUrl, document.getElementById("msSaveHint"));
+    renderTrimRow(card, videoUrl, Math.max(2, lastVideoDur - 0.1));
+    const useLast = document.getElementById("lipUseLast");
+    if (useLast) useLast.disabled = false;
+  } catch (err) {
+    msSetStatus(`<span class="err">✗ ${err.message}</span>`, 0);
+  } finally {
+    msRefresh();
+    refresh();
+  }
+};
+
+window.__msReady = true;
+msRender();
+
 </script>
 </body>
 </html>
