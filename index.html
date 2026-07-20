@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.1 — Multi-plans 3.0 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.2 — Multi-plans 3.0 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -304,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.1 — Multi-plans 3.0 (Kling 3.0)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.2 — Multi-plans 3.0 (Kling 3.0)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1752,14 +1752,19 @@ document.getElementById("msGo").onclick = async () => {
     const ratioChip = document.querySelector("#ratioZone .chip.on");
     const r = ratioChip ? ratioChip.dataset.ratio : "orig";
     const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
-    const faceGuard = buildFaceGuard();
-    const mp = msPlans.map((p, i) => ({
-      prompt: (i === 0
-        ? "Take @Image1 as the visual starting point. The person in every shot is @Element1 — keep their exact face, skin tone and identity unchanged at all times. "
-        : "Same person @Element1, exact same face and identity as the previous shot. ")
-        + p.prompt.trim() + QUALITY_GUARD + faceGuard,
-      duration: String(p.d),
-    }));
+    // v33.2 : Kling 3.0 limite chaque plan à 512 caractères — on utilise
+    // des garde-fous COMPACTS (pas les longs de la vidéo simple), et on
+    // coupe à 512 en dernier recours pour ne jamais faire échouer l'appel.
+    const MS_INTRO1 = "Start from @Image1. The person in every shot is @Element1 — keep exact same face, skin tone and identity. ";
+    const MS_INTRO  = "Same person @Element1, exact same face and identity. ";
+    const MS_GUARD  = " Everyone fully in frame, eyes open, natural expressions, smooth slow realistic motion, realistic physics, no hand or face distortion, no artifacts.";
+    const mp = msPlans.map((p, i) => {
+      const intro = (i === 0 ? MS_INTRO1 : MS_INTRO);
+      let full = intro + p.prompt.trim() + MS_GUARD;
+      if (full.length > 512) full = intro + p.prompt.trim();
+      if (full.length > 512) full = full.slice(0, 512);
+      return { prompt: full, duration: String(p.d) };
+    });
     const payload = {
       multi_prompt: mp,
       image_urls: [stylePhotoUrl || photoDataUrl],
