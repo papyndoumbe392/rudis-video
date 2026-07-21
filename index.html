@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.2 — limite 512 car. corrigée · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.3 — identité multi-personnages · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -304,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.2 — Multi-plans corrigé (budget affiché)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.3 — tenues distinctes par personnage</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -915,7 +915,7 @@ document.getElementById("go").onclick = async () => {
       const elem = { frontal_image_url: faceRefs[0] };
       if (faceRefs.length > 1) elem.reference_image_urls = faceRefs.slice(1);
       payload = {
-        prompt: "Take @Image1 as the start frame. The person in the video is @Element1 — keep their exact face, skin tone and identity unchanged at all times. " + prompt,
+        prompt: "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. " + prompt,
         image_urls: [stylePhotoUrl || photoDataUrl],
         elements: [elem],
         duration: dur,
@@ -1678,8 +1678,8 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 // v33.2 : budget réel de caractères par plan (Kling O3 limite chaque prompt à 512 car.
 // — le préfixe technique + les garde-fous courts sont fixes, ce qui reste = marge du client).
 const MS_SHORT_GUARD_LEN = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion. Exact same face and identity, do not alter.".length;
-const MS_PREFIX0_LEN = "Take @Image1 as the visual starting point. The person in every shot is @Element1 — keep their exact face, skin tone and identity unchanged at all times. ".length;
-const MS_PREFIXN_LEN = "Same person @Element1, exact same face and identity as the previous shot. ".length;
+const MS_PREFIX0_LEN = "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. ".length;
+const MS_PREFIXN_LEN = "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ".length;
 function msBudget(i) { return 512 - (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN) - MS_SHORT_GUARD_LEN; }
 
 let msPlans = [{ prompt: "", d: 5 }, { prompt: "", d: 5 }];
@@ -1778,8 +1778,8 @@ document.getElementById("msGo").onclick = async () => {
     const clip = (txt, max) => txt.length > max ? txt.slice(0, max - 1).trim() + "…" : txt;
     const mp = msPlans.map((p, i) => {
       const prefix = i === 0
-        ? "Take @Image1 as the visual starting point. The person in every shot is @Element1 — keep their exact face, skin tone and identity unchanged at all times. "
-        : "Same person @Element1, exact same face and identity as the previous shot. ";
+        ? "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. "
+        : "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ";
       return {
         prompt: prefix + clip(p.prompt.trim(), msBudget(i)) + shortSuffix,
         duration: String(p.d),
