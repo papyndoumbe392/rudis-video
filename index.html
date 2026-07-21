@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.3 — identité multi-personnages · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.4 — filet anti-dépassement 512 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -304,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.3 — tenues distinctes par personnage</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.4 — garde-fou longueur absolu</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1680,7 +1680,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 const MS_SHORT_GUARD_LEN = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion. Exact same face and identity, do not alter.".length;
 const MS_PREFIX0_LEN = "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. ".length;
 const MS_PREFIXN_LEN = "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ".length;
-function msBudget(i) { return 512 - (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN) - MS_SHORT_GUARD_LEN; }
+function msBudget(i) { return 512 - (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN) - MS_SHORT_GUARD_LEN - 15; } // -15 : marge de sécurité
 
 let msPlans = [{ prompt: "", d: 5 }, { prompt: "", d: 5 }];
 function msTotal() { return msPlans.reduce((s, p) => s + p.d, 0); }
@@ -1780,10 +1780,11 @@ document.getElementById("msGo").onclick = async () => {
       const prefix = i === 0
         ? "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. "
         : "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ";
-      return {
-        prompt: prefix + clip(p.prompt.trim(), msBudget(i)) + shortSuffix,
-        duration: String(p.d),
-      };
+      const full = prefix + clip(p.prompt.trim(), msBudget(i)) + shortSuffix;
+      // Filet de sécurité absolu : quelle que soit la longueur réelle de faceGuard
+      // (variable selon la description IA du visage), le prompt final ne dépasse
+      // JAMAIS la limite serveur de 512 caractères.
+      return { prompt: full.length > 512 ? full.slice(0, 511).trim() + "…" : full, duration: String(p.d) };
     });
     const payload = {
       multi_prompt: mp,
