@@ -103,7 +103,7 @@
     <h1>MasterPro&nbsp;AI</h1>
     <small>Studio Rudis</small>
   </div>
-  <span class="verchip" id="verchip">v1.2.1</span>
+  <span class="verchip" id="verchip">v1.3</span>
 </header>
 
 <!-- IMPORT -->
@@ -187,6 +187,12 @@
     <button class="chip" data-t="-7" type="button">−7</button>
     <button class="chip" data-t="-6" type="button">−6 · Club</button>
   </div>
+  <div class="subhead">Traitement des crêtes (le kick)</div>
+  <div class="chips" id="peakchips">
+    <button class="chip" data-p="soft" type="button">Doux · limiteur seul</button>
+    <button class="chip on" data-p="balanced" type="button">Équilibré · recommandé</button>
+    <button class="chip" data-p="punch" type="button">Punch max · clipper fort</button>
+  </div>
   <div class="subhead">Plafond True Peak</div>
   <select id="ceilingsel">
     <option value="-0.5">−0,5 dBTP</option>
@@ -204,6 +210,7 @@
       <div class="cell"><div class="k">LUFS obtenu</div><div class="v" id="mLufs">—</div></div>
       <div class="cell"><div class="k">True Peak obtenu</div><div class="v" id="mTp">—</div></div>
       <div class="cell"><div class="k">Gain appliqué</div><div class="v" id="mGain">—</div></div>
+      <div class="cell"><div class="k">Clipper (écrêtage max)</div><div class="v" id="mClip">—</div></div>
       <div class="cell"><div class="k">Limiteur (réduction max)</div><div class="v" id="mGr">—</div></div>
     </div>
     <div id="masternote" style="margin-top:10px; font-size:13.5px; line-height:1.7; color:var(--muted);"></div>
@@ -211,7 +218,7 @@
 </section>
 
 <footer>
-  MasterPro AI <span class="v" id="verfoot">v1.2.1</span> — Studio Rudis · Douala<br>
+  MasterPro AI <span class="v" id="verfoot">v1.3</span> — Studio Rudis · Douala<br>
   Traitement 100&nbsp;% local : votre musique ne quitte jamais cet appareil.
 </footer>
 
@@ -223,7 +230,7 @@
    Tout le traitement est local (Web Audio API).
    ============================================================ */
 
-const APP_VERSION = "v1.2.1";
+const APP_VERSION = "v1.3";
 document.getElementById("verchip").textContent = APP_VERSION;
 document.getElementById("verfoot").textContent = APP_VERSION;
 
@@ -837,6 +844,43 @@ $("targetchips").addEventListener("click", e => {
   targetLufs = parseFloat(c.dataset.t);
 });
 
+let peakMode = "balanced";   // "soft" | "balanced" | "punch"
+$("peakchips").addEventListener("click", e => {
+  const c = e.target.closest(".chip");
+  if (!c) return;
+  document.querySelectorAll("#peakchips .chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+  peakMode = c.dataset.p;
+});
+
+/* Clipper doux (tanh) appliqué sur place AVANT le limiteur.
+   Principe : on rabote les crêtes du kick au niveau des échantillons —
+   le kick garde son énergie, et le limiteur n'a plus que quelques dB à faire.
+   limiterShareDb = ce qu'on laisse au limiteur (le clipper absorbe le reste). */
+function softClipInPlace(chans, ceilingLin, limiterShareDb){
+  let pk = 0;
+  for (let c = 0; c < chans.length; c++){
+    const d = chans[c];
+    for (let i = 0; i < d.length; i++){ const a = Math.abs(d[i]); if (a > pk) pk = a; }
+  }
+  const excessDb = lin2db(pk / ceilingLin);
+  if (excessDb <= limiterShareDb + 0.5) return 0;   // rien à écrêter, le limiteur suffit
+  const cClip = ceilingLin * db2lin(limiterShareDb); // asymptote du clipper
+  const t = cClip * 0.708;                           // genou doux à ~-3 dB sous l'asymptote
+  const range = cClip - t;
+  for (let c = 0; c < chans.length; c++){
+    const d = chans[c];
+    for (let i = 0; i < d.length; i++){
+      const x = d[i], a = Math.abs(x);
+      if (a > t){
+        const y = t + range * Math.tanh((a - t) / range);
+        d[i] = x < 0 ? -y : y;
+      }
+    }
+  }
+  return excessDb - limiterShareDb;   // dB effectivement absorbés par le clipper (approx.)
+}
+
 $("masterbtn").addEventListener("click", masterize);
 
 async function masterize(){
@@ -853,7 +897,8 @@ async function masterize(){
     setProgress(0.02, "Préparation du master…");
 
     let pregainDb = targetLufs - origMetrics.lufsI;
-    let work = null, grMaxDb = 0, outLoud = null;
+    let work = null, grMaxDb = 0, outLoud = null, clipDb = 0;
+    const limiterShare = peakMode === "soft" ? Infinity : peakMode === "balanced" ? 6 : 3;
     const tries = [];   // historique { g: pregain, l: lufs obtenu } pour la convergence
 
     for (let pass = 0; pass < 4; pass++){
@@ -866,6 +911,13 @@ async function masterize(){
         for (let i = 0; i < d.length; i++) d[i] *= gLin;
       }
       await tick();
+      // Clipper d'abord : il absorbe le gros des crêtes du kick sans écraser le mix
+      clipDb = 0;
+      if (limiterShare !== Infinity){
+        setProgress(0.06, "Passe " + (pass+1) + " — clipper…");
+        clipDb = softClipInPlace(work, ceilingLin, limiterShare);
+        await tick();
+      }
       setProgress(0.08, "Passe " + (pass+1) + " — limiteur True Peak…");
       const r = await limitTruePeak(work, sr, ceilingLin, p => setProgress(p, null), 0.08, 0.72);
       grMaxDb = r.grMaxDb;
@@ -916,13 +968,15 @@ async function masterize(){
     setVal("mLufs", outLoud.lufsI.toFixed(1) + " LUFS", Math.abs(outLoud.lufsI - targetLufs) <= 0.5 ? "good" : "warn");
     setVal("mTp", lin2db(tpOut).toFixed(2) + " dBTP", lin2db(tpOut) <= ceilingDb + 0.05 ? "good" : "warn");
     setVal("mGain", (pregainDb >= 0 ? "+" : "") + pregainDb.toFixed(1) + " dB", "");
+    setVal("mClip", clipDb > 0.1 ? "−" + clipDb.toFixed(1) + " dB" : "inactif", clipDb > 9 ? "warn" : "good");
     setVal("mGr", grMaxDb.toFixed(1) + " dB", grMaxDb < -6 ? "warn" : "good");
 
     // Note pédagogique selon le résultat
     const notes = [];
     const missLu = targetLufs - outLoud.lufsI;
-    if (Math.abs(missLu) > 0.5) notes.push("La cible n'a pas été atteinte exactement (" + (missLu > 0 ? "−" : "+") + Math.abs(missLu).toFixed(1) + " LU) : sur ce titre, le limiteur seul atteint sa limite musicale. L'EQ et le compresseur (prochaine version) partageront le travail pour aller plus loin proprement.");
-    if (grMaxDb < -8) notes.push("Réduction de gain très forte (" + grMaxDb.toFixed(1) + " dB) sur les crêtes : écoutez attentivement les transitoires (kick, caisse claire). Si ça pompe, essayez une cible moins forte.");
+    if (Math.abs(missLu) > 0.5) notes.push("La cible n'a pas été atteinte exactement (" + (missLu > 0 ? "−" : "+") + Math.abs(missLu).toFixed(1) + " LU) : sur ce titre, la chaîne atteint sa limite musicale à ce réglage.");
+    if (clipDb > 9) notes.push("Écrêtage important (" + clipDb.toFixed(1) + " dB) : écoutez si le kick reste propre. Si vous entendez du grain, essayez « Équilibré » ou une cible moins forte.");
+    if (grMaxDb < -8) notes.push("Réduction de gain forte (" + grMaxDb.toFixed(1) + " dB) par le limiteur : si le mix pompe, essayez « Punch max » ou une cible moins forte.");
     $("masternote").innerHTML = notes.join("<br>");
 
     // Activer A/B + export
