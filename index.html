@@ -103,7 +103,7 @@
     <h1>MasterPro&nbsp;AI</h1>
     <small>Studio Rudis</small>
   </div>
-  <span class="verchip" id="verchip">v1.3</span>
+  <span class="verchip" id="verchip">v1.4</span>
 </header>
 
 <!-- IMPORT -->
@@ -193,6 +193,12 @@
     <button class="chip on" data-p="balanced" type="button">Équilibré · recommandé</button>
     <button class="chip" data-p="punch" type="button">Punch max · clipper fort</button>
   </div>
+  <div class="subhead">Grave (poids du kick)</div>
+  <div class="chips" id="basschips">
+    <button class="chip" data-b="0" type="button">Naturel</button>
+    <button class="chip on" data-b="1.5" type="button">Renforcé · +1,5 dB</button>
+    <button class="chip" data-b="3" type="button">Puissant · +3 dB</button>
+  </div>
   <div class="subhead">Plafond True Peak</div>
   <select id="ceilingsel">
     <option value="-0.5">−0,5 dBTP</option>
@@ -218,7 +224,7 @@
 </section>
 
 <footer>
-  MasterPro AI <span class="v" id="verfoot">v1.3</span> — Studio Rudis · Douala<br>
+  MasterPro AI <span class="v" id="verfoot">v1.4</span> — Studio Rudis · Douala<br>
   Traitement 100&nbsp;% local : votre musique ne quitte jamais cet appareil.
 </footer>
 
@@ -230,7 +236,7 @@
    Tout le traitement est local (Web Audio API).
    ============================================================ */
 
-const APP_VERSION = "v1.3";
+const APP_VERSION = "v1.4";
 document.getElementById("verchip").textContent = APP_VERSION;
 document.getElementById("verfoot").textContent = APP_VERSION;
 
@@ -853,6 +859,31 @@ $("peakchips").addEventListener("click", e => {
   peakMode = c.dataset.p;
 });
 
+let bassBoostDb = 1.5;       // renfort du grave avant la chaîne
+$("basschips").addEventListener("click", e => {
+  const c = e.target.closest(".chip");
+  if (!c) return;
+  document.querySelectorAll("#basschips .chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+  bassBoostDb = parseFloat(c.dataset.b);
+});
+
+/* Low shelf (formules RBJ Audio EQ Cookbook), 90 Hz, pente douce */
+function lowShelfCoeffs(fs, f0, gainDb){
+  const A = Math.pow(10, gainDb/40);
+  const w0 = 2*Math.PI*f0/fs, cw = Math.cos(w0), sw = Math.sin(w0);
+  const alpha = sw/2 * Math.SQRT2;   // S = 1
+  const sqA = Math.sqrt(A);
+  const a0 = (A+1) + (A-1)*cw + 2*sqA*alpha;
+  return {
+    b0: A*((A+1) - (A-1)*cw + 2*sqA*alpha)/a0,
+    b1: 2*A*((A-1) - (A+1)*cw)/a0,
+    b2: A*((A+1) - (A-1)*cw - 2*sqA*alpha)/a0,
+    a1: -2*((A-1) + (A+1)*cw)/a0,
+    a2: ((A+1) + (A-1)*cw - 2*sqA*alpha)/a0
+  };
+}
+
 /* Clipper doux (tanh) appliqué sur place AVANT le limiteur.
    Principe : on rabote les crêtes du kick au niveau des échantillons —
    le kick garde son énergie, et le limiteur n'a plus que quelques dB à faire.
@@ -911,6 +942,12 @@ async function masterize(){
         for (let i = 0; i < d.length; i++) d[i] *= gLin;
       }
       await tick();
+      // Renfort du grave : le corps du kick garde son poids même quand ses crêtes sont rabotées
+      if (bassBoostDb > 0){
+        setProgress(0.05, "Passe " + (pass+1) + " — renfort du grave…");
+        const shelf = lowShelfCoeffs(sr, 90, bassBoostDb);
+        for (let c = 0; c < nCh; c++){ applyBiquad(work[c], shelf); await tick(); }
+      }
       // Clipper d'abord : il absorbe le gros des crêtes du kick sans écraser le mix
       clipDb = 0;
       if (limiterShare !== Infinity){
