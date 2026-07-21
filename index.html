@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.1 — Multi-plans 3.0 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.2 — limite 512 car. corrigée · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -304,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.1 — Multi-plans 3.0 (Kling 3.0)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.2 — Multi-plans corrigé (budget affiché)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1675,6 +1675,13 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 // ——— v33.1 : MULTI-PLANS 3.0 (Kling 3.0, multi_prompt) ———
 // 2 à 6 plans, 15 s max au total, identité @Element1 (photos de référence visage).
 // Tarif : 2 vidéos débitées du code (appliqué par le serveur, affiché en toutes lettres).
+// v33.2 : budget réel de caractères par plan (Kling O3 limite chaque prompt à 512 car.
+// — le préfixe technique + les garde-fous courts sont fixes, ce qui reste = marge du client).
+const MS_SHORT_GUARD_LEN = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion. Exact same face and identity, do not alter.".length;
+const MS_PREFIX0_LEN = "Take @Image1 as the visual starting point. The person in every shot is @Element1 — keep their exact face, skin tone and identity unchanged at all times. ".length;
+const MS_PREFIXN_LEN = "Same person @Element1, exact same face and identity as the previous shot. ".length;
+function msBudget(i) { return 512 - (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN) - MS_SHORT_GUARD_LEN; }
+
 let msPlans = [{ prompt: "", d: 5 }, { prompt: "", d: 5 }];
 function msTotal() { return msPlans.reduce((s, p) => s + p.d, 0); }
 
@@ -1685,12 +1692,14 @@ function msRender() {
     const div = document.createElement("div");
     div.style.cssText = "margin-top:10px; padding:10px 12px; background:var(--up); border:1px solid var(--line); border-radius:10px;";
     const delBtn = msPlans.length > 2 ? `<button class="chip" data-del="${i}">✕ Retirer</button>` : "";
+    const budget = msBudget(i);
     div.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <b style="font-size:13px; color:var(--gold);">Plan ${i + 1}</b>${delBtn}
       </div>
       <textarea data-idx="${i}" rows="2" placeholder="Ex : je marche vers la caméra sur la plage au coucher du soleil" style="width:100%; margin-top:8px; background:var(--panel); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:8px 10px; font-size:14px; line-height:1.5; resize:vertical;"></textarea>
-      <div class="chips" style="margin-top:8px;">
+      <div class="estimate" data-charcount="${i}" style="margin-top:4px; text-align:right;"></div>
+      <div class="chips" style="margin-top:4px;">
         ${[3, 4, 5].map(s => `<button class="chip ${p.d === s ? "on" : ""}" data-dur-idx="${i}" data-sec="${s}">${s} s</button>`).join("")}
       </div>`;
     div.querySelector("textarea").value = p.prompt;
@@ -1715,13 +1724,24 @@ function msRefresh() {
   const hasFace = faceRefUrls.filter(Boolean).length > 0;
   const filled = msPlans.every(p => p.prompt.trim().length > 5);
   const okDur = total <= 15;
+  let anyOverBudget = false;
+  msPlans.forEach((p, i) => {
+    const budget = msBudget(i);
+    const len = p.prompt.trim().length;
+    const over = len > budget;
+    if (over) anyOverBudget = true;
+    const el = document.querySelector(`[data-charcount="${i}"]`);
+    if (el) el.innerHTML = over
+      ? `<span class="err">${len}/${budget} caractères — trop long, raccourcis !</span>`
+      : `${len}/${budget} caractères`;
+  });
   document.getElementById("msInfo").innerHTML =
     `Total : <b>${total} s</b> sur 15 s max · ${msPlans.length} plans` +
     (okDur ? "" : ` — <span class="err">trop long, réduis les durées !</span>`);
   const go = document.getElementById("msGo");
-  go.disabled = !(hasKey && hasPhoto && hasFace && filled && okDur && msPlans.length >= 2);
+  go.disabled = !(hasKey && hasPhoto && hasFace && filled && okDur && !anyOverBudget && msPlans.length >= 2);
   go.textContent = go.disabled
-    ? "Complète les plans pour générer"
+    ? (anyOverBudget ? "Raccourcis le(s) plan(s) trop long(s)" : "Complète les plans pour générer")
     : "🎬 Générer le multi-plans (− 2 vidéos de ton code)";
   document.getElementById("msCost").innerHTML = go.disabled
     ? (hasFace ? "" : `⭐ Ajoute au moins <b>1 photo de référence visage</b> (volet 1, bouton violet) — c'est elle qui garde ton visage identique d'un plan à l'autre.`)
@@ -1753,13 +1773,18 @@ document.getElementById("msGo").onclick = async () => {
     const r = ratioChip ? ratioChip.dataset.ratio : "orig";
     const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
     const faceGuard = buildFaceGuard();
-    const mp = msPlans.map((p, i) => ({
-      prompt: (i === 0
+    // v33.2 : garde-fous courts dédiés au multi-plans (mêmes constantes que le compteur affiché).
+    const shortSuffix = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion." + (faceGuard ? " Exact same face and identity, do not alter." : "");
+    const clip = (txt, max) => txt.length > max ? txt.slice(0, max - 1).trim() + "…" : txt;
+    const mp = msPlans.map((p, i) => {
+      const prefix = i === 0
         ? "Take @Image1 as the visual starting point. The person in every shot is @Element1 — keep their exact face, skin tone and identity unchanged at all times. "
-        : "Same person @Element1, exact same face and identity as the previous shot. ")
-        + p.prompt.trim() + QUALITY_GUARD + faceGuard,
-      duration: String(p.d),
-    }));
+        : "Same person @Element1, exact same face and identity as the previous shot. ";
+      return {
+        prompt: prefix + clip(p.prompt.trim(), msBudget(i)) + shortSuffix,
+        duration: String(p.d),
+      };
+    });
     const payload = {
       multi_prompt: mp,
       image_urls: [stylePhotoUrl || photoDataUrl],
