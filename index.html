@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B0E11">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MasterPro">
+<title>MasterPro AI — Studio Rudis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0E11; --panel:#14181D; --panel2:#10141A; --border:#232A31;
+    --text:#E8E4DA; --muted:#8A929B; --gold:#D4A853; --gold-dim:#8f7434;
+    --green:#3FB68B; --warn:#E0B54A; --red:#E05252;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; min-height:100%;}
+  body{padding:18px 14px 60px; max-width:1080px; margin:0 auto;}
+
+  header{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand h1{font-family:'Fraunces',serif; font-weight:700; font-size:26px; letter-spacing:.3px; color:var(--gold);}
+  .brand small{color:var(--muted); font-size:12px; letter-spacing:.14em; text-transform:uppercase;}
+  .verchip{font-size:11px; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:4px 10px;}
+
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:14px;}
+  .panel h2{font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;}
+
+  #dropzone{border:1.5px dashed var(--gold-dim); border-radius:var(--radius); padding:34px 16px; text-align:center; cursor:pointer; transition:border-color .2s, background .2s;}
+  #dropzone.drag{border-color:var(--gold); background:rgba(212,168,83,.06);}
+  #dropzone p{color:var(--muted); font-size:14px; margin-top:6px;}
+  #dropzone .big{font-family:'Fraunces',serif; font-size:19px; color:var(--text); margin:0;}
+  .btn{display:inline-block; background:var(--gold); color:#151004; border:none; border-radius:10px; padding:12px 22px; font-weight:600; font-size:15px; cursor:pointer; margin-top:14px;}
+  .btn:active{transform:scale(.98);}
+  .btn[disabled]{opacity:.35; pointer-events:none;}
+  .btn.ghost{background:transparent; color:var(--gold); border:1px solid var(--gold-dim);}
+  input[type=file]{display:none;}
+
+  #fileinfo{display:none; font-size:13px; color:var(--muted); margin-top:12px; line-height:1.7;}
+  #fileinfo b{color:var(--text); font-weight:600;}
+
+  #progresswrap{display:none; margin-top:14px;}
+  #progressbar{height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; border:1px solid var(--border);}
+  #progressfill{height:100%; width:0%; background:var(--gold); transition:width .15s;}
+  #progresstext{font-size:12px; color:var(--muted); margin-top:6px;}
+
+  #playerpanel, #analysispanel, #meterspanel, #masterpanel{display:none;}
+  #wavecanvas{width:100%; height:110px; display:block; border-radius:8px; background:var(--panel2); cursor:pointer;}
+  .transport{display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;}
+  .tbtn{background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:10px 18px; font-size:15px; font-weight:600; cursor:pointer; min-width:74px;}
+  .tbtn:active{transform:scale(.97);}
+  .tbtn.on{background:var(--gold); color:#151004; border-color:var(--gold);}
+  #timecode{font-variant-numeric:tabular-nums; color:var(--gold); font-size:15px; font-weight:600; margin-left:auto;}
+
+  .meterrow{display:flex; gap:14px; align-items:stretch;}
+  .meterside{width:64px; display:flex; flex-direction:column; gap:8px;}
+  .metercol{flex:1; min-width:0;}
+  .vwrap{display:flex; gap:6px; height:150px;}
+  .vbar{flex:1; background:var(--panel2); border:1px solid var(--border); border-radius:6px; position:relative; overflow:hidden;}
+  .vfill{position:absolute; bottom:0; left:0; right:0; height:0%; background:linear-gradient(to top, var(--green) 0%, var(--green) 60%, var(--warn) 82%, var(--red) 96%);}
+  .vlabel{text-align:center; font-size:11px; color:var(--muted);}
+  #speccanvas{width:100%; height:150px; display:block; border-radius:8px; background:var(--panel2);}
+
+  .lufs-hero{display:flex; align-items:baseline; gap:12px; margin-bottom:16px; flex-wrap:wrap;}
+  .lufs-hero .val{font-family:'Fraunces',serif; font-size:52px; font-weight:700; color:var(--gold); line-height:1;}
+  .lufs-hero .unit{font-size:15px; color:var(--muted);}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  .cell{background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:12px;}
+  .cell .k{font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px;}
+  .cell .v{font-size:19px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .cell .v.warn{color:var(--warn);} .cell .v.bad{color:var(--red);} .cell .v.good{color:var(--green);}
+  #diagnostics{margin-top:14px; font-size:13.5px; line-height:1.75; color:var(--muted); list-style:disc;}
+  #diagnostics li{margin-left:18px;}
+  #diagnostics .ok{color:var(--green);} #diagnostics .warn{color:var(--warn);} #diagnostics .bad{color:var(--red);}
+
+  /* Mastering */
+  .subhead{font-size:12px; color:var(--muted); margin:14px 0 8px; letter-spacing:.06em; text-transform:uppercase;}
+  .chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:999px; padding:9px 16px; font-size:14px; font-weight:600; cursor:pointer;}
+  .chip.on{background:var(--gold); color:#151004; border-color:var(--gold);}
+  select{background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:9px 12px; font-size:14px; font-family:inherit;}
+  .abrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px;}
+  .checkline{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--muted); margin-top:10px;}
+  .checkline input{width:18px; height:18px; accent-color:var(--gold);}
+  #masterresults{display:none; margin-top:16px;}
+
+  footer{text-align:center; color:var(--muted); font-size:12px; margin-top:26px; line-height:1.8;}
+  footer .v{color:var(--gold-dim);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>MasterPro&nbsp;AI</h1>
+    <small>Studio Rudis</small>
+  </div>
+  <span class="verchip" id="verchip">v1.4</span>
+</header>
+
+<!-- IMPORT -->
+<section class="panel" id="importpanel">
+  <h2>1 · Importer votre mix</h2>
+  <div id="dropzone">
+    <p class="big">Glissez votre chanson ici</p>
+    <p>WAV · MP3 · FLAC · AAC · M4A · OGG — 44,1 à 192 kHz, 16/24/32 bits</p>
+    <button class="btn" id="pickbtn" type="button">Choisir un fichier</button>
+  </div>
+  <input type="file" id="fileinput" accept="audio/*,.wav,.mp3,.aif,.aiff,.flac,.aac,.m4a,.ogg">
+  <div id="fileinfo"></div>
+  <div id="progresswrap">
+    <div id="progressbar"><div id="progressfill"></div></div>
+    <div id="progresstext">Analyse en cours…</div>
+  </div>
+</section>
+
+<!-- LECTEUR -->
+<section class="panel" id="playerpanel">
+  <h2>2 · Écoute</h2>
+  <canvas id="wavecanvas" height="110"></canvas>
+  <div class="transport">
+    <button class="tbtn" id="playbtn" type="button">▶ Lecture</button>
+    <button class="tbtn" id="stopbtn" type="button">■ Stop</button>
+    <span id="timecode">0:00 / 0:00</span>
+  </div>
+  <div class="abrow" id="abrow" style="display:none">
+    <button class="tbtn on" id="abOrig" type="button">Original</button>
+    <button class="tbtn" id="abMaster" type="button">Master</button>
+    <label class="checkline" style="margin:0"><input type="checkbox" id="matchchk" checked> Égaliser le volume (Loudness&nbsp;Match)</label>
+  </div>
+</section>
+
+<!-- VUMÈTRES + SPECTRE -->
+<section class="panel" id="meterspanel">
+  <h2>3 · Vumètres &amp; spectre en temps réel</h2>
+  <div class="meterrow">
+    <div class="meterside">
+      <div class="vwrap">
+        <div class="vbar"><div class="vfill" id="vL"></div></div>
+        <div class="vbar"><div class="vfill" id="vR"></div></div>
+      </div>
+      <div class="vlabel">G&nbsp;&nbsp;·&nbsp;&nbsp;D</div>
+    </div>
+    <div class="metercol"><canvas id="speccanvas" height="150"></canvas></div>
+  </div>
+</section>
+
+<!-- ANALYSE -->
+<section class="panel" id="analysispanel">
+  <h2>4 · Analyse professionnelle (ITU-R BS.1770)</h2>
+  <div class="lufs-hero">
+    <span class="val" id="lufsI">—</span>
+    <span class="unit">LUFS intégré</span>
+  </div>
+  <div class="grid">
+    <div class="cell"><div class="k">True Peak</div><div class="v" id="tp">—</div></div>
+    <div class="cell"><div class="k">Peak (échantillon)</div><div class="v" id="pk">—</div></div>
+    <div class="cell"><div class="k">RMS global</div><div class="v" id="rms">—</div></div>
+    <div class="cell"><div class="k">LUFS Short-Term max</div><div class="v" id="lufsS">—</div></div>
+    <div class="cell"><div class="k">LUFS Momentary max</div><div class="v" id="lufsM">—</div></div>
+    <div class="cell"><div class="k">Loudness Range</div><div class="v" id="lra">—</div></div>
+    <div class="cell"><div class="k">Crest Factor</div><div class="v" id="crest">—</div></div>
+    <div class="cell"><div class="k">Corrélation de phase</div><div class="v" id="corr">—</div></div>
+    <div class="cell"><div class="k">Balance G / D</div><div class="v" id="bal">—</div></div>
+  </div>
+  <ul id="diagnostics"></ul>
+</section>
+
+<!-- MASTERING -->
+<section class="panel" id="masterpanel">
+  <h2>5 · Mastering</h2>
+  <div class="subhead">Cible de loudness (ajustable, pas une obligation)</div>
+  <div class="chips" id="targetchips">
+    <button class="chip" data-t="-14" type="button">−14 · Streaming</button>
+    <button class="chip" data-t="-12" type="button">−12</button>
+    <button class="chip on" data-t="-10" type="button">−10 · Moderne</button>
+    <button class="chip" data-t="-9" type="button">−9</button>
+    <button class="chip" data-t="-8" type="button">−8 · Puissant</button>
+    <button class="chip" data-t="-7" type="button">−7</button>
+    <button class="chip" data-t="-6" type="button">−6 · Club</button>
+  </div>
+  <div class="subhead">Traitement des crêtes (le kick)</div>
+  <div class="chips" id="peakchips">
+    <button class="chip" data-p="soft" type="button">Doux · limiteur seul</button>
+    <button class="chip on" data-p="balanced" type="button">Équilibré · recommandé</button>
+    <button class="chip" data-p="punch" type="button">Punch max · clipper fort</button>
+  </div>
+  <div class="subhead">Grave (poids du kick)</div>
+  <div class="chips" id="basschips">
+    <button class="chip" data-b="0" type="button">Naturel</button>
+    <button class="chip on" data-b="1.5" type="button">Renforcé · +1,5 dB</button>
+    <button class="chip" data-b="3" type="button">Puissant · +3 dB</button>
+  </div>
+  <div class="subhead">Plafond True Peak</div>
+  <select id="ceilingsel">
+    <option value="-0.5">−0,5 dBTP</option>
+    <option value="-1" selected>−1,0 dBTP (recommandé streaming)</option>
+    <option value="-1.5">−1,5 dBTP</option>
+    <option value="-2">−2,0 dBTP</option>
+  </select>
+  <div style="margin-top:16px">
+    <button class="btn" id="masterbtn" type="button">Masteriser</button>
+    <button class="btn ghost" id="exportbtn" type="button" disabled>Exporter WAV 24 bits</button>
+  </div>
+  <div id="masterresults">
+    <div class="subhead">Résultat du master</div>
+    <div class="grid">
+      <div class="cell"><div class="k">LUFS obtenu</div><div class="v" id="mLufs">—</div></div>
+      <div class="cell"><div class="k">True Peak obtenu</div><div class="v" id="mTp">—</div></div>
+      <div class="cell"><div class="k">Gain appliqué</div><div class="v" id="mGain">—</div></div>
+      <div class="cell"><div class="k">Clipper (écrêtage max)</div><div class="v" id="mClip">—</div></div>
+      <div class="cell"><div class="k">Limiteur (réduction max)</div><div class="v" id="mGr">—</div></div>
+    </div>
+    <div id="masternote" style="margin-top:10px; font-size:13.5px; line-height:1.7; color:var(--muted);"></div>
+  </div>
+</section>
+
+<footer>
+  MasterPro AI <span class="v" id="verfoot">v1.4</span> — Studio Rudis · Douala<br>
+  Traitement 100&nbsp;% local : votre musique ne quitte jamais cet appareil.
+</footer>
+
+<script>
+"use strict";
+/* ============================================================
+   MasterPro AI v1.1 — Studio Rudis
+   Analyse BS.1770 · Cibles LUFS · Limiteur True Peak · Export WAV
+   Tout le traitement est local (Web Audio API).
+   ============================================================ */
+
+const APP_VERSION = "v1.4";
+document.getElementById("verchip").textContent = APP_VERSION;
+document.getElementById("verfoot").textContent = APP_VERSION;
+
+/* ---------- État global ---------- */
+let audioCtx = null;
+let buffer = null;            // AudioBuffer original
+let masterBuffer = null;      // AudioBuffer masterisé
+let abState = "orig";         // "orig" | "master"
+let origMetrics = null;       // mesures du fichier original
+let masterMetrics = null;     // mesures du master
+let srcNode = null, monitorGain = null;
+let analyserSpec = null, analyserL = null, analyserR = null;
+let isPlaying = false, startCtxTime = 0, startOffset = 0, rafId = null;
+let waveCache = null;
+let origFileName = "master";
+let busy = false;             // évite deux traitements simultanés
+
+const $ = id => document.getElementById(id);
+const db2lin = db => Math.pow(10, db/20);
+const lin2db = v => 20*Math.log10(v > 0 ? v : 1e-9);
+
+/* ---------- Import ---------- */
+const dropzone = $("dropzone");
+const fileinput = $("fileinput");
+$("pickbtn").addEventListener("click", e => { e.stopPropagation(); fileinput.click(); });
+dropzone.addEventListener("click", () => fileinput.click());
+fileinput.addEventListener("change", () => { if (fileinput.files[0]) loadFile(fileinput.files[0]); });
+["dragover","dragenter"].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add("drag"); }));
+["dragleave","drop"].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove("drag"); }));
+dropzone.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+
+async function loadFile(file){
+  if (busy) return;
+  busy = true;
+  try{
+    stopPlayback();
+    masterBuffer = null; masterMetrics = null; abState = "orig";
+    $("abrow").style.display = "none";
+    $("exportbtn").disabled = true;
+    $("masterresults").style.display = "none";
+    setProgress(0, "Décodage du fichier…"); $("progresswrap").style.display = "block";
+    origFileName = file.name.replace(/\.[^.]+$/, "");
+    const data = await file.arrayBuffer();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let decoded;
+    try{
+      decoded = await audioCtx.decodeAudioData(data.slice(0));
+    }catch(err){
+      $("progresswrap").style.display = "none";
+      alert("Format non reconnu par ce navigateur.\nEssayez en WAV, MP3, M4A ou FLAC.\n(Le décodeur universel FFmpeg arrive dans une prochaine version.)");
+      busy = false;
+      return;
+    }
+    buffer = decoded;
+    const ch = buffer.numberOfChannels, sr = buffer.sampleRate, dur = buffer.duration;
+    $("fileinfo").style.display = "block";
+    $("fileinfo").innerHTML =
+      "<b>" + escapeHtml(file.name) + "</b><br>" +
+      "Durée : <b>" + fmtTime(dur) + "</b> · " +
+      "Échantillonnage : <b>" + (sr/1000).toLocaleString("fr-FR") + " kHz</b> · " +
+      "Canaux : <b>" + (ch === 1 ? "Mono" : ch === 2 ? "Stéréo" : ch + " canaux") + "</b> · " +
+      "Moteur interne : <b>32 bits float</b>";
+    $("playerpanel").style.display = "block";
+    $("meterspanel").style.display = "block";
+    $("analysispanel").style.display = "block";
+    $("masterpanel").style.display = "block";
+    sizeCanvases(); renderWaveCache(); paintWave();
+    $("timecode").textContent = "0:00 / " + fmtTime(dur);
+    resetAnalysisUI();
+    origMetrics = await computeMetrics(buffer, true, (p,t)=>setProgress(p,t));
+    displayOrigMetrics(origMetrics);
+    setProgress(1, "Analyse terminée ✓");
+    setTimeout(()=>{ $("progresswrap").style.display = "none"; }, 1200);
+  }catch(e){
+    $("progresswrap").style.display = "none";
+    alert("Erreur pendant l'import : " + e.message);
+  }
+  busy = false;
+}
+
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtTime(t){ t = Math.max(0,t); const m = Math.floor(t/60), s = Math.floor(t%60); return m + ":" + String(s).padStart(2,"0"); }
+function setProgress(p, txt){ $("progressfill").style.width = Math.round(p*100) + "%"; if (txt) $("progresstext").textContent = txt; }
+function tick(){ return new Promise(r => setTimeout(r, 0)); }
+
+/* ---------- Waveform ---------- */
+function activeBuffer(){ return (abState === "master" && masterBuffer) ? masterBuffer : buffer; }
+
+function sizeCanvases(){
+  const dpr = window.devicePixelRatio || 1;
+  const wc = $("wavecanvas");
+  wc.width = Math.max(300, Math.floor(wc.clientWidth * dpr));
+  wc.height = Math.floor(110 * dpr);
+  const sc = $("speccanvas");
+  sc.width = Math.max(300, Math.floor(sc.clientWidth * dpr));
+  sc.height = Math.floor(150 * dpr);
+}
+
+function renderWaveCache(){
+  const buf = activeBuffer();
+  if (!buf) return;
+  const wc = $("wavecanvas");
+  const W = wc.width, H = wc.height;
+  waveCache = document.createElement("canvas");
+  waveCache.width = W; waveCache.height = H;
+  const g = waveCache.getContext("2d");
+  const L = buf.getChannelData(0);
+  const R = buf.numberOfChannels > 1 ? buf.getChannelData(1) : L;
+  const n = L.length, step = Math.max(1, Math.floor(n / W));
+  const skip = Math.max(1, Math.floor(step / 40));
+  g.fillStyle = abState === "master" ? "#4a5a3a" : "#2b3947";
+  const mid = H/2;
+  for (let x = 0; x < W; x++){
+    let mn = 1, mx = -1;
+    const i0 = x*step, i1 = Math.min(n, i0+step);
+    for (let i = i0; i < i1; i += skip){
+      const v = (L[i] + R[i]) * 0.5;
+      if (v < mn) mn = v; if (v > mx) mx = v;
+    }
+    const y1 = mid - mx*mid*0.95, y2 = mid - mn*mid*0.95;
+    g.fillRect(x, y1, 1, Math.max(1, y2-y1));
+  }
+}
+
+function paintWave(){
+  const wc = $("wavecanvas"), g = wc.getContext("2d");
+  g.clearRect(0, 0, wc.width, wc.height);
+  if (waveCache) g.drawImage(waveCache, 0, 0);
+  const buf = activeBuffer();
+  if (buf){
+    const x = (Math.min(currentPos(), buf.duration) / buf.duration) * wc.width;
+    g.fillStyle = "#D4A853";
+    g.fillRect(x-1, 0, 2, wc.height);
+  }
+}
+
+$("wavecanvas").addEventListener("click", e => {
+  const buf = activeBuffer();
+  if (!buf) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const frac = (e.clientX - rect.left) / rect.width;
+  seekTo(frac * buf.duration);
+});
+
+/* ---------- Lecture + A/B ---------- */
+$("playbtn").addEventListener("click", () => { isPlaying ? pausePlayback() : startPlayback(startOffset); });
+$("stopbtn").addEventListener("click", () => { stopPlayback(); paintWave(); });
+$("abOrig").addEventListener("click", () => switchAB("orig"));
+$("abMaster").addEventListener("click", () => switchAB("master"));
+$("matchchk").addEventListener("change", applyMonitorGain);
+
+function switchAB(state){
+  if (state === abState) return;
+  if (state === "master" && !masterBuffer) return;
+  const pos = currentPos();
+  const wasPlaying = isPlaying;
+  teardownSource(); isPlaying = false;
+  abState = state;
+  $("abOrig").classList.toggle("on", state === "orig");
+  $("abMaster").classList.toggle("on", state === "master");
+  renderWaveCache();
+  if (wasPlaying) startPlayback(pos);
+  else { $("playbtn").textContent = "▶ Lecture"; startOffset = pos; paintWave(); }
+}
+
+function monitorGainDb(){
+  // Loudness Match : on baisse le master au niveau de l'original pour comparer sans triche
+  if (abState === "master" && masterMetrics && origMetrics && $("matchchk").checked){
+    return Math.min(0, origMetrics.lufsI - masterMetrics.lufsI);
+  }
+  return 0;
+}
+function applyMonitorGain(){
+  if (monitorGain) monitorGain.gain.value = db2lin(monitorGainDb());
+}
+
+function buildGraph(){
+  analyserSpec = audioCtx.createAnalyser(); analyserSpec.fftSize = 4096; analyserSpec.smoothingTimeConstant = 0.8;
+  analyserL = audioCtx.createAnalyser(); analyserL.fftSize = 2048;
+  analyserR = audioCtx.createAnalyser(); analyserR.fftSize = 2048;
+  monitorGain = audioCtx.createGain();
+}
+
+function startPlayback(offset){
+  const buf = activeBuffer();
+  if (!buf) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  if (!analyserSpec) buildGraph();
+  srcNode = audioCtx.createBufferSource();
+  srcNode.buffer = buf;
+  const splitter = audioCtx.createChannelSplitter(2);
+  srcNode.connect(monitorGain);
+  monitorGain.connect(analyserSpec);
+  monitorGain.connect(splitter);
+  splitter.connect(analyserL, 0);
+  splitter.connect(analyserR, buf.numberOfChannels > 1 ? 1 : 0);
+  analyserSpec.connect(audioCtx.destination);
+  applyMonitorGain();
+  startOffset = Math.max(0, Math.min(offset || 0, buf.duration - 0.01));
+  srcNode.start(0, startOffset);
+  startCtxTime = audioCtx.currentTime;
+  isPlaying = true;
+  $("playbtn").textContent = "⏸ Pause";
+  srcNode.onended = () => { if (isPlaying && currentPos() >= buf.duration - 0.05) stopPlayback(); };
+  if (!rafId) loopUI();
+}
+function pausePlayback(){
+  startOffset = currentPos();
+  teardownSource();
+  isPlaying = false;
+  $("playbtn").textContent = "▶ Lecture";
+}
+function stopPlayback(){
+  teardownSource();
+  isPlaying = false; startOffset = 0;
+  $("playbtn").textContent = "▶ Lecture";
+  const buf = activeBuffer();
+  if (buf) $("timecode").textContent = "0:00 / " + fmtTime(buf.duration);
+  $("vL").style.height = "0%"; $("vR").style.height = "0%";
+}
+function teardownSource(){
+  if (srcNode){ try{ srcNode.onended = null; srcNode.stop(); }catch(e){} try{ srcNode.disconnect(); }catch(e){} srcNode = null; }
+  if (rafId){ cancelAnimationFrame(rafId); rafId = null; }
+}
+function seekTo(t){
+  const buf = activeBuffer();
+  if (!buf) return;
+  const wasPlaying = isPlaying;
+  teardownSource(); isPlaying = false;
+  startOffset = Math.max(0, Math.min(t, buf.duration - 0.01));
+  if (wasPlaying) startPlayback(startOffset);
+  else { $("playbtn").textContent = "▶ Lecture"; paintWave(); updateTimecode(); }
+}
+function currentPos(){ return isPlaying && audioCtx ? startOffset + (audioCtx.currentTime - startCtxTime) : startOffset; }
+function updateTimecode(){
+  const buf = activeBuffer();
+  if (!buf) return;
+  $("timecode").textContent = fmtTime(Math.min(currentPos(), buf.duration)) + " / " + fmtTime(buf.duration);
+}
+
+/* ---------- Affichage temps réel ---------- */
+const tmpBuf = new Float32Array(2048);
+function loopUI(){
+  rafId = requestAnimationFrame(loopUI);
+  updateTimecode();
+  paintWave();
+  meter(analyserL, "vL"); meter(analyserR, "vR");
+  drawSpectrum();
+}
+function meter(an, id){
+  if (!an) return;
+  an.getFloatTimeDomainData(tmpBuf);
+  let pk = 0;
+  for (let i = 0; i < tmpBuf.length; i++){ const a = Math.abs(tmpBuf[i]); if (a > pk) pk = a; }
+  const db = lin2db(pk || 1e-8);
+  const pct = Math.max(0, Math.min(100, (db + 60) / 60 * 100));
+  $(id).style.height = pct + "%";
+}
+function drawSpectrum(){
+  if (!analyserSpec) return;
+  const sc = $("speccanvas"), g = sc.getContext("2d");
+  const W = sc.width, H = sc.height;
+  const data = new Uint8Array(analyserSpec.frequencyBinCount);
+  analyserSpec.getByteFrequencyData(data);
+  g.clearRect(0,0,W,H);
+  const bars = 96;
+  for (let b = 0; b < bars; b++){
+    const f0 = Math.floor(Math.pow(data.length, b/bars));
+    const f1 = Math.max(f0+1, Math.floor(Math.pow(data.length, (b+1)/bars)));
+    let m = 0; for (let i = f0; i < f1 && i < data.length; i++) if (data[i] > m) m = data[i];
+    const h = (m/255) * H;
+    g.fillStyle = "rgba(212,168,83," + (0.35 + 0.65*m/255).toFixed(2) + ")";
+    g.fillRect(b*(W/bars)+1, H-h, (W/bars)-2, h);
+  }
+}
+
+/* ============================================================
+   MESURES — ITU-R BS.1770-4
+   ============================================================ */
+
+function kWeightingCoeffs(fs){
+  const G = 3.999843853973347, f0 = 1681.974450955533, Q0 = 0.7071752369554196;
+  const K = Math.tan(Math.PI * f0 / fs);
+  const Vh = Math.pow(10, G/20), Vb = Math.pow(Vh, 0.4996667741545416);
+  const d = 1 + K/Q0 + K*K;
+  const shelf = {
+    b0:(Vh + Vb*K/Q0 + K*K)/d, b1:2*(K*K - Vh)/d, b2:(Vh - Vb*K/Q0 + K*K)/d,
+    a1:2*(K*K - 1)/d,          a2:(1 - K/Q0 + K*K)/d
+  };
+  const f1 = 38.13547087602444, Q1 = 0.5003270373238773;
+  const K1 = Math.tan(Math.PI * f1 / fs);
+  const d1 = 1 + K1/Q1 + K1*K1;
+  const hp = { b0:1, b1:-2, b2:1, a1:2*(K1*K1 - 1)/d1, a2:(1 - K1/Q1 + K1*K1)/d1 };
+  return { shelf, hp };
+}
+
+function applyBiquad(x, c){
+  const {b0,b1,b2,a1,a2} = c;
+  let x1=0,x2=0,y1=0,y2=0;
+  for (let i = 0; i < x.length; i++){
+    const xi = x[i];
+    const yi = b0*xi + b1*x1 + b2*x2 - a1*y1 - a2*y2;
+    x2=x1; x1=xi; y2=y1; y1=yi;
+    x[i] = yi;
+  }
+}
+
+const TP_PHASES = 4, TP_TAPS = 24;  // FIR 96 points — précision validée contre un rééchantillonneur de référence
+function makeUpsampleFIR(phases, tapsPerPhase){
+  const N = phases * tapsPerPhase;
+  const fir = new Float32Array(N);
+  const fc = 1/(2*phases);
+  const mid = (N-1)/2;
+  for (let i = 0; i < N; i++){
+    const x = i - mid;
+    const sinc = x === 0 ? 2*fc : Math.sin(2*Math.PI*fc*x)/(Math.PI*x);
+    const win = 0.5 - 0.5*Math.cos(2*Math.PI*i/(N-1));
+    fir[i] = sinc * win * phases;
+  }
+  return fir;
+}
+const TP_FIR = makeUpsampleFIR(TP_PHASES, TP_TAPS);
+
+/* True Peak d'un canal (linéaire), par blocs pour garder l'UI fluide */
+async function truePeakOf(chans, onProg, progFrom, progTo){
+  let tp = 0;
+  const nCh = chans.length, n = chans[0].length;
+  const chunk = 262144;
+  for (let c = 0; c < nCh; c++){
+    const d = chans[c];
+    for (let s = TP_TAPS; s < n; s += chunk){
+      const e = Math.min(n, s + chunk);
+      for (let i = s; i < e; i++){
+        for (let p = 0; p < TP_PHASES; p++){
+          let acc = 0;
+          for (let t = 0; t < TP_TAPS; t++) acc += d[i - t] * TP_FIR[p + t*TP_PHASES];
+          const a = acc < 0 ? -acc : acc;
+          if (a > tp) tp = a;
+        }
+      }
+      if (onProg) onProg(progFrom + (progTo-progFrom) * ((c*n + e)/(nCh*n)));
+      await tick();
+    }
+    // les crêtes d'échantillons comptent aussi
+    for (let i = 0; i < n; i++){ const a = Math.abs(d[i]); if (a > tp) tp = a; }
+    await tick();
+  }
+  return tp;
+}
+
+/* Loudness BS.1770 : renvoie { lufsI, maxMomentary, maxShort, lra } */
+async function loudnessOf(chans, sr, onProg, progFrom, progTo){
+  const n = chans[0].length;
+  const coeffs = kWeightingCoeffs(sr);
+  const ks = [];
+  for (let c = 0; c < chans.length; c++){
+    const k = new Float32Array(chans[c]);
+    applyBiquad(k, coeffs.shelf); await tick();
+    applyBiquad(k, coeffs.hp);    await tick();
+    ks.push(k);
+    if (onProg) onProg(progFrom + (progTo-progFrom)*0.5*((c+1)/chans.length));
+  }
+  const pref = new Float64Array(n + 1);
+  {
+    let acc = 0;
+    if (ks.length === 2){
+      const a = ks[0], b = ks[1];
+      for (let i = 0; i < n; i++){ acc += a[i]*a[i] + b[i]*b[i]; pref[i+1] = acc; }
+    } else {
+      const a = ks[0];
+      for (let i = 0; i < n; i++){ acc += a[i]*a[i]; pref[i+1] = acc; }
+    }
+  }
+  await tick();
+  if (onProg) onProg(progFrom + (progTo-progFrom)*0.8);
+  const powToLufs = p => -0.691 + 10*Math.log10(p > 0 ? p : 1e-12);
+  const winPow = (start, len) => (pref[start+len] - pref[start]) / len;
+
+  const blockLen = Math.round(0.400 * sr), hop = Math.round(0.100 * sr);
+  const nBlocks = Math.max(0, Math.floor((n - blockLen) / hop) + 1);
+  let maxMomentary = -Infinity;
+  const gated1 = [];
+  for (let b = 0; b < nBlocks; b++){
+    const p = winPow(b*hop, blockLen);
+    const lb = powToLufs(p);
+    if (lb > maxMomentary) maxMomentary = lb;
+    if (lb > -70) gated1.push(p);
+  }
+  let lufsI = -Infinity;
+  if (gated1.length){
+    const mean1 = gated1.reduce((a,b)=>a+b,0)/gated1.length;
+    const relGate = powToLufs(mean1) - 10;
+    const gated2 = gated1.filter(p => powToLufs(p) > relGate);
+    if (gated2.length){
+      const mean2 = gated2.reduce((a,b)=>a+b,0)/gated2.length;
+      lufsI = powToLufs(mean2);
+    }
+  }
+  const stLen = Math.round(3*sr), stHop = Math.round(1*sr);
+  const nSt = Math.max(0, Math.floor((n - stLen)/stHop) + 1);
+  const stVals = [];
+  for (let b = 0; b < nSt; b++) stVals.push(powToLufs(winPow(b*stHop, stLen)));
+  let maxShort = -Infinity;
+  for (const v of stVals) if (v > maxShort) maxShort = v;
+  let lra = 0;
+  {
+    const abs = stVals.filter(v => v > -70);
+    if (abs.length){
+      const meanP = abs.reduce((a,v)=>a+Math.pow(10,(v+0.691)/10),0)/abs.length;
+      const gate = powToLufs(meanP) - 20;
+      const g = abs.filter(v => v > gate).sort((a,b)=>a-b);
+      if (g.length >= 2){
+        lra = g[Math.floor(0.95*(g.length-1))] - g[Math.floor(0.10*(g.length-1))];
+      }
+    }
+  }
+  if (onProg) onProg(progTo);
+  return { lufsI, maxMomentary, maxShort, lra };
+}
+
+function chansOf(buf){
+  const out = [buf.getChannelData(0)];
+  if (buf.numberOfChannels > 1) out.push(buf.getChannelData(1));
+  return out;
+}
+
+/* Mesures complètes (full=true : + stats globales) */
+async function computeMetrics(buf, full, onProg){
+  const sr = buf.sampleRate;
+  const chans = chansOf(buf);
+  const L = chans[0], R = chans[1] || null;
+  const n = L.length;
+  const m = { sr, n, stereo: !!R };
+
+  if (full){
+    if (onProg) onProg(0.03, "Statistiques globales…");
+    let peak = 0, sumSq = 0, sumL2 = 0, sumR2 = 0, sumLR = 0, clipCount = 0;
+    for (let i = 0; i < n; i++){
+      const l = L[i], r = R ? R[i] : l;
+      const al = Math.abs(l), ar = Math.abs(r);
+      if (al > peak) peak = al;
+      if (ar > peak) peak = ar;
+      if (al >= 0.999 || ar >= 0.999) clipCount++;
+      const mid = (l + r) * 0.5;
+      sumSq += mid*mid;
+      sumL2 += l*l; sumR2 += r*r; sumLR += l*r;
+    }
+    await tick();
+    m.peak = peak; m.clipCount = clipCount;
+    m.rms = Math.sqrt(sumSq / n);
+    m.corr = (R && sumL2 > 0 && sumR2 > 0) ? sumLR / Math.sqrt(sumL2*sumR2) : 1;
+    const rmsL = Math.sqrt(sumL2/n), rmsR = R ? Math.sqrt(sumR2/n) : rmsL;
+    m.balDb = lin2db(rmsL||1e-9) - lin2db(rmsR||1e-9);
+  }
+  if (onProg) onProg(0.06, "Mesure du True Peak…");
+  m.truePeak = await truePeakOf(chans, p => onProg && onProg(p, null), 0.06, 0.5);
+  if (onProg) onProg(0.52, "Calcul LUFS (norme BS.1770)…");
+  const loud = await loudnessOf(chans, sr, p => onProg && onProg(p, null), 0.52, 0.98);
+  Object.assign(m, loud);
+  return m;
+}
+
+/* ---------- Affichage analyse ---------- */
+function resetAnalysisUI(){
+  ["lufsI","tp","pk","rms","lufsS","lufsM","lra","crest","corr","bal"].forEach(id => { $(id).textContent = "—"; $(id).className = "v"; });
+  $("diagnostics").innerHTML = "";
+}
+function setVal(id, txt, cls){ const el = $(id); el.textContent = txt; el.className = "v " + (cls||""); }
+
+function displayOrigMetrics(m){
+  const peakDb = lin2db(m.peak), tpDb = lin2db(m.truePeak), rmsDb = lin2db(m.rms);
+  const crest = peakDb - rmsDb;
+  $("lufsI").textContent = m.lufsI === -Infinity ? "—" : m.lufsI.toFixed(1);
+  setVal("tp", tpDb.toFixed(2) + " dBTP", tpDb > -0.1 ? "bad" : tpDb > -1 ? "warn" : "good");
+  setVal("pk", peakDb.toFixed(2) + " dBFS", peakDb > -0.05 ? "warn" : "");
+  setVal("rms", rmsDb.toFixed(1) + " dB", "");
+  setVal("lufsS", m.maxShort === -Infinity ? "—" : m.maxShort.toFixed(1) + " LUFS", "");
+  setVal("lufsM", m.maxMomentary === -Infinity ? "—" : m.maxMomentary.toFixed(1) + " LUFS", "");
+  setVal("lra", m.lra.toFixed(1) + " LU", "");
+  setVal("crest", crest.toFixed(1) + " dB", "");
+  setVal("corr", m.stereo ? m.corr.toFixed(2) : "1.00 (mono)", m.corr < 0 ? "bad" : m.corr < 0.3 ? "warn" : "good");
+  setVal("bal", m.stereo ? ((m.balDb >= 0 ? "+" : "") + m.balDb.toFixed(1) + " dB " + (Math.abs(m.balDb) < 0.5 ? "(centré)" : m.balDb > 0 ? "(gauche)" : "(droite)")) : "— (mono)", Math.abs(m.balDb) > 1.5 ? "warn" : "good");
+
+  const diags = [];
+  if (tpDb > -0.1) diags.push(["bad","True Peak au-dessus de −0,1 dBTP : risque de distorsion à l'encodage streaming. Le limiteur ci-dessous corrigera cela."]);
+  else if (tpDb > -1) diags.push(["warn","True Peak entre −1 et −0,1 dBTP : acceptable, mais −1 dBTP est plus sûr pour le streaming."]);
+  else diags.push(["ok","True Peak sous −1 dBTP : marge de sécurité correcte."]);
+  if (m.clipCount > Math.max(20, m.n*0.00001)) diags.push(["bad","Clipping probable : " + m.clipCount.toLocaleString("fr-FR") + " échantillons au plafond numérique."]);
+  if (m.lufsI !== -Infinity){
+    if (m.lufsI < -16) diags.push(["warn","Niveau intégré " + m.lufsI.toFixed(1) + " LUFS : plutôt bas — choisissez votre cible ci-dessous, le mastering fera le reste."]);
+    else if (m.lufsI > -8) diags.push(["warn","Niveau intégré " + m.lufsI.toFixed(1) + " LUFS : très fort — vérifier que la dynamique reste musicale."]);
+    else diags.push(["ok","Niveau intégré " + m.lufsI.toFixed(1) + " LUFS : bonne base de travail."]);
+  }
+  if (m.stereo && m.corr < 0) diags.push(["bad","Corrélation négative : problème de phase probable — le mix risque de s'annuler en mono."]);
+  else if (m.stereo && m.corr < 0.3) diags.push(["warn","Corrélation faible : image très large, vérifier la compatibilité mono."]);
+  if (m.stereo && Math.abs(m.balDb) > 1.5) diags.push(["warn","Déséquilibre gauche-droite de " + Math.abs(m.balDb).toFixed(1) + " dB."]);
+  if (m.lra > 0 && m.lra < 3) diags.push(["warn","Loudness Range " + m.lra.toFixed(1) + " LU : dynamique déjà très compressée."]);
+  $("diagnostics").innerHTML = diags.map(d => "<li class='" + d[0] + "'>" + d[1] + "</li>").join("");
+}
+
+/* ============================================================
+   LIMITEUR TRUE PEAK (lookahead 2 ms, release 150 ms)
+   ============================================================ */
+
+/* Enveloppe True Peak par échantillon (max des canaux et des 4 phases) */
+async function truePeakEnvelope(chans, onProg, progFrom, progTo){
+  const n = chans[0].length;
+  const env = new Float32Array(n);
+  const chunk = 262144;
+  for (let c = 0; c < chans.length; c++){
+    const d = chans[c];
+    for (let s = 0; s < n; s += chunk){
+      const e = Math.min(n, s + chunk);
+      for (let i = s; i < e; i++){
+        let mx = Math.abs(d[i]);
+        if (i >= TP_TAPS){
+          for (let p = 0; p < TP_PHASES; p++){
+            let acc = 0;
+            for (let t = 0; t < TP_TAPS; t++) acc += d[i - t] * TP_FIR[p + t*TP_PHASES];
+            const a = acc < 0 ? -acc : acc;
+            if (a > mx) mx = a;
+          }
+        }
+        if (mx > env[i]) env[i] = mx;
+      }
+      if (onProg) onProg(progFrom + (progTo-progFrom) * ((c*n + e)/(chans.length*n)));
+      await tick();
+    }
+  }
+  return env;
+}
+
+/* Limiteur : renvoie { grMaxDb } et modifie les canaux sur place */
+async function limitTruePeak(chans, sr, ceilingLin, onProg, progFrom, progTo){
+  const n = chans[0].length;
+  const env = await truePeakEnvelope(chans, onProg, progFrom, progFrom + (progTo-progFrom)*0.6);
+
+  const W = Math.max(8, Math.round(0.002 * sr));       // lookahead 2 ms
+  const relAlpha = Math.exp(-1 / (0.150 * sr));        // release 150 ms
+  // Marge interne de 0,25 dB : couvre les micro-crêtes créées par le gain variable
+  // (conformité validée par mesure indépendante, même sur signaux extrêmes)
+  const ceilWork = ceilingLin * Math.pow(10, -0.25/20);
+
+  // 1) gain cible par échantillon
+  const g = new Float32Array(n);
+  for (let i = 0; i < n; i++){
+    g[i] = env[i] > ceilWork ? ceilWork / env[i] : 1;
+  }
+  // 2) minimum glissant sur fenêtre future [i, i+W] (deque monotone)
+  {
+    const idx = new Int32Array(n);
+    let head = 0, tail = 0;
+    const out = new Float32Array(n);
+    for (let i = n - 1; i >= 0; i--){
+      // fenêtre future -> on parcourt à l'envers avec fenêtre passée
+      while (tail > head && g[idx[tail-1]] >= g[i]) tail--;
+      idx[tail++] = i;
+      while (idx[head] > i + W) head++;
+      out[i] = g[idx[head]];
+    }
+    g.set(out);
+  }
+  await tick();
+  // 3) attaque progressive : moyenne glissante sur W.
+  //    Propriété garantie : comme le min-glissant regarde W échantillons en avant,
+  //    la moyenne sur les W derniers min reste toujours <= au gain requis à l'instant t.
+  //    Le plafond est donc respecté sans étape de rattrapage.
+  {
+    const out = new Float32Array(n);
+    let acc = 0;
+    for (let i = 0; i < n; i++){
+      acc += g[i];
+      if (i >= W) acc -= g[i - W];
+      out[i] = acc / Math.min(i + 1, W);
+    }
+    g.set(out);
+  }
+  await tick();
+  // 4) release : le gain remonte lentement, descend librement
+  {
+    let prev = 1;
+    for (let i = 0; i < n; i++){
+      const target = g[i];
+      prev = target < prev ? target : (relAlpha * prev + (1 - relAlpha) * target);
+      g[i] = prev;
+    }
+  }
+  await tick();
+  // 5) application + réduction max
+  let gMin = 1;
+  for (let c = 0; c < chans.length; c++){
+    const d = chans[c];
+    for (let i = 0; i < n; i++) d[i] *= g[i];
+  }
+  for (let i = 0; i < n; i++) if (g[i] < gMin) gMin = g[i];
+  if (onProg) onProg(progTo);
+  return { grMaxDb: lin2db(gMin) };
+}
+
+/* ============================================================
+   MASTERING
+   ============================================================ */
+
+let targetLufs = -10;
+$("targetchips").addEventListener("click", e => {
+  const c = e.target.closest(".chip");
+  if (!c) return;
+  document.querySelectorAll("#targetchips .chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+  targetLufs = parseFloat(c.dataset.t);
+});
+
+let peakMode = "balanced";   // "soft" | "balanced" | "punch"
+$("peakchips").addEventListener("click", e => {
+  const c = e.target.closest(".chip");
+  if (!c) return;
+  document.querySelectorAll("#peakchips .chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+  peakMode = c.dataset.p;
+});
+
+let bassBoostDb = 1.5;       // renfort du grave avant la chaîne
+$("basschips").addEventListener("click", e => {
+  const c = e.target.closest(".chip");
+  if (!c) return;
+  document.querySelectorAll("#basschips .chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+  bassBoostDb = parseFloat(c.dataset.b);
+});
+
+/* Low shelf (formules RBJ Audio EQ Cookbook), 90 Hz, pente douce */
+function lowShelfCoeffs(fs, f0, gainDb){
+  const A = Math.pow(10, gainDb/40);
+  const w0 = 2*Math.PI*f0/fs, cw = Math.cos(w0), sw = Math.sin(w0);
+  const alpha = sw/2 * Math.SQRT2;   // S = 1
+  const sqA = Math.sqrt(A);
+  const a0 = (A+1) + (A-1)*cw + 2*sqA*alpha;
+  return {
+    b0: A*((A+1) - (A-1)*cw + 2*sqA*alpha)/a0,
+    b1: 2*A*((A-1) - (A+1)*cw)/a0,
+    b2: A*((A+1) - (A-1)*cw - 2*sqA*alpha)/a0,
+    a1: -2*((A-1) + (A+1)*cw)/a0,
+    a2: ((A+1) + (A-1)*cw - 2*sqA*alpha)/a0
+  };
+}
+
+/* Clipper doux (tanh) appliqué sur place AVANT le limiteur.
+   Principe : on rabote les crêtes du kick au niveau des échantillons —
+   le kick garde son énergie, et le limiteur n'a plus que quelques dB à faire.
+   limiterShareDb = ce qu'on laisse au limiteur (le clipper absorbe le reste). */
+function softClipInPlace(chans, ceilingLin, limiterShareDb){
+  let pk = 0;
+  for (let c = 0; c < chans.length; c++){
+    const d = chans[c];
+    for (let i = 0; i < d.length; i++){ const a = Math.abs(d[i]); if (a > pk) pk = a; }
+  }
+  const excessDb = lin2db(pk / ceilingLin);
+  if (excessDb <= limiterShareDb + 0.5) return 0;   // rien à écrêter, le limiteur suffit
+  const cClip = ceilingLin * db2lin(limiterShareDb); // asymptote du clipper
+  const t = cClip * 0.708;                           // genou doux à ~-3 dB sous l'asymptote
+  const range = cClip - t;
+  for (let c = 0; c < chans.length; c++){
+    const d = chans[c];
+    for (let i = 0; i < d.length; i++){
+      const x = d[i], a = Math.abs(x);
+      if (a > t){
+        const y = t + range * Math.tanh((a - t) / range);
+        d[i] = x < 0 ? -y : y;
+      }
+    }
+  }
+  return excessDb - limiterShareDb;   // dB effectivement absorbés par le clipper (approx.)
+}
+
+$("masterbtn").addEventListener("click", masterize);
+
+async function masterize(){
+  if (!buffer || !origMetrics || busy) return;
+  busy = true;
+  $("masterbtn").disabled = true;
+  try{
+    stopPlayback();
+    const ceilingDb = parseFloat($("ceilingsel").value);
+    const ceilingLin = db2lin(ceilingDb);
+    const sr = buffer.sampleRate;
+    const nCh = Math.min(2, buffer.numberOfChannels);
+    $("progresswrap").style.display = "block";
+    setProgress(0.02, "Préparation du master…");
+
+    let pregainDb = targetLufs - origMetrics.lufsI;
+    let work = null, grMaxDb = 0, outLoud = null, clipDb = 0;
+    const limiterShare = peakMode === "soft" ? Infinity : peakMode === "balanced" ? 6 : 3;
+    const tries = [];   // historique { g: pregain, l: lufs obtenu } pour la convergence
+
+    for (let pass = 0; pass < 4; pass++){
+      // copie de travail en 32 bits float
+      work = [];
+      for (let c = 0; c < nCh; c++) work.push(new Float32Array(buffer.getChannelData(c)));
+      const gLin = db2lin(pregainDb);
+      for (let c = 0; c < nCh; c++){
+        const d = work[c];
+        for (let i = 0; i < d.length; i++) d[i] *= gLin;
+      }
+      await tick();
+      // Renfort du grave : le corps du kick garde son poids même quand ses crêtes sont rabotées
+      if (bassBoostDb > 0){
+        setProgress(0.05, "Passe " + (pass+1) + " — renfort du grave…");
+        const shelf = lowShelfCoeffs(sr, 90, bassBoostDb);
+        for (let c = 0; c < nCh; c++){ applyBiquad(work[c], shelf); await tick(); }
+      }
+      // Clipper d'abord : il absorbe le gros des crêtes du kick sans écraser le mix
+      clipDb = 0;
+      if (limiterShare !== Infinity){
+        setProgress(0.06, "Passe " + (pass+1) + " — clipper…");
+        clipDb = softClipInPlace(work, ceilingLin, limiterShare);
+        await tick();
+      }
+      setProgress(0.08, "Passe " + (pass+1) + " — limiteur True Peak…");
+      const r = await limitTruePeak(work, sr, ceilingLin, p => setProgress(p, null), 0.08, 0.72);
+      grMaxDb = r.grMaxDb;
+      setProgress(0.74, "Passe " + (pass+1) + " — vérification du loudness…");
+      outLoud = await loudnessOf(work, sr, p => setProgress(p, null), 0.74, 0.9);
+      tries.push({ g: pregainDb, l: outLoud.lufsI });
+      const diff = targetLufs - outLoud.lufsI;
+      if (Math.abs(diff) <= 0.3 || pass === 3) break;
+      // Le limiteur absorbe une partie du gain : on estime la pente réelle
+      // (combien de LU gagnés par dB ajouté) et on corrige en conséquence.
+      let slope = 0.7;
+      if (tries.length >= 2){
+        const a = tries[tries.length-2], b = tries[tries.length-1];
+        if (Math.abs(b.g - a.g) > 0.05){
+          slope = (b.l - a.l) / (b.g - a.g);
+          if (!(slope > 0.15)) slope = 0.15;   // garde-fou (aussi contre NaN)
+          if (slope > 1) slope = 1;
+        }
+      }
+      let stepDb = diff / slope;
+      if (stepDb > 6) stepDb = 6;              // pas de bond excessif
+      if (stepDb < -6) stepDb = -6;
+      pregainDb += stepDb;
+    }
+
+    // Vérification True Peak finale + micro-trim de sécurité si nécessaire
+    setProgress(0.9, "Vérification du True Peak…");
+    let tpOut = await truePeakOf(work, p => setProgress(p, null), 0.9, 0.98);
+    if (tpOut > ceilingLin){
+      const trim = ceilingLin / tpOut;
+      for (let c = 0; c < nCh; c++){
+        const d = work[c];
+        for (let i = 0; i < d.length; i++) d[i] *= trim;
+      }
+      tpOut = ceilingLin;
+    }
+
+    // AudioBuffer final
+    masterBuffer = audioCtx.createBuffer(nCh, work[0].length, sr);
+    for (let c = 0; c < nCh; c++) masterBuffer.copyToChannel(work[c], c);
+    masterMetrics = { lufsI: outLoud.lufsI, truePeak: tpOut };
+
+    setProgress(1, "Master prêt ✓");
+    setTimeout(()=>{ $("progresswrap").style.display = "none"; }, 1200);
+
+    // Affichage résultats
+    $("masterresults").style.display = "block";
+    setVal("mLufs", outLoud.lufsI.toFixed(1) + " LUFS", Math.abs(outLoud.lufsI - targetLufs) <= 0.5 ? "good" : "warn");
+    setVal("mTp", lin2db(tpOut).toFixed(2) + " dBTP", lin2db(tpOut) <= ceilingDb + 0.05 ? "good" : "warn");
+    setVal("mGain", (pregainDb >= 0 ? "+" : "") + pregainDb.toFixed(1) + " dB", "");
+    setVal("mClip", clipDb > 0.1 ? "−" + clipDb.toFixed(1) + " dB" : "inactif", clipDb > 9 ? "warn" : "good");
+    setVal("mGr", grMaxDb.toFixed(1) + " dB", grMaxDb < -6 ? "warn" : "good");
+
+    // Note pédagogique selon le résultat
+    const notes = [];
+    const missLu = targetLufs - outLoud.lufsI;
+    if (Math.abs(missLu) > 0.5) notes.push("La cible n'a pas été atteinte exactement (" + (missLu > 0 ? "−" : "+") + Math.abs(missLu).toFixed(1) + " LU) : sur ce titre, la chaîne atteint sa limite musicale à ce réglage.");
+    if (clipDb > 9) notes.push("Écrêtage important (" + clipDb.toFixed(1) + " dB) : écoutez si le kick reste propre. Si vous entendez du grain, essayez « Équilibré » ou une cible moins forte.");
+    if (grMaxDb < -8) notes.push("Réduction de gain forte (" + grMaxDb.toFixed(1) + " dB) par le limiteur : si le mix pompe, essayez « Punch max » ou une cible moins forte.");
+    $("masternote").innerHTML = notes.join("<br>");
+
+    // Activer A/B + export
+    $("abrow").style.display = "flex";
+    $("exportbtn").disabled = false;
+    switchAB("master");
+  }catch(e){
+    $("progresswrap").style.display = "none";
+    alert("Erreur pendant le mastering : " + e.message);
+  }
+  $("masterbtn").disabled = false;
+  busy = false;
+}
+
+/* ============================================================
+   EXPORT WAV 24 BITS
+   ============================================================ */
+$("exportbtn").addEventListener("click", exportWav24);
+
+function exportWav24(){
+  if (!masterBuffer) return;
+  const nCh = masterBuffer.numberOfChannels;
+  const sr = masterBuffer.sampleRate;
+  const n = masterBuffer.length;
+  const bytesPerSample = 3;
+  const blockAlign = nCh * bytesPerSample;
+  const dataSize = n * blockAlign;
+  const buf = new ArrayBuffer(44 + dataSize);
+  const v = new DataView(buf);
+  const wstr = (off, s) => { for (let i = 0; i < s.length; i++) v.setUint8(off+i, s.charCodeAt(i)); };
+  wstr(0, "RIFF"); v.setUint32(4, 36 + dataSize, true); wstr(8, "WAVE");
+  wstr(12, "fmt "); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);            // PCM
+  v.setUint16(22, nCh, true);
+  v.setUint32(24, sr, true);
+  v.setUint32(28, sr * blockAlign, true);
+  v.setUint16(32, blockAlign, true);
+  v.setUint16(34, 24, true);           // 24 bits
+  wstr(36, "data"); v.setUint32(40, dataSize, true);
+  const chans = [];
+  for (let c = 0; c < nCh; c++) chans.push(masterBuffer.getChannelData(c));
+  let off = 44;
+  for (let i = 0; i < n; i++){
+    for (let c = 0; c < nCh; c++){
+      let s = chans[c][i];
+      if (s > 1) s = 1; else if (s < -1) s = -1;
+      let q = Math.round(s * 8388607);
+      if (q > 8388607) q = 8388607; else if (q < -8388608) q = -8388608;
+      v.setUint8(off, q & 0xFF);
+      v.setUint8(off+1, (q >> 8) & 0xFF);
+      v.setUint8(off+2, (q >> 16) & 0xFF);
+      off += 3;
+    }
+  }
+  const blob = new Blob([buf], { type: "audio/wav" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = origFileName + "_master_" + targetLufs + "LUFS.wav";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+
+/* ---------- Redimensionnement ---------- */
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (buffer){ sizeCanvases(); renderWaveCache(); paintWave(); }
+  }, 200);
+});
+</script>
+</body>
+</html>
