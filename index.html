@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.4 — filet anti-dépassement 512 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.5 — reference_image_urls corrigé · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -304,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.4 — garde-fou longueur absolu</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.5 — 1 photo visage suffit</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -913,7 +913,8 @@ document.getElementById("go").onclick = async () => {
       const r = ratioChip ? ratioChip.dataset.ratio : "orig";
       const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
       const elem = { frontal_image_url: faceRefs[0] };
-      if (faceRefs.length > 1) elem.reference_image_urls = faceRefs.slice(1);
+      // v33.5 : reference_image_urls toujours requis par fal.ai, même avec 1 seule photo.
+      elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
       payload = {
         prompt: "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. " + prompt,
         image_urls: [stylePhotoUrl || photoDataUrl],
@@ -1768,7 +1769,9 @@ document.getElementById("msGo").onclick = async () => {
   try {
     const faceRefs = faceRefUrls.filter(Boolean);
     const elem = { frontal_image_url: faceRefs[0] };
-    if (faceRefs.length > 1) elem.reference_image_urls = faceRefs.slice(1);
+    // v33.5 : fal.ai exige reference_image_urls (ou video_url) en plus de frontal_image_url —
+    // un tableau vide/absent fait échouer TOUTE génération avec 1 seule photo de référence.
+    elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
     const ratioChip = document.querySelector("#ratioZone .chip.on");
     const r = ratioChip ? ratioChip.dataset.ratio : "orig";
     const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
