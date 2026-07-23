@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.0 — Licence Premium · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.1 — Premium (noms clairs) · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -287,12 +287,12 @@
       <button class="btn" id="premUnlock" style="margin-top:10px; width:100%;">🔓 Déverrouiller Premium</button>
       <div class="estimate" id="premLockInfo"></div>
       <div class="sub" style="margin-top:10px;">Inclus avec Premium :<br>
-        ✨ <b>Photo Studio Star</b> — tes produits en photo studio pro<br>
-        🤳 <b>Ambassadeur Star</b> — un mannequin présente ton produit<br>
-        📣 <b>Pub Express Star</b> — visuel publicitaire avec ton slogan<br>
-        🎨 <b>Atelier Créatif</b> — logos, invitations, affiches<br>
+        ✨ <b>Photo Studio</b> — tes produits en photo studio pro<br>
+        🤳 <b>Influenceur Star</b> — un mannequin présente ton produit<br>
+        📣 <b>Créateur de Pub</b> — visuel publicitaire avec ton slogan<br>
+        🎨 <b>Logos & Créations</b> — logos, invitations, affiches<br>
         🎬 <b>Clip Produit Star</b> — transforme le résultat en vidéo<br>
-        👗 <b>Cabine d'Essayage</b> — le volet Tenue, déjà dans l'app</div>
+        👗 <b>Essayage Virtuel</b> — le volet Tenue, déjà dans l'app</div>
     </div>
 
     <!-- Zone débloquée -->
@@ -300,9 +300,9 @@
       <p class="sub" style="margin:0 0 6px;"><span style="color:var(--ok)">✓ Licence Premium active.</span> Choisis un outil :</p>
       <div class="chips" id="premChips">
         <button class="chip on" data-pmode="studio">✨ Photo Studio</button>
-        <button class="chip" data-pmode="ambassador">🤳 Ambassadeur</button>
-        <button class="chip" data-pmode="ad">📣 Pub Express</button>
-        <button class="chip" data-pmode="design">🎨 Atelier Créatif</button>
+        <button class="chip" data-pmode="ambassador">🤳 Influenceur Star</button>
+        <button class="chip" data-pmode="ad">📣 Créateur de Pub</button>
+        <button class="chip" data-pmode="design">🎨 Logos & Créations</button>
       </div>
 
       <div id="premPhotoZone">
@@ -319,7 +319,7 @@
       <button class="btn" id="premGo" style="margin-top:12px; width:100%;">✨ Générer</button>
       <div class="estimate" id="premInfo"></div>
       <div id="premPreview"></div>
-      <div class="sub" style="margin-top:10px;">👗 <b>Cabine d'Essayage</b> = le volet « Tenue » plus haut — il fait déjà l'essayage virtuel sur ta photo.</div>
+      <div class="sub" style="margin-top:10px;">👗 <b>Essayage Virtuel</b> = le volet « Tenue » plus haut — il fait déjà l'essayage virtuel sur ta photo.</div>
     </div>
   </section>
 
@@ -356,7 +356,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.0 — Licence Premium (studio marketing IA)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.1 — Premium : Influenceur, Photo Studio, Pub, Logos</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1970,8 +1970,8 @@ premApplyState();
 let premMode = "studio";
 const PREM_CONF = {
   studio:     { needPhoto: true,  needText: false, btn: "✨ Générer la photo studio" },
-  ambassador: { needPhoto: true,  needText: false, btn: "🤳 Générer l'ambassadeur" },
-  ad:         { needPhoto: true,  needText: true,  btn: "📣 Générer le visuel pub",
+  ambassador: { needPhoto: true,  needText: false, btn: "🤳 Générer l'influenceur" },
+  ad:         { needPhoto: true,  needText: true,  btn: "📣 Générer la pub",
                 label: "Ton slogan / accroche", ph: "Ex : Promo de Noël -30% · Studio Rudis Douala" },
   design:     { needPhoto: false, needText: true,  btn: "🎨 Générer le design",
                 label: "Décris ton logo / invitation / affiche", ph: "Ex : logo doré « Studio Rudis » sur fond noir, style élégant, musique" },
