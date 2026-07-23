@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.1 — Premium (noms clairs) · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.2 — Premium + animation vidéo · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -319,7 +319,33 @@
       <button class="btn" id="premGo" style="margin-top:12px; width:100%;">✨ Générer</button>
       <div class="estimate" id="premInfo"></div>
       <div id="premPreview"></div>
-      <div class="sub" style="margin-top:10px;">👗 <b>Essayage Virtuel</b> = le volet « Tenue » plus haut — il fait déjà l'essayage virtuel sur ta photo.</div>
+
+      <!-- v34.2 : ANIMATION VIDÉO -->
+      <div style="margin-top:22px; padding-top:18px; border-top:1px solid var(--line);">
+        <div class="label" style="margin-top:0;">🎬 Animer en vidéo</div>
+        <div class="estimate" style="margin-top:0; margin-bottom:12px; line-height:1.6;">
+          <b>Comment faire une vidéo qui parle, dans l'ordre :</b><br>
+          1️⃣ Génère d'abord ta <b>photo</b> ci-dessus (Photo Studio ou Influenceur).<br>
+          2️⃣ Écris ici ce que ton personnage doit <b>faire</b>, puis <b>Anime en vidéo</b>.<br>
+          3️⃣ Pour le faire <b>parler</b> : descends au volet <b>🎤 Lip-sync</b> et envoie-lui ta vidéo.
+        </div>
+
+        <div class="chips" id="animChips">
+          <button class="chip on" data-amode="photo">🖼️ Animer ma photo</button>
+          <button class="chip" data-amode="direct">✍️ Créer + animer par texte</button>
+        </div>
+
+        <div class="sub" id="animHint" style="margin:2px 0 8px;">Anime l'image générée juste au-dessus. Décris ce qu'elle fait.</div>
+
+        <div class="label" style="margin-top:6px;">Décris la scène</div>
+        <textarea id="animText" rows="3" placeholder="Ex : l'influenceur tend le produit vers la caméra en souriant, la caméra tourne lentement autour de lui"></textarea>
+
+        <button class="btn" id="animGo" style="margin-top:12px; width:100%;">🎬 Animer en vidéo</button>
+        <div class="estimate" id="animInfo"></div>
+        <div id="animPreview"></div>
+      </div>
+
+      <div class="sub" style="margin-top:16px;">👗 <b>Essayage Virtuel</b> = le volet « Tenue » plus haut — il fait déjà l'essayage virtuel sur ta photo.</div>
     </div>
   </section>
 
@@ -356,7 +382,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.1 — Premium : Influenceur, Photo Studio, Pub, Logos</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.2 — Premium : photo → vidéo animée → lip-sync</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -2061,6 +2087,7 @@ document.getElementById("premGo").onclick = async () => {
     const data = await apiPoll(responseUrl);
     const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) throw new Error("Résultat introuvable. Réessaie.");
+    lastPremImage = url; // v34.2 : mémorise l'image générée pour l'animer ensuite
     info.innerHTML = `<span style="color:var(--ok)">✓ Création terminée !</span>`;
     document.getElementById("premPreview").innerHTML = `
       <img src="${url}" style="width:100%; border-radius:12px; margin-top:12px;">
@@ -2076,6 +2103,86 @@ document.getElementById("premGo").onclick = async () => {
       info.innerHTML = `<span style="color:var(--ok)">✓ Image envoyée dans le volet 1 — écris ton scénario et génère ta vidéo !</span>`;
       refresh();
       document.getElementById("numKey")?.scrollIntoView({ behavior: "smooth" });
+    };
+  } catch (err) {
+    info.innerHTML = `<span style="color:var(--bad, #e66)">${err.message || err}</span>`;
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// ——— v34.2 : ANIMATION VIDÉO (dans Premium) ———
+let lastPremImage = null;   // image générée par Photo Studio / Influenceur
+let animMode = "photo";     // "photo" = anime l'image générée · "direct" = crée+anime par texte
+document.querySelectorAll("#animChips .chip").forEach(ch => {
+  ch.onclick = () => {
+    document.querySelectorAll("#animChips .chip").forEach(x => x.classList.remove("on"));
+    ch.classList.add("on");
+    animMode = ch.dataset.amode;
+    document.getElementById("animHint").textContent = (animMode === "photo")
+      ? "Anime l'image générée juste au-dessus. Décris ce qu'elle fait."
+      : "Crée un personnage à partir de rien : décris-le entièrement (allure, décor, action).";
+    document.getElementById("animText").placeholder = (animMode === "photo")
+      ? "Ex : l'influenceur tend le produit vers la caméra en souriant, la caméra tourne lentement autour de lui"
+      : "Ex : un jeune influenceur africain élégant, en costume, présente une bouteille de parfum dans un salon moderne, sourire, geste vers la caméra";
+  };
+});
+
+document.getElementById("animGo").onclick = async () => {
+  const info = document.getElementById("animInfo");
+  const txt = (document.getElementById("animText").value || "").trim();
+  if (!txt) { info.textContent = "Décris d'abord la scène."; return; }
+  if (animMode === "photo" && !lastPremImage) {
+    info.innerHTML = `<span style="color:var(--bad, #e66)">Génère d'abord une photo ci-dessus (Photo Studio ou Influenceur), puis anime-la.</span>`;
+    return;
+  }
+  const btn = document.getElementById("animGo");
+  btn.disabled = true;
+  info.textContent = "🎬 Animation en cours (1 à 3 min)… ne ferme pas la page.";
+  try {
+    // Kling v3 turbo pro gère image-to-video ET text-to-video (même endpoint)
+    const path = MODELS.pro.path;
+    const payload = { prompt: txt, duration: "5" };
+    if (animMode === "photo") payload.image_url = lastPremImage;
+    const job = await apiSubmit(path, payload);
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    let done = false;
+    for (let i = 0; i < 80; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") { done = true; break; }
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("L'animation a échoué. Réessaie ou simplifie ta description.");
+      info.textContent = `🎬 Animation en cours… (${(i + 1) * 3} s)`;
+    }
+    if (!done) throw new Error("L'animation est trop longue. Réessaie dans un instant.");
+    const data = await apiPoll(responseUrl);
+    const vurl = data.video?.url || data.response?.video?.url;
+    if (!vurl) throw new Error("Vidéo introuvable. Réessaie.");
+    info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
+    document.getElementById("animPreview").innerHTML = `
+      <video src="${vurl}" controls playsinline style="width:100%; border-radius:12px; margin-top:12px;"></video>
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+        <a class="btn small" href="${vurl}" download target="_blank" style="text-decoration:none;">⬇ Télécharger la vidéo</a>
+        <button class="btn small" id="animToLip">🎤 Le faire parler (Lip-sync)</button>
+      </div>
+      <div class="sub" style="margin-top:8px;">Pour une voix synchronisée : clique « Le faire parler », puis dans le volet Lip-sync ajoute ton extrait audio.</div>`;
+    document.getElementById("animToLip").onclick = () => {
+      // Branche la vidéo animée sur le module Lip-sync existant (bouton « Dernière vidéo générée »)
+      try {
+        lastVideoUrl = vurl;
+        lastVideoDur = 5;
+        const useLast = document.getElementById("lipUseLast");
+        if (useLast) {
+          useLast.disabled = false;
+          pickLipSource("last");
+        }
+        const lipSection = document.getElementById("num3")?.closest("section");
+        if (lipSection && lipSection.scrollIntoView) lipSection.scrollIntoView({ behavior: "smooth" });
+        info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo envoyée au volet 🎤 Lip-sync. Ajoutes-y maintenant ton extrait audio pour qu'il parle.</span>`;
+      } catch (e) {
+        info.innerHTML = `<span style="color:var(--ok)">✓ Télécharge ta vidéo, puis descends au volet 🎤 Lip-sync et importe-la pour ajouter la voix.</span>`;
+      }
     };
   } catch (err) {
     info.innerHTML = `<span style="color:var(--bad, #e66)">${err.message || err}</span>`;
