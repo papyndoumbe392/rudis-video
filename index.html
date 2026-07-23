@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.7 — Multi-plans FR ou EN · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.8 — Multi-plans FR ou EN · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -25,6 +25,11 @@
     background-image:radial-gradient(ellipse 70% 40% at 50% -5%, rgba(139,108,242,.14), transparent);
   }
   .wrap { max-width:640px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 24px) 16px 40px; }
+  /* v33.8 : sur ordinateur (grand écran), l'app occupe une largeur bien plus grande.
+     En dessous de 900px (téléphones/tablettes), l'affichage reste identique à avant. */
+  @media (min-width:900px){
+    .wrap { max-width:1180px; padding-left:32px; padding-right:32px; }
+  }
   .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
   h1 { font-size:clamp(26px,7vw,36px); font-weight:700; line-height:1.1; }
   h1 span { color:var(--gold); }
@@ -304,7 +309,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.7 — Multi-plans en français ou en anglais</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.8 — affichage plein écran sur ordinateur</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
