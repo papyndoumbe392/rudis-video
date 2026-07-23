@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.8 — Multi-plans FR ou EN · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.0 — Licence Premium · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -276,6 +276,53 @@
     <div id="lipResult"></div>
   </section>
 
+  <!-- v34.0 : LICENCE PREMIUM -->
+  <section class="card" style="border-color:var(--violet);">
+    <h2><span class="num" style="background:var(--violet);">👑</span> StarClip Premium <span class="dot" id="dotPrem"></span></h2>
+
+    <!-- Zone verrouillée -->
+    <div id="premLock">
+      <p class="sub" style="margin:0 0 10px;">La licence Premium débloque le <b>studio marketing IA</b> : photos produit pro, ambassadeur virtuel, visuels publicitaires, logos et invitations. Commande ta licence sur WhatsApp (bouton 💰 plus bas), reçois ton mot de passe Premium, et entre-le ici :</p>
+      <input type="password" id="premPass" placeholder="Mot de passe Premium" autocomplete="off" style="width:100%;">
+      <button class="btn" id="premUnlock" style="margin-top:10px; width:100%;">🔓 Déverrouiller Premium</button>
+      <div class="estimate" id="premLockInfo"></div>
+      <div class="sub" style="margin-top:10px;">Inclus avec Premium :<br>
+        ✨ <b>Photo Studio Star</b> — tes produits en photo studio pro<br>
+        🤳 <b>Ambassadeur Star</b> — un mannequin présente ton produit<br>
+        📣 <b>Pub Express Star</b> — visuel publicitaire avec ton slogan<br>
+        🎨 <b>Atelier Créatif</b> — logos, invitations, affiches<br>
+        🎬 <b>Clip Produit Star</b> — transforme le résultat en vidéo<br>
+        👗 <b>Cabine d'Essayage</b> — le volet Tenue, déjà dans l'app</div>
+    </div>
+
+    <!-- Zone débloquée -->
+    <div id="premZone" class="hidden">
+      <p class="sub" style="margin:0 0 6px;"><span style="color:var(--ok)">✓ Licence Premium active.</span> Choisis un outil :</p>
+      <div class="chips" id="premChips">
+        <button class="chip on" data-pmode="studio">✨ Photo Studio</button>
+        <button class="chip" data-pmode="ambassador">🤳 Ambassadeur</button>
+        <button class="chip" data-pmode="ad">📣 Pub Express</button>
+        <button class="chip" data-pmode="design">🎨 Atelier Créatif</button>
+      </div>
+
+      <div id="premPhotoZone">
+        <div class="label">Photo de ton produit</div>
+        <div id="premSlot" style="margin-top:8px; min-height:110px; border:1.5px dashed var(--line); border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:13px; cursor:pointer; background-size:cover; background-position:center;">Touche pour charger la photo du produit</div>
+        <input type="file" id="premInput" accept="image/*" class="hidden">
+      </div>
+
+      <div id="premTextZone" class="hidden">
+        <div class="label" id="premTextLabel">Ton slogan / accroche</div>
+        <textarea id="premText" rows="2" placeholder=""></textarea>
+      </div>
+
+      <button class="btn" id="premGo" style="margin-top:12px; width:100%;">✨ Générer</button>
+      <div class="estimate" id="premInfo"></div>
+      <div id="premPreview"></div>
+      <div class="sub" style="margin-top:10px;">👗 <b>Cabine d'Essayage</b> = le volet « Tenue » plus haut — il fait déjà l'essayage virtuel sur ta photo.</div>
+    </div>
+  </section>
+
   <!-- PAIEMENT MOBILE -->
   <section class="card" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1A1204;">💰</span> Commander ta vidéo — paiement mobile</h2>
@@ -309,7 +356,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.8 — affichage plein écran sur ordinateur</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.0 — Licence Premium (studio marketing IA)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1893,6 +1940,149 @@ document.getElementById("msGo").onclick = async () => {
 
 window.__msReady = true;
 msRender();
+
+// ——— v34.0 : LICENCE PREMIUM ———
+// Mot de passe à donner au client après paiement (à changer ici si besoin) :
+const PREMIUM_PASS = "STARPRO2026";
+
+const premLock = document.getElementById("premLock");
+const premZone = document.getElementById("premZone");
+function premApplyState() {
+  const ok = localStorage.getItem("premiumOk") === "1";
+  premLock.classList.toggle("hidden", ok);
+  premZone.classList.toggle("hidden", !ok);
+  const dot = document.getElementById("dotPrem");
+  if (dot) dot.style.background = ok ? "var(--ok)" : "";
+}
+document.getElementById("premUnlock").onclick = () => {
+  const v = (document.getElementById("premPass").value || "").trim();
+  const info = document.getElementById("premLockInfo");
+  if (v === PREMIUM_PASS) {
+    localStorage.setItem("premiumOk", "1");
+    premApplyState();
+  } else {
+    info.innerHTML = `<span style="color:var(--bad, #e66)">Mot de passe incorrect. Commande ta licence Premium sur WhatsApp (section 💰 plus bas).</span>`;
+  }
+};
+premApplyState();
+
+// Choix de l'outil Premium
+let premMode = "studio";
+const PREM_CONF = {
+  studio:     { needPhoto: true,  needText: false, btn: "✨ Générer la photo studio" },
+  ambassador: { needPhoto: true,  needText: false, btn: "🤳 Générer l'ambassadeur" },
+  ad:         { needPhoto: true,  needText: true,  btn: "📣 Générer le visuel pub",
+                label: "Ton slogan / accroche", ph: "Ex : Promo de Noël -30% · Studio Rudis Douala" },
+  design:     { needPhoto: false, needText: true,  btn: "🎨 Générer le design",
+                label: "Décris ton logo / invitation / affiche", ph: "Ex : logo doré « Studio Rudis » sur fond noir, style élégant, musique" },
+};
+function premRefreshUI() {
+  const c = PREM_CONF[premMode];
+  document.getElementById("premPhotoZone").classList.toggle("hidden", !c.needPhoto);
+  document.getElementById("premTextZone").classList.toggle("hidden", !c.needText);
+  if (c.needText) {
+    document.getElementById("premTextLabel").textContent = c.label;
+    document.getElementById("premText").placeholder = c.ph;
+  }
+  document.getElementById("premGo").textContent = c.btn;
+}
+document.querySelectorAll("#premChips .chip").forEach(ch => {
+  ch.onclick = () => {
+    document.querySelectorAll("#premChips .chip").forEach(x => x.classList.remove("on"));
+    ch.classList.add("on");
+    premMode = ch.dataset.pmode;
+    premRefreshUI();
+  };
+});
+premRefreshUI();
+
+// Photo produit : lecture + réduction (max 1600 px, JPEG) pour un envoi léger
+let premPhotoUrl = null;
+const premInput = document.getElementById("premInput");
+document.getElementById("premSlot").onclick = () => premInput.click();
+premInput.onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const max = 1600, sc = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    premPhotoUrl = c.toDataURL("image/jpeg", 0.9);
+    const slot = document.getElementById("premSlot");
+    slot.style.backgroundImage = `url(${premPhotoUrl})`;
+    slot.textContent = ""; slot.style.minHeight = "160px";
+  };
+  img.src = URL.createObjectURL(f);
+};
+
+// Canevas blanc (sert d'image de départ pour l'Atelier Créatif : le modèle le remplace entièrement)
+function premBlankCanvas() {
+  const c = document.createElement("canvas");
+  c.width = 1024; c.height = 1024;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, 1024, 1024);
+  return c.toDataURL("image/jpeg", 0.9);
+}
+
+function premPrompt() {
+  const t = (document.getElementById("premText").value || "").trim();
+  if (premMode === "studio") return "Place the exact product from the image in a professional photo studio setting: clean seamless background, soft studio lighting, subtle reflection, commercial product photography, ultra sharp, high-end advertising quality. Keep the product itself completely unchanged (same shape, colors, labels, text).";
+  if (premMode === "ambassador") return "A photorealistic African brand ambassador (well-dressed, friendly, professional model) holding and presenting the exact product from the image toward the camera, in a bright modern commercial setting, natural smile, advertising photography, high quality. Keep the product completely unchanged (same shape, colors, labels, text).";
+  if (premMode === "ad") return `Transform this into a professional advertising visual: keep the exact product unchanged, add an elegant commercial layout with the exact headline text "${t}" displayed prominently and beautifully (correct spelling, stylish typography), modern advertising design, vibrant, high quality.`;
+  return `Replace this blank canvas entirely with the following professional graphic design, centered, high quality, clean vector style, correct spelling of all text: ${t}`;
+}
+
+document.getElementById("premGo").onclick = async () => {
+  const conf = PREM_CONF[premMode];
+  const info = document.getElementById("premInfo");
+  const t = (document.getElementById("premText").value || "").trim();
+  if (conf.needPhoto && !premPhotoUrl) { info.textContent = "Charge d'abord la photo de ton produit."; return; }
+  if (conf.needText && !t) { info.textContent = "Écris d'abord ton texte."; return; }
+  const btn = document.getElementById("premGo");
+  btn.disabled = true; info.textContent = "✨ Création en cours (10-30 s)…";
+  try {
+    const path = "fal-ai/nano-banana/edit";
+    const job = await apiSubmit(path, {
+      prompt: premPrompt(),
+      image_urls: [conf.needPhoto ? premPhotoUrl : premBlankCanvas()],
+      num_images: 1,
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La création a échoué. Réessaie ou reformule.");
+      info.textContent = `✨ Création en cours… (${(i + 1) * 3} s)`;
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) throw new Error("Résultat introuvable. Réessaie.");
+    info.innerHTML = `<span style="color:var(--ok)">✓ Création terminée !</span>`;
+    document.getElementById("premPreview").innerHTML = `
+      <img src="${url}" style="width:100%; border-radius:12px; margin-top:12px;">
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+        <a class="btn small" href="${url}" download target="_blank" style="text-decoration:none;">⬇ Télécharger</a>
+        <button class="btn small" id="premToVideo">🎬 Utiliser pour un Clip Produit (vidéo)</button>
+      </div>`;
+    document.getElementById("premToVideo").onclick = () => {
+      photoDataUrl = url;
+      const slot = document.getElementById("photoSlot");
+      slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled");
+      document.getElementById("photoLabel").textContent = "Image Premium (Clip Produit)";
+      info.innerHTML = `<span style="color:var(--ok)">✓ Image envoyée dans le volet 1 — écris ton scénario et génère ta vidéo !</span>`;
+      refresh();
+      document.getElementById("numKey")?.scrollIntoView({ behavior: "smooth" });
+    };
+  } catch (err) {
+    info.innerHTML = `<span style="color:var(--bad, #e66)">${err.message || err}</span>`;
+  } finally {
+    btn.disabled = false;
+  }
+};
 
 </script>
 </body>
