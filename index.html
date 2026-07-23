@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StarClip Studio v33.7 — Multi-plans FR ou EN · par Studio Rudis, Douala.</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StarClip">
+<meta name="theme-color" content="#100D16">
+<style>
+  :root {
+    --bg:#100D16; --panel:#1A1523; --up:#241D30; --line:#352B45;
+    --gold:#F2B33D; --violet:#8B6CF2; --text:#EFEAF7; --dim:#9C92AE;
+    --ok:#5DD9A0; --err:#F26D6D;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;
+    min-height:100vh; padding-bottom:60px;
+    background-image:radial-gradient(ellipse 70% 40% at 50% -5%, rgba(139,108,242,.14), transparent);
+  }
+  .wrap { max-width:640px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 24px) 16px 40px; }
+  .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+  h1 { font-size:clamp(26px,7vw,36px); font-weight:700; line-height:1.1; }
+  h1 span { color:var(--gold); }
+  .sub { color:var(--dim); font-size:13.5px; margin-top:8px; line-height:1.55; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 16px; margin-top:16px; }
+  .card h2 { font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .num { width:24px; height:24px; border-radius:6px; background:var(--up); border:1px solid var(--line); color:var(--dim);
+    display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+  .num.on { background:var(--gold); border-color:var(--gold); color:#1A1204; }
+  .dot { margin-left:auto; width:8px; height:8px; border-radius:50%; background:var(--line); }
+  .dot.on { background:var(--ok); box-shadow:0 0 8px var(--ok); }
+  .btn { padding:9px 16px; border-radius:8px; border:1px solid var(--gold); background:transparent;
+    color:var(--gold); font-size:13px; font-weight:600; cursor:pointer; }
+  .btn.small { padding:5px 11px; font-size:11.5px; border-color:var(--line); color:var(--dim); }
+  .photo-slot { width:104px; height:104px; border-radius:12px; border:1.5px dashed var(--line);
+    background:var(--up); display:flex; align-items:center; justify-content:center; color:var(--dim);
+    font-size:26px; cursor:pointer; background-size:cover; background-position:center; flex-shrink:0; }
+  .photo-slot.filled { border-color:var(--gold); border-style:solid; }
+  textarea, input[type=text], input[type=password] {
+    width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px;
+    color:var(--text); padding:11px 12px; font-size:15px; font-family:inherit; outline:none;
+  }
+  textarea { resize:vertical; line-height:1.55; min-height:88px; }
+  textarea:focus, input:focus { border-color:var(--gold); }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .chip { padding:7px 13px; border-radius:999px; border:1px solid var(--line); background:transparent;
+    color:var(--dim); font-size:12.5px; cursor:pointer; }
+  .chip.on { border-color:var(--gold); background:rgba(242,179,61,.12); color:var(--gold); }
+  .label { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin-top:14px; }
+  .master { width:100%; margin-top:20px; padding:16px; border-radius:12px; border:none; font-size:15.5px;
+    font-weight:700; background:linear-gradient(135deg, var(--gold), #E08E2B); color:#1A1204; cursor:pointer; }
+  .master:disabled { background:var(--up); color:var(--dim); }
+  .status { margin-top:14px; padding:12px 14px; border-radius:10px; background:var(--up); font-size:13.5px;
+    line-height:1.55; display:none; }
+  .status.show { display:block; }
+  .status .bar { height:4px; background:var(--line); border-radius:2px; margin-top:10px; overflow:hidden; }
+  .status .fill { height:100%; width:0%; background:var(--gold); border-radius:2px; transition:width .8s; }
+  .err { color:var(--err); }
+  .okc { color:var(--ok); }
+  video { width:100%; border-radius:12px; margin-top:14px; background:#000; }
+  .dl { display:inline-block; margin-top:12px; text-decoration:none; }
+  .estimate { font-size:12px; color:var(--dim); margin-top:8px; }
+  .keyrow { display:flex; gap:8px; }
+  .keyrow input { flex:1; }
+  footer { margin-top:36px; padding-top:14px; border-top:1px solid var(--line); font-size:11.5px;
+    color:var(--dim); line-height:1.6; }
+  .hidden { display:none; }
+  .face-ref-slot {
+    width:72px; height:72px; border-radius:10px; border:1.5px dashed var(--violet);
+    background:var(--up); display:flex; align-items:center; justify-content:center;
+    color:var(--violet); font-size:20px; cursor:pointer; background-size:cover;
+    background-position:center; flex-shrink:0;
+  }
+  .face-ref-slot.filled { border-style:solid; border-color:var(--violet); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Studio Rudis · Douala</div>
+    <h1>Star<span>Clip</span> Studio</h1>
+    <p class="sub">Ta photo + ta chanson → ton clip vidéo professionnel, créé par l'intelligence artificielle du studio. Chante, danse, change de tenue — deviens la star de ton clip. ✨</p>
+    <a href="guide.html" style="display:inline-block; margin-top:12px; padding:8px 16px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); text-decoration:none; font-size:13px; font-weight:600;">📖 Guide en BD — pour petits et grands</a>
+    <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
+  </header>
+
+  <!-- RÉGLAGES / CLÉ -->
+  <section class="card">
+    <h2><span class="num" id="numKey">🎟️</span> Ton code StarClip <span class="dot" id="dotKey"></span></h2>
+    <div class="keyrow">
+      <input type="text" id="starCode" placeholder="Ex : STAR-7K3M" autocapitalize="characters" autocomplete="off">
+      <button class="btn" id="saveCode">OK</button>
+    </div>
+    <div class="estimate" id="codeInfo"></div>
+    <div class="estimate">Pas encore de code ? Commande-le en bas de la page 👇 (Orange Money / MTN MoMo).</div>
+  </section>
+
+  <!-- PHOTO -->
+  <section class="card">
+    <h2><span class="num" id="num1">1</span> Photo <span class="dot" id="dot1"></span></h2>
+    <div style="display:flex; gap:14px; align-items:center;">
+      <div class="photo-slot" id="photoSlot">＋</div>
+      <div style="flex:1;">
+        <div class="sub" id="photoLabel" style="margin:0 0 10px;">Photo nette, de face, bien éclairée.</div>
+        <button class="btn" id="photoBtn">Choisir une photo</button>
+      </div>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" class="hidden">
+
+    <!-- RÉFÉRENCES VISAGE v31 -->
+    <div id="faceRefToggle" class="hidden" style="margin-top:12px;">
+      <button class="btn small" id="faceRefBtn" onclick="toggleFaceRef()" style="border-color:var(--violet); color:var(--violet);">
+        👤 + Ajouter des photos de référence visage <span id="faceRefCount"></span>
+      </button>
+      <div class="estimate">Améliore la ressemblance — envoie 1 à 3 photos nettes de ton visage.</div>
+    </div>
+    <div id="faceRefZone" class="hidden" style="margin-top:12px; background:var(--up); border-radius:10px; padding:12px;">
+      <div class="label" style="margin-top:0; color:var(--violet);">👤 Photos de référence visage (optionnel — max 3)</div>
+      <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
+        <div class="face-ref-slot" data-idx="0">＋</div>
+        <div class="face-ref-slot" data-idx="1">＋</div>
+        <div class="face-ref-slot" data-idx="2">＋</div>
+      </div>
+      <input type="file" id="faceRefInput" accept="image/*" class="hidden">
+      <div class="estimate" id="faceRefStatus" style="margin-top:8px;"></div>
+      <div class="estimate" style="margin-top:4px; font-style:italic;">L'IA analyse tes photos et décrit ton visage précisément pour mieux le préserver dans la vidéo.</div>
+    </div>
+
+    <div id="ratioZone" class="hidden" style="margin-top:14px;">
+      <div class="label" style="margin-top:0;">📐 Format de l'image</div>
+      <div class="chips">
+        <button class="chip on" data-ratio="orig" onclick="pickRatio(this)">Original</button>
+        <button class="chip" data-ratio="9:16" onclick="pickRatio(this)">📱 9:16 Vertical</button>
+        <button class="chip" data-ratio="16:9" onclick="pickRatio(this)">🖥️ 16:9 Horizontal</button>
+        <button class="chip" data-ratio="1:1" onclick="pickRatio(this)">◻️ 1:1 Carré</button>
+      </div>
+      <div class="estimate">🎨 L'IA prolonge le vrai décor de ta photo (comme Runway) — jamais de flou, jamais de duplication. (≈ 0,04 $ par changement de format)</div>
+    </div>
+  </section>
+
+  <!-- PROMPT -->
+  <section class="card">
+    <h2><span class="num" style="background:var(--up);">👔</span> Tenue — change les habits <span class="dot" id="dotOutfit"></span></h2>
+    <div class="chips" id="outfitChips"></div>
+    <input type="text" id="outfitCustom" placeholder="Décris la tenue… Ex : chemise en pagne wax bleu et or, chapeau fedora" class="hidden" style="width:100%; margin-top:10px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
+    <div id="outfitPhotoZone" class="hidden" style="margin-top:12px;">
+      <div class="label" style="margin-top:0;">📷 Photo de la tenue (vêtement seul ou porté)</div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <div id="outfitSlot" style="width:84px; height:84px; border-radius:10px; border:1.5px dashed var(--line); background:var(--up); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:22px; cursor:pointer; flex-shrink:0;">＋</div>
+        <button class="btn" id="outfitPhotoBtn">Choisir la photo de tenue</button>
+      </div>
+      <input type="file" id="outfitPhotoInput" accept="image/*" class="hidden">
+      <div class="label">Habiller qui ?</div>
+      <div class="chips">
+        <button class="chip on" data-target="me" onclick="pickTryTarget(this)">Ma photo (volet 1)</button>
+        <button class="chip" data-target="homme" onclick="pickTryTarget(this)">Mannequin homme</button>
+        <button class="chip" data-target="femme" onclick="pickTryTarget(this)">Mannequin femme</button>
+      </div>
+    </div>
+    <button class="btn" id="outfitGo" style="display:none; margin-top:12px;">👔 Transformer la tenue (≈ 0,04 $)</button>
+    <div class="estimate" id="outfitInfo">Le visage, la pose et le décor restent identiques — seuls les habits changent.</div>
+    <div id="outfitPreview"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num" id="num2">2</span> Scénario du clip <span class="dot" id="dot2"></span></h2>
+    <div class="label" style="margin-top:0;">✨ Décris ton idée simplement (en français)</div>
+    <textarea id="ideaFr" rows="2" placeholder="Ex : je chante sur la plage au coucher du soleil et je danse sur le refrain" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
+    <button class="btn" id="ideaGo" style="margin-top:8px;">✨ Écrire mon scénario professionnel</button>
+    <div class="estimate" id="ideaInfo"></div>
+
+    <div class="label">Scénario professionnel (généré ou écrit à la main)</div>
+    <textarea id="prompt" placeholder="Décris la vidéo… Ex : The man sings passionately and dances to an afrobeats groove at sunset on a beach, smooth camera orbit, warm cinematic light. (l'anglais donne de meilleurs résultats)"></textarea>
+
+    <div class="label">Qualité / Prix</div>
+    <div class="chips">
+      <button class="chip on" data-model="eco" onclick="pickModel(this)">Éco — ≈0,28 $ / 5 s</button>
+      <button class="chip" data-model="pro" onclick="pickModel(this)">Pro (lip-sync) — 0,14 $ / s</button>
+      <button class="chip" data-model="ref" onclick="pickModel(this)">⭐ Visage stable — 0,112 $ / s</button>
+    </div>
+    <div class="estimate" id="modelInfo" style="display:none; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-top:8px;">⭐ <b>Visage stable :</b> le moteur ancre ton identité sur tes <b>photos de référence visage</b> (volet 1) — le visage ne change plus, même en marchant ou en dansant. Ajoute au moins 1 photo de référence pour utiliser ce mode.</div>
+
+    <label style="display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:13px; color:var(--dim); cursor:pointer;">
+      <input type="checkbox" id="lipOptim" checked style="margin-top:2px; accent-color:var(--gold);">
+      <span>🎤 Optimiser pour le chant — <b>plan rapproché, visage grand et dégagé</b>, pas de micro devant la bouche. C'est LA condition d'un lip-sync réaliste : plus le visage est grand à l'écran, plus la bouche s'anime naturellement. (Décoche pour les plans larges de danse.)</span>
+    </label>
+
+    <div class="label">Durée</div>
+    <div class="chips">
+      <button class="chip on" data-dur="5" onclick="pickDur(this)">5 secondes</button>
+      <button class="chip" data-dur="10" onclick="pickDur(this)">10 secondes</button>
+    </div>
+    <div class="estimate" id="estimate">Coût estimé : ≈ 0,28 $</div>
+  </section>
+
+  <button class="master" id="go" disabled>Complète les étapes pour générer</button>
+
+  <div class="status" id="status">
+    <div id="statusText">…</div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+  </div>
+
+  <div id="resultZone"></div>
+
+  <!-- v33.1 — MULTI-PLANS 3.0 (Kling 3.0, storyboard) -->
+  <section class="card" style="border-color:var(--gold);">
+    <h2>🎬 Multi-plans 3.0 — ton mini-clip <span class="dot" id="dotMS"></span></h2>
+    <p class="sub" style="margin-top:4px;">Enchaîne <b>2 à 6 plans</b> dans UNE seule vidéo (15 s max au total), générée d'un coup par <b>Kling 3.0</b>, le moteur du rendu cinéma. Ton visage est ancré sur tes <b>photos de référence</b> (volet 1) et reste identique d'un plan à l'autre.<br><b style="color:var(--gold)">✍️ Écris chaque plan en français ou en anglais</b> — l'app le met en forme automatiquement pour toi.</p>
+    <div id="msPlans"></div>
+    <button class="btn" id="msAdd" style="margin-top:10px;">＋ Ajouter un plan</button>
+    <div class="estimate" id="msInfo"></div>
+    <button class="master" id="msGo" style="margin-top:10px;" disabled>Complète les plans pour générer</button>
+    <div class="estimate" id="msCost" style="margin-top:8px;"></div>
+    <div class="status" id="msStatus">
+      <div id="msStatusText">…</div>
+      <div class="bar"><div class="fill" id="msFill"></div></div>
+    </div>
+    <div id="msResultZone"></div>
+  </section>
+
+  <!-- LIP-SYNC (volet permanent, double source) -->
+  <section class="card">
+    <h2><span class="num" id="num3">3</span> Lip-sync — fais chanter ta vidéo <span class="dot" id="dot3"></span></h2>
+
+    <div class="label" style="margin-top:0;">Vidéo source (2 à 10 secondes)</div>
+    <div class="chips">
+      <button class="chip" id="lipUseLast" disabled>Dernière vidéo générée</button>
+      <button class="chip" id="lipImportBtn">📂 Importer une vidéo</button>
+    </div>
+    <div class="estimate" id="lipVideoName">Génère une vidéo ci-dessus, ou importe un MP4/MOV de 2–10 s (max 30 Mo).</div>
+    <video id="lipPreview" class="hidden" controls playsinline style="width:100%; border-radius:12px; margin-top:10px; background:#000;"></video>
+    <input type="file" id="lipVideoInput" accept="video/*,.mp4,.mov,.m4v" class="hidden">
+
+    <div class="estimate" style="background:var(--up); border-left:3px solid var(--gold); border-radius:8px; padding:10px 12px; margin-bottom:10px;">💡 <b>Secret d'un chant réaliste :</b> la bouche s'anime d'autant mieux que le visage est <b>grand à l'écran</b>. Utilise une vidéo en plan rapproché (poitrine/visage) pour les parties chantées — garde les plans en pied pour la danse, et assemble les deux dans CapCut comme un vrai clip.</div>
+    <div class="label">Extrait audio de ta chanson (tous formats acceptés)</div>
+    <button class="btn" id="lipAudioBtn">Choisir l'audio</button>
+    <div class="estimate" id="lipAudioName"></div>
+
+    <audio id="lipAudioPlayer" class="hidden" controls playsinline style="width:100%; margin-top:10px;"></audio>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      <button class="btn" id="autoVocal" style="display:none;">🔍 Détection auto du départ</button>
+      <button class="btn" id="markVocal" style="display:none;">🎯 Le chant commence ICI (pro)</button>
+    </div>
+    <div class="estimate" id="markInfo" style="display:none;">Écoute ta chanson ci-dessus, et touche le bouton PILE au moment où la voix démarre — l'extrait se calera automatiquement dessus.</div>
+
+    <div class="label">🎚️ Réglage fin (ms, optionnel)</div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="text" id="syncLead" inputmode="decimal" value="0" style="width:90px;">
+      <div class="estimate" style="margin:0;">Ajuste par petites touches (ex : 200) si le calage mérite d'être avancé d'un poil, puis touche « Couper ».</div>
+    </div>
+
+    <div id="trimZone" class="hidden" style="margin-top:10px;">
+      <div class="label" style="margin-top:0;">✂️ Coupe automatique — début de l'extrait (en secondes)</div>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+        <input type="text" id="trimStart" inputmode="decimal" value="0" style="width:90px;">
+        <button class="btn" id="trimBtn">Couper</button>
+      </div>
+      <div class="estimate" id="trimInfo"></div>
+    </div>
+    <input type="file" id="lipAudioInput" class="hidden">
+
+    <button class="master" id="lipGo" disabled style="margin-top:16px;">Choisis une vidéo et un audio</button>
+    <div class="status" id="lipStatus" style="margin-top:12px;"><div id="lipStatusText"></div><div class="bar"><div class="fill" id="lipFill"></div></div></div>
+    <div id="lipResult"></div>
+  </section>
+
+  <!-- PAIEMENT MOBILE -->
+  <section class="card" style="border-color:var(--gold);">
+    <h2><span class="num" style="background:var(--gold); color:#1A1204;">💰</span> Commander ta vidéo — paiement mobile</h2>
+    <p class="sub" style="margin:0 0 12px;">Pas besoin de carte bancaire : paie par Orange Money ou MTN Mobile Money, et reçois ton CODE StarClip sur WhatsApp — tu crées ensuite tes vidéos toi-même, ici, dans l'app !</p>
+
+    <div class="label" style="margin-top:0;">Tarifs</div>
+    <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:2;">
+      ⭐ <b>Essai Star</b> — code <b>1 vidéo</b> (chant + tenue inclus) — <b style="color:var(--ok);">1 500 FCFA</b><br>
+      🎟️ Code <b>5 vidéos</b> — <b style="color:var(--gold);">6 000 FCFA</b><br>
+      🎟️ Code <b>12 vidéos</b> — <b style="color:var(--gold);">12 000 FCFA</b><br>
+      🏆 <b>Clip Découverte</b> — le studio crée pour toi (5 scènes montées) — <b style="color:var(--gold);">10 000 FCFA</b><br>
+      💎 <b>Clip Premium</b> — 15 scènes, qualité cinéma, montage pro — <b style="color:var(--gold);">25 000 FCFA</b>
+    </div>
+
+    <div class="label">Étape 1 — Envoie le montant à</div>
+    <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:1.9;">
+      <b>NDOUMBE EPOUPA Pierre</b><br>
+      🟠 Orange Money : <b id="omNum">695 535 475</b>
+      <button class="btn small" onclick="copyNum('695535475', this)">Copier</button><br>
+      🟡 MTN Mobile Money : <b id="momoNum">653 072 700</b>
+      <button class="btn small" onclick="copyNum('653072700', this)">Copier</button>
+    </div>
+
+    <div class="label">Étape 2 — Envoie sur WhatsApp</div>
+    <p class="sub" style="margin:6px 0 10px;">Ta capture d'écran du paiement.</p>
+    <a href="https://wa.me/237695535475?text=Bonjour%20Studio%20Rudis%20!%20Je%20viens%20de%20payer%20—%20voici%20ma%20preuve.%20Je%20veux%20mon%20CODE%20StarClip%20!" 
+       style="display:block; text-align:center; padding:13px; border-radius:10px; background:#25D366; color:#06300f; font-weight:800; font-size:15px; text-decoration:none;">
+      💬 Commander sur WhatsApp
+    </a>
+    <div class="estimate" style="margin-top:10px;">Étape 3 — Reçois ton CODE sur WhatsApp en quelques minutes ⚡ Entre-le en haut de l'app et crée tes vidéos toi-même, quand tu veux !</div>
+  </section>
+
+  <footer>
+    StarClip Studio <b style="color:var(--gold)">v33.7 — Multi-plans en français ou en anglais</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
+  </footer>
+</div>
+
+<script src="config.js"></script>
+<script>
+// ——— État ———
+let photoDataUrl = null;
+let model = "eco";
+let dur = "5";
+
+// ——— Références visage v31 ———
+let faceRefUrls = [null, null, null]; // jusqu'à 3 photos
+let faceRefOpen = false;
+let faceRefDescription = ""; // description IA du visage
+let faceRefCurrentSlot = 0;
+
+function toggleFaceRef() {
+  faceRefOpen = !faceRefOpen;
+  document.getElementById("faceRefZone").classList.toggle("hidden", !faceRefOpen);
+  document.getElementById("faceRefBtn").style.borderColor = faceRefOpen ? "var(--ok)" : "var(--violet)";
+  document.getElementById("faceRefBtn").style.color = faceRefOpen ? "var(--ok)" : "var(--violet)";
+}
+
+function updateFaceRefCount() {
+  const n = faceRefUrls.filter(Boolean).length;
+  const el = document.getElementById("faceRefCount");
+  el.textContent = n > 0 ? `(${n} photo${n > 1 ? "s" : ""})` : "";
+  el.style.color = n > 0 ? "var(--ok)" : "";
+}
+
+// Initialise les slots de référence visage
+function initFaceRefSlots() {
+  const slots = document.querySelectorAll(".face-ref-slot");
+  const input = document.getElementById("faceRefInput");
+
+  slots.forEach(slot => {
+    slot.onclick = () => {
+      faceRefCurrentSlot = parseInt(slot.dataset.idx);
+      input.click();
+    };
+  });
+
+  input.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      // Réduit si trop grand (max 512px), mais REMONTE aussi si trop petit
+      // (fal.ai exige un minimum de 300x300px sur chaque référence visage).
+      let scale = Math.min(1, 512 / Math.max(img.width, img.height));
+      const MIN_SIDE = 320; // marge de sécurité au-dessus du seuil de 300px
+      if (Math.min(img.width, img.height) * scale < MIN_SIDE) {
+        scale = MIN_SIDE / Math.min(img.width, img.height);
+      }
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      const dataUrl = c.toDataURL("image/jpeg", 0.85);
+      faceRefUrls[faceRefCurrentSlot] = dataUrl;
+      const slot = slots[faceRefCurrentSlot];
+      slot.style.backgroundImage = `url(${dataUrl})`;
+      slot.textContent = "";
+      slot.classList.add("filled");
+      updateFaceRefCount();
+      // Lancer l'analyse IA du visage
+      analyzeFaceRefs();
+    };
+    img.src = URL.createObjectURL(f);
+    input.value = "";
+  };
+}
+
+// Analyse IA des photos de référence via fal-ai (même circuit que l'assistant scénario).
+// Les photos partent en base64 directement (accepté par l'API) — aucun upload séparé.
+// Debounce : si le client ajoute 2-3 photos d'affilée, UNE seule analyse est lancée
+// (au lieu d'une par photo) — zéro gaspillage d'unités.
+let faceRefAnalyzeTimer = null;
+function analyzeFaceRefs() {
+  clearTimeout(faceRefAnalyzeTimer);
+  faceRefAnalyzeTimer = setTimeout(doAnalyzeFaceRefs, 1500);
+}
+
+async function doAnalyzeFaceRefs() {
+  const refs = faceRefUrls.filter(Boolean);
+  if (refs.length === 0) { faceRefDescription = ""; return; }
+  const statusEl = document.getElementById("faceRefStatus");
+  statusEl.innerHTML = "<span style='color:var(--violet)'>🔍 Analyse du visage en cours…</span>";
+  try {
+    const path = "openrouter/router/vision";
+    const job = await apiSubmit(path, {
+      model: "google/gemini-2.5-flash",
+      image_urls: refs,
+      prompt: "Décris précisément le visage de cette personne en anglais en 40-60 mots pour un prompt de génération vidéo IA. Inclus : teinte de peau, forme du visage, sourcils, yeux, nez, barbe/moustache si présente, traits distinctifs. Commence directement par la description, sans introduction. Ex: 'light brown skin, oval face, thick black eyebrows, dark almond-shaped eyes, broad nose, short trimmed beard, defined jawline, high cheekbones'. Réponds UNIQUEMENT avec la description.",
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 20; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("analyse échouée");
+    }
+    const data = await apiPoll(responseUrl);
+    const desc = (data.output || data.response?.output || data.text || data.response?.text || "").trim();
+    if (desc.length > 10) {
+      faceRefDescription = desc;
+      statusEl.innerHTML = `<span style="color:var(--ok)">✓ Visage analysé — la ressemblance sera améliorée automatiquement.</span>`;
+    } else {
+      throw new Error("Description vide");
+    }
+  } catch (e) {
+    statusEl.innerHTML = `<span style="color:var(--dim)">⚠️ Analyse impossible — les photos seront quand même utilisées.</span>`;
+    faceRefDescription = "";
+  }
+}
+
+// Construit le suffixe de préservation visage à injecter dans le prompt
+function buildFaceGuard() {
+  const refs = faceRefUrls.filter(Boolean);
+  if (refs.length === 0 && !faceRefDescription) return "";
+  let guard = " CRITICAL FACE PRESERVATION: ";
+  if (faceRefDescription) {
+    guard += `The person has exactly these facial features: ${faceRefDescription}. `;
+  }
+  guard += "DO NOT change the face, skin tone, facial hair, or identity of the person. DO NOT generate a different person. Preserve exact same face throughout the entire video. identity preserved, exact same person.";
+  return guard;
+}
+
+// Suffixe negative prompt pour la préservation visage
+function buildFaceNegative() {
+  const refs = faceRefUrls.filter(Boolean);
+  if (refs.length === 0 && !faceRefDescription) return "";
+  return ", different person, changed face, altered identity, different skin tone, different ethnicity, identity change, face replacement, new face";
+}
+const MODELS = {
+  eco: { path: "fal-ai/kling-video/v2.1/standard/image-to-video", price5: 0.28, price10: 0.56 },
+  pro: { path: "fal-ai/kling-video/v3/turbo/pro/image-to-video", perSec: 0.14 },
+  ref: { path: "fal-ai/kling-video/o3/pro/reference-to-video", perSec: 0.112 }, // v33.1 : Kling 3.0 (o3), sans audio natif = même prix
+};
+
+// ——— Clé API ———
+const codeInput = document.getElementById("starCode");
+codeInput.value = localStorage.getItem("starCode") || "";
+function getCode() { return (codeInput.value || localStorage.getItem("starCode") || "").trim().toUpperCase(); }
+
+async function checkCode() {
+  const code = getCode();
+  localStorage.setItem("starCode", code);
+  const info = document.getElementById("codeInfo");
+  if (!code) { info.textContent = ""; refresh(); return; }
+  if (WORKER_URL.includes("COLLE_ICI")) { info.innerHTML = "<span class='err'>⚙️ Serveur non configuré — remplis le fichier config.js.</span>"; refresh(); return; }
+  info.textContent = "Vérification du code…";
+  try {
+    const r = await fetch(WORKER_URL + "/balance", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Code inconnu.");
+    info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}.</span>`;
+  } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
+  refresh();
+}
+document.getElementById("saveCode").onclick = checkCode;
+codeInput.addEventListener("input", refresh);
+if (codeInput.value) checkCode();
+
+// ——— Liaison avec le serveur secret du studio ———
+async function apiSubmit(modelPath, payload) {
+  if (WORKER_URL.includes("COLLE_ICI")) throw new Error("Serveur non configuré (fichier config.js).");
+  const code = getCode();
+  if (!code) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+  const r = await fetch(WORKER_URL + "/gen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, path: modelPath, payload }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || ("Envoi refusé (" + r.status + ")"));
+  if (typeof d.left === "number") {
+    const ci = document.getElementById("codeInfo");
+    if (ci) ci.innerHTML = `<span style="color:var(--ok)">🎟️ ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ce code.</span>`;
+  }
+  return d;
+}
+async function apiPoll(u) {
+  const r = await fetch(WORKER_URL + "/poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: getCode(), url: u }) });
+  return r.json();
+}
+
+// ——— Photo ———
+const photoInput = document.getElementById("photoInput");
+document.getElementById("photoBtn").onclick = () => photoInput.click();
+document.getElementById("photoSlot").onclick = () => photoInput.click();
+let originalPhotoImg = null; // image source intacte, pour changer de format sans perte
+photoInput.onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    originalPhotoImg = img;
+    aiExtendCache = {}; // nouvelle photo → les formats devront être régénérés
+    document.getElementById("ratioZone").classList.remove("hidden");
+    document.getElementById("ratioZone").querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    document.getElementById("ratioZone").querySelector('[data-ratio="orig"]').classList.add("on");
+    applyPhotoRatio("orig", f.name);
+    // Afficher la zone références visage
+    document.getElementById("faceRefToggle").classList.remove("hidden");
+  };
+  img.src = URL.createObjectURL(f);
+};
+
+function pickRatio(el) {
+  el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  el.classList.add("on");
+  const ratio = el.dataset.ratio;
+  if (ratio === "orig") {
+    applyPhotoRatio("orig", document.getElementById("photoLabel").textContent);
+  } else {
+    // v31.1 : extension IA du décor (outpainting) — le vrai décor est prolongé, comme Runway
+    aiExtendPhoto(ratio);
+  }
+}
+
+// ——— v31.1 : Extension IA du décor (remplace le fond flouté) ———
+// L'image est posée sur un canevas au bon format avec des zones vides,
+// puis nano-banana prolonge RÉELLEMENT le décor dans ces zones.
+// v31.4 : cache par format — recliquer un format déjà généré est GRATUIT.
+let aiExtendCache = {}; // { "16:9": url, ... } — vidé quand la photo change
+async function aiExtendPhoto(ratio) {
+  const img = originalPhotoImg;
+  if (!img) return;
+  const label = document.getElementById("photoLabel");
+
+  // Déjà généré pour ce format ? → réutilisation immédiate, zéro coût.
+  if (aiExtendCache[ratio]) {
+    photoDataUrl = aiExtendCache[ratio];
+    stylePhotoUrl = null;
+    const op0 = document.getElementById("outfitPreview"); if (op0) op0.innerHTML = "";
+    const slot0 = document.getElementById("photoSlot");
+    slot0.style.backgroundImage = `url(${photoDataUrl})`;
+    slot0.textContent = ""; slot0.classList.add("filled");
+    label.innerHTML = `<span style="color:var(--ok)">✓ Format ${ratio} déjà généré — réutilisé sans frais.</span>`;
+    refresh();
+    return;
+  }
+
+  const prevLabel = label.textContent;
+  label.innerHTML = "<span style='color:var(--violet)'>🎨 L'IA prolonge le décor de ta photo… (10-30 s)</span>";
+
+  // 1) Canevas au format cible, image entière centrée, zones vides en blanc neutre
+  const [rw, rh] = ratio.split(":").map(Number);
+  const targetRatio = rw / rh;
+  const MAXD = 1280;
+  let tw, th;
+  if (targetRatio >= 1) { tw = MAXD; th = Math.round(MAXD / targetRatio); }
+  else { th = MAXD; tw = Math.round(MAXD * targetRatio); }
+  const c = document.createElement("canvas");
+  c.width = tw; c.height = th;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, tw, th);
+  const containScale = Math.min(tw / img.width, th / img.height);
+  const iw = img.width * containScale, ih = img.height * containScale;
+  ctx.drawImage(img, (tw - iw) / 2, (th - ih) / 2, iw, ih);
+  const compositeUrl = c.toDataURL("image/jpeg", 0.92);
+
+  try {
+    const path = "fal-ai/nano-banana/edit";
+    const job = await apiSubmit(path, {
+      prompt: "Extend and continue the real background scenery seamlessly into the plain white areas on the sides of this image. Prolong the exact same environment: same lighting, same colors, same architecture, same street, same sky, same textures, perfectly continuous with the existing photo. Keep the person and everything already visible completely unchanged. Photorealistic outpainting, no borders, no white areas remaining, no mirroring, no duplication of existing elements.",
+      image_urls: [compositeUrl],
+      num_images: 1,
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("extension échouée");
+      label.innerHTML = `<span style='color:var(--violet)'>🎨 L'IA prolonge le décor… (${(i + 1) * 3} s)</span>`;
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) throw new Error("image introuvable");
+    aiExtendCache[ratio] = url; // mémorisé : recliquer ce format sera gratuit
+    photoDataUrl = url;
+    stylePhotoUrl = null;
+    const op = document.getElementById("outfitPreview"); if (op) op.innerHTML = "";
+    const slot = document.getElementById("photoSlot");
+    slot.style.backgroundImage = `url(${url})`;
+    slot.textContent = ""; slot.classList.add("filled");
+    label.innerHTML = `<span style="color:var(--ok)">✓ Décor prolongé par l'IA au format ${ratio} — vrai décor, sans duplication.</span>`;
+    refresh();
+  } catch (err) {
+    // Repli : ancien fond flouté si l'IA échoue
+    label.innerHTML = "<span class='err'>⚠️ Extension IA indisponible — fond flouté appliqué à la place.</span>";
+    applyPhotoRatio(ratio, prevLabel);
+  }
+}
+
+// Recadre au format choisi SANS jamais couper le sujet : fond flouté agrandi en arrière-plan,
+// image complète posée par-dessus (comme Instagram/Canva "étendre l'arrière-plan").
+function applyPhotoRatio(ratio, label) {
+  const img = originalPhotoImg;
+  if (!img) return;
+  const c = document.createElement("canvas");
+  let tw, th;
+  const MAXD = 1280;
+  if (ratio === "orig") {
+    const scale = Math.min(1, MAXD / Math.max(img.width, img.height));
+    tw = img.width * scale; th = img.height * scale;
+    c.width = tw; c.height = th;
+    c.getContext("2d").drawImage(img, 0, 0, tw, th);
+  } else {
+    const [rw, rh] = ratio.split(":").map(Number);
+    const targetRatio = rw / rh;
+    if (targetRatio >= 1) { tw = MAXD; th = Math.round(MAXD / targetRatio); }
+    else { th = MAXD; tw = Math.round(MAXD * targetRatio); }
+    c.width = tw; c.height = th;
+    const ctx = c.getContext("2d");
+    // 1) fond : image agrandie (cover) + floutée, remplit tout le cadre
+    const coverScale = Math.max(tw / img.width, th / img.height) * 1.15;
+    const cw = img.width * coverScale, ch = img.height * coverScale;
+    ctx.filter = "blur(28px) brightness(0.7)";
+    ctx.drawImage(img, (tw - cw) / 2, (th - ch) / 2, cw, ch);
+    ctx.filter = "none";
+    // 2) sujet : image entière, jamais coupée, centrée par-dessus
+    const containScale = Math.min(tw / img.width, th / img.height);
+    const iw = img.width * containScale, ih = img.height * containScale;
+    ctx.drawImage(img, (tw - iw) / 2, (th - ih) / 2, iw, ih);
+  }
+  photoDataUrl = c.toDataURL("image/jpeg", 0.9);
+  stylePhotoUrl = null;
+  const op = document.getElementById("outfitPreview"); if (op) op.innerHTML = "";
+  const slot = document.getElementById("photoSlot");
+  slot.style.backgroundImage = `url(${photoDataUrl})`;
+  slot.textContent = ""; slot.classList.add("filled");
+  document.getElementById("photoLabel").textContent = label;
+  refresh();
+}
+
+// ——— Choix ———
+function pickModel(el) {
+  document.querySelectorAll("[data-model]").forEach(c => c.classList.remove("on"));
+  el.classList.add("on"); model = el.dataset.model;
+  const mi = document.getElementById("modelInfo");
+  if (mi) mi.style.display = (model === "ref") ? "block" : "none";
+  refresh();
+}
+function pickDur(el) {
+  document.querySelectorAll("[data-dur]").forEach(c => c.classList.remove("on"));
+  el.classList.add("on"); dur = el.dataset.dur; refresh();
+}
+
+// ——— UI ———
+function refresh() {
+  const hasKey = (codeInput.value.trim().length >= 5);
+  const hasPhoto = !!photoDataUrl;
+  const hasPrompt = document.getElementById("prompt").value.trim().length > 5;
+  document.getElementById("dotKey").classList.toggle("on", hasKey);
+  document.getElementById("dot1").classList.toggle("on", hasPhoto);
+  document.getElementById("num1").classList.toggle("on", hasPhoto);
+  document.getElementById("dot2").classList.toggle("on", hasPrompt);
+  document.getElementById("num2").classList.toggle("on", hasPrompt);
+  const cost = model === "eco"
+    ? (dur === "5" ? MODELS.eco.price5 : MODELS.eco.price10)
+    : (model === "ref" ? MODELS.ref.perSec : MODELS.pro.perSec) * parseInt(dur);
+  document.getElementById("estimate").textContent = `Coût estimé : ≈ ${cost.toFixed(2)} $`;
+  const go = document.getElementById("go");
+  go.disabled = !(hasKey && hasPhoto && hasPrompt);
+  go.textContent = go.disabled ? "Complète les étapes pour générer" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
+  if (window.__msReady) msRefresh();
+}
+document.getElementById("prompt").addEventListener("input", refresh);
+
+// ——— Copier un numéro de paiement ———
+function copyNum(num, btn) {
+  const ta = document.createElement("textarea");
+  ta.value = num; document.body.appendChild(ta); ta.select();
+  document.execCommand("copy"); ta.remove();
+  const t = btn.textContent; btn.textContent = "Copié ✓";
+  setTimeout(() => btn.textContent = t, 1500);
+}
+
+// ——— Assistant magique : idée en français → prompt professionnel ———
+document.getElementById("ideaGo").onclick = async () => {
+  const idea = document.getElementById("ideaFr").value.trim();
+  const info = document.getElementById("ideaInfo");
+  if (!idea) { info.textContent = "Décris d'abord ton idée en une ou deux phrases."; return; }
+  const btn = document.getElementById("ideaGo");
+  btn.disabled = true; info.textContent = "✨ L'assistant écrit ton scénario…";
+  try {
+    const path = "fal-ai/any-llm";
+    const job = await apiSubmit(path, ({
+        model: "google/gemini-2.5-flash",
+        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS de 70 à 110 mots, structuré ainsi : (1) le lieu et l'action exacts demandés en premier ; (2) si une autre personne est présente dans la scène (hôtesse, danseurs, invités…), décris son interaction précise avec le sujet (ex : verse une boisson, danse à ses côtés) avec un mouvement physique réaliste et correct ; (3) éclairage cinématographique riche (ex : warm golden light, soft highlights, realistic reflections) adapté au lieu ; (4) UN SEUL mouvement de caméra clair et lent (ex : slow dolly-in, slow tracking shot) — jamais plusieurs plans ou coupes dans un même prompt ; (5) mouvement corporel naturel et discret (gentle breathing, soft eye blinking, slight head movement) — jamais de mouvement ample, rapide, de saut ou de rotation brusque. Si la personne chante : medium close-up framing, face large in the frame, no microphone or hands covering the mouth. N'invente et n'ajoute JAMAIS un objet, accessoire ou prop qui n'est pas déjà visible sur la photo ou explicitement demandé (ex : jamais un deuxième cigare, verre, bijou, chapeau en plus de celui déjà présent). Termine TOUJOURS par cette phrase de garde-fous, mot pour mot : 'high realism, natural skin texture, identity preserved, exact same props and objects as the original photo, no duplicated or added items, no extra fingers, no hand distortion, no body distortion, no floating objects, no unnatural motion, no artifacts.' Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
+        prompt: idea,
+      }));
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 20; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("L'assistant n'a pas répondu. Réessaie.");
+    }
+    const data = await apiPoll(responseUrl);
+    const text = (data.output || data.response?.output || "").trim();
+    if (!text) throw new Error("Réponse vide. Réessaie.");
+    document.getElementById("prompt").value = text;
+    document.getElementById("prompt").dispatchEvent(new Event("input"));
+    info.innerHTML = `<span style="color:var(--ok)">✓ Scénario professionnel écrit ! Tu peux le modifier ci-dessous si tu veux.</span>`;
+
+    // Suggestion auto du mode Visage stable si le scénario implique mouvement/interaction
+    const riskyWords = /walk|dance|dancing|moving|steps|pour|serving|hug|embrace|kiss|hands touching|interact/i;
+    if (riskyWords.test(text)) {
+      const faceRefs = faceRefUrls.filter(Boolean);
+      const hint = faceRefs.length > 0
+        ? `⭐ Cette scène a du mouvement — pense à choisir <b>« Visage stable »</b> dans Qualité/Prix pour garder ton visage identique !`
+        : `⭐ Cette scène a du mouvement — <b>ajoute une photo de référence visage</b> (volet 1) puis choisis <b>« Visage stable »</b> ci-dessous, pour garder ton visage identique !`;
+      info.innerHTML += `<div class="estimate" style="margin-top:8px; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:8px 10px;">${hint}</div>`;
+    }
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { btn.disabled = false; }
+};
+
+// ——— Tenue : changement d'habits sans toucher au visage (Nano Banana) ———
+let stylePhotoUrl = null;
+let outfitSel = "keep";
+const OUTFITS = [
+  ["keep", "Tenue de la photo", ""],
+  ["toghu", "Toghu royal", "a royal Cameroonian Toghu ceremonial outfit, black velvet richly embroidered with red and gold patterns"],
+  ["afro", "Streetwear Afrobeats", "stylish modern afrobeats streetwear, designer jacket, gold chain, trendy look"],
+  ["jazz", "Smoking Jazz", "an elegant black tuxedo with a bow tie, classy jazz stage style"],
+  ["wax", "Pagne wax", "a tailored shirt made of vibrant African wax print fabric with blue and gold patterns"],
+  ["custom", "Personnalisée…", ""],
+  ["photo", "📷 D'après une photo", ""],
+];
+(function initOutfits() {
+  const box = document.getElementById("outfitChips");
+  OUTFITS.forEach(([id, label]) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (id === "keep" ? " on" : "");
+    b.textContent = label;
+    b.onclick = () => {
+      outfitSel = id;
+      box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+      b.classList.add("on");
+      document.getElementById("outfitCustom").classList.toggle("hidden", id !== "custom");
+      document.getElementById("outfitPhotoZone").classList.toggle("hidden", id !== "photo");
+      document.getElementById("outfitGo").style.display = (id === "keep") ? "none" : "block";
+      if (id === "keep") { stylePhotoUrl = null; document.getElementById("outfitPreview").innerHTML = ""; document.getElementById("outfitInfo").textContent = "Le visage, la pose et le décor restent identiques — seuls les habits changent."; }
+      document.getElementById("dotOutfit").classList.toggle("on", id !== "keep");
+    };
+    box.appendChild(b);
+  });
+  document.getElementById("outfitGo").onclick = transformOutfit;
+
+  // — Essayage d'après photo de tenue —
+  const opInput = document.getElementById("outfitPhotoInput");
+  const openOp = () => opInput.click();
+  document.getElementById("outfitPhotoBtn").onclick = openOp;
+  document.getElementById("outfitSlot").onclick = openOp;
+  opInput.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const scale = Math.min(1, 1024 / Math.max(img.width, img.height));
+      c.width = img.width * scale; c.height = img.height * scale;
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      outfitPhotoUrl = c.toDataURL("image/jpeg", 0.9);
+      const slot = document.getElementById("outfitSlot");
+      slot.style.backgroundImage = `url(${outfitPhotoUrl})`;
+      slot.textContent = "";
+      document.getElementById("outfitInfo").textContent = "✓ Photo de tenue chargée — choisis qui habiller puis touche Transformer.";
+    };
+    img.src = URL.createObjectURL(f);
+  };
+})();
+
+let outfitPhotoUrl = null;
+let tryTarget = "me";
+function pickTryTarget(el) {
+  tryTarget = el.dataset.target;
+  el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  el.classList.add("on");
+}
+
+async function transformOutfit() {
+  const info = document.getElementById("outfitInfo");
+  let desc = outfitSel === "custom" ? document.getElementById("outfitCustom").value.trim() : OUTFITS.find(o => o[0] === outfitSel)[2];
+  let images = [photoDataUrl];
+  let tryPrompt = null;
+
+  if (outfitSel === "photo") {
+    if (!outfitPhotoUrl) { info.textContent = "Ajoute d'abord la photo de la tenue."; return; }
+    if (tryTarget === "me") {
+      if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1) — ou choisis un mannequin."; return; }
+      images = [photoDataUrl, outfitPhotoUrl];
+      tryPrompt = "Completely REPLACE all clothing worn by the person in the first image with the outfit shown in the second image. Copy the second image's garments faithfully: exact same fabric, exact same pattern (checks, prints, embroidery), exact same colors, buttons, lapels and cut, applied to the corresponding garments (jacket replaces jacket, trousers replace trousers). No element of the original clothing may remain visible. Keep the person's face, identity, skin tone, hairstyle, pose, body and background completely unchanged. Photorealistic, seamless, high quality.";
+    } else {
+      images = [outfitPhotoUrl];
+      const who = tryTarget === "homme" ? "male" : "female";
+      tryPrompt = `A photorealistic full-body ${who} African fashion model wearing the exact outfit shown in the image (same garments, colors, patterns and style), standing in a professional photo studio with soft lighting, front view, natural pose, high quality.`;
+    }
+  } else {
+    if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
+    if (!desc) { info.textContent = "Décris la tenue souhaitée."; return; }
+  }
+
+  const btn = document.getElementById("outfitGo");
+  btn.disabled = true; info.textContent = "👔 Transformation en cours (10-30 s)…";
+  try {
+    const path = "fal-ai/nano-banana/edit";
+    const job = await apiSubmit(path, ({
+        prompt: tryPrompt || `Change the person's outfit to ${desc}. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
+        image_urls: images,
+        num_images: 1,
+      }));
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La transformation a échoué. Réessaie ou change la description.");
+      info.textContent = `👔 Transformation en cours… (${(i + 1) * 3} s)`;
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) throw new Error("Image transformée introuvable. Réessaie.");
+    const isMannequin = outfitSel === "photo" && tryTarget !== "me";
+    if (!isMannequin) {
+      stylePhotoUrl = url;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Tenue transformée — c'est cette photo qui sera utilisée pour la vidéo.</span>`;
+    } else {
+      info.innerHTML = `<span style="color:var(--ok)">✓ Mannequin généré. Touche l'image pour l'utiliser comme photo de départ, ou télécharge-la simplement.</span>`;
+    }
+    document.getElementById("outfitPreview").innerHTML = `
+      <img src="${url}" id="outfitResultImg" style="width:100%; border-radius:12px; margin-top:12px; cursor:${isMannequin ? "pointer" : "default"};">
+      <button class="btn small" id="outfitRevert" style="margin-top:8px;">↩ ${isMannequin ? "Effacer le résultat" : "Revenir à la photo originale"}</button>`;
+    if (isMannequin) {
+      document.getElementById("outfitResultImg").onclick = () => {
+        photoDataUrl = url;
+        const slot = document.getElementById("photoSlot");
+        slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled");
+        document.getElementById("photoLabel").textContent = "Mannequin (tenue essayée)";
+        info.innerHTML = `<span style="color:var(--ok)">✓ Mannequin utilisé comme photo de départ (volet 1) !</span>`;
+        refresh();
+      };
+    }
+    document.getElementById("outfitRevert").onclick = () => {
+      stylePhotoUrl = null;
+      document.getElementById("outfitPreview").innerHTML = "";
+      info.textContent = "Photo originale rétablie.";
+    };
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { btn.disabled = false; }
+}
+
+// ——— Génération ———
+const statusBox = document.getElementById("status");
+const statusText = document.getElementById("statusText");
+const fill = document.getElementById("fill");
+
+function setStatus(html, pct) {
+  statusBox.classList.add("show");
+  statusText.innerHTML = html;
+  if (pct !== undefined) fill.style.width = pct + "%";
+}
+
+// v33.1 : garde-fous partagés entre la génération simple et le Multi-plans
+const OBJECT_GUARD = " Keep exactly the same objects, props and accessories as in the original photo — do not add, duplicate or multiply any item (e.g. if there is already a cigar, glass, jewelry or hat, keep only that single one, never add a second one or a new one in the hands).";
+const QUALITY_GUARD = " Framing: keep every person fully in frame at all times, heads and shoulders never cropped, no reframing that cuts subjects. Faces: eyes naturally open throughout, natural relaxed expressions. Physics: any liquid, pouring, or object interaction must be physically realistic and subtle (e.g. champagne pours as a thin clear stream with minimal foam). Motion: smooth, slow, natural — no sudden or exaggerated movement. no extra fingers, no hand distortion, no body distortion, no floating objects, no artifacts.";
+
+document.getElementById("go").onclick = async () => {
+  const basePrompt = document.getElementById("prompt").value.trim();
+  const lipOptim = document.getElementById("lipOptim").checked;
+  const objectGuard = OBJECT_GUARD;
+  // v32.2 : garde-fous de qualité UNIVERSELS — injectés dans chaque génération,
+  // que le scénario vienne de l'assistant OU soit écrit/collé à la main par le client.
+  const qualityGuard = QUALITY_GUARD;
+  const faceGuard = buildFaceGuard();
+  const prompt = (lipOptim
+    ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
+    : basePrompt) + objectGuard + qualityGuard + faceGuard;
+  const m = MODELS[model];
+  document.getElementById("go").disabled = true;
+  document.getElementById("resultZone").innerHTML = "";
+
+  // ⭐ Mode Visage stable : exige au moins 1 photo de référence visage
+  const faceRefs = faceRefUrls.filter(Boolean);
+  if (model === "ref" && faceRefs.length === 0) {
+    setStatus("<span class='err'>⭐ Le mode Visage stable a besoin d'au moins 1 photo de référence visage — ajoute-la dans le volet 1 (bouton violet sous ta photo).</span>", 0);
+    document.getElementById("go").disabled = false;
+    return;
+  }
+  setStatus("Envoi de ta photo au studio de rendu…", 8);
+
+  try {
+    let payload;
+    if (model === "ref") {
+      // O1 Reference : la photo principale = @Image1 (start frame),
+      // le visage du client = @Element1 (identité ancrée structurellement).
+      const ratioChip = document.querySelector("#ratioZone .chip.on");
+      const r = ratioChip ? ratioChip.dataset.ratio : "orig";
+      const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
+      const elem = { frontal_image_url: faceRefs[0] };
+      // v33.5 : reference_image_urls toujours requis par fal.ai, même avec 1 seule photo.
+      elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
+      payload = {
+        prompt: "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. " + prompt,
+        image_urls: [stylePhotoUrl || photoDataUrl],
+        elements: [elem],
+        duration: dur,
+        aspect_ratio: aspect,
+        generate_audio: false,
+      };
+    } else {
+      payload = {
+        prompt: prompt,
+        image_url: stylePhotoUrl || photoDataUrl,
+        duration: dur,
+        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
+      };
+    }
+    const job = await apiSubmit(m.path, payload);
+
+    // 2. Attendre le rendu (60 s à 5 min selon le modèle)
+    const statusUrl = job.status_url || `https://queue.fal.run/${m.path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${m.path}/requests/${job.request_id}`;
+    let pct = 12;
+    for (let i = 0; i < 150; i++) {
+      await new Promise(r => setTimeout(r, 4000));
+      const sj = await apiPoll(statusUrl);
+      pct = Math.min(pct + 3, 92);
+      if (sj.status === "IN_QUEUE") setStatus(`En file d'attente (position ${sj.queue_position ?? "…"})…`, pct);
+      else if (sj.status === "IN_PROGRESS") setStatus("Le studio crée ta vidéo… (1 à 5 min)", pct);
+      else if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La création a échoué côté serveur. Ton crédit n'est normalement pas débité. Réessaie.");
+    }
+
+    // 3. Récupérer la vidéo
+    const data = await apiPoll(responseUrl);
+    const videoUrl = data.video?.url || data.response?.video?.url;
+    if (!videoUrl) {
+      const diag = JSON.stringify(data.detail || data.error || data).slice(0, 220);
+      throw new Error("Vidéo introuvable dans la réponse. Détail serveur : " + diag);
+    }
+
+    setStatus("<span class='okc'>✓ Vidéo générée !</span>", 100);
+    lastVideoUrl = videoUrl;
+    lastVideoDur = parseInt(dur);
+    document.getElementById("resultZone").innerHTML = `
+      <div class="card">
+        <h2>🎬 Ta vidéo</h2>
+        <video src="${videoUrl}" controls playsinline></video>
+        <button class="dl btn" id="saveBtn">⏳ Préparation de l'enregistrement…</button>
+        <div class="estimate" id="saveHint"></div>
+      </div>
+      <div class="card" style="margin-top:12px; border-color:var(--violet);">
+        <h2>🔧 Un détail te gêne ?</h2>
+        <p class="sub" style="margin:4px 0 10px;">Décris UNIQUEMENT ce qui ne va pas (ex : « ouvre les yeux de l'homme », « la tête de la femme ne doit pas être coupée », « le champagne doit couler normalement, pas de mousse »). Le reste de la vidéo reste identique — c'est une <b>retouche</b>, pas une nouvelle vidéo.</p>
+        <textarea id="fixPrompt" rows="2" placeholder="Ex : garde les yeux ouverts pendant toute la vidéo"></textarea>
+        <button class="btn" id="fixGo" style="margin-top:8px; width:100%;">🔧 Corriger ce détail (≈ ${(0.168 * lastVideoDur).toFixed(2)} $)</button>
+        <div class="estimate" id="fixInfo" style="margin-top:6px;"></div>
+      </div>`;
+    prepareVideoFile(videoUrl);
+    document.getElementById("saveBtn").onclick = () => saveVideo(videoUrl);
+    renderTrimRow(document.querySelector("#resultZone .card"), videoUrl, Math.max(2, lastVideoDur - 0.1));
+    document.getElementById("fixGo").onclick = () => runVideoFix(videoUrl);
+    // Active la source "Dernière vidéo générée" dans le volet lip-sync
+    const useLast = document.getElementById("lipUseLast");
+    useLast.disabled = false;
+    pickLipSource("last");
+  } catch (err) {
+    setStatus("<span class='err'>✗ " + err.message + "</span>", 0);
+  } finally {
+    document.getElementById("go").disabled = false;
+    refresh();
+  }
+};
+
+// ——— Enregistrer la vidéo (partage natif iOS/Android) ———
+let videoFile = null;
+
+async function prepareVideoFile(url, btnEl) {
+  const btn = btnEl || document.getElementById("saveBtn");
+  try {
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
+    if (btn) btn.textContent = "📲 Enregistrer dans Photos";
+  } catch (e) {
+    videoFile = null;
+    if (btn) btn.textContent = "🔗 Ouvrir la vidéo pour l'enregistrer";
+  }
+}
+
+async function saveVideo(url, hintEl) {
+  const hint = hintEl || document.getElementById("saveHint") || { textContent: "" };
+  // Cas 1 : fichier prêt → menu de partage iOS immédiat
+  if (videoFile && navigator.canShare && navigator.canShare({ files: [videoFile] })) {
+    try {
+      await navigator.share({ files: [videoFile] });
+      hint.textContent = "Dans le menu : touche « Enregistrer la vidéo » → elle va dans Photos.";
+    } catch (e) { /* l'utilisateur a fermé le menu, rien à faire */ }
+    return;
+  }
+  // Cas 2 : fichier prêt mais partage indisponible → téléchargement direct
+  if (videoFile) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(videoFile);
+    a.download = "rudis-video.mp4";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    hint.textContent = "Vidéo téléchargée — retrouve-la dans Fichiers → Téléchargements.";
+    return;
+  }
+  // Cas 3 : pas encore prêt → ouvrir la vidéo dans un onglet (Partager → Enregistrer la vidéo)
+  hint.textContent = "Sur la page qui s'ouvre : bouton Partager (carré + flèche ↑) → « Enregistrer la vidéo ».";
+  window.open(url, "_blank");
+}
+
+// ——— Lip-sync (Kling LipSync : vidéo + audio → lèvres synchronisées) ———
+let lastVideoUrl = null;
+let lastVideoDur = 0;
+let lipVideoSource = null;   // URL fal ou dataURL de la vidéo importée
+let lipVideoDur = 0;         // durée de la vidéo source (s)
+let lipAudioBuffer = null;   // AudioBuffer décodé (MP3/M4A/AAC…)
+let lipWavMeta = null;       // WAV pro lu manuellement { file, fmt, data, duration }
+let lipAudioDataUrl = null;  // extrait final envoyé à Kling (WAV 16 bits)
+let lipExtractDur = 0;   // durée réelle de l'extrait (pour la coupe de fin)
+
+function pickLipSource(which) {
+  const useLast = document.getElementById("lipUseLast");
+  const imp = document.getElementById("lipImportBtn");
+  if (which === "last") {
+    lipVideoSource = lastVideoUrl;
+    lipVideoDur = lastVideoDur;
+    useLast.classList.add("on"); imp.classList.remove("on");
+    document.getElementById("lipVideoName").textContent = `✓ Dernière vidéo générée (${lipVideoDur} s).`;
+    const pv = document.getElementById("lipPreview");
+    pv.src = lastVideoUrl; pv.classList.remove("hidden");
+  }
+  maybePrepareAudio();
+  refreshLip();
+}
+
+function refreshLip() {
+  const ready = !!lipVideoSource && !!lipAudioDataUrl;
+  const go = document.getElementById("lipGo");
+  go.disabled = !ready;
+  go.textContent = ready ? "🎤 Synchroniser les lèvres (≈ 0,03 $)" : "Choisis une vidéo et un audio";
+  document.getElementById("dot3").classList.toggle("on", ready);
+  document.getElementById("num3").classList.toggle("on", ready);
+}
+
+function getAudioDur() {
+  if (lipWavMeta) return lipWavMeta.duration;
+  if (lipAudioBuffer) return lipAudioBuffer.duration;
+  return 0;
+}
+
+// — Lecteur audio studio universel : WAV, RF64, AIFF/AIFC (8/16/24/32 bits, int/float, LE/BE) —
+function readSlice(file, off, len) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(new DataView(r.result));
+    r.onerror = () => rej(new Error("lecture impossible"));
+    r.readAsArrayBuffer(file.slice(off, Math.min(off + len, file.size)));
+  });
+}
+const readFileBuffer = (file) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(r.result);
+  r.onerror = () => rej(new Error("lecture impossible"));
+  r.readAsArrayBuffer(file);
+});
+const readFileDataUrl = (file) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(r.result);
+  r.onerror = () => rej(new Error("lecture impossible"));
+  r.readAsDataURL(file);
+});
+const tag4 = (v, o) => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
+
+// Nombre flottant 80 bits (sample rate AIFF)
+function ext80(v, o) {
+  const exp = v.getUint16(o, false) & 0x7FFF;
+  const hi = v.getUint32(o + 2, false), lo = v.getUint32(o + 6, false);
+  return (hi * 4294967296 + lo) * Math.pow(2, exp - 16383 - 63);
+}
+
+function parseWavCore(v, fileSize) {
+  try {
+    const n = v.byteLength;
+    if (n < 44) return null;
+    const magic = tag4(v, 0);
+    const findTag = (s, from) => {
+      const a = [s.charCodeAt(0), s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3)];
+      for (let i = from; i < n - 8; i++) {
+        if (v.getUint8(i) === a[0] && v.getUint8(i + 1) === a[1] && v.getUint8(i + 2) === a[2] && v.getUint8(i + 3) === a[3]) return i;
+      }
+      return -1;
+    };
+
+    if ((magic === "RIFF" || magic === "RF64") && tag4(v, 8) === "WAVE") {
+      let off = 12, fmt = null, dataOff = -1, dataSz = 0, ds64 = 0, guard = 0;
+      while (off + 8 <= n && guard++ < 512) {
+        const id = tag4(v, off), sz = v.getUint32(off + 4, true);
+        if (id === "ds64" && off + 24 <= n) ds64 = v.getUint32(off + 16, true);
+        if (id === "fmt " && off + 24 <= n) fmt = { format: v.getUint16(off + 8, true), ch: v.getUint16(off + 10, true), rate: v.getUint32(off + 12, true), bits: v.getUint16(off + 22, true) };
+        if (id === "data") { dataOff = off + 8; dataSz = sz; break; }
+        if (sz === 0 || sz > fileSize) break;
+        off += 8 + sz + (sz % 2);
+      }
+      if (!fmt) { const fi = findTag("fmt ", 12); if (fi >= 0 && fi + 24 <= n) fmt = { format: v.getUint16(fi + 8, true), ch: v.getUint16(fi + 10, true), rate: v.getUint32(fi + 12, true), bits: v.getUint16(fi + 22, true) }; }
+      if (dataOff < 0) { const di = findTag("data", 12); if (di >= 0) { dataOff = di + 8; dataSz = v.getUint32(di + 4, true); } }
+      if (!fmt || dataOff < 0 || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      if (dataSz === 0xFFFFFFFF && ds64) dataSz = ds64;
+      if (dataSz === 0 || dataSz === 0xFFFFFFFF || dataOff + dataSz > fileSize) dataSz = fileSize - dataOff;
+      const isFloat = fmt.format === 3 || (fmt.format === 65534 && fmt.bits >= 32) || fmt.bits === 64;
+      const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
+      return { kind: "WAV", fmt, dataOff, dataSize: dataSz, le: true, isFloat, unsigned8: true, duration: dataSz / byteRate };
+    }
+
+    if (magic === "FORM" && (tag4(v, 8) === "AIFF" || tag4(v, 8) === "AIFC")) {
+      let off = 12, fmt = null, dataOff = -1, dataSz = 0, comp = "NONE", guard = 0;
+      while (off + 8 <= n && guard++ < 512) {
+        const id = tag4(v, off), sz = v.getUint32(off + 4, false);
+        if (id === "COMM" && off + 26 <= n) {
+          fmt = { ch: v.getUint16(off + 8, false), bits: v.getUint16(off + 14, false), rate: Math.round(ext80(v, off + 16)) };
+          if (sz >= 22 && off + 30 <= n) comp = tag4(v, off + 26);
+        }
+        if (id === "SSND" && off + 16 <= n) {
+          const o2 = v.getUint32(off + 8, false);
+          dataOff = off + 16 + o2; dataSz = sz - 8 - o2; break;
+        }
+        if (sz === 0 || sz > fileSize) break;
+        off += 8 + sz + (sz % 2);
+      }
+      if (!fmt) { const ci = findTag("COMM", 12); if (ci >= 0 && ci + 26 <= n) { fmt = { ch: v.getUint16(ci + 8, false), bits: v.getUint16(ci + 14, false), rate: Math.round(ext80(v, ci + 16)) }; const cz = v.getUint32(ci + 4, false); if (cz >= 22 && ci + 30 <= n) comp = tag4(v, ci + 26); } }
+      if (dataOff < 0) { const si = findTag("SSND", 12); if (si >= 0 && si + 16 <= n) { const o2 = v.getUint32(si + 8, false); dataOff = si + 16 + o2; dataSz = v.getUint32(si + 4, false) - 8 - o2; } }
+      if (!fmt || dataOff < 0 || !fmt.rate || !fmt.ch || !fmt.bits) return null;
+      if (dataSz <= 0 || dataOff + dataSz > fileSize) dataSz = fileSize - dataOff;
+      const le = comp === "sowt";
+      const isFloat = /fl32/i.test(comp);
+      const compOk = ["NONE", "sowt", "fl32", "FL32"].includes(comp) || comp.trim() === "" || comp === "\u0000\u0000\u0000\u0000";
+      if (!compOk) return null;
+      const byteRate = fmt.rate * fmt.ch * fmt.bits / 8;
+      return { kind: "AIFF", fmt, dataOff, dataSize: dataSz, le, isFloat, unsigned8: false, duration: dataSz / byteRate };
+    }
+
+    return null;
+  } catch (e) { return null; }
+}
+
+async function parseWav(file) {
+  // Essai 1 : lecture d'une tranche de 512 Ko (rapide)
+  try {
+    const v1 = await readSlice(file, 0, Math.min(524288, file.size));
+    const m1 = parseWavCore(v1, file.size);
+    if (m1) return Object.assign(m1, { file });
+  } catch (e) {}
+  // Essai 2 : relecture COMPLÈTE du fichier (fichiers iCloud / fournisseurs capricieux :
+  // la lecture par tranches échoue parfois, la lecture entière force le téléchargement)
+  try {
+    if (file.size <= 64 * 1024 * 1024) {
+      const buf = await readFileBuffer(file);
+      const v = new DataView(buf);
+      const m = parseWavCore(v, buf.byteLength);
+      if (m) return Object.assign(m, { file, _view: v });
+    }
+  } catch (e) {}
+  return null;
+}
+
+// — Extrait [start → start+dur], converti en WAV 16 bits stéréo max, sans charger tout le fichier —
+async function wavExtractDataUrl(meta, startSec, durSec) {
+  const { file, fmt } = meta;
+  const block = fmt.ch * fmt.bits / 8;
+  let startFrame = Math.floor(startSec * fmt.rate);
+  let frames = Math.floor(durSec * fmt.rate);
+  const maxFrames = Math.floor(meta.dataSize / block);
+  startFrame = Math.max(0, Math.min(startFrame, maxFrames));
+  frames = Math.max(0, Math.min(frames, maxFrames - startFrame));
+  const startByte = meta.dataOff + startFrame * block;
+  const src = meta._view
+    ? new DataView(meta._view.buffer, meta._view.byteOffset + startByte, frames * block)
+    : await readSlice(file, startByte, frames * block);
+  const outCh = Math.min(2, fmt.ch);
+  const out = new ArrayBuffer(44 + frames * outCh * 2);
+  const v = new DataView(out);
+  const wStr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  const dlen = frames * outCh * 2;
+  wStr(0, "RIFF"); v.setUint32(4, 36 + dlen, true); wStr(8, "WAVE"); wStr(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, outCh, true);
+  v.setUint32(24, fmt.rate, true); v.setUint32(28, fmt.rate * outCh * 2, true);
+  v.setUint16(32, outCh * 2, true); v.setUint16(34, 16, true); wStr(36, "data"); v.setUint32(40, dlen, true);
+  const le = meta.le;
+  let o = 44;
+  for (let i = 0; i < frames; i++) {
+    for (let c = 0; c < outCh; c++) {
+      const p = (i * fmt.ch + c) * (fmt.bits / 8);
+      let s = 0;
+      if (fmt.bits === 16) s = src.getInt16(p, le) / 0x8000;
+      else if (fmt.bits === 24) {
+        const b0 = src.getUint8(p), b1 = src.getUint8(p + 1), b2 = src.getUint8(p + 2);
+        const b = le ? (b0 | (b1 << 8) | (b2 << 16)) : (b2 | (b1 << 8) | (b0 << 16));
+        s = (b > 0x7FFFFF ? b - 0x1000000 : b) / 0x800000;
+      }
+      else if (fmt.bits === 32) s = meta.isFloat ? src.getFloat32(p, le) : src.getInt32(p, le) / 0x80000000;
+      else if (fmt.bits === 64) s = src.getFloat64(p, le);
+      else if (fmt.bits === 8) s = meta.unsigned8 ? (src.getUint8(p) - 128) / 128 : src.getInt8(p) / 128;
+      s = Math.max(-1, Math.min(1, s));
+      v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); o += 2;
+    }
+  }
+  const blob = new Blob([out], { type: "audio/wav" });
+  return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+}
+
+// Encode un AudioBuffer en WAV 16 bits
+function bufferToWavDataUrl(buffer) {
+  const nCh = Math.min(2, buffer.numberOfChannels);
+  const rate = buffer.sampleRate;
+  const len = buffer.length * nCh * 2;
+  const ab = new ArrayBuffer(44 + len);
+  const v = new DataView(ab);
+  const wStr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  wStr(0, "RIFF"); v.setUint32(4, 36 + len, true); wStr(8, "WAVE"); wStr(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, nCh, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * nCh * 2, true);
+  v.setUint16(32, nCh * 2, true); v.setUint16(34, 16, true); wStr(36, "data"); v.setUint32(40, len, true);
+  let off = 44;
+  const chans = []; for (let c = 0; c < nCh; c++) chans.push(buffer.getChannelData(c));
+  for (let i = 0; i < buffer.length; i++) for (let c = 0; c < nCh; c++) {
+    const s = Math.max(-1, Math.min(1, chans[c][i]));
+    v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true); off += 2;
+  }
+  const blob = new Blob([ab], { type: "audio/wav" });
+  return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+}
+
+// 🔍 Détection du départ (bêta) : RMS par trames de ~46 ms, première montée soutenue
+async function detectVocalStart() {
+  let samples = null, rate = 0;
+  if (lipAudioBuffer) {
+    rate = lipAudioBuffer.sampleRate;
+    const a = lipAudioBuffer.getChannelData(0);
+    const b = lipAudioBuffer.numberOfChannels > 1 ? lipAudioBuffer.getChannelData(1) : null;
+    samples = { length: a.length, get: (i) => b ? (a[i] + b[i]) / 2 : a[i] };
+  } else if (lipWavMeta && lipWavMeta.file.size <= 64 * 1024 * 1024) {
+    const buf = await readFileBuffer(lipWavMeta.file);
+    const v = new DataView(buf);
+    const { fmt, dataOff, dataSize, le, isFloat, unsigned8 } = lipWavMeta;
+    rate = fmt.rate;
+    const block = fmt.ch * fmt.bits / 8;
+    const n = Math.floor(dataSize / block);
+    const bytesPerSample = fmt.bits / 8;
+    const readS = (p) => {
+      if (fmt.bits === 16) return v.getInt16(p, le) / 0x8000;
+      if (fmt.bits === 24) { const b0=v.getUint8(p),b1=v.getUint8(p+1),b2=v.getUint8(p+2); const x= le?(b0|(b1<<8)|(b2<<16)):(b2|(b1<<8)|(b0<<16)); return (x>0x7FFFFF?x-0x1000000:x)/0x800000; }
+      if (fmt.bits === 32) return isFloat ? v.getFloat32(p, le) : v.getInt32(p, le) / 0x80000000;
+      if (fmt.bits === 64) return v.getFloat64(p, le);
+      if (fmt.bits === 8) return unsigned8 ? (v.getUint8(p) - 128) / 128 : v.getInt8(p) / 128;
+      return 0;
+    };
+    samples = { length: n, get: (i) => readS(dataOff + i * block) }; // canal 1
+  } else return null;
+
+  const frame = Math.round(rate * 0.046);
+  const stride = 4; // 1 échantillon sur 4 suffit pour le RMS
+  const nFrames = Math.floor(samples.length / frame);
+  if (nFrames < 20) return null;
+  const rms = new Array(nFrames);
+  for (let fIdx = 0; fIdx < nFrames; fIdx++) {
+    let sum = 0, cnt = 0;
+    const base = fIdx * frame;
+    for (let i = 0; i < frame; i += stride) { const s = samples.get(base + i); sum += s * s; cnt++; }
+    rms[fIdx] = Math.sqrt(sum / cnt);
+  }
+  const peak = Math.max(...rms);
+  if (peak < 0.005) return null;
+  // bruit de fond : médiane des 10 premières trames
+  const head = rms.slice(0, 10).sort((a, b) => a - b);
+  const noise = head[Math.floor(head.length / 2)] || 0.0005;
+  const seuil = Math.max(0.12 * peak, 3 * noise);
+  // première trame au-dessus du seuil, soutenue (4 des 6 trames suivantes)
+  for (let i = 0; i < nFrames - 6; i++) {
+    if (rms[i] >= seuil) {
+      let ok = 0;
+      for (let j = 1; j <= 6; j++) if (rms[i + j] >= seuil * 0.7) ok++;
+      if (ok >= 4) return Math.max(0, (i * frame) / rate - 0.05);
+    }
+  }
+  return null;
+}
+
+// Coupe l'audio (WAV pro OU audio décodé) et prépare l'extrait final
+async function trimAudio(startSec) {
+  const adur = getAudioDur();
+  if (!adur) return;
+  const target = lipVideoDur > 0 ? lipVideoDur : Math.min(adur, 10);
+  const leadEl = document.getElementById("syncLead");
+  const leadMs = leadEl ? (parseFloat(leadEl.value) || 0) : 0;
+  const requested = Math.max(0, (startSec || 0) - leadMs / 1000); // avance : démarre plus tôt
+  const start = Math.max(0, Math.min(requested, Math.max(0, adur - 0.5)));
+  const dur = Math.min(target, adur - start);
+  if (lipWavMeta) {
+    lipAudioDataUrl = await wavExtractDataUrl(lipWavMeta, start, dur);
+  } else {
+    const rate = lipAudioBuffer.sampleRate;
+    const nCh = Math.min(2, lipAudioBuffer.numberOfChannels);
+    const frames = Math.floor(dur * rate);
+    const ctx = new OfflineAudioContext(nCh, frames, rate);
+    const srcN = ctx.createBufferSource();
+    srcN.buffer = lipAudioBuffer;
+    srcN.connect(ctx.destination);
+    srcN.start(0, start, dur);
+    const rendered = await ctx.startRendering();
+    lipAudioDataUrl = await bufferToWavDataUrl(rendered);
+  }
+  lipExtractDur = dur;
+  const leadNote = leadMs ? ` · avance ${leadMs} ms` : "";
+  document.getElementById("trimInfo").innerHTML =
+    `<span style="color:var(--ok)">✓ Extrait prêt : ${fmtTime(start)} → ${fmtTime(start + dur)} (${Math.round(dur)} s${lipVideoDur ? ", calé sur la vidéo" : ""}${leadNote})</span>`;
+  refreshLip();
+}
+
+// Décide quoi faire selon les durées audio/vidéo
+function maybePrepareAudio() {
+  const adur = getAudioDur();
+  if (!adur) return;
+  const trimZone = document.getElementById("trimZone");
+  trimZone.classList.remove("hidden"); // toujours visible : permet de retoucher l'avance de synchro
+  if (!lipVideoDur) {
+    if (adur <= 10.5) { trimAudio(0); }
+    else {
+      document.getElementById("trimInfo").textContent =
+        `Audio ${fmtTime(adur)} — choisis d'abord la vidéo source, la coupe se fera automatiquement à sa durée.`;
+    }
+    return;
+  }
+  if (adur > lipVideoDur + 0.3) {
+    trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
+  } else {
+    trimAudio(0);
+    if (adur < lipVideoDur - 0.5) {
+      document.getElementById("lipAudioName").textContent +=
+        ` ⚠️ Audio plus court que la vidéo (${Math.round(adur)} s vs ${lipVideoDur} s) : les lèvres se figeront à la fin. Idéal : durées égales.`;
+    }
+  }
+}
+
+function setupLipsync() {
+  document.getElementById("lipUseLast").onclick = () => pickLipSource("last");
+
+  const vInput = document.getElementById("lipVideoInput");
+  document.getElementById("lipImportBtn").onclick = () => vInput.click();
+  vInput.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 30 * 1024 * 1024) {
+      document.getElementById("lipVideoName").textContent = "⚠️ Vidéo trop lourde (max 30 Mo). Coupe-la à 10 s max.";
+      return;
+    }
+    document.getElementById("lipVideoName").textContent = "⏳ Lecture de la vidéo…";
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.onloadedmetadata = () => {
+      lipVideoDur = Math.round(probe.duration * 10) / 10;
+      const warn = (lipVideoDur < 2 || lipVideoDur > 10.5) ? " ⚠️ la vidéo doit faire 2 à 10 s !" : "";
+      const pv = document.getElementById("lipPreview");
+      pv.src = probe.src; pv.classList.remove("hidden");
+      const r = new FileReader();
+      r.onload = () => {
+        lipVideoSource = r.result;
+        document.getElementById("lipUseLast").classList.remove("on");
+        document.getElementById("lipImportBtn").classList.add("on");
+        document.getElementById("lipVideoName").textContent = `✓ ${f.name} (${lipVideoDur} s)${warn}`;
+        maybePrepareAudio();
+        refreshLip();
+      };
+      r.readAsDataURL(f);
+    };
+    probe.onerror = () => { document.getElementById("lipVideoName").textContent = "⚠️ Vidéo illisible — utilise un MP4 ou MOV."; };
+    probe.src = URL.createObjectURL(f);
+  };
+
+  const aInput = document.getElementById("lipAudioInput");
+  document.getElementById("lipAudioBtn").onclick = () => aInput.click();
+
+  // (lecteurs de fichiers : définis au niveau global, près de readSlice)
+
+  aInput.onchange = async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const nameEl = document.getElementById("lipAudioName");
+    nameEl.textContent = "⏳ Analyse de l'audio…";
+    lipWavMeta = null; lipAudioBuffer = null; lipAudioDataUrl = null;
+    // Lecteur d'écoute + marqueur "le chant commence ici"
+    try {
+      const pl = document.getElementById("lipAudioPlayer");
+      pl.src = URL.createObjectURL(f);
+      pl.classList.remove("hidden");
+      document.getElementById("markVocal").style.display = "block";
+      document.getElementById("autoVocal").style.display = "block";
+      document.getElementById("markInfo").style.display = "block";
+    } catch (_) {}
+    try {
+      // 1) WAV (y compris studio 24/32 bits, gros fichiers) : lecture manuelle, aucune limite de taille
+      const meta = await parseWav(f);
+      if (meta && meta.duration > 0.5) {
+        lipWavMeta = meta;
+        nameEl.textContent = `✓ ${f.name} — ${fmtTime(meta.duration)} (${meta.kind} ${meta.fmt.bits} bits)`;
+        maybePrepareAudio();
+        return;
+      }
+
+      // 2) MP3 / M4A / AAC… : décodeur du téléphone, surveillé par un chien de garde de 20 s
+      //    (bug iOS connu : decodeAudioData peut ne jamais répondre)
+      nameEl.textContent = "⏳ Décodage (max 20 s)…";
+      const buf = await readFileBuffer(f);
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      const decoded = await Promise.race([
+        ctx.decodeAudioData(buf),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 20000)),
+      ]).finally(() => { try { ctx.close(); } catch (_) {} });
+      lipAudioBuffer = decoded;
+      nameEl.textContent = `✓ ${f.name} — ${fmtTime(decoded.duration)}`;
+      maybePrepareAudio();
+    } catch (err) {
+      // 3) Filet de sécurité FINAL : envoi du fichier brut, MAIS coupé à la durée de la vidéo.
+      //    On mesure la durée avec le lecteur audio du téléphone (décodeur plus tolérant),
+      //    puis on tranche proportionnellement les octets — exact pour WAV, très proche pour MP3.
+      document.getElementById("trimZone").classList.add("hidden");
+      try {
+        const getDurViaElement = (file) => new Promise(res => {
+          const a = document.createElement("audio");
+          const u = URL.createObjectURL(file);
+          let done = false;
+          const finish = (d) => { if (done) return; done = true; URL.revokeObjectURL(u); res(d); };
+          a.preload = "metadata";
+          a.onloadedmetadata = () => finish(isFinite(a.duration) ? a.duration : 0);
+          a.onerror = () => finish(0);
+          setTimeout(() => finish(0), 8000);
+          a.src = u;
+        });
+        const D = await getDurViaElement(f);
+        const target = lipVideoDur || 10;
+        let part = f, note = "";
+        if (D > 0.5) lipExtractDur = Math.min(D, target);
+        if (D > 0.5 && D > target + 0.5) {
+          const bytes = Math.min(f.size, Math.ceil(f.size * (target / D)) + 65536);
+          part = f.slice(0, bytes, f.type || "audio/wav");
+          note = ` — coupé aux ${Math.round(target)} premières s (sur ${fmtTime(D)}), calé sur la vidéo`;
+        } else if (D <= 0.5 && f.size > 4.5 * 1024 * 1024) {
+          part = f.slice(0, 4.5 * 1024 * 1024, f.type || "audio/wav");
+          note = " — début du fichier (~15-25 s)";
+        }
+        if (part.size > 4.8 * 1024 * 1024) part = part.slice(0, 4.5 * 1024 * 1024, part.type);
+        lipAudioDataUrl = await readFileDataUrl(part);
+        nameEl.textContent = `✓ ${f.name}${note}`;
+      } catch (e2) {
+        let diag = "";
+        try {
+          const h = await readSlice(f, 0, 16);
+          const hex = []; for (let i = 0; i < Math.min(16, h.byteLength); i++) hex.push(h.getUint8(i).toString(16).padStart(2, "0"));
+          diag = ` [${Math.round(f.size / 1024)} Ko · ${hex.join(" ")}]`;
+        } catch (_) {}
+        nameEl.textContent = `⚠️ Fichier illisible par iOS${diag}. Copie-le dans « Sur mon iPhone » puis réessaie, et envoie ce message à Claude.`;
+      }
+    } finally {
+      refreshLip();
+    }
+  };
+
+  document.getElementById("trimBtn").onclick = () => trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
+
+  // 🔍 Détection automatique du départ (bêta) : première montée d'énergie soutenue
+  document.getElementById("autoVocal").onclick = async () => {
+    const info = document.getElementById("markInfo");
+    info.style.display = "block";
+    info.textContent = "🔍 Analyse du morceau…";
+    try {
+      const t = await detectVocalStart();
+      if (t === null) { info.innerHTML = "<span class='err'>Détection incertaine sur ce morceau — utilise le marqueur 🎯 (plus précis).</span>"; return; }
+      document.getElementById("trimStart").value = t.toFixed(2);
+      document.getElementById("trimZone").classList.remove("hidden");
+      await trimAudio(t);
+      const pl = document.getElementById("lipAudioPlayer");
+      pl.currentTime = t;
+      info.innerHTML = `<span style="color:var(--ok)">🔍 Départ détecté à ${fmtTime(t)} (bêta) — le lecteur est calé dessus : écoute pour vérifier, et ajuste avec 🎯 si besoin.</span>`;
+    } catch (e) {
+      info.innerHTML = "<span class='err'>Analyse impossible sur ce fichier — utilise le marqueur 🎯.</span>";
+    }
+  };
+
+  // 🎯 Marqueur : cale l'extrait sur l'instant exact où le chant démarre
+  document.getElementById("markVocal").onclick = () => {
+    const pl = document.getElementById("lipAudioPlayer");
+    const t = pl.currentTime || 0;
+    pl.pause();
+    document.getElementById("trimStart").value = t.toFixed(2);
+    document.getElementById("trimZone").classList.remove("hidden");
+    trimAudio(t);
+    document.getElementById("markInfo").innerHTML =
+      `<span style="color:var(--ok)">🎯 Marque posée à ${fmtTime(t)} — l'extrait démarre pile sur le chant. Ré-écoute et re-marque si besoin.</span>`;
+  };
+  document.getElementById("lipGo").onclick = runLipsync;
+}
+
+function setLipStatus(html, pct) {
+  document.getElementById("lipStatus").classList.add("show");
+  document.getElementById("lipStatusText").innerHTML = html;
+  if (pct !== undefined) document.getElementById("lipFill").style.width = pct + "%";
+}
+
+async function runLipsync() {
+  const path = "fal-ai/kling-video/lipsync/audio-to-video";
+  document.getElementById("lipGo").disabled = true;
+  setLipStatus("Envoi de la vidéo et de l'audio…", 5);
+  try {
+    let job = null;
+    for (let a = 1; a <= 3; a++) {
+      try {
+        job = await apiSubmit(path, { video_url: lipVideoSource, audio_url: lipAudioDataUrl });
+        break;
+      } catch (netErr) {
+        const reseau = /Load failed|Failed to fetch|NetworkError/i.test(netErr.message);
+        if (a === 3 || !reseau) throw (reseau ? new Error("Connexion interrompue pendant l'envoi (fichiers lourds sur réseau mobile). Passe en Wi-Fi si possible, puis réessaie.") : netErr);
+        setLipStatus(`Envoi interrompu — nouvelle tentative ${a}/2…`, 5);
+        await new Promise(r => setTimeout(r, 2500));
+      }
+    }
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    let pct = 8;
+    const t0 = Date.now();
+    const elapsed = () => { const s = Math.floor((Date.now() - t0) / 1000); return `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")} s`; };
+    for (let i = 0; i < 200; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const sj = await apiPoll(statusUrl);
+      pct = Math.min(pct + 1, 95);
+      if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"}) — ${elapsed()} écoulées. Normal jusqu'à 12 min, laisse l'app ouverte.`, pct);
+      else if (sj.status === "IN_PROGRESS") setLipStatus(`Le studio synchronise les lèvres — ${elapsed()} écoulées (normal : 5 à 12 min). Laisse l'app ouverte, écran allumé.`, pct);
+      else if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le lip-sync a échoué côté serveur. Vérifie que la vidéo fait 2 à 10 s, puis réessaie.");
+    }
+    const data = await apiPoll(responseUrl);
+    const outUrl = data.video?.url || data.response?.video?.url;
+    if (!outUrl) throw new Error("Vidéo introuvable dans la réponse. Réessaie.");
+    setLipStatus("<span class='okc'>✓ Lip-sync terminé !</span>", 100);
+    lastVideoUrl = outUrl;
+    videoFile = null;
+    prepareVideoFile(outUrl);
+    document.getElementById("lipResult").innerHTML = `
+      <video src="${outUrl}" controls playsinline style="margin-top:14px;"></video>
+      <button class="dl btn" id="lipSaveBtn">📲 Enregistrer dans Photos</button>
+      <div class="estimate" id="saveHint"></div>`;
+    document.getElementById("lipSaveBtn").onclick = () => saveVideo(outUrl);
+    renderTrimRow(document.getElementById("lipResult"), outUrl, lipExtractDur > 1 ? lipExtractDur : Math.max(2, lipVideoDur - 0.15));
+  } catch (err) {
+    setLipStatus("<span class='err'>✗ " + err.message + "</span>", 0);
+  } finally {
+    document.getElementById("lipGo").disabled = false;
+    refreshLip();
+  }
+}
+
+// ——— Coupe de fin de vidéo (fal workflow-utilities/trim-video, < 0,01 $) ———
+// v32.3 : correction ciblée d'UN SEUL défaut sur une vidéo déjà générée,
+// via fal-ai/kling-video/o1/standard/video-to-video/edit — au lieu de tout
+// regénérer (et retomber sur d'autres défauts aléatoires), le moteur ne
+// touche que ce que le client décrit, en gardant le reste identique.
+let fixDur = 0;
+async function runVideoFix(videoUrl) {
+  const btn = document.getElementById("fixGo");
+  const info = document.getElementById("fixInfo");
+  const userFix = document.getElementById("fixPrompt").value.trim();
+  if (!userFix) { info.innerHTML = "<span class='err'>Décris d'abord ce qui doit changer.</span>"; return; }
+  btn.disabled = true;
+  info.innerHTML = "Envoi de ta vidéo pour retouche ciblée…";
+  try {
+    const path = "fal-ai/kling-video/o1/standard/video-to-video/edit";
+    const editPrompt = "Keep everything in @Video1 exactly the same — same person, same face, same outfit, same background, same camera movement, same duration. The ONLY change to make: " + userFix + ". Do not alter anything else in the scene.";
+    const job = await apiSubmit(path, { prompt: editPrompt, video_url: videoUrl });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La retouche a échoué. Réessaie avec une description plus simple.");
+      info.innerHTML = `🔧 Retouche en cours… (${(i + 1) * 3} s)`;
+    }
+    const data = await apiPoll(responseUrl);
+    const fixedUrl = data.video?.url || data.response?.video?.url;
+    if (!fixedUrl) {
+      const diag = JSON.stringify(data.detail || data.error || data).slice(0, 220);
+      throw new Error("Vidéo retouchée introuvable. Détail serveur : " + diag);
+    }
+    lastVideoUrl = fixedUrl;
+    document.querySelector("#resultZone video").src = fixedUrl;
+    prepareVideoFile(fixedUrl);
+    document.getElementById("saveBtn").onclick = () => saveVideo(fixedUrl);
+    info.innerHTML = `<span style="color:var(--ok)">✓ Corrigé ! Regarde la vidéo ci-dessus — recommence si besoin.</span>`;
+    document.getElementById("fixPrompt").value = "";
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderTrimRow(container, videoUrl, defaultEnd) {
+  const row = document.createElement("div");
+  row.innerHTML = `
+    <div class="label">✂️ Couper la fin de la vidéo (seconde de fin)</div>
+    <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+      <input type="text" inputmode="decimal" value="${defaultEnd.toFixed(2)}" style="width:100px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:9px 10px; font-size:14px;">
+      <button class="btn">Couper</button>
+    </div>
+    <div class="estimate"></div>
+    <div></div>`;
+  container.appendChild(row);
+  const [inp, btn, info, out] = [row.querySelector("input"), row.querySelector("button"), row.children[2], row.children[3]];
+  btn.onclick = async () => {
+    const end = parseFloat(inp.value.replace(",", "."));
+    if (!end || end < 1) { info.textContent = "Indique la seconde de fin (ex : 9.85)."; return; }
+    btn.disabled = true; info.textContent = "✂️ Coupe en cours (quelques secondes)…";
+    try {
+      const path = "fal-ai/workflow-utilities/trim-video";
+      const job = await apiSubmit(path, { video_url: videoUrl, start_time: 0, end_time: end });
+      const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+      const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+      for (let i = 0; i < 60; i++) {
+        await new Promise(r => setTimeout(r, 3000));
+        const sj = await apiPoll(statusUrl);
+        if (sj.status === "COMPLETED") break;
+        if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La coupe a échoué côté serveur. Réessaie.");
+        info.textContent = `✂️ Coupe en cours… (${(i + 1) * 3} s)`;
+      }
+      const data = await apiPoll(responseUrl);
+      const newUrl = data.video?.url || data.response?.video?.url || data.video_url;
+      if (!newUrl) throw new Error("Vidéo coupée introuvable dans la réponse.");
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo coupée à ${end.toFixed(2)} s</span>`;
+      videoFile = null; prepareVideoFile(newUrl);
+      out.innerHTML = `<video src="${newUrl}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px; background:#000;"></video>
+        <button class="dl btn">📲 Enregistrer dans Photos</button>`;
+      out.querySelector("button").onclick = () => saveVideo(newUrl);
+    } catch (err) {
+      info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+    } finally { btn.disabled = false; }
+  };
+}
+
+setupLipsync();
+initFaceRefSlots();
+refresh();
+
+// ——— PWA : service worker ———
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+
+// ——— v33.1 : MULTI-PLANS 3.0 (Kling 3.0, multi_prompt) ———
+// 2 à 6 plans, 15 s max au total, identité @Element1 (photos de référence visage).
+// Tarif : 2 vidéos débitées du code (appliqué par le serveur, affiché en toutes lettres).
+// v33.2 : budget réel de caractères par plan (Kling O3 limite chaque prompt à 512 car.
+// — le préfixe technique + les garde-fous courts sont fixes, ce qui reste = marge du client).
+const MS_SHORT_GUARD_LEN = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion. Exact same face and identity, do not alter.".length;
+const MS_PREFIX0_LEN = "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. ".length;
+const MS_PREFIXN_LEN = "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ".length;
+function msBudget(i) { return 512 - (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN) - MS_SHORT_GUARD_LEN - 15; } // -15 : marge de sécurité
+
+let msPlans = [{ prompt: "", d: 5 }, { prompt: "", d: 5 }];
+function msTotal() { return msPlans.reduce((s, p) => s + p.d, 0); }
+
+function msRender() {
+  const zone = document.getElementById("msPlans");
+  zone.innerHTML = "";
+  msPlans.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.style.cssText = "margin-top:10px; padding:10px 12px; background:var(--up); border:1px solid var(--line); border-radius:10px;";
+    const delBtn = msPlans.length > 2 ? `<button class="chip" data-del="${i}">✕ Retirer</button>` : "";
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <b style="font-size:13px; color:var(--gold);">Plan ${i + 1}</b>${delBtn}
+      </div>
+      <textarea data-idx="${i}" rows="2" placeholder="En français ou en anglais, ex : je marche vers la caméra sur la plage au coucher du soleil" style="width:100%; margin-top:8px; background:var(--panel); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:8px 10px; font-size:14px; line-height:1.5; resize:vertical;"></textarea>
+      <div class="estimate" data-charcount="${i}" style="margin-top:4px; text-align:right;"></div>
+      <div class="chips" style="margin-top:4px;">
+        ${[3, 4, 5].map(s => `<button class="chip ${p.d === s ? "on" : ""}" data-dur-idx="${i}" data-sec="${s}">${s} s</button>`).join("")}
+      </div>`;
+    div.querySelector("textarea").value = p.prompt;
+    zone.appendChild(div);
+  });
+  zone.querySelectorAll("textarea").forEach(t => t.addEventListener("input", e => {
+    msPlans[+e.target.dataset.idx].prompt = e.target.value; msRefresh();
+  }));
+  zone.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    msPlans.splice(+b.dataset.del, 1); msRender();
+  });
+  zone.querySelectorAll("[data-dur-idx]").forEach(b => b.onclick = () => {
+    msPlans[+b.dataset.durIdx].d = +b.dataset.sec; msRender();
+  });
+  msRefresh();
+}
+
+function msRefresh() {
+  const total = msTotal();
+  const hasKey = getCode().length >= 5;
+  const hasPhoto = !!photoDataUrl;
+  const hasFace = faceRefUrls.filter(Boolean).length > 0;
+  const filled = msPlans.every(p => p.prompt.trim().length > 5);
+  const okDur = total <= 15;
+  // v33.6 : le client écrit en français, l'app traduit et raccourcit toute seule.
+  // Plus aucun blocage sur la longueur — juste un repère doux et bienveillant.
+  msPlans.forEach((p, i) => {
+    const len = p.prompt.trim().length;
+    const el = document.querySelector(`[data-charcount="${i}"]`);
+    if (el) el.innerHTML = len > 220
+      ? `<span style="color:var(--gold)">✓ Idée bien détaillée — elle sera résumée pour ce plan.</span>`
+      : (len > 0 ? `<span style="color:var(--muted)">✓ Français ou anglais — l'app met en forme.</span>` : "");
+  });
+  document.getElementById("msInfo").innerHTML =
+    `Total : <b>${total} s</b> sur 15 s max · ${msPlans.length} plans` +
+    (okDur ? "" : ` — <span class="err">trop long, réduis les durées !</span>`);
+  const go = document.getElementById("msGo");
+  go.disabled = !(hasKey && hasPhoto && hasFace && filled && okDur && msPlans.length >= 2);
+  go.textContent = go.disabled
+    ? "Complète les plans pour générer"
+    : "🎬 Générer le multi-plans (− 2 vidéos de ton code)";
+  document.getElementById("msCost").innerHTML = go.disabled
+    ? (hasFace ? "" : `⭐ Ajoute au moins <b>1 photo de référence visage</b> (volet 1, bouton violet) — c'est elle qui garde ton visage identique d'un plan à l'autre.`)
+    : `Ce mini-clip débite <b>2 vidéos</b> de ton code (au lieu de 1) — normal : il vaut jusqu'à 15 s de cinéma en un seul rendu. Coût studio ≈ ${(0.112 * total).toFixed(2)} $.`;
+}
+
+function msSetStatus(html, pct) {
+  const s = document.getElementById("msStatus");
+  s.classList.add("show");
+  document.getElementById("msStatusText").innerHTML = html;
+  if (pct !== undefined) document.getElementById("msFill").style.width = pct + "%";
+}
+
+document.getElementById("msAdd").onclick = () => {
+  if (msPlans.length >= 6) return;
+  msPlans.push({ prompt: "", d: 3 });
+  msRender();
+};
+
+// v33.6 : traduit la description française d'UN plan en une phrase d'action anglaise
+// courte et propre, pensée pour Kling. Réutilise exactement le même moteur (Gemini
+// via any-llm) que l'assistant de scénario du mode normal. En cas de pépin réseau,
+// on renvoie le texte d'origine : le client n'est jamais bloqué.
+async function msTranslateOne(frText, maxChars) {
+  const src = frText.trim();
+  if (!src) return "";
+  try {
+    const path = "fal-ai/any-llm";
+    const job = await apiSubmit(path, {
+      model: "google/gemini-2.5-flash",
+      system_prompt: "Tu reçois la description d'UN plan de clip vidéo, écrite par l'utilisateur en français OU en anglais. Rends UNE phrase d'action EN ANGLAIS, claire et cinématographique, de " + Math.max(12, Math.floor(maxChars / 9)) + " mots MAXIMUM : si le texte est en français, traduis-le ; s'il est déjà en anglais, garde-le et nettoie-le simplement. Garde fidèlement le lieu, l'action et les détails demandés. Décris un seul mouvement de caméra lent si utile. N'ajoute aucun objet ou accessoire non mentionné. Réponds UNIQUEMENT avec la phrase anglaise, sans guillemets, sans point final superflu, sans commentaire.",
+      prompt: src,
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 20; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") return src;
+    }
+    const data = await apiPoll(responseUrl);
+    const out = (data.output || data.response?.output || "").trim();
+    return out || src;
+  } catch (e) {
+    return src; // filet : on garde le français plutôt que d'échouer
+  }
+}
+
+document.getElementById("msGo").onclick = async () => {
+  const goBtn = document.getElementById("msGo");
+  goBtn.disabled = true;
+  document.getElementById("msResultZone").innerHTML = "";
+  try {
+    const faceRefs = faceRefUrls.filter(Boolean);
+    const elem = { frontal_image_url: faceRefs[0] };
+    // v33.5 : fal.ai exige reference_image_urls (ou video_url) en plus de frontal_image_url —
+    // un tableau vide/absent fait échouer TOUTE génération avec 1 seule photo de référence.
+    elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
+    const ratioChip = document.querySelector("#ratioZone .chip.on");
+    const r = ratioChip ? ratioChip.dataset.ratio : "orig";
+    const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
+    const faceGuard = buildFaceGuard();
+    // v33.2 : garde-fous courts dédiés au multi-plans (mêmes constantes que le compteur affiché).
+    const shortSuffix = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion." + (faceGuard ? " Exact same face and identity, do not alter." : "");
+    // v33.6 : coupe proprement à la fin d'un mot (jamais au milieu), avec « … » si tronqué.
+    const clip = (txt, max) => {
+      if (txt.length <= max) return txt;
+      let cut = txt.slice(0, max - 1);
+      const sp = cut.lastIndexOf(" ");
+      if (sp > max * 0.5) cut = cut.slice(0, sp); // garde une coupe nette sur un mot entier
+      return cut.trim() + "…";
+    };
+
+    // v33.6 : on traduit chaque plan français → anglais AVANT de bâtir les prompts Kling.
+    msSetStatus(`Traduction de tes ${msPlans.length} plans…`, 4);
+    const enPlans = [];
+    for (let i = 0; i < msPlans.length; i++) {
+      const en = await msTranslateOne(msPlans[i].prompt, msBudget(i));
+      enPlans.push(en);
+    }
+
+    const mp = msPlans.map((p, i) => {
+      const prefix = i === 0
+        ? "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. "
+        : "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ";
+      const full = prefix + clip(enPlans[i].trim(), msBudget(i)) + shortSuffix;
+      // Filet de sécurité absolu : quelle que soit la longueur réelle de faceGuard
+      // (variable selon la description IA du visage), le prompt final ne dépasse
+      // JAMAIS la limite serveur de 512 caractères.
+      return { prompt: full.length > 512 ? clip(full, 512) : full, duration: String(p.d) };
+    });
+    const payload = {
+      multi_prompt: mp,
+      image_urls: [stylePhotoUrl || photoDataUrl],
+      elements: [elem],
+      aspect_ratio: aspect,
+      shot_type: "customize",
+      generate_audio: false,
+    };
+    msSetStatus("Envoi de ton storyboard au studio de rendu…", 8);
+    const job = await apiSubmit(MODELS.ref.path, payload);
+    const statusUrl = job.status_url || `https://queue.fal.run/${MODELS.ref.path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${MODELS.ref.path}/requests/${job.request_id}`;
+    let pct = 10;
+    for (let i = 0; i < 200; i++) {
+      await new Promise(rs => setTimeout(rs, 4000));
+      const sj = await apiPoll(statusUrl);
+      pct = Math.min(pct + 2, 92);
+      if (sj.status === "IN_QUEUE") msSetStatus(`En file d'attente (position ${sj.queue_position ?? "…"})…`, pct);
+      else if (sj.status === "IN_PROGRESS") msSetStatus(`Kling 3.0 tourne tes ${msPlans.length} plans… (2 à 8 min)`, pct);
+      else if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR")
+        throw new Error("La création a échoué côté serveur. Réessaie — si ça se reproduit, envoie ce message au studio sur WhatsApp.");
+    }
+    const data = await apiPoll(responseUrl);
+    const videoUrl = data.video?.url || data.response?.video?.url;
+    if (!videoUrl) {
+      const diag = JSON.stringify(data.detail || data.error || data).slice(0, 220);
+      throw new Error("Vidéo introuvable dans la réponse. Détail serveur : " + diag);
+    }
+    msSetStatus(`<span class="okc">✓ Mini-clip de ${msTotal()} s généré !</span>`, 100);
+    lastVideoUrl = videoUrl;
+    lastVideoDur = msTotal();
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.marginTop = "12px";
+    card.innerHTML = `
+      <h2>🎬 Ton mini-clip multi-plans</h2>
+      <video src="${videoUrl}" controls playsinline></video>
+      <button class="dl btn" id="msSaveBtn">⏳ Préparation de l'enregistrement…</button>
+      <div class="estimate" id="msSaveHint"></div>`;
+    document.getElementById("msResultZone").appendChild(card);
+    prepareVideoFile(videoUrl, document.getElementById("msSaveBtn"));
+    document.getElementById("msSaveBtn").onclick = () => saveVideo(videoUrl, document.getElementById("msSaveHint"));
+    renderTrimRow(card, videoUrl, Math.max(2, lastVideoDur - 0.1));
+    const useLast = document.getElementById("lipUseLast");
+    if (useLast) useLast.disabled = false;
+  } catch (err) {
+    msSetStatus(`<span class="err">✗ ${err.message}</span>`, 0);
+  } finally {
+    msRefresh();
+    refresh();
+  }
+};
+
+window.__msReady = true;
+msRender();
+
+</script>
+</body>
+</html>
