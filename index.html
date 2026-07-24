@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.3 — prompt long géré · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.4 — galerie vidéos · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -28,8 +28,14 @@
   /* v33.8 : sur ordinateur (grand écran), l'app occupe une largeur bien plus grande.
      En dessous de 900px (téléphones/tablettes), l'affichage reste identique à avant. */
   @media (min-width:900px){
-    .wrap { max-width:1180px; padding-left:32px; padding-right:32px; }
+    .wrap { max-width:1200px; padding-left:32px; padding-right:32px; }
   }
+  /* v34.4 : galerie de vidéos d'exemple (vitrine). 1 colonne sur téléphone,
+     2 sur tablette, 3 sur ordinateur — la largeur de l'écran est enfin utilisée. */
+  .video-gallery { display:grid; grid-template-columns:1fr; gap:12px; margin-top:4px; }
+  @media (min-width:560px){ .video-gallery { grid-template-columns:1fr 1fr; } }
+  @media (min-width:900px){ .video-gallery { grid-template-columns:repeat(3,1fr); } }
+  .video-gallery video { width:100%; margin-top:0; border-radius:12px; background:#000; }
   .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
   h1 { font-size:clamp(26px,7vw,36px); font-weight:700; line-height:1.1; }
   h1 span { color:var(--gold); }
@@ -95,6 +101,13 @@
     <a href="guide.html" style="display:inline-block; margin-top:12px; padding:8px 16px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); text-decoration:none; font-size:13px; font-weight:600;">📖 Guide en BD — pour petits et grands</a>
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
   </header>
+
+  <!-- v34.4 — GALERIE VIDÉOS D'EXEMPLE (vitrine qualité) -->
+  <section class="card" style="border-color:var(--gold);">
+    <h2><span class="num" style="background:var(--gold); color:#1A1204;">🎬</span> Nos clips en exemple</h2>
+    <p class="sub" style="margin:0 0 12px;">Regarde la qualité des vidéos créées avec StarClip. Touche une vidéo pour la lancer (avec le son 🔊).</p>
+    <div class="video-gallery" id="videoGallery"></div>
+  </section>
 
   <!-- RÉGLAGES / CLÉ -->
   <section class="card">
@@ -382,7 +395,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.3 — prompt long accepté (coupe propre à 2500)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.4 — galerie vidéos d'exemple + pleine largeur sur ordinateur</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -2202,6 +2215,30 @@ document.getElementById("animGo").onclick = async () => {
     btn.disabled = false;
   }
 };
+
+// ——— v34.4 : GALERIE VIDÉOS D'EXEMPLE ———
+// Les vidéos sont dans le même dossier que l'app (déposées à la racine du dépôt),
+// donc on les charge en chemin RELATIF : même origine que la page, aucun souci de domaine.
+// Repli automatique .mp4 → .MP4 au cas où un fichier aurait été nommé en majuscules.
+(function initVideoGallery(){
+  var names = ["exemple1","exemple2","exemple3","exemple4","exemple5","exemple6","exemple7","exemple8","exemple9"];
+  var box = document.getElementById("videoGallery");
+  if (!box) return;
+  names.forEach(function(n){
+    var v = document.createElement("video");
+    v.src = n + ".mp4";
+    v.controls = true;
+    v.playsInline = true;
+    v.preload = "metadata";
+    v.setAttribute("playsinline", "");
+    v.setAttribute("controlslist", "nodownload");
+    var triedUpper = false;
+    v.addEventListener("error", function(){
+      if (!triedUpper) { triedUpper = true; v.src = n + ".MP4"; v.load(); }
+    });
+    box.appendChild(v);
+  });
+})();
 
 </script>
 </body>
