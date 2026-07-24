@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080912">
+  <meta name="description" content="StarClip transforme vos photos en clips vidéo captivants.">
+  <title>StarClip — Vos photos prennent vie</title>
+  <style>
+    :root {
+      --bg: #070812;
+      --surface: #111321;
+      --surface-2: #171a2b;
+      --text: #f8f7ff;
+      --muted: #a7a9b8;
+      --line: rgba(255,255,255,.11);
+      --violet: #8b5cf6;
+      --violet-2: #b16cff;
+      --coral: #ff6a5f;
+      --blue: #4ba4ff;
+      --gold: #ffc45e;
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 78% 8%, rgba(126,79,255,.17), transparent 28rem),
+        radial-gradient(circle at 10% 45%, rgba(255,92,123,.08), transparent 25rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    section { scroll-margin-top: 90px; }
+
+    .container {
+      width: min(var(--max), calc(100% - 40px));
+      margin-inline: auto;
+    }
+
+    .header {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      background: rgba(7,8,18,.76);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      min-height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 850; font-size: 20px; }
+    .brand-mark {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--violet), var(--violet-2) 50%, var(--coral));
+      box-shadow: 0 10px 28px rgba(132,76,246,.35);
+    }
+    .brand-mark::before {
+      content: "✦";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .links { display: flex; gap: 30px; color: #c0c1cd; font-size: 14px; }
+    .links a:hover { color: #fff; }
+
+    .button {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 21px;
+      border: 1px solid transparent;
+      border-radius: 13px;
+      font-weight: 760;
+      font-size: 14px;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary {
+      background: linear-gradient(105deg, #7548ec, #a55cf4);
+      box-shadow: 0 14px 34px rgba(120,73,235,.28);
+    }
+    .button-primary:hover { box-shadow: 0 18px 42px rgba(120,73,235,.42); }
+    .button-secondary { border-color: var(--line); background: rgba(255,255,255,.05); }
+    .button-secondary:hover { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.09); }
+    .button-small { min-height: 43px; border-radius: 999px; padding-inline: 17px; font-size: 13px; }
+
+    .hero {
+      min-height: 720px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 70px;
+      padding-block: 95px 85px;
+    }
+
+    .eyebrow {
+      margin: 0 0 22px;
+      color: #bda6ff;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 650px;
+      margin-bottom: 27px;
+      font-size: clamp(50px, 6vw, 82px);
+      line-height: .98;
+      letter-spacing: -.06em;
+    }
+    .gradient-text {
+      color: transparent;
+      background: linear-gradient(95deg, #b69aff, #d97cc8 53%, #ff786b);
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+    .lead { max-width: 590px; color: var(--muted); font-size: 18px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+    .proof { margin: 20px 0 0; color: #818494; font-size: 12px; }
+    .proof b { color: #9f7cff; }
+
+    .app-card {
+      position: relative;
+      min-height: 470px;
+      display: grid;
+      place-items: center;
+    }
+    .app-card::before, .app-card::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(167,128,255,.17);
+      border-radius: 50%;
+    }
+    .app-card::before { width: 500px; height: 500px; }
+    .app-card::after { width: 365px; height: 365px; }
+
+    .mockup {
+      position: relative;
+      z-index: 2;
+      width: min(520px, 100%);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 24px;
+      background: rgba(16,18,32,.92);
+      box-shadow: 0 35px 90px rgba(0,0,0,.45);
+      transform: rotate(1.5deg);
+    }
+    .mockbar {
+      height: 55px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 19px;
+      border-bottom: 1px solid var(--line);
+      color: #d8d8e3;
+      font-weight: 780;
+      font-size: 13px;
+    }
+    .dots { color: #676b7e; letter-spacing: 4px; }
+    .stage {
+      min-height: 330px;
+      display: grid;
+      grid-template-columns: 60px 1fr;
+    }
+    .tools {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 13px;
+      padding-top: 22px;
+      border-right: 1px solid var(--line);
+    }
+    .tool { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; color: #8e91a2; background: rgba(255,255,255,.04); }
+    .tool.active { color: #fff; background: linear-gradient(135deg, var(--violet), #a464f3); }
+    .canvas { padding: 23px; }
+    .canvas-label { color: #8d90a1; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
+    .scene {
+      position: relative;
+      min-height: 205px;
+      overflow: hidden;
+      margin-top: 12px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 70% 30%, rgba(255,196,94,.8) 0 4%, transparent 5%),
+        linear-gradient(145deg, #3b246f, #171b42 48%, #1d677b);
+    }
+    .scene::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -45px;
+      width: 145px;
+      height: 220px;
+      border-radius: 70px 70px 30px 30px;
+      background: linear-gradient(#23172f 0 22%, #9c62df 23% 100%);
+      transform: translateX(-50%);
+      box-shadow: 0 0 60px rgba(202,133,255,.35);
+    }
+    .play {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      filter: drop-shadow(0 4px 8px #000);
+    }
+    .timeline { height: 6px; margin-top: 20px; overflow: hidden; border-radius: 6px; background: #282b3d; }
+    .timeline span { display: block; width: 62%; height: 100%; background: linear-gradient(90deg, var(--violet), var(--coral)); }
+
+    .section { padding-block: 100px; }
+    .section-head { max-width: 690px; margin-bottom: 42px; }
+    .section-head h2 { margin-bottom: 15px; font-size: clamp(36px, 4.5vw, 58px); line-height: 1.08; letter-spacing: -.045em; }
+    .section-head p { color: var(--muted); font-size: 17px; }
+
+    .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .feature {
+      min-height: 285px;
+      padding: 25px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+    }
+    .feature-number { color: #777a8b; font-size: 12px; font-weight: 800; }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      margin: 44px 0 20px;
+      border-radius: 14px;
+      background: rgba(139,92,246,.14);
+      color: #b99aff;
+      font-size: 20px;
+    }
+    .feature:nth-child(2) .feature-icon { color: #ff8e85; background: rgba(255,106,95,.13); }
+    .feature:nth-child(3) .feature-icon { color: #80bdff; background: rgba(75,164,255,.13); }
+    .feature:nth-child(4) .feature-icon { color: #ffd281; background: rgba(255,196,94,.13); }
+    .feature h3 { margin-bottom: 10px; font-size: 19px; }
+    .feature p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .gallery { display: grid; grid-template-columns: 1.15fr .85fr .85fr; gap: 16px; }
+    .example {
+      position: relative;
+      min-height: 360px;
+      overflow: hidden;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+    }
+    .example::before, .example::after { content: ""; position: absolute; border-radius: 50%; filter: blur(2px); }
+    .example::before { width: 190px; height: 190px; top: 32px; left: 50%; transform: translateX(-50%); background: linear-gradient(145deg, rgba(255,255,255,.32), rgba(255,255,255,.02)); }
+    .example::after { width: 130px; height: 205px; top: 83px; left: 50%; transform: translateX(-50%); border-radius: 60px 60px 25px 25px; background: rgba(13,14,27,.75); }
+    .example-purple { background: linear-gradient(145deg, #3b226e, #171426 65%); }
+    .example-coral { background: linear-gradient(145deg, #722f4b, #21131c 65%); }
+    .example-blue { background: linear-gradient(145deg, #184b6b, #111923 65%); }
+    .example-content { position: relative; z-index: 2; }
+    .tag { color: rgba(255,255,255,.68); font-size: 10px; font-weight: 850; letter-spacing: .13em; }
+    .example h3 { margin: 7px 0 2px; font-size: 22px; }
+    .example p { margin: 0; color: rgba(255,255,255,.7); font-size: 13px; }
+
+    /* v1.1 : galerie des vrais clips (vidéos du dépôt) */
+    .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .clip {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.035);
+    }
+    .clip video { width: 100%; display: block; aspect-ratio: 9 / 16; object-fit: cover; background: #000; }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
+    .plan {
+      position: relative;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.035);
+    }
+    .plan.featured { border-color: rgba(156,106,255,.55); background: linear-gradient(160deg, rgba(139,92,246,.17), rgba(255,255,255,.035)); box-shadow: 0 24px 70px rgba(89,46,179,.18); }
+    .badge { position: absolute; top: 18px; right: 18px; padding: 5px 9px; border-radius: 999px; color: #d8caff; background: rgba(139,92,246,.18); font-size: 9px; font-weight: 850; letter-spacing: .09em; }
+    .plan h3 { margin-bottom: 7px; font-size: 21px; }
+    .plan-desc { min-height: 50px; color: var(--muted); font-size: 14px; }
+    .price { margin: 25px 0 3px; font-size: 30px; font-weight: 850; letter-spacing: -.04em; }
+    .unit { color: #858899; font-size: 12px; }
+    .plan ul { min-height: 120px; margin: 25px 0; padding: 0; list-style: none; color: #d6d6df; font-size: 14px; }
+    .plan li { margin: 10px 0; }
+    .plan li::before { content: "✓"; margin-right: 9px; color: #9b73f6; }
+    .plan .button { width: 100%; }
+
+    .cta {
+      margin-block: 80px 100px;
+      padding: 70px 30px;
+      overflow: hidden;
+      position: relative;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(150,88,255,.28), transparent 22rem),
+        linear-gradient(145deg, #131529, #0d0e19);
+    }
+    .cta h2 { max-width: 700px; margin: 0 auto 14px; font-size: clamp(36px, 5vw, 60px); line-height: 1.05; letter-spacing: -.05em; }
+    .cta p { color: var(--muted); }
+    .cta .actions { justify-content: center; }
+
+    footer { padding: 25px 0 40px; border-top: 1px solid var(--line); color: #777a89; font-size: 12px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; }
+
+    @media (max-width: 980px) {
+      .links { display: none; }
+      .hero { grid-template-columns: 1fr; padding-top: 75px; text-align: center; }
+      .hero-copy { display: flex; flex-direction: column; align-items: center; }
+      .app-card { min-height: 450px; }
+      .features { grid-template-columns: repeat(2, 1fr); }
+      .gallery { grid-template-columns: 1fr 1fr; }
+      .gallery .example:first-child { grid-column: 1 / -1; }
+      .video-grid { grid-template-columns: 1fr 1fr; }
+      .pricing { grid-template-columns: 1fr; }
+      .plan-desc, .plan ul { min-height: 0; }
+    }
+
+    @media (max-width: 620px) {
+      .container { width: min(100% - 28px, var(--max)); }
+      .nav { min-height: 68px; }
+      .nav .button { padding-inline: 13px; font-size: 11px; }
+      .hero { min-height: auto; gap: 25px; padding-block: 68px 55px; }
+      h1 { font-size: clamp(45px, 14vw, 65px); }
+      .lead { font-size: 16px; }
+      .hero .actions, .cta .actions { width: 100%; flex-direction: column; }
+      .hero .button, .cta .button { width: 100%; }
+      .app-card { min-height: 365px; }
+      .app-card::before { width: 360px; height: 360px; }
+      .app-card::after { width: 280px; height: 280px; }
+      .mockup { transform: none; }
+      .stage { grid-template-columns: 48px 1fr; }
+      .canvas { padding: 16px; }
+      .scene { min-height: 175px; }
+      .section { padding-block: 72px; }
+      .features, .gallery, .video-grid { grid-template-columns: 1fr; }
+      .gallery .example:first-child { grid-column: auto; }
+      .example { min-height: 320px; }
+      .cta { padding: 55px 20px; margin-block: 55px 75px; }
+      .footer-inner { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="#accueil" aria-label="StarClip, accueil">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>StarClip</span>
+      </a>
+      <nav class="links" aria-label="Navigation principale">
+        <a href="#fonctionnalites">Fonctionnalités</a>
+        <a href="#exemples">Exemples</a>
+        <a href="#tarifs">Tarifs</a>
+      </nav>
+      <a class="button button-secondary button-small" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer">
+        Ouvrir StarClip <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="container hero" id="accueil">
+      <div class="hero-copy">
+        <p class="eyebrow">✦ La création vidéo, réinventée</p>
+        <h1>Vos photos.<br><span class="gradient-text">Maintenant vivantes.</span></h1>
+        <p class="lead">Transformez une simple photo en clip vidéo captivant. Faites chanter, danser et voyager vos images en quelques instants.</p>
+        <div class="actions">
+          <a class="button button-primary" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer">
+            Ouvrir StarClip <span aria-hidden="true">→</span>
+          </a>
+          <a class="button button-secondary" href="#exemples">Voir les exemples</a>
+        </div>
+        <p class="proof"><b>✓</b> Photo vers vidéo &nbsp;•&nbsp; Pensé pour les réseaux sociaux</p>
+      </div>
+
+      <div class="app-card" aria-label="Illustration de l’interface StarClip">
+        <div class="mockup">
+          <div class="mockbar"><span>✦ &nbsp; StarClip Studio</span><span class="dots">● ● ●</span></div>
+          <div class="stage">
+            <div class="tools" aria-hidden="true">
+              <span class="tool active">✦</span><span class="tool">◫</span><span class="tool">♫</span><span class="tool">⚙</span>
+            </div>
+            <div class="canvas">
+              <div class="canvas-label">APERÇU DU CLIP</div>
+              <div class="scene"><span class="play" aria-hidden="true">▶</span></div>
+              <div class="timeline"><span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="fonctionnalites">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Les possibilités</p>
+          <h2>Une photo. Une idée.<br><span class="gradient-text">Votre prochain clip.</span></h2>
+          <p>StarClip vous accompagne de l’image au mouvement avec des outils pensés pour les artistes, les créateurs et les réseaux sociaux.</p>
+        </div>
+        <div class="features">
+          <article class="feature"><span class="feature-number">01</span><div class="feature-icon">◉</div><h3>Photo vers vidéo</h3><p>Transformez une photo en une séquence fluide, expressive et prête à partager.</p></article>
+          <article class="feature"><span class="feature-number">02</span><div class="feature-icon">♫</div><h3>Chant & synchronisation</h3><p>Donnez une performance à votre image et synchronisez-la avec votre univers musical.</p></article>
+          <article class="feature"><span class="feature-number">03</span><div class="feature-icon">↗</div><h3>Danse & mouvement</h3><p>Choisissez un rythme et une énergie pour créer un mouvement naturel et maîtrisé.</p></article>
+          <article class="feature"><span class="feature-number">04</span><div class="feature-icon">✦</div><h3>Styles & décors</h3><p>Adaptez l’ambiance, la tenue ou le décor à votre direction artistique.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="exemples">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Nos vrais clips</p>
+          <h2>Regardez la qualité.<br><span class="gradient-text">Créée avec StarClip.</span></h2>
+          <p>Des clips réellement générés avec StarClip à partir d’une simple photo. Touchez une vidéo pour la lancer, avec le son 🔊.</p>
+        </div>
+        <div class="video-grid" id="videoGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="tarifs">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Offres StarClip</p>
+          <h2>Choisissez votre<br><span class="gradient-text">rythme de création.</span></h2>
+          <p>Paiement simple par Orange Money ou MTN Mobile Money — recevez votre code StarClip sur WhatsApp et créez vos vidéos vous-même.</p>
+        </div>
+        <div class="pricing">
+          <article class="plan">
+            <h3>⭐ Essai Star</h3><p class="plan-desc">Pour essayer la création avec StarClip.</p>
+            <p class="price">1 500 FCFA</p><span class="unit">1 vidéo — chant + tenue inclus</span>
+            <ul><li>Création photo vers vidéo</li><li>Chant (lip-sync) inclus</li><li>Changement de tenue inclus</li></ul>
+            <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander</a>
+          </article>
+          <article class="plan featured">
+            <span class="badge">POPULAIRE</span>
+            <h3>🎟️ Codes vidéos</h3><p class="plan-desc">Pour créer régulièrement, à votre rythme.</p>
+            <p class="price">6 000 FCFA</p><span class="unit">Code 5 vidéos · ou 12 vidéos pour 12 000 FCFA</span>
+            <ul><li>Tout Essai Star</li><li>Multi-plans (mini-clip jusqu’à 15 s)</li><li>Mode Visage stable</li></ul>
+            <a class="button button-primary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander</a>
+          </article>
+          <article class="plan">
+            <h3>🏆 Clips par le studio</h3><p class="plan-desc">Le studio crée votre clip pour vous.</p>
+            <p class="price">10 000 FCFA</p><span class="unit">Clip Découverte (5 scènes) · Clip Premium 15 scènes : 25 000 FCFA</span>
+            <ul><li>Scènes montées par le studio</li><li>Qualité cinéma (Premium)</li><li>Livraison sur WhatsApp</li></ul>
+            <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="container cta">
+      <p class="eyebrow">Prêt à donner vie à vos images ?</p>
+      <h2>Votre prochain clip commence avec <span class="gradient-text">une photo.</span></h2>
+      <p>Ouvrez l’application ou contactez-nous directement sur WhatsApp.</p>
+      <div class="actions">
+        <a class="button button-primary" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer">Ouvrir StarClip ↗</a>
+        <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander sur WhatsApp →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.1 — vrais clips + tarifs</b></span>
+      <span>Création vidéo à partir de vos images</span>
+    </div>
+  </footer>
+<script>
+// v1.1 : galerie des vrais clips — mêmes fichiers que l'app (racine du dépôt rudis-video),
+// chargés en chemin relatif. Chargement léger (metadata seulement), repli .mp4 → .MP4.
+(function () {
+  var names = ["exemple1","exemple2","exemple3","exemple4","exemple5","exemple6","exemple7","exemple8","exemple9"];
+  var grid = document.getElementById("videoGrid");
+  if (!grid) return;
+  names.forEach(function (n) {
+    var card = document.createElement("article");
+    card.className = "clip";
+    var v = document.createElement("video");
+    v.src = n + ".mp4";
+    v.controls = true;
+    v.preload = "metadata";
+    v.setAttribute("playsinline", "");
+    v.setAttribute("controlslist", "nodownload");
+    var retried = false;
+    v.addEventListener("error", function () {
+      if (!retried) { retried = true; v.src = n + ".MP4"; v.load(); }
+    });
+    card.appendChild(v);
+    grid.appendChild(card);
+  });
+})();
+</script>
+</body>
+</html>
