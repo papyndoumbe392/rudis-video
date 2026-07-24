@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.2 — Premium + animation vidéo · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.3 — prompt long géré · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -382,7 +382,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.2 — Premium : photo → vidéo animée → lip-sync</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.3 — prompt long accepté (coupe propre à 2500)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -983,6 +983,16 @@ document.getElementById("go").onclick = async () => {
   setStatus("Envoi de ta photo au studio de rendu…", 8);
 
   try {
+    // v34.3 : garde-fou longueur — le modèle vidéo limite le prompt à 2500 caractères.
+    // On coupe proprement à la fin d'un mot (jamais au milieu) au lieu de laisser le serveur refuser.
+    const clipPrompt = (txt, max) => {
+      if (!txt || txt.length <= max) return txt;
+      let cut = txt.slice(0, max - 1);
+      const sp = cut.lastIndexOf(" ");
+      if (sp > max * 0.5) cut = cut.slice(0, sp);
+      return cut.trim() + "…";
+    };
+    const REF_PREFIX = "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. ";
     let payload;
     if (model === "ref") {
       // O1 Reference : la photo principale = @Image1 (start frame),
@@ -993,8 +1003,10 @@ document.getElementById("go").onclick = async () => {
       const elem = { frontal_image_url: faceRefs[0] };
       // v33.5 : reference_image_urls toujours requis par fal.ai, même avec 1 seule photo.
       elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
+      // Le préfixe compte dans la limite : on réserve sa place puis on coupe le reste du prompt.
+      const room = 2500 - REF_PREFIX.length - 5;
       payload = {
-        prompt: "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. " + prompt,
+        prompt: REF_PREFIX + clipPrompt(prompt, room),
         image_urls: [stylePhotoUrl || photoDataUrl],
         elements: [elem],
         duration: dur,
@@ -1003,7 +1015,7 @@ document.getElementById("go").onclick = async () => {
       };
     } else {
       payload = {
-        prompt: prompt,
+        prompt: clipPrompt(prompt, 2495),
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
         negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
