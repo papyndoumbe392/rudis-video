@@ -9,3 +9,4 @@ Fichiers : index.html, manifest.json, sw.js, icon-192.png, icon-512.png
 3. Dans l'app : colle ta clé fal.ai (fal.ai → Keys), ajoute ta photo, écris ton prompt, Générer.
 
 Chaque vidéo est payée sur ton crédit fal.ai (≈0,28 $ pour 5 s en mode Éco).
+Commit changes
