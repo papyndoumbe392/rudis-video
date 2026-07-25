@@ -287,14 +287,36 @@
     .example p { margin: 0; color: rgba(255,255,255,.7); font-size: 13px; }
 
     /* v1.1 : galerie des vrais clips (vidéos du dépôt) */
-    .video-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .video-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
     .clip {
+      position: relative;
+      aspect-ratio: 3 / 4;
       overflow: hidden;
       border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255,255,255,.035);
+      border-radius: 14px;
+      background: #000;
+      cursor: pointer;
     }
-    .clip video { width: 100%; display: block; aspect-ratio: 3 / 4; object-fit: cover; background: #000; }
+    .clip video { width: 100%; height: 100%; display: block; object-fit: cover; pointer-events: none; }
+    .clip::after {
+      content: "\25B6";
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 19px;
+      text-shadow: 0 2px 10px rgba(0,0,0,.85);
+      pointer-events: none;
+    }
+    /* v1.3 : lecture en plein écran avec bouton Retour */
+    .vg-lightbox { position: fixed; inset: 0; z-index: 999; background: rgba(5,6,14,.97); display: none; flex-direction: column; }
+    .vg-lightbox.on { display: flex; }
+    .vg-back {
+      align-self: flex-start; margin: 16px 0 0 16px; padding: 11px 18px;
+      border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.07); color: var(--text);
+      font-size: 15px; font-weight: 760; cursor: pointer;
+    }
+    .vg-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .vg-stage video { width: 100%; max-width: 900px; max-height: 100%; border-radius: 14px; background: #000; }
 
     .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
     .plan {
@@ -342,7 +364,7 @@
       .features { grid-template-columns: repeat(2, 1fr); }
       .gallery { grid-template-columns: 1fr 1fr; }
       .gallery .example:first-child { grid-column: 1 / -1; }
-      .video-grid { grid-template-columns: repeat(3, 1fr); }
+      .video-grid { grid-template-columns: repeat(4, 1fr); }
       .pricing { grid-template-columns: 1fr; }
       .plan-desc, .plan ul { min-height: 0; }
     }
@@ -365,7 +387,7 @@
       .scene { min-height: 175px; }
       .section { padding-block: 72px; }
       .features, .gallery { grid-template-columns: 1fr; }
-      .video-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .video-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
       .gallery .example:first-child { grid-column: auto; }
       .example { min-height: 320px; }
       .cta { padding: 55px 20px; margin-block: 55px 75px; }
@@ -449,7 +471,7 @@
         <div class="section-head">
           <p class="eyebrow">Nos vrais clips</p>
           <h2>Regardez la qualité.<br><span class="gradient-text">Créée avec StarClip.</span></h2>
-          <p>Des clips réellement générés avec StarClip à partir d’une simple photo. Touchez une vidéo pour la lancer, avec le son 🔊.</p>
+          <p>Des clips réellement générés avec StarClip à partir d’une simple photo. Touchez une vignette : la vidéo s’ouvre en grand, avec le son 🔊.</p>
         </div>
         <div class="video-grid" id="videoGrid"></div>
       </div>
@@ -499,7 +521,7 @@
 
   <footer>
     <div class="container footer-inner">
-      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.2 — clips en vignettes</b></span>
+      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.3 — vignettes + lecture plein écran</b></span>
       <span>Création vidéo à partir de vos images</span>
     </div>
   </footer>
@@ -510,20 +532,48 @@
   var names = ["exemple1","exemple2","exemple3","exemple4","exemple5","exemple6","exemple7","exemple8","exemple9"];
   var grid = document.getElementById("videoGrid");
   if (!grid) return;
+
+  var lb = document.createElement("div");
+  lb.className = "vg-lightbox";
+  lb.innerHTML = '<button class="vg-back" type="button">\u2190 Retour</button><div class="vg-stage"></div>';
+  document.body.appendChild(lb);
+  var stage = lb.querySelector(".vg-stage");
+
+  function fermer() {
+    lb.classList.remove("on");
+    stage.innerHTML = "";
+    document.body.style.overflow = "";
+  }
+  function ouvrir(src) {
+    stage.innerHTML = "";
+    var g = document.createElement("video");
+    g.src = src; g.controls = true; g.autoplay = true;
+    g.setAttribute("playsinline", "");
+    g.setAttribute("controlslist", "nodownload");
+    stage.appendChild(g);
+    lb.classList.add("on");
+    document.body.style.overflow = "hidden";
+    var pr = g.play(); if (pr && pr.catch) pr.catch(function () {});
+  }
+  lb.querySelector(".vg-back").onclick = fermer;
+  lb.addEventListener("click", function (e) { if (e.target === lb || e.target === stage) fermer(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") fermer(); });
+
   names.forEach(function (n) {
+    var base = n + ".mp4";
     var card = document.createElement("article");
     card.className = "clip";
     var v = document.createElement("video");
-    v.src = n + ".mp4";
-    v.controls = true;
+    v.src = base + "#t=0.1";
     v.preload = "metadata";
+    v.muted = true;
     v.setAttribute("playsinline", "");
-    v.setAttribute("controlslist", "nodownload");
     var retried = false;
     v.addEventListener("error", function () {
-      if (!retried) { retried = true; v.src = n + ".MP4"; v.load(); }
+      if (!retried) { retried = true; base = n + ".MP4"; v.src = base + "#t=0.1"; v.load(); }
     });
     card.appendChild(v);
+    card.addEventListener("click", function () { ouvrir(base); });
     grid.appendChild(card);
   });
 })();

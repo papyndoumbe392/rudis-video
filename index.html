@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.5 — vignettes vidéo · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.6 — vignettes + plein écran · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -32,13 +32,27 @@
   }
   /* v34.4 : galerie de vidéos d'exemple (vitrine). 1 colonne sur téléphone,
      2 sur tablette, 3 sur ordinateur — la largeur de l'écran est enfin utilisée. */
-  /* v34.5 : vignettes moyennes — 2 par ligne sur téléphone (au lieu d'une seule
-     qui mangeait tout l'écran), 3 sur tablette, 4 sur ordinateur. */
-  .video-gallery { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
-  @media (min-width:560px){ .video-gallery { grid-template-columns:repeat(3,1fr); } }
-  @media (min-width:900px){ .video-gallery { grid-template-columns:repeat(4,1fr); } }
-  .video-gallery video { width:100%; margin-top:0; border-radius:12px; background:#000;
-    aspect-ratio:3/4; object-fit:cover; display:block; }
+  /* v34.6 : petites vignettes — 3 par ligne sur téléphone, 4 sur tablette,
+     5 sur ordinateur. On touche une vignette → la vidéo s'ouvre en plein écran
+     avec une flèche « Retour » pour revenir à la galerie. */
+  .video-gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
+  @media (min-width:560px){ .video-gallery { grid-template-columns:repeat(4,1fr); gap:10px; } }
+  @media (min-width:900px){ .video-gallery { grid-template-columns:repeat(5,1fr); gap:12px; } }
+  .vg-thumb { position:relative; aspect-ratio:3/4; border-radius:10px; overflow:hidden;
+    background:#000; cursor:pointer; border:1px solid var(--line); }
+  .vg-thumb video { width:100%; height:100%; margin:0; border-radius:0;
+    object-fit:cover; display:block; pointer-events:none; }
+  .vg-thumb::after { content:"▶"; position:absolute; inset:0; display:flex;
+    align-items:center; justify-content:center; color:#fff; font-size:19px;
+    text-shadow:0 2px 10px rgba(0,0,0,.85); pointer-events:none; }
+  .vg-lightbox { position:fixed; inset:0; z-index:9999; background:rgba(8,6,12,.97);
+    display:none; flex-direction:column; }
+  .vg-lightbox.on { display:flex; }
+  .vg-back { align-self:flex-start; margin:calc(env(safe-area-inset-top) + 12px) 0 0 14px;
+    padding:11px 18px; border-radius:999px; border:1px solid var(--line);
+    background:var(--up); color:var(--text); font-size:15px; font-weight:700; cursor:pointer; }
+  .vg-stage { flex:1; display:flex; align-items:center; justify-content:center; padding:14px; }
+  .vg-stage video { width:100%; max-height:100%; margin:0; border-radius:12px; background:#000; }
   .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
   h1 { font-size:clamp(26px,7vw,36px); font-weight:700; line-height:1.1; }
   h1 span { color:var(--gold); }
@@ -398,7 +412,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.5 — galerie en vignettes moyennes (2 par ligne sur téléphone)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.6 — vignettes 3 par ligne, lecture en plein écran</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -2227,19 +2241,50 @@ document.getElementById("animGo").onclick = async () => {
   var names = ["exemple1","exemple2","exemple3","exemple4","exemple5","exemple6","exemple7","exemple8","exemple9"];
   var box = document.getElementById("videoGallery");
   if (!box) return;
+
+  // Écran plein pour lire une vidéo, avec bouton Retour
+  var lb = document.createElement("div");
+  lb.className = "vg-lightbox";
+  lb.innerHTML = '<button class="vg-back" type="button">\u2190 Retour</button><div class="vg-stage"></div>';
+  document.body.appendChild(lb);
+  var stage = lb.querySelector(".vg-stage");
+
+  function fermer(){
+    lb.classList.remove("on");
+    stage.innerHTML = "";
+    document.body.style.overflow = "";
+  }
+  function ouvrir(src){
+    stage.innerHTML = "";
+    var g = document.createElement("video");
+    g.src = src; g.controls = true; g.autoplay = true;
+    g.setAttribute("playsinline", "");
+    g.setAttribute("controlslist", "nodownload");
+    stage.appendChild(g);
+    lb.classList.add("on");
+    document.body.style.overflow = "hidden";
+    var pr = g.play(); if (pr && pr.catch) pr.catch(function(){});
+  }
+  lb.querySelector(".vg-back").onclick = fermer;
+  lb.addEventListener("click", function(e){ if (e.target === lb || e.target === stage) fermer(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") fermer(); });
+
   names.forEach(function(n){
+    var base = n + ".mp4";
+    var cell = document.createElement("div");
+    cell.className = "vg-thumb";
     var v = document.createElement("video");
-    v.src = n + ".mp4";
-    v.controls = true;
-    v.playsInline = true;
+    v.src = base + "#t=0.1";   // force l'affichage d'une image d'aperçu
     v.preload = "metadata";
+    v.muted = true;
     v.setAttribute("playsinline", "");
-    v.setAttribute("controlslist", "nodownload");
     var triedUpper = false;
     v.addEventListener("error", function(){
-      if (!triedUpper) { triedUpper = true; v.src = n + ".MP4"; v.load(); }
+      if (!triedUpper) { triedUpper = true; base = n + ".MP4"; v.src = base + "#t=0.1"; v.load(); }
     });
-    box.appendChild(v);
+    cell.appendChild(v);
+    cell.addEventListener("click", function(){ ouvrir(base); });
+    box.appendChild(cell);
   });
 })();
 
