@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.4 — galerie vidéos · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.5 — vignettes vidéo · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -32,10 +32,13 @@
   }
   /* v34.4 : galerie de vidéos d'exemple (vitrine). 1 colonne sur téléphone,
      2 sur tablette, 3 sur ordinateur — la largeur de l'écran est enfin utilisée. */
-  .video-gallery { display:grid; grid-template-columns:1fr; gap:12px; margin-top:4px; }
-  @media (min-width:560px){ .video-gallery { grid-template-columns:1fr 1fr; } }
-  @media (min-width:900px){ .video-gallery { grid-template-columns:repeat(3,1fr); } }
-  .video-gallery video { width:100%; margin-top:0; border-radius:12px; background:#000; }
+  /* v34.5 : vignettes moyennes — 2 par ligne sur téléphone (au lieu d'une seule
+     qui mangeait tout l'écran), 3 sur tablette, 4 sur ordinateur. */
+  .video-gallery { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+  @media (min-width:560px){ .video-gallery { grid-template-columns:repeat(3,1fr); } }
+  @media (min-width:900px){ .video-gallery { grid-template-columns:repeat(4,1fr); } }
+  .video-gallery video { width:100%; margin-top:0; border-radius:12px; background:#000;
+    aspect-ratio:3/4; object-fit:cover; display:block; }
   .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
   h1 { font-size:clamp(26px,7vw,36px); font-weight:700; line-height:1.1; }
   h1 span { color:var(--gold); }
@@ -395,7 +398,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.4 — galerie vidéos d'exemple + pleine largeur sur ordinateur</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.5 — galerie en vignettes moyennes (2 par ligne sur téléphone)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
