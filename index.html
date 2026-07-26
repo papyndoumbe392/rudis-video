@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.6 — vignettes + plein écran · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.8 — visage protégé quand 2 personnes · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -25,34 +25,6 @@
     background-image:radial-gradient(ellipse 70% 40% at 50% -5%, rgba(139,108,242,.14), transparent);
   }
   .wrap { max-width:640px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 24px) 16px 40px; }
-  /* v33.8 : sur ordinateur (grand écran), l'app occupe une largeur bien plus grande.
-     En dessous de 900px (téléphones/tablettes), l'affichage reste identique à avant. */
-  @media (min-width:900px){
-    .wrap { max-width:1200px; padding-left:32px; padding-right:32px; }
-  }
-  /* v34.4 : galerie de vidéos d'exemple (vitrine). 1 colonne sur téléphone,
-     2 sur tablette, 3 sur ordinateur — la largeur de l'écran est enfin utilisée. */
-  /* v34.6 : petites vignettes — 3 par ligne sur téléphone, 4 sur tablette,
-     5 sur ordinateur. On touche une vignette → la vidéo s'ouvre en plein écran
-     avec une flèche « Retour » pour revenir à la galerie. */
-  .video-gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
-  @media (min-width:560px){ .video-gallery { grid-template-columns:repeat(4,1fr); gap:10px; } }
-  @media (min-width:900px){ .video-gallery { grid-template-columns:repeat(5,1fr); gap:12px; } }
-  .vg-thumb { position:relative; aspect-ratio:3/4; border-radius:10px; overflow:hidden;
-    background:#000; cursor:pointer; border:1px solid var(--line); }
-  .vg-thumb video { width:100%; height:100%; margin:0; border-radius:0;
-    object-fit:cover; display:block; pointer-events:none; }
-  .vg-thumb::after { content:"▶"; position:absolute; inset:0; display:flex;
-    align-items:center; justify-content:center; color:#fff; font-size:19px;
-    text-shadow:0 2px 10px rgba(0,0,0,.85); pointer-events:none; }
-  .vg-lightbox { position:fixed; inset:0; z-index:9999; background:rgba(8,6,12,.97);
-    display:none; flex-direction:column; }
-  .vg-lightbox.on { display:flex; }
-  .vg-back { align-self:flex-start; margin:calc(env(safe-area-inset-top) + 12px) 0 0 14px;
-    padding:11px 18px; border-radius:999px; border:1px solid var(--line);
-    background:var(--up); color:var(--text); font-size:15px; font-weight:700; cursor:pointer; }
-  .vg-stage { flex:1; display:flex; align-items:center; justify-content:center; padding:14px; }
-  .vg-stage video { width:100%; max-height:100%; margin:0; border-radius:12px; background:#000; }
   .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
   h1 { font-size:clamp(26px,7vw,36px); font-weight:700; line-height:1.1; }
   h1 span { color:var(--gold); }
@@ -118,13 +90,6 @@
     <a href="guide.html" style="display:inline-block; margin-top:12px; padding:8px 16px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); text-decoration:none; font-size:13px; font-weight:600;">📖 Guide en BD — pour petits et grands</a>
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
   </header>
-
-  <!-- v34.4 — GALERIE VIDÉOS D'EXEMPLE (vitrine qualité) -->
-  <section class="card" style="border-color:var(--gold);">
-    <h2><span class="num" style="background:var(--gold); color:#1A1204;">🎬</span> Nos clips en exemple</h2>
-    <p class="sub" style="margin:0 0 12px;">Regarde la qualité des vidéos créées avec StarClip. Touche une vidéo pour la lancer (avec le son 🔊).</p>
-    <div class="video-gallery" id="videoGallery"></div>
-  </section>
 
   <!-- RÉGLAGES / CLÉ -->
   <section class="card">
@@ -306,79 +271,6 @@
     <div id="lipResult"></div>
   </section>
 
-  <!-- v34.0 : LICENCE PREMIUM -->
-  <section class="card" style="border-color:var(--violet);">
-    <h2><span class="num" style="background:var(--violet);">👑</span> StarClip Premium <span class="dot" id="dotPrem"></span></h2>
-
-    <!-- Zone verrouillée -->
-    <div id="premLock">
-      <p class="sub" style="margin:0 0 10px;">La licence Premium débloque le <b>studio marketing IA</b> : photos produit pro, ambassadeur virtuel, visuels publicitaires, logos et invitations. Commande ta licence sur WhatsApp (bouton 💰 plus bas), reçois ton mot de passe Premium, et entre-le ici :</p>
-      <input type="password" id="premPass" placeholder="Mot de passe Premium" autocomplete="off" style="width:100%;">
-      <button class="btn" id="premUnlock" style="margin-top:10px; width:100%;">🔓 Déverrouiller Premium</button>
-      <div class="estimate" id="premLockInfo"></div>
-      <div class="sub" style="margin-top:10px;">Inclus avec Premium :<br>
-        ✨ <b>Photo Studio</b> — tes produits en photo studio pro<br>
-        🤳 <b>Influenceur Star</b> — un mannequin présente ton produit<br>
-        📣 <b>Créateur de Pub</b> — visuel publicitaire avec ton slogan<br>
-        🎨 <b>Logos & Créations</b> — logos, invitations, affiches<br>
-        🎬 <b>Clip Produit Star</b> — transforme le résultat en vidéo<br>
-        👗 <b>Essayage Virtuel</b> — le volet Tenue, déjà dans l'app</div>
-    </div>
-
-    <!-- Zone débloquée -->
-    <div id="premZone" class="hidden">
-      <p class="sub" style="margin:0 0 6px;"><span style="color:var(--ok)">✓ Licence Premium active.</span> Choisis un outil :</p>
-      <div class="chips" id="premChips">
-        <button class="chip on" data-pmode="studio">✨ Photo Studio</button>
-        <button class="chip" data-pmode="ambassador">🤳 Influenceur Star</button>
-        <button class="chip" data-pmode="ad">📣 Créateur de Pub</button>
-        <button class="chip" data-pmode="design">🎨 Logos & Créations</button>
-      </div>
-
-      <div id="premPhotoZone">
-        <div class="label">Photo de ton produit</div>
-        <div id="premSlot" style="margin-top:8px; min-height:110px; border:1.5px dashed var(--line); border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:13px; cursor:pointer; background-size:cover; background-position:center;">Touche pour charger la photo du produit</div>
-        <input type="file" id="premInput" accept="image/*" class="hidden">
-      </div>
-
-      <div id="premTextZone" class="hidden">
-        <div class="label" id="premTextLabel">Ton slogan / accroche</div>
-        <textarea id="premText" rows="2" placeholder=""></textarea>
-      </div>
-
-      <button class="btn" id="premGo" style="margin-top:12px; width:100%;">✨ Générer</button>
-      <div class="estimate" id="premInfo"></div>
-      <div id="premPreview"></div>
-
-      <!-- v34.2 : ANIMATION VIDÉO -->
-      <div style="margin-top:22px; padding-top:18px; border-top:1px solid var(--line);">
-        <div class="label" style="margin-top:0;">🎬 Animer en vidéo</div>
-        <div class="estimate" style="margin-top:0; margin-bottom:12px; line-height:1.6;">
-          <b>Comment faire une vidéo qui parle, dans l'ordre :</b><br>
-          1️⃣ Génère d'abord ta <b>photo</b> ci-dessus (Photo Studio ou Influenceur).<br>
-          2️⃣ Écris ici ce que ton personnage doit <b>faire</b>, puis <b>Anime en vidéo</b>.<br>
-          3️⃣ Pour le faire <b>parler</b> : descends au volet <b>🎤 Lip-sync</b> et envoie-lui ta vidéo.
-        </div>
-
-        <div class="chips" id="animChips">
-          <button class="chip on" data-amode="photo">🖼️ Animer ma photo</button>
-          <button class="chip" data-amode="direct">✍️ Créer + animer par texte</button>
-        </div>
-
-        <div class="sub" id="animHint" style="margin:2px 0 8px;">Anime l'image générée juste au-dessus. Décris ce qu'elle fait.</div>
-
-        <div class="label" style="margin-top:6px;">Décris la scène</div>
-        <textarea id="animText" rows="3" placeholder="Ex : l'influenceur tend le produit vers la caméra en souriant, la caméra tourne lentement autour de lui"></textarea>
-
-        <button class="btn" id="animGo" style="margin-top:12px; width:100%;">🎬 Animer en vidéo</button>
-        <div class="estimate" id="animInfo"></div>
-        <div id="animPreview"></div>
-      </div>
-
-      <div class="sub" style="margin-top:16px;">👗 <b>Essayage Virtuel</b> = le volet « Tenue » plus haut — il fait déjà l'essayage virtuel sur ta photo.</div>
-    </div>
-  </section>
-
   <!-- PAIEMENT MOBILE -->
   <section class="card" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1A1204;">💰</span> Commander ta vidéo — paiement mobile</h2>
@@ -412,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.6 — vignettes 3 par ligne, lecture en plein écran</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.8 — visage protégé quand une 2e personne est présente</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -804,7 +696,7 @@ document.getElementById("ideaGo").onclick = async () => {
     const path = "fal-ai/any-llm";
     const job = await apiSubmit(path, ({
         model: "google/gemini-2.5-flash",
-        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS de 70 à 110 mots, structuré ainsi : (1) le lieu et l'action exacts demandés en premier ; (2) si une autre personne est présente dans la scène (hôtesse, danseurs, invités…), décris son interaction précise avec le sujet (ex : verse une boisson, danse à ses côtés) avec un mouvement physique réaliste et correct ; (3) éclairage cinématographique riche (ex : warm golden light, soft highlights, realistic reflections) adapté au lieu ; (4) UN SEUL mouvement de caméra clair et lent (ex : slow dolly-in, slow tracking shot) — jamais plusieurs plans ou coupes dans un même prompt ; (5) mouvement corporel naturel et discret (gentle breathing, soft eye blinking, slight head movement) — jamais de mouvement ample, rapide, de saut ou de rotation brusque. Si la personne chante : medium close-up framing, face large in the frame, no microphone or hands covering the mouth. N'invente et n'ajoute JAMAIS un objet, accessoire ou prop qui n'est pas déjà visible sur la photo ou explicitement demandé (ex : jamais un deuxième cigare, verre, bijou, chapeau en plus de celui déjà présent). Termine TOUJOURS par cette phrase de garde-fous, mot pour mot : 'high realism, natural skin texture, identity preserved, exact same props and objects as the original photo, no duplicated or added items, no extra fingers, no hand distortion, no body distortion, no floating objects, no unnatural motion, no artifacts.' Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
+        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS de 70 à 110 mots, structuré ainsi : (1) le lieu et l'action exacts demandés en premier, en désignant le sujet principal comme 'the main person' ; (2) si une autre personne est présente dans la scène (hôtesse, danseurs, invités, serveur…), décris son interaction précise avec le sujet (ex : verse une boisson, danse à ses côtés) avec un mouvement physique réaliste et correct, ET précise TOUJOURS que cette autre personne est quelqu'un de complètement différent, avec son propre visage et sa propre identité, distincte du sujet principal (ex : 'a separate flight attendant, a completely different person with her own distinct face, NOT the main person') ; (3) éclairage cinématographique riche (ex : warm golden light, soft highlights, realistic reflections) adapté au lieu ; (4) UN SEUL mouvement de caméra clair et lent (ex : slow dolly-in, slow tracking shot) — jamais plusieurs plans ou coupes dans un même prompt ; (5) mouvement corporel naturel et discret (gentle breathing, soft eye blinking, slight head movement) — jamais de mouvement ample, rapide, de saut ou de rotation brusque. Si la personne chante : medium close-up framing, face large in the frame, no microphone or hands covering the mouth. N'invente et n'ajoute JAMAIS un objet, accessoire ou prop qui n'est pas déjà visible sur la photo ou explicitement demandé (ex : jamais un deuxième cigare, verre, bijou, chapeau en plus de celui déjà présent). Termine TOUJOURS par cette phrase de garde-fous, mot pour mot : 'high realism, natural skin texture, only the main person keeps the original face and identity, any other people are different individuals with their own distinct faces, exact same props and objects as the original photo, no duplicated or added items, no face copied onto other people, no extra fingers, no hand distortion, no body distortion, no floating objects, no unnatural motion, no artifacts.' Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
         prompt: idea,
       }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -1013,16 +905,6 @@ document.getElementById("go").onclick = async () => {
   setStatus("Envoi de ta photo au studio de rendu…", 8);
 
   try {
-    // v34.3 : garde-fou longueur — le modèle vidéo limite le prompt à 2500 caractères.
-    // On coupe proprement à la fin d'un mot (jamais au milieu) au lieu de laisser le serveur refuser.
-    const clipPrompt = (txt, max) => {
-      if (!txt || txt.length <= max) return txt;
-      let cut = txt.slice(0, max - 1);
-      const sp = cut.lastIndexOf(" ");
-      if (sp > max * 0.5) cut = cut.slice(0, sp);
-      return cut.trim() + "…";
-    };
-    const REF_PREFIX = "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. ";
     let payload;
     if (model === "ref") {
       // O1 Reference : la photo principale = @Image1 (start frame),
@@ -1033,10 +915,8 @@ document.getElementById("go").onclick = async () => {
       const elem = { frontal_image_url: faceRefs[0] };
       // v33.5 : reference_image_urls toujours requis par fal.ai, même avec 1 seule photo.
       elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
-      // Le préfixe compte dans la limite : on réserve sa place puis on coupe le reste du prompt.
-      const room = 2500 - REF_PREFIX.length - 5;
       payload = {
-        prompt: REF_PREFIX + clipPrompt(prompt, room),
+        prompt: "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. " + prompt,
         image_urls: [stylePhotoUrl || photoDataUrl],
         elements: [elem],
         duration: dur,
@@ -1045,10 +925,10 @@ document.getElementById("go").onclick = async () => {
       };
     } else {
       payload = {
-        prompt: clipPrompt(prompt, 2495),
+        prompt: prompt,
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
-        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
+        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides, same face on two people, cloned face, twin faces, identical people, duplicated person, other people with the main person face, face copied onto another person" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
       };
     }
     const job = await apiSubmit(m.path, payload);
@@ -2008,285 +1888,6 @@ document.getElementById("msGo").onclick = async () => {
 
 window.__msReady = true;
 msRender();
-
-// ——— v34.0 : LICENCE PREMIUM ———
-// Mot de passe à donner au client après paiement (à changer ici si besoin) :
-const PREMIUM_PASS = "STARPRO2026";
-
-const premLock = document.getElementById("premLock");
-const premZone = document.getElementById("premZone");
-function premApplyState() {
-  const ok = localStorage.getItem("premiumOk") === "1";
-  premLock.classList.toggle("hidden", ok);
-  premZone.classList.toggle("hidden", !ok);
-  const dot = document.getElementById("dotPrem");
-  if (dot) dot.style.background = ok ? "var(--ok)" : "";
-}
-document.getElementById("premUnlock").onclick = () => {
-  const v = (document.getElementById("premPass").value || "").trim();
-  const info = document.getElementById("premLockInfo");
-  if (v === PREMIUM_PASS) {
-    localStorage.setItem("premiumOk", "1");
-    premApplyState();
-  } else {
-    info.innerHTML = `<span style="color:var(--bad, #e66)">Mot de passe incorrect. Commande ta licence Premium sur WhatsApp (section 💰 plus bas).</span>`;
-  }
-};
-premApplyState();
-
-// Choix de l'outil Premium
-let premMode = "studio";
-const PREM_CONF = {
-  studio:     { needPhoto: true,  needText: false, btn: "✨ Générer la photo studio" },
-  ambassador: { needPhoto: true,  needText: false, btn: "🤳 Générer l'influenceur" },
-  ad:         { needPhoto: true,  needText: true,  btn: "📣 Générer la pub",
-                label: "Ton slogan / accroche", ph: "Ex : Promo de Noël -30% · Studio Rudis Douala" },
-  design:     { needPhoto: false, needText: true,  btn: "🎨 Générer le design",
-                label: "Décris ton logo / invitation / affiche", ph: "Ex : logo doré « Studio Rudis » sur fond noir, style élégant, musique" },
-};
-function premRefreshUI() {
-  const c = PREM_CONF[premMode];
-  document.getElementById("premPhotoZone").classList.toggle("hidden", !c.needPhoto);
-  document.getElementById("premTextZone").classList.toggle("hidden", !c.needText);
-  if (c.needText) {
-    document.getElementById("premTextLabel").textContent = c.label;
-    document.getElementById("premText").placeholder = c.ph;
-  }
-  document.getElementById("premGo").textContent = c.btn;
-}
-document.querySelectorAll("#premChips .chip").forEach(ch => {
-  ch.onclick = () => {
-    document.querySelectorAll("#premChips .chip").forEach(x => x.classList.remove("on"));
-    ch.classList.add("on");
-    premMode = ch.dataset.pmode;
-    premRefreshUI();
-  };
-});
-premRefreshUI();
-
-// Photo produit : lecture + réduction (max 1600 px, JPEG) pour un envoi léger
-let premPhotoUrl = null;
-const premInput = document.getElementById("premInput");
-document.getElementById("premSlot").onclick = () => premInput.click();
-premInput.onchange = (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const img = new Image();
-  img.onload = () => {
-    const max = 1600, sc = Math.min(1, max / Math.max(img.width, img.height));
-    const c = document.createElement("canvas");
-    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
-    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-    premPhotoUrl = c.toDataURL("image/jpeg", 0.9);
-    const slot = document.getElementById("premSlot");
-    slot.style.backgroundImage = `url(${premPhotoUrl})`;
-    slot.textContent = ""; slot.style.minHeight = "160px";
-  };
-  img.src = URL.createObjectURL(f);
-};
-
-// Canevas blanc (sert d'image de départ pour l'Atelier Créatif : le modèle le remplace entièrement)
-function premBlankCanvas() {
-  const c = document.createElement("canvas");
-  c.width = 1024; c.height = 1024;
-  const ctx = c.getContext("2d");
-  ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, 1024, 1024);
-  return c.toDataURL("image/jpeg", 0.9);
-}
-
-function premPrompt() {
-  const t = (document.getElementById("premText").value || "").trim();
-  if (premMode === "studio") return "Place the exact product from the image in a professional photo studio setting: clean seamless background, soft studio lighting, subtle reflection, commercial product photography, ultra sharp, high-end advertising quality. Keep the product itself completely unchanged (same shape, colors, labels, text).";
-  if (premMode === "ambassador") return "A photorealistic African brand ambassador (well-dressed, friendly, professional model) holding and presenting the exact product from the image toward the camera, in a bright modern commercial setting, natural smile, advertising photography, high quality. Keep the product completely unchanged (same shape, colors, labels, text).";
-  if (premMode === "ad") return `Transform this into a professional advertising visual: keep the exact product unchanged, add an elegant commercial layout with the exact headline text "${t}" displayed prominently and beautifully (correct spelling, stylish typography), modern advertising design, vibrant, high quality.`;
-  return `Replace this blank canvas entirely with the following professional graphic design, centered, high quality, clean vector style, correct spelling of all text: ${t}`;
-}
-
-document.getElementById("premGo").onclick = async () => {
-  const conf = PREM_CONF[premMode];
-  const info = document.getElementById("premInfo");
-  const t = (document.getElementById("premText").value || "").trim();
-  if (conf.needPhoto && !premPhotoUrl) { info.textContent = "Charge d'abord la photo de ton produit."; return; }
-  if (conf.needText && !t) { info.textContent = "Écris d'abord ton texte."; return; }
-  const btn = document.getElementById("premGo");
-  btn.disabled = true; info.textContent = "✨ Création en cours (10-30 s)…";
-  try {
-    const path = "fal-ai/nano-banana/edit";
-    const job = await apiSubmit(path, {
-      prompt: premPrompt(),
-      image_urls: [conf.needPhoto ? premPhotoUrl : premBlankCanvas()],
-      num_images: 1,
-    });
-    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
-    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
-    for (let i = 0; i < 40; i++) {
-      await new Promise(r => setTimeout(r, 3000));
-      const sj = await apiPoll(statusUrl);
-      if (sj.status === "COMPLETED") break;
-      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La création a échoué. Réessaie ou reformule.");
-      info.textContent = `✨ Création en cours… (${(i + 1) * 3} s)`;
-    }
-    const data = await apiPoll(responseUrl);
-    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
-    if (!url) throw new Error("Résultat introuvable. Réessaie.");
-    lastPremImage = url; // v34.2 : mémorise l'image générée pour l'animer ensuite
-    info.innerHTML = `<span style="color:var(--ok)">✓ Création terminée !</span>`;
-    document.getElementById("premPreview").innerHTML = `
-      <img src="${url}" style="width:100%; border-radius:12px; margin-top:12px;">
-      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-        <a class="btn small" href="${url}" download target="_blank" style="text-decoration:none;">⬇ Télécharger</a>
-        <button class="btn small" id="premToVideo">🎬 Utiliser pour un Clip Produit (vidéo)</button>
-      </div>`;
-    document.getElementById("premToVideo").onclick = () => {
-      photoDataUrl = url;
-      const slot = document.getElementById("photoSlot");
-      slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled");
-      document.getElementById("photoLabel").textContent = "Image Premium (Clip Produit)";
-      info.innerHTML = `<span style="color:var(--ok)">✓ Image envoyée dans le volet 1 — écris ton scénario et génère ta vidéo !</span>`;
-      refresh();
-      document.getElementById("numKey")?.scrollIntoView({ behavior: "smooth" });
-    };
-  } catch (err) {
-    info.innerHTML = `<span style="color:var(--bad, #e66)">${err.message || err}</span>`;
-  } finally {
-    btn.disabled = false;
-  }
-};
-
-// ——— v34.2 : ANIMATION VIDÉO (dans Premium) ———
-let lastPremImage = null;   // image générée par Photo Studio / Influenceur
-let animMode = "photo";     // "photo" = anime l'image générée · "direct" = crée+anime par texte
-document.querySelectorAll("#animChips .chip").forEach(ch => {
-  ch.onclick = () => {
-    document.querySelectorAll("#animChips .chip").forEach(x => x.classList.remove("on"));
-    ch.classList.add("on");
-    animMode = ch.dataset.amode;
-    document.getElementById("animHint").textContent = (animMode === "photo")
-      ? "Anime l'image générée juste au-dessus. Décris ce qu'elle fait."
-      : "Crée un personnage à partir de rien : décris-le entièrement (allure, décor, action).";
-    document.getElementById("animText").placeholder = (animMode === "photo")
-      ? "Ex : l'influenceur tend le produit vers la caméra en souriant, la caméra tourne lentement autour de lui"
-      : "Ex : un jeune influenceur africain élégant, en costume, présente une bouteille de parfum dans un salon moderne, sourire, geste vers la caméra";
-  };
-});
-
-document.getElementById("animGo").onclick = async () => {
-  const info = document.getElementById("animInfo");
-  const txt = (document.getElementById("animText").value || "").trim();
-  if (!txt) { info.textContent = "Décris d'abord la scène."; return; }
-  if (animMode === "photo" && !lastPremImage) {
-    info.innerHTML = `<span style="color:var(--bad, #e66)">Génère d'abord une photo ci-dessus (Photo Studio ou Influenceur), puis anime-la.</span>`;
-    return;
-  }
-  const btn = document.getElementById("animGo");
-  btn.disabled = true;
-  info.textContent = "🎬 Animation en cours (1 à 3 min)… ne ferme pas la page.";
-  try {
-    // Kling v3 turbo pro gère image-to-video ET text-to-video (même endpoint)
-    const path = MODELS.pro.path;
-    const payload = { prompt: txt, duration: "5" };
-    if (animMode === "photo") payload.image_url = lastPremImage;
-    const job = await apiSubmit(path, payload);
-    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
-    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
-    let done = false;
-    for (let i = 0; i < 80; i++) {
-      await new Promise(r => setTimeout(r, 3000));
-      const sj = await apiPoll(statusUrl);
-      if (sj.status === "COMPLETED") { done = true; break; }
-      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("L'animation a échoué. Réessaie ou simplifie ta description.");
-      info.textContent = `🎬 Animation en cours… (${(i + 1) * 3} s)`;
-    }
-    if (!done) throw new Error("L'animation est trop longue. Réessaie dans un instant.");
-    const data = await apiPoll(responseUrl);
-    const vurl = data.video?.url || data.response?.video?.url;
-    if (!vurl) throw new Error("Vidéo introuvable. Réessaie.");
-    info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
-    document.getElementById("animPreview").innerHTML = `
-      <video src="${vurl}" controls playsinline style="width:100%; border-radius:12px; margin-top:12px;"></video>
-      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-        <a class="btn small" href="${vurl}" download target="_blank" style="text-decoration:none;">⬇ Télécharger la vidéo</a>
-        <button class="btn small" id="animToLip">🎤 Le faire parler (Lip-sync)</button>
-      </div>
-      <div class="sub" style="margin-top:8px;">Pour une voix synchronisée : clique « Le faire parler », puis dans le volet Lip-sync ajoute ton extrait audio.</div>`;
-    document.getElementById("animToLip").onclick = () => {
-      // Branche la vidéo animée sur le module Lip-sync existant (bouton « Dernière vidéo générée »)
-      try {
-        lastVideoUrl = vurl;
-        lastVideoDur = 5;
-        const useLast = document.getElementById("lipUseLast");
-        if (useLast) {
-          useLast.disabled = false;
-          pickLipSource("last");
-        }
-        const lipSection = document.getElementById("num3")?.closest("section");
-        if (lipSection && lipSection.scrollIntoView) lipSection.scrollIntoView({ behavior: "smooth" });
-        info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo envoyée au volet 🎤 Lip-sync. Ajoutes-y maintenant ton extrait audio pour qu'il parle.</span>`;
-      } catch (e) {
-        info.innerHTML = `<span style="color:var(--ok)">✓ Télécharge ta vidéo, puis descends au volet 🎤 Lip-sync et importe-la pour ajouter la voix.</span>`;
-      }
-    };
-  } catch (err) {
-    info.innerHTML = `<span style="color:var(--bad, #e66)">${err.message || err}</span>`;
-  } finally {
-    btn.disabled = false;
-  }
-};
-
-// ——— v34.4 : GALERIE VIDÉOS D'EXEMPLE ———
-// Les vidéos sont dans le même dossier que l'app (déposées à la racine du dépôt),
-// donc on les charge en chemin RELATIF : même origine que la page, aucun souci de domaine.
-// Repli automatique .mp4 → .MP4 au cas où un fichier aurait été nommé en majuscules.
-(function initVideoGallery(){
-  var names = ["exemple1","exemple2","exemple3","exemple4","exemple5","exemple6","exemple7","exemple8","exemple9"];
-  var box = document.getElementById("videoGallery");
-  if (!box) return;
-
-  // Écran plein pour lire une vidéo, avec bouton Retour
-  var lb = document.createElement("div");
-  lb.className = "vg-lightbox";
-  lb.innerHTML = '<button class="vg-back" type="button">\u2190 Retour</button><div class="vg-stage"></div>';
-  document.body.appendChild(lb);
-  var stage = lb.querySelector(".vg-stage");
-
-  function fermer(){
-    lb.classList.remove("on");
-    stage.innerHTML = "";
-    document.body.style.overflow = "";
-  }
-  function ouvrir(src){
-    stage.innerHTML = "";
-    var g = document.createElement("video");
-    g.src = src; g.controls = true; g.autoplay = true;
-    g.setAttribute("playsinline", "");
-    g.setAttribute("controlslist", "nodownload");
-    stage.appendChild(g);
-    lb.classList.add("on");
-    document.body.style.overflow = "hidden";
-    var pr = g.play(); if (pr && pr.catch) pr.catch(function(){});
-  }
-  lb.querySelector(".vg-back").onclick = fermer;
-  lb.addEventListener("click", function(e){ if (e.target === lb || e.target === stage) fermer(); });
-  document.addEventListener("keydown", function(e){ if (e.key === "Escape") fermer(); });
-
-  names.forEach(function(n){
-    var base = n + ".mp4";
-    var cell = document.createElement("div");
-    cell.className = "vg-thumb";
-    var v = document.createElement("video");
-    v.src = base + "#t=0.1";   // force l'affichage d'une image d'aperçu
-    v.preload = "metadata";
-    v.muted = true;
-    v.setAttribute("playsinline", "");
-    var triedUpper = false;
-    v.addEventListener("error", function(){
-      if (!triedUpper) { triedUpper = true; base = n + ".MP4"; v.src = base + "#t=0.1"; v.load(); }
-    });
-    cell.appendChild(v);
-    cell.addEventListener("click", function(){ ouvrir(base); });
-    box.appendChild(cell);
-  });
-})();
 
 </script>
 </body>
