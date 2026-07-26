@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.8 — visage protégé quand 2 personnes · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v33.9 — visage protégé + prompt jamais trop long · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -304,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.8 — visage protégé quand une 2e personne est présente</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v33.9 — visage protégé (2e personne) + prompt jamais trop long</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -696,7 +696,7 @@ document.getElementById("ideaGo").onclick = async () => {
     const path = "fal-ai/any-llm";
     const job = await apiSubmit(path, ({
         model: "google/gemini-2.5-flash",
-        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS de 70 à 110 mots, structuré ainsi : (1) le lieu et l'action exacts demandés en premier, en désignant le sujet principal comme 'the main person' ; (2) si une autre personne est présente dans la scène (hôtesse, danseurs, invités, serveur…), décris son interaction précise avec le sujet (ex : verse une boisson, danse à ses côtés) avec un mouvement physique réaliste et correct, ET précise TOUJOURS que cette autre personne est quelqu'un de complètement différent, avec son propre visage et sa propre identité, distincte du sujet principal (ex : 'a separate flight attendant, a completely different person with her own distinct face, NOT the main person') ; (3) éclairage cinématographique riche (ex : warm golden light, soft highlights, realistic reflections) adapté au lieu ; (4) UN SEUL mouvement de caméra clair et lent (ex : slow dolly-in, slow tracking shot) — jamais plusieurs plans ou coupes dans un même prompt ; (5) mouvement corporel naturel et discret (gentle breathing, soft eye blinking, slight head movement) — jamais de mouvement ample, rapide, de saut ou de rotation brusque. Si la personne chante : medium close-up framing, face large in the frame, no microphone or hands covering the mouth. N'invente et n'ajoute JAMAIS un objet, accessoire ou prop qui n'est pas déjà visible sur la photo ou explicitement demandé (ex : jamais un deuxième cigare, verre, bijou, chapeau en plus de celui déjà présent). Termine TOUJOURS par cette phrase de garde-fous, mot pour mot : 'high realism, natural skin texture, only the main person keeps the original face and identity, any other people are different individuals with their own distinct faces, exact same props and objects as the original photo, no duplicated or added items, no face copied onto other people, no extra fingers, no hand distortion, no body distortion, no floating objects, no unnatural motion, no artifacts.' Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
+        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS, CONCIS, de 55 à 80 mots MAXIMUM, structuré ainsi : (1) le lieu et l'action exacts demandés en premier, en désignant le sujet principal comme 'the main person' ; (2) si une autre personne est présente (hôtesse, danseurs, invités, serveur…), décris brièvement son interaction avec le sujet ET précise TOUJOURS qu'elle est 'a completely different person with her own distinct face, NOT the main person' ; (3) éclairage cinématographique bref (ex : warm golden light, soft reflections) ; (4) UN SEUL mouvement de caméra lent (ex : slow dolly-in) ; (5) mouvement corporel naturel et discret. Si la personne chante : medium close-up, face large in the frame, no microphone or hands covering the mouth. N'invente JAMAIS un objet ou accessoire absent de la photo ou non demandé. Reste bref : ne dépasse pas 80 mots. Ne termine par AUCUNE phrase de garde-fous technique (elle est ajoutée automatiquement par l'app). Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
         prompt: idea,
       }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -878,7 +878,7 @@ function setStatus(html, pct) {
 
 // v33.1 : garde-fous partagés entre la génération simple et le Multi-plans
 const OBJECT_GUARD = " Keep exactly the same objects, props and accessories as in the original photo — do not add, duplicate or multiply any item (e.g. if there is already a cigar, glass, jewelry or hat, keep only that single one, never add a second one or a new one in the hands).";
-const QUALITY_GUARD = " Framing: keep every person fully in frame at all times, heads and shoulders never cropped, no reframing that cuts subjects. Faces: eyes naturally open throughout, natural relaxed expressions. Physics: any liquid, pouring, or object interaction must be physically realistic and subtle (e.g. champagne pours as a thin clear stream with minimal foam). Motion: smooth, slow, natural — no sudden or exaggerated movement. no extra fingers, no hand distortion, no body distortion, no floating objects, no artifacts.";
+const QUALITY_GUARD = " Only the main person keeps the original face and identity; any other people (attendant, dancers, guests) are different individuals with their own distinct faces, never the main person's face. Framing: keep every person fully in frame at all times, heads and shoulders never cropped, no reframing that cuts subjects. Faces: eyes naturally open throughout, natural relaxed expressions. Physics: any liquid, pouring, or object interaction must be physically realistic and subtle (e.g. champagne pours as a thin clear stream with minimal foam). Motion: smooth, slow, natural — no sudden or exaggerated movement. no extra fingers, no hand distortion, no body distortion, no floating objects, no artifacts.";
 
 document.getElementById("go").onclick = async () => {
   const basePrompt = document.getElementById("prompt").value.trim();
@@ -888,9 +888,19 @@ document.getElementById("go").onclick = async () => {
   // que le scénario vienne de l'assistant OU soit écrit/collé à la main par le client.
   const qualityGuard = QUALITY_GUARD;
   const faceGuard = buildFaceGuard();
-  const prompt = (lipOptim
+  let prompt = (lipOptim
     ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
     : basePrompt) + objectGuard + qualityGuard + faceGuard;
+  // v33.9 : filet de sécurité absolu — Kling limite le prompt à 2500 caractères.
+  // En mode ref, un préfixe (~240 car.) est ajouté ensuite : on garde une marge.
+  // On coupe proprement à la fin d'un mot, jamais au milieu.
+  const PROMPT_MAX = model === "ref" ? 2240 : 2480;
+  if (prompt.length > PROMPT_MAX) {
+    let cut = prompt.slice(0, PROMPT_MAX - 1);
+    const sp = cut.lastIndexOf(" ");
+    if (sp > PROMPT_MAX * 0.6) cut = cut.slice(0, sp);
+    prompt = cut.trim();
+  }
   const m = MODELS[model];
   document.getElementById("go").disabled = true;
   document.getElementById("resultZone").innerHTML = "";
