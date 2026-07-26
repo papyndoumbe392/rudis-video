@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.0 — plan large, un seul verre, idée FR ou EN · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.1 — Créer le décor par IA (vraie scène) · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -179,6 +179,14 @@
     <div class="label">Scénario professionnel (généré ou écrit à la main)</div>
     <textarea id="prompt" placeholder="Décris la vidéo… Ex : The man sings passionately and dances to an afrobeats groove at sunset on a beach, smooth camera orbit, warm cinematic light. (l'anglais donne de meilleurs résultats)"></textarea>
 
+    <div class="estimate" id="decorBox" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px; margin-top:10px;">
+      <b style="color:var(--gold)">🎨 Créer une vraie image de la scène · Build a real scene image (optionnel)</b>
+      <div style="font-size:13px; color:var(--dim); margin-top:6px;">Pour les décors riches (jet privé, villa, boîte de nuit…), l'IA crée d'abord une <b>vraie image complète de la scène avec ton visage</b>, puis tu l'animes. Bien meilleur qu'un simple portrait. · For rich scenery, the AI first builds a full scene image with your face, then you animate it.</div>
+      <button class="btn" id="decorGo" style="margin-top:10px;">🎨 Créer le décor par IA · Build the scene (≈ 0,04 $)</button>
+      <div class="estimate" id="decorInfo" style="margin-top:8px;"></div>
+      <div id="decorPreview"></div>
+    </div>
+
     <div class="label">Qualité / Prix</div>
     <div class="chips">
       <button class="chip on" data-model="eco" onclick="pickModel(this)">Éco — ≈0,28 $ / 5 s</button>
@@ -304,7 +312,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.0 — plan large + un seul verre + idée en français ou anglais</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.1 — Créer une vraie image de scène par IA (jet, villa…) puis animer</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -864,6 +872,77 @@ async function transformOutfit() {
     info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
   } finally { btn.disabled = false; }
 }
+
+// ——— v34.1 : Créer une vraie image de scène par IA (nano-banana/edit, déjà autorisé par le Worker) ———
+// On part de la photo du client + ses photos de référence visage, et on compose
+// un VRAI décor complet autour de lui (au lieu de juste prolonger un portrait).
+// L'image obtenue devient la photo de départ (photoDataUrl) pour l'animation Kling.
+document.getElementById("decorGo").onclick = async () => {
+  const info = document.getElementById("decorInfo");
+  const base = stylePhotoUrl || photoDataUrl;
+  if (!base) { info.innerHTML = `<span class="err">Ajoute d'abord ta photo (volet 1). · Add your photo first.</span>`; return; }
+  // Description de la scène : on prend le scénario s'il existe, sinon l'idée simple.
+  const scene = (document.getElementById("prompt").value.trim()
+    || document.getElementById("ideaFr").value.trim());
+  if (!scene || scene.length < 4) {
+    info.innerHTML = `<span class="err">Décris d'abord la scène (case scénario ou idée). · Describe the scene first.</span>`;
+    return;
+  }
+  const faceRefs = faceRefUrls.filter(Boolean);
+  const images = [base, ...faceRefs]; // photo d'abord, puis références visage pour ancrer l'identité
+  const btn = document.getElementById("decorGo");
+  btn.disabled = true;
+  info.textContent = "🎨 Création du décor en cours (10–40 s)…";
+  try {
+    const path = "fal-ai/nano-banana/edit";
+    const facePart = faceRefs.length
+      ? " Use the additional reference images ONLY to keep the main person's face and identity exactly right."
+      : "";
+    const decorPrompt = "Recreate this as a single photorealistic cinematic photograph placing the main person (from the first image) inside the following complete, richly detailed scene: " + scene
+      + ". Build the FULL real environment around them with correct depth, furniture and background details true to that location (not a blurred or extended portrait). Keep the main person's exact face, identity, skin tone and hairstyle unchanged." + facePart
+      + " If another person is described (attendant, dancer, guest), they must be a completely different person with their own distinct face, NOT the main person. Only one of each object, no duplicated glasses or props. Natural realistic lighting, high detail, high quality, 16:9 wide framing showing the whole scene.";
+    const job = await apiSubmit(path, {
+      prompt: decorPrompt,
+      image_urls: images,
+      num_images: 1,
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La création du décor a échoué. Réessaie. · Scene build failed, try again.");
+      info.textContent = `🎨 Création du décor… (${(i + 1) * 3} s)`;
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) throw new Error("Image de décor introuvable. Réessaie. · Scene image not found.");
+    info.innerHTML = `<span style="color:var(--ok)">✓ Décor créé ! Touche « Utiliser » pour l'animer, ou régénère. · Scene ready!</span>`;
+    document.getElementById("decorPreview").innerHTML = `
+      <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <button class="btn small" id="decorUse">✓ Utiliser cette image · Use this image</button>
+        <button class="btn small" id="decorRevert" style="opacity:.8;">↩ Revenir à ma photo · Back to my photo</button>
+      </div>`;
+    document.getElementById("decorUse").onclick = () => {
+      photoDataUrl = url;
+      stylePhotoUrl = null;
+      const slot = document.getElementById("photoSlot");
+      if (slot) { slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled"); }
+      const lbl = document.getElementById("photoLabel");
+      if (lbl) lbl.textContent = "Décor créé par IA";
+      info.innerHTML = `<span style="color:var(--ok)">✓ Décor utilisé comme photo de départ (volet 1) ! Choisis maintenant Qualité/Prix et génère la vidéo.</span>`;
+      refresh();
+    };
+    document.getElementById("decorRevert").onclick = () => {
+      document.getElementById("decorPreview").innerHTML = "";
+      info.textContent = "Photo d'origine conservée. · Original photo kept.";
+    };
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { btn.disabled = false; }
+};
 
 // ——— Génération ———
 const statusBox = document.getElementById("status");
