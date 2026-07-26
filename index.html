@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.1 — Créer le décor par IA (vraie scène) · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.2 — décor + éclaircissement auto + bouton clignotant · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -39,6 +39,13 @@
   .btn { padding:9px 16px; border-radius:8px; border:1px solid var(--gold); background:transparent;
     color:var(--gold); font-size:13px; font-weight:600; cursor:pointer; }
   .btn.small { padding:5px 11px; font-size:11.5px; border-color:var(--line); color:var(--dim); }
+  @keyframes pulseGlow {
+    0%   { box-shadow:0 0 0 0 rgba(212,175,55,.55); transform:scale(1); }
+    50%  { box-shadow:0 0 14px 4px rgba(212,175,55,.55); transform:scale(1.04); }
+    100% { box-shadow:0 0 0 0 rgba(212,175,55,.55); transform:scale(1); }
+  }
+  .btn.pulse { border-color:var(--gold); color:var(--gold); font-weight:700;
+    animation:pulseGlow 1.3s ease-in-out infinite; }
   .photo-slot { width:104px; height:104px; border-radius:12px; border:1.5px dashed var(--line);
     background:var(--up); display:flex; align-items:center; justify-content:center; color:var(--dim);
     font-size:26px; cursor:pointer; background-size:cover; background-position:center; flex-shrink:0; }
@@ -312,7 +319,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.1 — Créer une vraie image de scène par IA (jet, villa…) puis animer</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.2 — décor IA + photos éclaircies automatiquement + bouton d'usage clignotant</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -609,6 +616,33 @@ async function aiExtendPhoto(ratio) {
   }
 }
 
+// v34.2 : éclaircissement cinématographique automatique des photos trop sombres.
+// Mesure la luminosité ; ne corrige QUE si l'image est sombre (une photo déjà claire
+// n'est jamais délavée). Remonte les ombres (gamma), protège les hautes lumières
+// (fenêtres, lampes) d'un rolloff doux. Tout se fait dans le navigateur, sans serveur.
+// Retourne true si une correction a été appliquée (pour afficher le petit message).
+function autoBrighten(canvas) {
+  const ctx = canvas.getContext("2d");
+  let id;
+  try { id = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+  catch (e) { return false; } // image distante protégée (CORS) → on ne touche pas
+  const d = id.data;
+  let sum = 0;
+  for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+  const mean = sum / (d.length / 4);
+  if (mean >= 95) return false; // déjà assez lumineux : on ne fait rien
+  const gamma = mean < 60 ? 0.62 : (mean < 80 ? 0.72 : 0.82); // plus c'est sombre, plus on remonte
+  const lut = new Uint8ClampedArray(256);
+  for (let v = 0; v < 256; v++) {
+    let x = Math.pow(v / 255, gamma);
+    if (x > 0.8) x = 0.8 + (x - 0.8) * 0.6; // protège les hautes lumières
+    lut[v] = Math.round(Math.min(1, x) * 255);
+  }
+  for (let i = 0; i < d.length; i += 4) { d[i] = lut[d[i]]; d[i + 1] = lut[d[i + 1]]; d[i + 2] = lut[d[i + 2]]; }
+  ctx.putImageData(id, 0, 0);
+  return true;
+}
+
 // Recadre au format choisi SANS jamais couper le sujet : fond flouté agrandi en arrière-plan,
 // image complète posée par-dessus (comme Instagram/Canva "étendre l'arrière-plan").
 function applyPhotoRatio(ratio, label) {
@@ -640,13 +674,16 @@ function applyPhotoRatio(ratio, label) {
     const iw = img.width * containScale, ih = img.height * containScale;
     ctx.drawImage(img, (tw - iw) / 2, (th - ih) / 2, iw, ih);
   }
+  const brightened = autoBrighten(c);
   photoDataUrl = c.toDataURL("image/jpeg", 0.9);
   stylePhotoUrl = null;
   const op = document.getElementById("outfitPreview"); if (op) op.innerHTML = "";
   const slot = document.getElementById("photoSlot");
   slot.style.backgroundImage = `url(${photoDataUrl})`;
   slot.textContent = ""; slot.classList.add("filled");
-  document.getElementById("photoLabel").textContent = label;
+  document.getElementById("photoLabel").innerHTML = label + (brightened
+    ? ` <span style="color:var(--ok)">· ✓ photo éclaircie</span>`
+    : "");
   refresh();
 }
 
@@ -922,10 +959,11 @@ document.getElementById("decorGo").onclick = async () => {
     document.getElementById("decorPreview").innerHTML = `
       <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-        <button class="btn small" id="decorUse">✓ Utiliser cette image · Use this image</button>
+        <button class="btn small pulse" id="decorUse">✓ Utiliser cette image · Use this image</button>
         <button class="btn small" id="decorRevert" style="opacity:.8;">↩ Revenir à ma photo · Back to my photo</button>
       </div>`;
     document.getElementById("decorUse").onclick = () => {
+      document.getElementById("decorUse").classList.remove("pulse");
       photoDataUrl = url;
       stylePhotoUrl = null;
       const slot = document.getElementById("photoSlot");
