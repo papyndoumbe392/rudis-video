@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v33.9 — visage protégé + prompt jamais trop long · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.0 — plan large, un seul verre, idée FR ou EN · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -171,8 +171,8 @@
 
   <section class="card">
     <h2><span class="num" id="num2">2</span> Scénario du clip <span class="dot" id="dot2"></span></h2>
-    <div class="label" style="margin-top:0;">✨ Décris ton idée simplement (en français)</div>
-    <textarea id="ideaFr" rows="2" placeholder="Ex : je chante sur la plage au coucher du soleil et je danse sur le refrain" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
+    <div class="label" style="margin-top:0;">✨ Décris ton idée simplement · Describe your idea simply <span style="opacity:.7">(FR / EN)</span></div>
+    <textarea id="ideaFr" rows="2" placeholder="En français ou en anglais · Ex : je chante sur la plage au coucher du soleil / I sing on the beach at sunset" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
     <button class="btn" id="ideaGo" style="margin-top:8px;">✨ Écrire mon scénario professionnel</button>
     <div class="estimate" id="ideaInfo"></div>
 
@@ -304,7 +304,7 @@
   </section>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v33.9 — visage protégé (2e personne) + prompt jamais trop long</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.0 — plan large + un seul verre + idée en français ou anglais</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -696,7 +696,7 @@ document.getElementById("ideaGo").onclick = async () => {
     const path = "fal-ai/any-llm";
     const job = await apiSubmit(path, ({
         model: "google/gemini-2.5-flash",
-        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés par l'utilisateur — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS, CONCIS, de 55 à 80 mots MAXIMUM, structuré ainsi : (1) le lieu et l'action exacts demandés en premier, en désignant le sujet principal comme 'the main person' ; (2) si une autre personne est présente (hôtesse, danseurs, invités, serveur…), décris brièvement son interaction avec le sujet ET précise TOUJOURS qu'elle est 'a completely different person with her own distinct face, NOT the main person' ; (3) éclairage cinématographique bref (ex : warm golden light, soft reflections) ; (4) UN SEUL mouvement de caméra lent (ex : slow dolly-in) ; (5) mouvement corporel naturel et discret. Si la personne chante : medium close-up, face large in the frame, no microphone or hands covering the mouth. N'invente JAMAIS un objet ou accessoire absent de la photo ou non demandé. Reste bref : ne dépasse pas 80 mots. Ne termine par AUCUNE phrase de garde-fous technique (elle est ajoutée automatiquement par l'app). Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
+        system_prompt: "Tu es un directeur artistique expert en prompts de génération vidéo IA (image-to-video) pour clips musicaux, niveau spot publicitaire de luxe. L'utilisateur écrit son idée en FRANÇAIS OU EN ANGLAIS — comprends les deux. RÈGLE ABSOLUE : respecte FIDÈLEMENT le lieu, l'action et les détails demandés — ne les remplace jamais, ne les déplace jamais (s'il dit une rue de Monaco, c'est une rue de Monaco ; s'il dit un jet privé, c'est un jet privé). Transforme son idée en UN prompt professionnel EN ANGLAIS, CONCIS, de 55 à 80 mots MAXIMUM, structuré ainsi : (1) le lieu et l'action exacts demandés en premier, en désignant le sujet principal comme 'the main person'. Si l'utilisateur décrit un LIEU riche (jet privé, cabine, villa, rue, plage, boîte de nuit…), commence par un plan large qui montre bien le décor : 'wide establishing shot showing the full [lieu]' ; (2) si une autre personne est présente (hôtesse, danseurs, invités, serveur…), décris brièvement son interaction avec le sujet ET précise TOUJOURS qu'elle est 'a completely different person with her own distinct face, NOT the main person'. Pour une scène de service (champagne, boisson), l'action est SIMPLE et UNIQUE : the attendant pours once into the single glass the main person already holds — never a second glass, never bringing a full glass to his mouth, only one glass total in the whole scene ; (3) éclairage cinématographique bref (ex : warm golden light, soft reflections) ; (4) UN SEUL mouvement de caméra lent (ex : slow dolly-out revealing the space) ; (5) mouvement corporel naturel et discret. Si la personne chante : medium close-up, face large in the frame, no microphone or hands covering the mouth. N'invente JAMAIS un objet ou accessoire absent de la photo ou non demandé. Reste bref : ne dépasse pas 80 mots. Ne termine par AUCUNE phrase de garde-fous technique (elle est ajoutée automatiquement par l'app). Réponds UNIQUEMENT avec le prompt, sans guillemets ni commentaire.",
         prompt: idea,
       }));
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -938,7 +938,7 @@ document.getElementById("go").onclick = async () => {
         prompt: prompt,
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
-        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides, same face on two people, cloned face, twin faces, identical people, duplicated person, other people with the main person face, face copied onto another person" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
+        negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, second glass, two glasses, extra champagne glass, duplicated glass, glass brought to mouth by another person, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides, same face on two people, cloned face, twin faces, identical people, duplicated person, other people with the main person face, face copied onto another person" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
       };
     }
     const job = await apiSubmit(m.path, payload);
