@@ -25,6 +25,13 @@
     background-image:radial-gradient(ellipse 70% 40% at 50% -5%, rgba(139,108,242,.14), transparent);
   }
   .wrap { max-width:640px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 24px) 16px 40px; }
+  /* Ordinateur (grand écran) : l'app remplit la page. L'en-tête reste pleine largeur,
+     et les sections se répartissent sur 2 colonnes. Mobile : inchangé (1 colonne). */
+  @media (min-width: 1000px) {
+    .wrap { max-width:1180px; padding-left:32px; padding-right:32px; }
+    .cards-area { column-count:2; column-gap:22px; }
+    .cards-area > .card { break-inside:avoid; -webkit-column-break-inside:avoid; margin-top:0; margin-bottom:22px; display:inline-block; width:100%; }
+  }
   .eyebrow { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
   h1 { font-size:clamp(26px,7vw,36px); font-weight:700; line-height:1.1; }
   h1 span { color:var(--gold); }
@@ -98,6 +105,7 @@
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
   </header>
 
+  <div class="cards-area">
   <!-- RÉGLAGES / CLÉ -->
   <section class="card">
     <h2><span class="num" id="numKey">🎟️</span> Ton code StarClip <span class="dot" id="dotKey"></span></h2>
@@ -353,9 +361,10 @@
       💬 Demander mon Clip Signature
     </a>
   </section>
+  </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.5 — Clip Signature (pro)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.6 — plein écran ordinateur</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
