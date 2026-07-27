@@ -287,13 +287,13 @@
     .example p { margin: 0; color: rgba(255,255,255,.7); font-size: 13px; }
 
     /* v1.1 : galerie des vrais clips (vidéos du dépôt) */
-    .video-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .video-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; }
     .clip {
       position: relative;
-      aspect-ratio: 3 / 4;
+      aspect-ratio: 1 / 1;
       overflow: hidden;
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 10px;
       background: #000;
       cursor: pointer;
     }
@@ -302,8 +302,8 @@
       content: "\25B6";
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      color: #fff; font-size: 19px;
-      text-shadow: 0 2px 10px rgba(0,0,0,.85);
+      color: #fff; font-size: 13px;
+      text-shadow: 0 2px 8px rgba(0,0,0,.9);
       pointer-events: none;
     }
     /* v1.3 : lecture en plein écran avec bouton Retour */
@@ -364,7 +364,7 @@
       .features { grid-template-columns: repeat(2, 1fr); }
       .gallery { grid-template-columns: 1fr 1fr; }
       .gallery .example:first-child { grid-column: 1 / -1; }
-      .video-grid { grid-template-columns: repeat(4, 1fr); }
+      .video-grid { grid-template-columns: repeat(6, 1fr); }
       .pricing { grid-template-columns: 1fr; }
       .plan-desc, .plan ul { min-height: 0; }
     }
@@ -387,7 +387,7 @@
       .scene { min-height: 175px; }
       .section { padding-block: 72px; }
       .features, .gallery { grid-template-columns: 1fr; }
-      .video-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .video-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
       .gallery .example:first-child { grid-column: auto; }
       .example { min-height: 320px; }
       .cta { padding: 55px 20px; margin-block: 55px 75px; }
@@ -521,7 +521,7 @@
 
   <footer>
     <div class="container footer-inner">
-      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.3 — vignettes + lecture plein écran</b></span>
+      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.4 — vignettes compactes + plein écran</b></span>
       <span>Création vidéo à partir de vos images</span>
     </div>
   </footer>

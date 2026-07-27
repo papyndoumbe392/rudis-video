@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v34.7 — galerie clips restaurée · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v34.9 — vignettes compactes · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -32,19 +32,19 @@
     .cards-area { column-count:2; column-gap:22px; }
     .cards-area > .card { break-inside:avoid; -webkit-column-break-inside:avoid; margin-top:0; margin-bottom:22px; display:inline-block; width:100%; }
   }
-  /* v34.7 : galerie des clips d'exemple — petites vignettes, 3 par ligne sur téléphone,
-     4 sur tablette, 5 sur ordinateur. On touche une vignette → la vidéo s'ouvre en
-     plein écran avec un bouton « ← Retour » pour revenir à la galerie. */
-  .video-gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
-  @media (min-width:560px){ .video-gallery { grid-template-columns:repeat(4,1fr); gap:10px; } }
-  @media (min-width:1000px){ .video-gallery { grid-template-columns:repeat(5,1fr); gap:12px; } }
-  .vg-thumb { position:relative; aspect-ratio:3/4; border-radius:10px; overflow:hidden;
+  /* v34.9 : galerie des clips — très petites vignettes carrées, 4 par ligne sur
+     téléphone, 6 sur tablette, 8 sur ordinateur. On touche une vignette → la vidéo
+     s'ouvre en PLEIN ÉCRAN avec un bouton « ← Retour » (comportement inchangé). */
+  .video-gallery { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:4px; }
+  @media (min-width:560px){ .video-gallery { grid-template-columns:repeat(6,1fr); gap:8px; } }
+  @media (min-width:1000px){ .video-gallery { grid-template-columns:repeat(8,1fr); gap:10px; } }
+  .vg-thumb { position:relative; aspect-ratio:1/1; border-radius:8px; overflow:hidden;
     background:#000; cursor:pointer; border:1px solid var(--line); }
   .vg-thumb video { width:100%; height:100%; margin:0; border-radius:0;
     object-fit:cover; display:block; pointer-events:none; }
   .vg-thumb::after { content:"\25B6"; position:absolute; inset:0; display:flex;
-    align-items:center; justify-content:center; color:#fff; font-size:19px;
-    text-shadow:0 2px 10px rgba(0,0,0,.85); pointer-events:none; }
+    align-items:center; justify-content:center; color:#fff; font-size:13px;
+    text-shadow:0 2px 8px rgba(0,0,0,.9); pointer-events:none; }
   .vg-lightbox { position:fixed; inset:0; z-index:9999; background:rgba(8,6,12,.97);
     display:none; flex-direction:column; }
   .vg-lightbox.on { display:flex; }
@@ -334,7 +334,10 @@
       <button class="chip" data-t2iratio="9:16" onclick="pickT2iRatio(this)">📱 9:16</button>
       <button class="chip" data-t2iratio="1:1" onclick="pickT2iRatio(this)">◻️ 1:1</button>
     </div>
-    <button class="btn" id="t2iGo" style="margin-top:12px;">🎨 Créer l'image · Create image (≈ 0,04 $)</button>
+    <div id="t2iLock" class="estimate" style="border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
+      🔒 <b>Réservé aux packs Pro.</b> Entre ton code StarClip en haut de l'app. Si tu as un pack Éco, commande un <b>Pack Pro</b> sur WhatsApp pour débloquer le Studio Images.
+    </div>
+    <button class="btn" id="t2iGo" style="margin-top:12px;" disabled>🎨 Créer l'image · Create image (≈ 0,04 $)</button>
     <div class="estimate" id="t2iInfo" style="margin-top:8px;"></div>
     <div id="t2iPreview"></div>
   </section>
@@ -392,7 +395,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v34.7 — galerie clips + plein écran (fusion des 2 versions)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v34.9 — vignettes compactes (4 par ligne) + packs Éco / Pro</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -534,6 +537,32 @@ const MODELS = {
   ref: { path: "fal-ai/kling-video/o3/pro/reference-to-video", perSec: 0.112 }, // v33.1 : Kling 3.0 (o3), sans audio natif = même prix
 };
 
+// ——— v34.8 : plan du client (eco / pro), renvoyé par le Worker sur /balance ———
+let clientPlan = "eco";
+
+// Adapte l'interface au plan : déverrouille le Studio Images pour les packs Pro,
+// et grise le mode « Pro » pour les packs Éco (le serveur le refuserait de toute façon).
+function appliquerPlan() {
+  const pro = clientPlan === "pro";
+
+  const lock = document.getElementById("t2iLock");
+  const t2i = document.getElementById("t2iGo");
+  if (lock) lock.style.display = pro ? "none" : "block";
+  if (t2i) t2i.disabled = !pro;
+
+  const chipPro = document.querySelector('[data-model="pro"]');
+  if (chipPro) {
+    chipPro.disabled = !pro;
+    chipPro.style.opacity = pro ? "" : ".45";
+    chipPro.title = pro ? "" : "Réservé aux packs Pro";
+    // Si le client était sur « Pro » avec un pack Éco, on le ramène sur Éco.
+    if (!pro && model === "pro") {
+      const chipEco = document.querySelector('[data-model="eco"]');
+      if (chipEco) pickModel(chipEco);
+    }
+  }
+}
+
 // ——— Clé API ———
 const codeInput = document.getElementById("starCode");
 codeInput.value = localStorage.getItem("starCode") || "";
@@ -550,7 +579,13 @@ async function checkCode() {
     const r = await fetch(WORKER_URL + "/balance", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || "Code inconnu.");
-    info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}.</span>`;
+    clientPlan = d.plan === "pro" ? "pro" : "eco";
+    const badge = clientPlan === "pro"
+      ? ` · <b style="color:var(--violet)">Pack PRO</b>`
+      : ` · <span style="color:var(--dim)">Pack Éco</span>`;
+    const imgTxt = (typeof d.imgLeft === "number") ? ` · ${d.imgLeft} image${d.imgLeft > 1 ? "s" : ""} incluse${d.imgLeft > 1 ? "s" : ""}` : "";
+    info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}${badge}${imgTxt}</span>`;
+    appliquerPlan();
   } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
   refresh();
 }
@@ -566,6 +601,8 @@ async function apiSubmit(modelPath, payload) {
   const r = await fetch(WORKER_URL + "/gen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, path: modelPath, payload }) });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.error || ("Envoi refusé (" + r.status + ")"));
+  // v34.8 : le serveur renvoie le plan à chaque appel — on garde l'interface synchronisée
+  if (d.plan && d.plan !== clientPlan) { clientPlan = d.plan; appliquerPlan(); }
   if (typeof d.left === "number") {
     const ci = document.getElementById("codeInfo");
     if (ci) ci.innerHTML = `<span style="color:var(--ok)">🎟️ ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ce code.</span>`;
@@ -1940,6 +1977,7 @@ function renderTrimRow(container, videoUrl, defaultEnd) {
 setupLipsync();
 initFaceRefSlots();
 refresh();
+appliquerPlan();
 
 // ——— PWA : service worker ———
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");

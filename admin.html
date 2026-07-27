@@ -32,6 +32,11 @@
   <div class="card">
     <label>Ton PIN d'administrateur</label>
     <input type="password" id="pin" placeholder="Le code configuré dans Cloudflare" inputmode="text" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label>Type de pack</label>
+    <select id="plan" style="width:100%; padding:11px 12px; border-radius:8px; border:1px solid var(--line); background:var(--up); color:var(--text); font-size:15px; font-family:inherit;">
+      <option value="eco">Éco — Essai Star, Pack Social, Pack Créateur</option>
+      <option value="pro">Pro — Pack Pro, Pack Pro Plus (débloque Studio Images + mode Pro)</option>
+    </select>
     <label>Nombre de vidéos par code</label>
     <input type="number" id="videos" value="1" min="1" max="100">
     <label>Nombre de codes à créer</label>
@@ -46,6 +51,14 @@
     <input type="text" id="falkey" placeholder="Colle ici ta clé fal.ai (fal.ai → Keys → Copie Clé)" autocapitalize="off" autocorrect="off">
     <button id="savekey">🔑 Enregistrer la clé</button>
     <div id="keymsg" style="margin-top:10px; font-size:13.5px; line-height:1.5;"></div>
+  </div>
+
+  <div class="card">
+    <label>Faire passer un code existant en Pro</label>
+    <input type="text" id="upCode" placeholder="Ex : STAR-7K3M" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false">
+    <button id="toPro">⬆️ Passer ce code en Pro</button>
+    <button class="ghost" id="toEco" style="margin-top:8px;">⬇️ Le remettre en Éco</button>
+    <div id="upMsg" style="margin-top:10px; font-size:13.5px; line-height:1.5;"></div>
   </div>
 
   <div class="card">
@@ -74,17 +87,30 @@ $("savekey").onclick = async () => {
 $("create").onclick = async () => {
   $("msg").innerHTML = "Création…"; $("newCodes").innerHTML = "";
   try {
-    const d = await api("/admin/create", { pin: $("pin").value.trim(), videos: $("videos").value, count: $("count").value });
-    $("msg").innerHTML = `<span class="ok">✓ ${d.codes.length} code(s) créé(s) — ${d.videos} vidéo(s) chacun. Envoie-le(s) au client sur WhatsApp :</span>`;
+    const d = await api("/admin/create", { pin: $("pin").value.trim(), videos: $("videos").value, count: $("count").value, plan: $("plan").value });
+    const nomPlan = d.plan === "pro" ? "PRO" : "Éco";
+    $("msg").innerHTML = `<span class="ok">✓ ${d.codes.length} code(s) <b>${nomPlan}</b> créé(s) — ${d.videos} vidéo(s) chacun. Envoie-le(s) au client sur WhatsApp :</span>`;
     d.codes.forEach(c => { const b = document.createElement("div"); b.className = "codebox"; b.textContent = c; $("newCodes").appendChild(b); });
   } catch (e) { $("msg").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
 };
+async function changerPlan(plan) {
+  const code = $("upCode").value.trim().toUpperCase();
+  if (!code) { $("upMsg").innerHTML = `<span class="err">Entre d'abord le code à modifier.</span>`; return; }
+  $("upMsg").innerHTML = "Modification…";
+  try {
+    const d = await api("/admin/setplan", { pin: $("pin").value.trim(), code, plan });
+    $("upMsg").innerHTML = `<span class="ok">✓ Le code ${d.code} est maintenant un pack <b>${d.plan === "pro" ? "PRO" : "Éco"}</b>.</span>`;
+  } catch (e) { $("upMsg").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
+}
+$("toPro").onclick = () => changerPlan("pro");
+$("toEco").onclick = () => changerPlan("eco");
+
 $("list").onclick = async () => {
   $("listOut").innerHTML = "Chargement…";
   try {
     const d = await api("/admin/list", { pin: $("pin").value.trim() });
-    let h = "<table><tr><th>Code</th><th>Restantes</th><th>Utilisées</th></tr>";
-    d.codes.forEach(c => h += `<tr><td><b>${c.code}</b></td><td class="${c.left>0?'ok':'dim'}">${c.left}/${c.total}</td><td>${c.used}</td></tr>`);
+    let h = "<table><tr><th>Code</th><th>Pack</th><th>Restantes</th><th>Images</th></tr>";
+    d.codes.forEach(c => h += `<tr><td><b>${c.code}</b></td><td class="${c.plan==='pro'?'ok':'dim'}">${c.plan==='pro'?'PRO':'Éco'}</td><td class="${c.left>0?'ok':'dim'}">${c.left}/${c.total}</td><td>${c.imgUsed||0}</td></tr>`);
     $("listOut").innerHTML = h + "</table>";
   } catch (e) { $("listOut").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
 };
