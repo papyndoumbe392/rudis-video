@@ -400,7 +400,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.0 — lecteur plein écran adapté aux vidéos verticales</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v35.1 — remplacement total de la tenue (fini les habits qui se superposent)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -979,7 +979,7 @@ async function transformOutfit() {
   try {
     const path = "fal-ai/nano-banana/edit";
     const job = await apiSubmit(path, ({
-        prompt: tryPrompt || `Change the person's outfit to ${desc}. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
+        prompt: tryPrompt || `Completely REPLACE every piece of clothing worn by the person with this new outfit: ${desc}. Remove entirely the original garments — jacket, sleeves, shirt, trousers, hat, shoes and any accessory — so that NO element of the original clothing remains visible anywhere in the image, not even a sleeve, collar, cuff or trouser leg. Regenerate the full body wearing only the new outfit, coherent from head to toe, no overlapping layers, no leftover fabric of another color. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
         image_urls: images,
         num_images: 1,
       }));
