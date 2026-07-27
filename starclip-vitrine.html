@@ -315,8 +315,12 @@
       background: rgba(255,255,255,.07); color: var(--text);
       font-size: 15px; font-weight: 760; cursor: pointer;
     }
-    .vg-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .vg-stage video { width: 100%; max-width: 900px; max-height: 100%; border-radius: 14px; background: #000; }
+    /* v1.5 : le lecteur s'adapte à tous les formats (min-height:0 indispensable,
+       sinon une vidéo verticale 9:16 dépasse la hauteur de l'écran). */
+    .vg-stage { flex: 1 1 auto; min-height: 0; display: flex;
+      align-items: center; justify-content: center; padding: 16px; overflow: hidden; }
+    .vg-stage video { width: auto; height: auto; max-width: 100%; max-height: 100%;
+      object-fit: contain; border-radius: 14px; background: #000; }
 
     .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
     .plan {
@@ -521,7 +525,7 @@
 
   <footer>
     <div class="container footer-inner">
-      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.4 — vignettes compactes + plein écran</b></span>
+      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.5 — lecteur adapté aux vidéos verticales</b></span>
       <span>Création vidéo à partir de vos images</span>
     </div>
   </footer>
