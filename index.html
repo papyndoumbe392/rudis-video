@@ -400,7 +400,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.1 — remplacement total de la tenue (fini les habits qui se superposent)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v35.2 — visage stable : ton vrai visage gardé et constant dans toute la vidéo</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1215,7 +1215,7 @@ document.getElementById("go").onclick = async () => {
       if (sp > max * 0.5) cut = cut.slice(0, sp);
       return cut.trim() + "\u2026";
     };
-    const REF_PREFIX = "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man \u2014 keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. ";
+    const REF_PREFIX = "Take @Image1 as the start frame for the outfit, pose and scenery ONLY. For the man's face and head, the identity reference @Element1 is the ABSOLUTE source of truth: his face, eyes, eyebrows, nose, mouth, beard shape, skin tone and head must match @Element1 exactly, NOT the face in the start frame. If the start-frame face differs from @Element1, always follow @Element1. Keep this exact same face perfectly consistent and unchanged in every single frame, from the first to the last \u2014 the face must never morph, drift or change between frames. Keep the hat and its logo exactly as in @Element1. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. ";
     let payload;
     if (model === "ref") {
       // O1 Reference : la photo principale = @Image1 (start frame),
