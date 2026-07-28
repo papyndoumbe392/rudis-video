@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v35.0 — lecteur tous formats · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v35.1 — tenues & décors royaux · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -217,6 +217,17 @@
     <div id="outfitPreview"></div>
   </section>
 
+  <!-- v35.1 — DÉCOR : change le lieu sans toucher à la personne -->
+  <section class="card">
+    <h2><span class="num" style="background:var(--up);">🏛️</span> Décor royal — change le lieu en 1 clic <span class="dot" id="dotLieu"></span></h2>
+    <p class="sub" style="margin:0 0 10px;">Garde ton visage, ta pose <b>et ta tenue</b> — seul le lieu change. À faire <b>après</b> la tenue si tu veux les deux.</p>
+    <div class="chips" id="lieuChips"></div>
+    <input type="text" id="lieuCustom" placeholder="Décris le décor… Ex : un salon de palace avec lustre en cristal et vue sur la ville la nuit" class="hidden" style="width:100%; margin-top:10px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
+    <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor (≈ 0,04 $)</button>
+    <div class="estimate" id="lieuInfo">Le visage, la pose et les habits restent identiques — seul le décor change.</div>
+    <div id="lieuPreview"></div>
+  </section>
+
   <section class="card">
     <h2><span class="num" id="num2">2</span> Scénario du clip <span class="dot" id="dot2"></span></h2>
     <div class="label" style="margin-top:0;">✨ Décris ton idée simplement · Describe your idea simply <span style="opacity:.7">(FR / EN)</span></div>
@@ -331,6 +342,8 @@
   <section class="card" style="border-color:var(--violet);">
     <h2><span class="num" style="background:var(--violet); color:#fff;">🎨</span> Studio Images — créer des décors & personnages</h2>
     <p class="sub" style="margin:0 0 12px;">Crée une image à partir d'un simple texte, <b>sans photo</b> : un danseur, une danseuse, une rue de Monaco, une boîte de nuit… pour enrichir ton clip. Tu peux ensuite l'animer.<br><span style="opacity:.85">Create an image from text, <b>no photo needed</b>: a dancer, a street, a nightclub… then animate it.</span></p>
+    <div class="label">Idées toutes prêtes · Ready-made ideas</div>
+    <div class="chips" id="t2iPresets"></div>
     <div class="label">Décris l'image · Describe the image (FR / EN)</div>
     <textarea id="t2iPrompt" rows="2" placeholder="Ex : une danseuse africaine en robe dorée qui danse dans une boîte de nuit / an African dancer in a gold dress dancing in a nightclub" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
     <div class="label">Format · Aspect</div>
@@ -400,7 +413,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.2 — visage stable : ton vrai visage gardé et constant dans toute la vidéo</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v35.1 — tenues royales + nouveau volet Décor</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -897,6 +910,10 @@ const OUTFITS = [
   ["afro", "Streetwear Afrobeats", "stylish modern afrobeats streetwear, designer jacket, gold chain, trendy look"],
   ["jazz", "Smoking Jazz", "an elegant black tuxedo with a bow tie, classy jazz stage style"],
   ["wax", "Pagne wax", "a tailored shirt made of vibrant African wax print fabric with blue and gold patterns"],
+  ["royalvert", "👑 Royal vert & or", "a luxurious emerald green silk royal suit with elaborate gold floral embroidery on the lapels, cuffs and chest, a matching green waistcoat with gold buttons, and a colourful yellow patterned silk cravat, regal African royalty style, rich fabric with visible sheen"],
+  ["damasrouge", "🔴 Damassé rouge", "an elegant red damask patterned tuxedo jacket with black satin lapels, a black waistcoat, a red shirt, a bright yellow silk cravat and a red traditional Cameroonian royal cap, opulent African royalty style"],
+  ["robebal", "💚 Robe de bal royale", "a majestic emerald green off-shoulder ball gown with intricate gold beadwork and embroidery, a full voluminous skirt, matching emerald and gold jewellery and a golden crown, royal queen style"],
+  ["soie", "🌸 Peignoir de soie", "an elegant long dusty pink satin robe with delicate lace sleeves and a soft silk belt, refined and graceful, worn indoors"],
   ["custom", "Personnalisée…", ""],
   ["photo", "📷 D'après une photo", ""],
 ];
@@ -944,6 +961,125 @@ const OUTFITS = [
   };
 })();
 
+// ——— v35.1 : idées toutes prêtes pour le Studio Images ———
+// Un clic remplit le champ avec une description riche, que le client peut ensuite modifier.
+const T2I_PRESETS = [
+  ["👑 Couple royal", "A regal African couple in an opulent baroque bedroom at night. The man wears an emerald green silk royal suit with gold floral embroidery and a yellow silk cravat; the woman wears an emerald green off-shoulder ball gown with gold beadwork and a golden crown. Deep green velvet, gilded gold furniture, crystal chandelier, warm candlelight, city lights through the window. Photorealistic, cinematic, ultra detailed."],
+  ["🤴 Roi en damassé rouge", "A distinguished African man standing in an opulent royal bedroom, wearing a red damask tuxedo jacket with black satin lapels, a yellow silk cravat and a red traditional Cameroonian royal cap. Gilded gold furniture, green velvet drapes, crystal chandelier, marble floor, city skyline at night through the window. Photorealistic, cinematic, ultra detailed."],
+  ["💔 Reine mélancolique", "An elegant African woman sitting alone on the edge of a grand bed in a luxurious royal bedroom at night, wearing a dusty pink satin robe and a delicate golden tiara, head lowered, melancholic mood. Green velvet bedspread, gilded gold furniture, warm lamp light, city lights through the window. Photorealistic, cinematic, emotional."],
+  ["🏛️ Chambre royale vide", "An opulent baroque royal bedroom at night, no people: deep green velvet curtains and bedspread, ornate gilded gold furniture and mirrors, grand crystal chandelier, warm candlelight, framed royal portrait, polished marble floor, city skyline through tall windows. Photorealistic, cinematic, ultra detailed."],
+  ["💃 Danseuse afro", "An African dancer in a shimmering gold dress dancing energetically in a stylish nightclub, dynamic pose, colourful stage lights, light haze, blurred crowd in the background. Photorealistic, cinematic, ultra detailed."],
+  ["🌃 Rue de luxe la nuit", "A luxury city street at night, wet asphalt reflecting neon and golden street lights, elegant buildings, parked luxury car, cinematic atmosphere, no people. Photorealistic, ultra detailed."],
+];
+(function initT2iPresets() {
+  const box = document.getElementById("t2iPresets");
+  const champ = document.getElementById("t2iPrompt");
+  if (!box || !champ) return;
+  T2I_PRESETS.forEach(([label, texte]) => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = label;
+    b.onclick = () => {
+      champ.value = texte;
+      box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+      b.classList.add("on");
+      champ.dispatchEvent(new Event("input"));
+    };
+    box.appendChild(b);
+  });
+})();
+
+// ——— v35.1 : DÉCOR — remplace le lieu en gardant la personne et sa tenue ———
+const LIEUX = [
+  ["keep", "Décor de la photo", ""],
+  ["chambreroyale", "👑 Chambre royale dorée",
+   "an opulent baroque royal bedroom at night: deep green velvet curtains and bedspread, ornate gilded gold furniture and mirrors, a grand crystal chandelier, warm candlelight, a large framed royal portrait on the wall, polished marble floor"],
+  ["palacenuit", "🌃 Palace, nuit sur la ville",
+   "a luxurious palace suite at night, tall windows opening onto a balcony overlooking a glittering city skyline at night, deep green velvet drapes, golden ornaments, warm golden interior lighting, reflections on a polished marble floor"],
+  ["salonroyal", "🪑 Salon royal opulent",
+   "an opulent royal living room: gilded baroque armchairs upholstered in deep green velvet, golden side tables, ornate carved wall panels, crystal chandelier, warm golden light, polished marble floor"],
+  ["suiteclaire", "✨ Suite royale claire",
+   "an elegant royal suite in cream and gold: a gilded canopy bed with green velvet headboard, ornate golden wall mouldings, soft warm lamps, framed classical portrait, patterned marble floor, refined and luminous"],
+  ["scene", "🎤 Scène de concert",
+   "a professional concert stage at night, warm spotlights and beams cutting through light haze, dark blurred crowd in the background, cinematic stage lighting"],
+  ["lieucustom", "Personnalisé…", ""],
+];
+let lieuSel = "keep";
+(function initLieux() {
+  const box = document.getElementById("lieuChips");
+  if (!box) return;
+  LIEUX.forEach(([id, label]) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (id === "keep" ? " on" : "");
+    b.textContent = label;
+    b.onclick = () => {
+      lieuSel = id;
+      box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+      b.classList.add("on");
+      document.getElementById("lieuCustom").classList.toggle("hidden", id !== "lieucustom");
+      document.getElementById("lieuGo").style.display = (id === "keep") ? "none" : "block";
+      if (id === "keep") {
+        document.getElementById("lieuPreview").innerHTML = "";
+        document.getElementById("lieuInfo").textContent = "Le visage, la pose et les habits restent identiques — seul le décor change.";
+      }
+      document.getElementById("dotLieu").classList.toggle("on", id !== "keep");
+    };
+    box.appendChild(b);
+  });
+  document.getElementById("lieuGo").onclick = transformLieu;
+})();
+
+async function transformLieu() {
+  const info = document.getElementById("lieuInfo");
+  const desc = lieuSel === "lieucustom"
+    ? document.getElementById("lieuCustom").value.trim()
+    : (LIEUX.find(d => d[0] === lieuSel) || [])[2];
+  if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
+  if (!desc) { info.textContent = "Décris le décor souhaité."; return; }
+
+  const btn = document.getElementById("lieuGo");
+  btn.disabled = true; info.textContent = "🏛️ Changement de décor en cours (10-30 s)…";
+  try {
+    const path = "fal-ai/nano-banana/edit";
+    // On part de la photo AVEC la tenue déjà transformée si elle existe : les deux se cumulent.
+    const source = stylePhotoUrl || photoDataUrl;
+    const job = await apiSubmit(path, {
+      prompt: `Replace the entire background and setting of this image with ${desc}. `
+        + "Keep the person completely unchanged: exact same face, identity, skin tone, facial hair, hairstyle, "
+        + "clothing, pose and body proportions. Relight the person naturally so they match the new scene. "
+        + "Photorealistic, seamless integration, correct perspective and scale, no duplicated person, no extra limbs, high quality.",
+      image_urls: [source],
+      num_images: 1,
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le changement de décor a échoué. Réessaie ou change la description.");
+      info.textContent = `🏛️ Changement de décor en cours… (${(i + 1) * 3} s)`;
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) throw new Error("Image introuvable. Réessaie.");
+    const avant = stylePhotoUrl;
+    stylePhotoUrl = url;
+    info.innerHTML = `<span style="color:var(--ok)">✓ Décor changé — c'est cette photo qui sera utilisée pour la vidéo.</span>`;
+    document.getElementById("lieuPreview").innerHTML = `
+      <img src="${url}" style="width:100%; border-radius:12px; margin-top:12px;">
+      <button class="btn small" id="lieuRevert" style="margin-top:8px;">↩ Revenir au décor précédent</button>`;
+    document.getElementById("lieuRevert").onclick = () => {
+      stylePhotoUrl = avant;
+      document.getElementById("lieuPreview").innerHTML = "";
+      info.textContent = "Décor précédent rétabli.";
+    };
+    refresh();
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { btn.disabled = false; }
+}
+
 let outfitPhotoUrl = null;
 let tryTarget = "me";
 function pickTryTarget(el) {
@@ -979,7 +1115,7 @@ async function transformOutfit() {
   try {
     const path = "fal-ai/nano-banana/edit";
     const job = await apiSubmit(path, ({
-        prompt: tryPrompt || `Completely REPLACE every piece of clothing worn by the person with this new outfit: ${desc}. Remove entirely the original garments — jacket, sleeves, shirt, trousers, hat, shoes and any accessory — so that NO element of the original clothing remains visible anywhere in the image, not even a sleeve, collar, cuff or trouser leg. Regenerate the full body wearing only the new outfit, coherent from head to toe, no overlapping layers, no leftover fabric of another color. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
+        prompt: tryPrompt || `Change the person's outfit to ${desc}. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
         image_urls: images,
         num_images: 1,
       }));
@@ -1215,7 +1351,7 @@ document.getElementById("go").onclick = async () => {
       if (sp > max * 0.5) cut = cut.slice(0, sp);
       return cut.trim() + "\u2026";
     };
-    const REF_PREFIX = "Take @Image1 as the start frame for the outfit, pose and scenery ONLY. For the man's face and head, the identity reference @Element1 is the ABSOLUTE source of truth: his face, eyes, eyebrows, nose, mouth, beard shape, skin tone and head must match @Element1 exactly, NOT the face in the start frame. If the start-frame face differs from @Element1, always follow @Element1. Keep this exact same face perfectly consistent and unchanged in every single frame, from the first to the last \u2014 the face must never morph, drift or change between frames. Keep the hat and its logo exactly as in @Element1. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. ";
+    const REF_PREFIX = "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man \u2014 keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. ";
     let payload;
     if (model === "ref") {
       // O1 Reference : la photo principale = @Image1 (start frame),
