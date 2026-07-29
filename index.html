@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v35.3 — sols en marbre · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v35.4 — 20 décors + supercars · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -413,7 +413,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.3 — 16 décors avec sols carrelés de luxe</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v35.4 — 20 décors dont supercars, avenue du luxe et Monaco</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -969,6 +969,8 @@ const T2I_PRESETS = [
   ["💔 Reine mélancolique", "An elegant African woman sitting alone on the edge of a grand bed in a luxurious royal bedroom at night, wearing a dusty pink satin robe and a delicate golden tiara, head lowered, melancholic mood. Green velvet bedspread, gilded gold furniture, warm lamp light, city lights through the window. Photorealistic, cinematic, emotional."],
   ["🏛️ Chambre royale vide", "An opulent baroque royal bedroom at night, no people: deep green velvet curtains and bedspread, ornate gilded gold furniture and mirrors, grand crystal chandelier, warm candlelight, framed royal portrait, polished marble floor, city skyline through tall windows. Photorealistic, cinematic, ultra detailed."],
   ["💃 Danseuse afro", "An African dancer in a shimmering gold dress dancing energetically in a stylish nightclub, dynamic pose, colourful stage lights, light haze, blurred crowd in the background. Photorealistic, cinematic, ultra detailed."],
+  ["🏎️ Star & supercar", "A stylish African man in a richly embroidered red and gold royal suit and a red traditional cap, leaning confidently against a glossy red Italian supercar on a grand luxury shopping avenue at night. Illuminated boutique windows, ornate street lamps, trees with fairy lights, a lit triumphal arch in the far background, wet pavement reflecting golden light. Photorealistic, cinematic, ultra detailed."],
+  ["🎩 Soirée casino", "An elegant African man in a black tuxedo with a bow tie, a red hat and sunglasses, standing beside a black supercar in front of a grand belle-epoque casino at night. Tall palm trees, warm golden building lights, wet glistening asphalt, hillside city lights behind. Photorealistic, cinematic, ultra detailed."],
   ["🌃 Rue de luxe la nuit", "A luxury city street at night, wet asphalt reflecting neon and golden street lights, elegant buildings, parked luxury car, cinematic atmosphere, no people. Photorealistic, ultra detailed."],
 ];
 (function initT2iPresets() {
@@ -1020,6 +1022,14 @@ const LIEUX = [
    "a city street at night in the rain, wet glistening asphalt reflecting neon and street lights, light rain falling, moody melancholic cinematic atmosphere, cool blue tones with warm highlights"],
   ["studioson", "🎹 Studio d'enregistrement",
    "a professional music recording studio, large mixing console with glowing faders, studio monitors, acoustic panels on the walls, a microphone on a stand, warm moody lighting"],
+  ["supercars", "🏎️ Collection de supercars",
+   "a collection of luxury supercars parked on a paved stone courtyard in front of a modern marble and glass luxury hotel at golden hour: a glossy red mid-engine Italian supercar in the foreground, a black angular supercar, a blue grand tourer, a white classic luxury limousine and a black luxury sedan, manicured trees and trimmed hedges, warm evening sunlight, large polished paving tiles with visible joint lines"],
+  ["avenueluxe", "🌟 Avenue du luxe, la nuit",
+   "a grand European luxury shopping avenue at night, illuminated designer boutique windows, ornate street lamps, rows of trees wrapped in fairy lights, a glossy red Italian supercar parked at the kerb, a lit triumphal arch far in the background, wet cobblestone pavement reflecting warm golden light, elegant crowd blurred in the distance, cinematic"],
+  ["monaco", "🎰 Casino de Monaco",
+   "an opulent Mediterranean casino square at night, a grand belle-epoque casino building lit in warm gold, tall palm trees, luxury cars parked along the kerb including a black supercar and a black luxury SUV, wet glistening asphalt reflecting the lights, hillside city lights in the background, cinematic night atmosphere"],
+  ["marina", "🛥️ Port de yachts",
+   "a luxury marina at night, large white yachts moored along the quay with their lights reflecting on dark calm water, palm trees and warm dockside lamps, quay paved with large polished stone tiles, elegant waterfront buildings lit in gold, cinematic"],
   ["fondstudio", "🎬 Fond studio coloré",
    "a professional photo studio with a smooth seamless coloured backdrop in deep gold and warm amber tones, soft even studio lighting, subtle gradient, clean fashion editorial look"],
   ["lieucustom", "Personnalisé…", ""],
