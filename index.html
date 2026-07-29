@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v35.7 — correctif audio · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v35.8 — lip-sync Pro · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -333,6 +333,15 @@
     </div>
     <input type="file" id="lipAudioInput" class="hidden">
 
+    <div class="label">🎯 Qualité du chant</div>
+    <div class="chips" id="lipQualite">
+      <button class="chip on" data-lip="std">Standard — inclus</button>
+      <button class="chip" data-lip="pro">⭐ Pro — lèvres naturelles (1 vidéo)</button>
+    </div>
+    <div class="estimate" id="lipQualiteInfo" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px; margin-top:8px;">
+      ⭐ <b>Pro</b> : moteur haut de gamme qui ouvre vraiment la bouche, garde les <b>dents</b> et les traits du visage. C'est lui qui donne l'impression d'un vrai chanteur. Il débite <b>1 vidéo</b> de ton code.
+    </div>
+
     <button class="master" id="lipGo" disabled style="margin-top:16px;">⬆️ Choisis d’abord la vidéo source (en haut de ce volet)</button>
     <div class="status" id="lipStatus" style="margin-top:12px;"><div id="lipStatusText"></div><div class="bar"><div class="fill" id="lipFill"></div></div></div>
     <div id="lipResult"></div>
@@ -413,7 +422,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.7 — correctif du bug audio (fonction fmtTime manquante)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v35.8 — lip-sync Pro (lèvres naturelles) + enregistrement corrigé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1355,7 +1364,7 @@ document.getElementById("go").onclick = async () => {
   const qualityGuard = QUALITY_GUARD;
   const faceGuard = buildFaceGuard();
   let prompt = (lipOptim
-    ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing, no microphone or hands covering the mouth, lips relaxed and clearly visible, moderate natural head movement."
+    ? basePrompt + ". IMPORTANT: medium close-up framing (chest-up), the person's face is LARGE in the frame and fully visible at all times, front-facing. The person is SINGING with clearly articulated mouth movements: the jaw opens and closes visibly, the lips form distinct vowel shapes, teeth are sometimes visible, an expressive and emotional singing performance. No microphone, hand or object covering the mouth, mouth never closed for long, moderate natural head movement, eyes open."
     : basePrompt) + objectGuard + qualityGuard + faceGuard;
   // v33.9 : filet de sécurité absolu — Kling limite le prompt à 2500 caractères.
   // En mode ref, un préfixe (~240 car.) est ajouté ensuite : on garde une marge.
@@ -1479,43 +1488,72 @@ document.getElementById("go").onclick = async () => {
 // ——— Enregistrer la vidéo (partage natif iOS/Android) ———
 let videoFile = null;
 
+// v35.8 : deux tentatives, les vidéos font parfois 30 Mo et le réseau mobile lâche.
 async function prepareVideoFile(url, btnEl) {
   const btn = btnEl || document.getElementById("saveBtn");
-  try {
-    const resp = await fetch(url);
-    const blob = await resp.blob();
-    videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
-    if (btn) btn.textContent = "📲 Enregistrer dans Photos";
-  } catch (e) {
-    videoFile = null;
-    if (btn) btn.textContent = "🔗 Ouvrir la vidéo pour l'enregistrer";
+  for (let essai = 1; essai <= 2; essai++) {
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      videoFile = new File([blob], "rudis-video.mp4", { type: "video/mp4" });
+      if (btn) btn.textContent = "📲 Enregistrer dans Photos";
+      return;
+    } catch (e) {
+      videoFile = null;
+      if (essai === 1) await new Promise(r => setTimeout(r, 1500));
+    }
   }
+  if (btn) btn.textContent = "📲 Enregistrer dans Photos";
 }
 
+const estIPhone = () => /iPad|iPhone|iPod/.test(navigator.userAgent)
+  || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+// v35.8 : plus jamais d'ouverture d'une page où l'on ne peut rien enregistrer.
+// Sur iPhone, seuls deux chemins mettent vraiment la vidéo dans Photos :
+// le menu de partage natif, ou l'appui long sur la vidéo. On propose ceux-là.
 async function saveVideo(url, hintEl) {
   const hint = hintEl || document.getElementById("saveHint") || { textContent: "" };
-  // Cas 1 : fichier prêt → menu de partage iOS immédiat
-  if (videoFile && navigator.canShare && navigator.canShare({ files: [videoFile] })) {
+
+  // Le fichier n'est pas encore prêt (vidéo lourde, réseau lent) : on attend ici.
+  if (!videoFile) {
+    hint.textContent = "⏳ Préparation du fichier… patiente quelques secondes.";
+    await prepareVideoFile(url);
+  }
+
+  // 1) Menu de partage natif — le chemin normal sur iPhone et Android
+  if (videoFile && navigator.share) {
     try {
-      await navigator.share({ files: [videoFile] });
-      hint.textContent = "Dans le menu : touche « Enregistrer la vidéo » → elle va dans Photos.";
-    } catch (e) { /* l'utilisateur a fermé le menu, rien à faire */ }
+      if (!navigator.canShare || navigator.canShare({ files: [videoFile] })) {
+        await navigator.share({ files: [videoFile] });
+        hint.innerHTML = "Dans le menu : touche « <b>Enregistrer la vidéo</b> » → elle arrive dans Photos.";
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") { hint.textContent = ""; return; } // menu fermé
+    }
+  }
+
+  // 2) iPhone sans partage possible (fichier trop lourd) : l'appui long marche toujours
+  if (estIPhone()) {
+    hint.innerHTML = "📱 <b>Appuie longuement sur la vidéo ci-dessus</b>, puis touche "
+      + "« <b>Enregistrer la vidéo</b> ». C'est la méthode la plus sûre sur iPhone.";
     return;
   }
-  // Cas 2 : fichier prêt mais partage indisponible → téléchargement direct
+
+  // 3) Ordinateur et Android : téléchargement direct
   if (videoFile) {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(videoFile);
     a.download = "rudis-video.mp4";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    hint.textContent = "Vidéo téléchargée — retrouve-la dans Fichiers → Téléchargements.";
+    document.body.appendChild(a); a.click(); a.remove();
+    hint.textContent = "Vidéo téléchargée — retrouve-la dans ton dossier Téléchargements.";
     return;
   }
-  // Cas 3 : pas encore prêt → ouvrir la vidéo dans un onglet (Partager → Enregistrer la vidéo)
-  hint.textContent = "Sur la page qui s'ouvre : bouton Partager (carré + flèche ↑) → « Enregistrer la vidéo ».";
-  window.open(url, "_blank");
+
+  // 4) Dernier recours : le fichier n'a pas pu être récupéré
+  hint.innerHTML = "⚠️ Téléchargement impossible pour l'instant — vérifie ta connexion et réessaie. "
+    + "Sur iPhone, tu peux aussi <b>appuyer longuement sur la vidéo</b> → « Enregistrer la vidéo ».";
 }
 
 // ——— Lip-sync (Kling LipSync : vidéo + audio → lèvres synchronisées) ———
@@ -1549,7 +1587,9 @@ function refreshLip() {
   go.disabled = !ready;
   // v35.6 : dire precisement ce qui manque, au lieu d'un message unique
   go.textContent = ready
-    ? "🎤 Synchroniser les lèvres (≈ 0,03 $)"
+    ? (lipQualite === "pro"
+        ? "⭐ Synchroniser en qualité Pro (− 1 vidéo)"
+        : "🎤 Synchroniser les lèvres (inclus)")
     : (!lipVideoSource
         ? "⬆️ Choisis d'abord la vidéo source (en haut de ce volet)"
         : "⬆️ Ajoute maintenant ton extrait audio");
@@ -2045,8 +2085,28 @@ function setLipStatus(html, pct) {
   if (pct !== undefined) document.getElementById("lipFill").style.width = pct + "%";
 }
 
+// v35.8 : deux moteurs de lip-sync au choix.
+// std = Kling (inclus, rapide) · pro = Sync Lipsync 2 Pro (bouche et dents naturelles, 1 crédit)
+let lipQualite = "std";
+const LIP_MOTEURS = {
+  std: "fal-ai/kling-video/lipsync/audio-to-video",
+  pro: "fal-ai/sync-lipsync/v2/pro",
+};
+(function initLipQualite() {
+  const box = document.getElementById("lipQualite");
+  if (!box) return;
+  box.querySelectorAll(".chip").forEach(b => {
+    b.onclick = () => {
+      lipQualite = b.dataset.lip;
+      box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+      b.classList.add("on");
+      refreshLip();
+    };
+  });
+})();
+
 async function runLipsync() {
-  const path = "fal-ai/kling-video/lipsync/audio-to-video";
+  const path = LIP_MOTEURS[lipQualite] || LIP_MOTEURS.std;
   document.getElementById("lipGo").disabled = true;
   setLipStatus("Envoi de la vidéo et de l'audio…", 5);
   try {
@@ -2086,7 +2146,8 @@ async function runLipsync() {
     document.getElementById("lipResult").innerHTML = `
       <video src="${outUrl}" controls playsinline style="margin-top:14px;"></video>
       <button class="dl btn" id="lipSaveBtn">📲 Enregistrer dans Photos</button>
-      <div class="estimate" id="saveHint"></div>`;
+      <div class="estimate" id="saveHint"></div>
+      <div class="estimate">💡 Sur iPhone, tu peux aussi <b>appuyer longuement sur la vidéo</b> → « Enregistrer la vidéo ».</div>`;
     document.getElementById("lipSaveBtn").onclick = () => saveVideo(outUrl);
     renderTrimRow(document.getElementById("lipResult"), outUrl, lipExtractDur > 1 ? lipExtractDur : Math.max(2, lipVideoDur - 0.15));
   } catch (err) {
