@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v35.5 — 24 décors · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v35.7 — correctif audio · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -333,7 +333,7 @@
     </div>
     <input type="file" id="lipAudioInput" class="hidden">
 
-    <button class="master" id="lipGo" disabled style="margin-top:16px;">Choisis une vidéo et un audio</button>
+    <button class="master" id="lipGo" disabled style="margin-top:16px;">⬆️ Choisis d’abord la vidéo source (en haut de ce volet)</button>
     <div class="status" id="lipStatus" style="margin-top:12px;"><div id="lipStatusText"></div><div class="bar"><div class="fill" id="lipFill"></div></div></div>
     <div id="lipResult"></div>
   </section>
@@ -413,7 +413,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.5 — 24 décors : Paris, Monaco, Miami, Nice, supercars</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v35.7 — correctif du bug audio (fonction fmtTime manquante)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1547,9 +1547,25 @@ function refreshLip() {
   const ready = !!lipVideoSource && !!lipAudioDataUrl;
   const go = document.getElementById("lipGo");
   go.disabled = !ready;
-  go.textContent = ready ? "🎤 Synchroniser les lèvres (≈ 0,03 $)" : "Choisis une vidéo et un audio";
+  // v35.6 : dire precisement ce qui manque, au lieu d'un message unique
+  go.textContent = ready
+    ? "🎤 Synchroniser les lèvres (≈ 0,03 $)"
+    : (!lipVideoSource
+        ? "⬆️ Choisis d'abord la vidéo source (en haut de ce volet)"
+        : "⬆️ Ajoute maintenant ton extrait audio");
   document.getElementById("dot3").classList.toggle("on", ready);
   document.getElementById("num3").classList.toggle("on", ready);
+}
+
+// v35.7 : fmtTime etait appele 7 fois mais n'etait defini NULLE PART — disparu lors
+// d'une fusion entre les deux comptes. Consequence : des qu'un audio etait choisi, le
+// code plantait sur une fonction introuvable et affichait « Fichier illisible par iOS »
+// alors que le fichier etait parfaitement valide. Affiche m:ss.cc (precis, pour le calage).
+function fmtTime(sec) {
+  const s = Math.max(0, Number(sec) || 0);
+  const m = Math.floor(s / 60);
+  const r = s - m * 60;
+  return m + ":" + (r < 10 ? "0" : "") + r.toFixed(2);
 }
 
 function getAudioDur() {
@@ -1560,25 +1576,39 @@ function getAudioDur() {
 
 // — Lecteur audio studio universel : WAV, RF64, AIFF/AIFC (8/16/24/32 bits, int/float, LE/BE) —
 function readSlice(file, off, len) {
+  const bout = file.slice(off, Math.min(off + len, file.size));
   return new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(new DataView(r.result));
     r.onerror = () => rej(new Error("lecture impossible"));
-    r.readAsArrayBuffer(file.slice(off, Math.min(off + len, file.size)));
-  });
+    r.readAsArrayBuffer(bout);
+  }).catch(async () => new DataView(await lireParFetch(bout)));  // v35.6 : secours iOS
 }
+// v35.6 : iOS refuse parfois FileReader sur un fichier volumineux ou stocke dans
+// iCloud. Passer par une URL blob + fetch reussit souvent la ou FileReader echoue.
+const lireParFetch = async (file) => {
+  const u = URL.createObjectURL(file);
+  try { return await (await fetch(u)).arrayBuffer(); }
+  finally { URL.revokeObjectURL(u); }
+};
+const bufferVersDataUrl = (buf, type) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(r.result);
+  r.onerror = () => rej(new Error("conversion impossible"));
+  r.readAsDataURL(new Blob([buf], { type: type || "audio/wav" }));
+});
 const readFileBuffer = (file) => new Promise((res, rej) => {
   const r = new FileReader();
   r.onload = () => res(r.result);
   r.onerror = () => rej(new Error("lecture impossible"));
   r.readAsArrayBuffer(file);
-});
+}).catch(() => lireParFetch(file));
 const readFileDataUrl = (file) => new Promise((res, rej) => {
   const r = new FileReader();
   r.onload = () => res(r.result);
   r.onerror = () => rej(new Error("lecture impossible"));
   r.readAsDataURL(file);
-});
+}).catch(async () => bufferVersDataUrl(await lireParFetch(file), file.type));
 const tag4 = (v, o) => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
 
 // Nombre flottant 80 bits (sample rate AIFF)
@@ -1967,7 +1997,7 @@ function setupLipsync() {
           const hex = []; for (let i = 0; i < Math.min(16, h.byteLength); i++) hex.push(h.getUint8(i).toString(16).padStart(2, "0"));
           diag = ` [${Math.round(f.size / 1024)} Ko · ${hex.join(" ")}]`;
         } catch (_) {}
-        nameEl.textContent = `⚠️ Fichier illisible par iOS${diag}. Copie-le dans « Sur mon iPhone » puis réessaie, et envoie ce message à Claude.`;
+        nameEl.innerHTML = `<span class="err">⚠️ iOS n’a pas pu lire ce fichier${diag}.</span><br>Le plus souvent il est encore <b>dans iCloud</b> et pas vraiment sur l’appareil. Ouvre <b>Fichiers</b>, touche le petit nuage ☁️ à côté du fichier pour le télécharger, ou déplace-le dans « <b>Sur mon iPhone</b> », puis réessaie. Un export <b>MP3</b> ou <b>M4A</b> passe aussi très bien.`;
       }
     } finally {
       refreshLip();
@@ -2157,6 +2187,7 @@ function renderTrimRow(container, videoUrl, defaultEnd) {
 setupLipsync();
 initFaceRefSlots();
 refresh();
+refreshLip();   // v35.6 : le bouton annonce dès le départ ce qui manque
 appliquerPlan();
 
 // ——— PWA : service worker ———
