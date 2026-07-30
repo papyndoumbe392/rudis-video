@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v36.4 — budget corrigé + remboursement auto · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v36.5 — format d'origine respecté · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -189,6 +189,7 @@
         <button class="chip" data-ratio="16:9" onclick="pickRatio(this)">🖥️ 16:9 Horizontal</button>
         <button class="chip" data-ratio="1:1" onclick="pickRatio(this)">◻️ 1:1 Carré</button>
       </div>
+      <div class="estimate" id="ratioHint" style="margin-top:4px;"></div>
       <div class="estimate">🎨 L'IA prolonge le vrai décor de ta photo (comme Runway) — jamais de flou, jamais de duplication. (≈ 0,04 $ par changement de format)</div>
     </div>
   </section>
@@ -422,7 +423,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v36.4 — correctif du dépassement 512 caractères + remboursement automatique</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v36.5 — le format d'origine est enfin respecté (fini le portrait forcé)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -662,6 +663,35 @@ const photoInput = document.getElementById("photoInput");
 document.getElementById("photoBtn").onclick = () => photoInput.click();
 document.getElementById("photoSlot").onclick = () => photoInput.click();
 let originalPhotoImg = null; // image source intacte, pour changer de format sans perte
+
+// v36.5 : CORRECTIF — « Format d'origine » forçait le PORTRAIT (9:16) pour la vidéo,
+// même quand la photo était horizontale. Résultat : une photo 16:9 sortait en vidéo
+// téléphone. Désormais « origine » suit la VRAIE forme de la photo.
+function aspectDepuisPhoto() {
+  const img = originalPhotoImg;
+  if (!img || !img.naturalWidth || !img.naturalHeight) return "9:16";
+  const r = img.naturalWidth / img.naturalHeight;
+  if (r >= 1.2) return "16:9";   // nettement plus large que haut
+  if (r <= 0.85) return "9:16";  // nettement plus haut que large
+  return "1:1";                  // presque carré
+}
+// Format finalement envoyé au studio, quel que soit l'endroit d'où on le demande.
+function aspectChoisi() {
+  const chip = document.querySelector("#ratioZone .chip.on");
+  const r = chip ? chip.dataset.ratio : "orig";
+  return (r === "16:9" || r === "1:1" || r === "9:16") ? r : aspectDepuisPhoto();
+}
+// Petit repère sous les puces : dire à l'avance quel format sortira.
+function majIndiceFormat() {
+  const el = document.getElementById("ratioHint");
+  if (!el) return;
+  const chip = document.querySelector("#ratioZone .chip.on");
+  const r = chip ? chip.dataset.ratio : "orig";
+  if (r !== "orig") { el.textContent = ""; return; }
+  const a = aspectDepuisPhoto();
+  const mot = a === "16:9" ? "horizontale 🖥️" : (a === "1:1" ? "carrée ◻️" : "verticale 📱");
+  el.innerHTML = `→ ta photo est <b>${mot}</b>, la vidéo sortira donc en <b>${a}</b>.`;
+}
 photoInput.onchange = (e) => {
   const f = e.target.files[0];
   if (!f) return;
@@ -673,6 +703,7 @@ photoInput.onchange = (e) => {
     document.getElementById("ratioZone").querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
     document.getElementById("ratioZone").querySelector('[data-ratio="orig"]').classList.add("on");
     applyPhotoRatio("orig", f.name);
+    majIndiceFormat();   // v36.5
     // Afficher la zone références visage
     document.getElementById("faceRefToggle").classList.remove("hidden");
   };
@@ -683,6 +714,7 @@ function pickRatio(el) {
   el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
   el.classList.add("on");
   const ratio = el.dataset.ratio;
+  majIndiceFormat();   // v36.5
   if (ratio === "orig") {
     applyPhotoRatio("orig", document.getElementById("photoLabel").textContent);
   } else {
@@ -1420,9 +1452,7 @@ document.getElementById("go").onclick = async () => {
     if (model === "ref") {
       // O1 Reference : la photo principale = @Image1 (start frame),
       // le visage du client = @Element1 (identité ancrée structurellement).
-      const ratioChip = document.querySelector("#ratioZone .chip.on");
-      const r = ratioChip ? ratioChip.dataset.ratio : "orig";
-      const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
+      const aspect = aspectChoisi();   // v36.5 : suit la forme réelle de la photo
       const elem = { frontal_image_url: faceRefs[0] };
       // v33.5 : reference_image_urls toujours requis par fal.ai, même avec 1 seule photo.
       elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
@@ -2583,9 +2613,7 @@ document.getElementById("msGo").onclick = async () => {
     // v33.5 : fal.ai exige reference_image_urls (ou video_url) en plus de frontal_image_url —
     // un tableau vide/absent fait échouer TOUTE génération avec 1 seule photo de référence.
     elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
-    const ratioChip = document.querySelector("#ratioZone .chip.on");
-    const r = ratioChip ? ratioChip.dataset.ratio : "orig";
-    const aspect = (r === "16:9" || r === "1:1") ? r : "9:16";
+    const aspect = aspectChoisi();   // v36.5 : suit la forme réelle de la photo
     const faceGuard = buildFaceGuard();
     // v33.2 : garde-fous courts dédiés au multi-plans (mêmes constantes que le compteur affiché).
     const shortSuffix = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion." + (faceGuard ? " Exact same face and identity, do not alter." : "");
