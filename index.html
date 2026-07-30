@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v36.0 — hébergement des fichiers · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v36.1 — lip-sync des Multi-plans · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -296,7 +296,7 @@
   <section class="card">
     <h2><span class="num" id="num3">3</span> Lip-sync — fais chanter ta vidéo <span class="dot" id="dot3"></span></h2>
 
-    <div class="label" style="margin-top:0;">Vidéo source (2 à 10 secondes)</div>
+    <div class="label" style="margin-top:0;">Vidéo source (2 à 10 s en Standard · plus long en ⭐ Pro)</div>
     <div class="chips">
       <button class="chip" id="lipUseLast" disabled>Dernière vidéo générée</button>
       <button class="chip" id="lipImportBtn">📂 Importer une vidéo</button>
@@ -422,7 +422,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v36.0 — lip-sync fiable : les fichiers sont hébergés avant l'envoi</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v36.1 — le lip-sync accepte les vidéos Multi-plans (80 Mo, ⭐ Pro au-delà de 10 s)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1560,6 +1560,7 @@ async function saveVideo(url, hintEl) {
 let lastVideoUrl = null;
 let lastVideoDur = 0;
 let lipVideoSource = null;   // URL fal ou dataURL de la vidéo importée
+let lipVideoFile = null;     // v36.1 : fichier importé tel quel — hébergé en direct, sans passer par un data URI géant
 let lipVideoDur = 0;         // durée de la vidéo source (s)
 let lipAudioBuffer = null;   // AudioBuffer décodé (MP3/M4A/AAC…)
 let lipWavMeta = null;       // WAV pro lu manuellement { file, fmt, data, duration }
@@ -1571,6 +1572,7 @@ function pickLipSource(which) {
   const imp = document.getElementById("lipImportBtn");
   if (which === "last") {
     lipVideoSource = lastVideoUrl;
+    lipVideoFile = null;   // v36.1
     lipVideoDur = lastVideoDur;
     useLast.classList.add("on"); imp.classList.remove("on");
     document.getElementById("lipVideoName").textContent = `✓ Dernière vidéo générée (${lipVideoDur} s).`;
@@ -1582,7 +1584,7 @@ function pickLipSource(which) {
 }
 
 function refreshLip() {
-  const ready = !!lipVideoSource && !!lipAudioDataUrl;
+  const ready = !!(lipVideoSource || lipVideoFile) && !!lipAudioDataUrl;  // v36.1
   const go = document.getElementById("lipGo");
   go.disabled = !ready;
   // v35.6 : dire precisement ce qui manque, au lieu d'un message unique
@@ -1937,8 +1939,10 @@ function setupLipsync() {
   vInput.onchange = (e) => {
     const f = e.target.files[0];
     if (!f) return;
-    if (f.size > 30 * 1024 * 1024) {
-      document.getElementById("lipVideoName").textContent = "⚠️ Vidéo trop lourde (max 30 Mo). Coupe-la à 10 s max.";
+    // v36.1 : 80 Mo — les vidéos Multi-plans (15 s) dépassent 30 Mo. Depuis la v36.0
+    // le fichier est hébergé puis envoyé en simple adresse : le poids n'est plus un frein.
+    if (f.size > 80 * 1024 * 1024) {
+      document.getElementById("lipVideoName").textContent = "⚠️ Vidéo trop lourde (max 80 Mo).";
       return;
     }
     document.getElementById("lipVideoName").textContent = "⏳ Lecture de la vidéo…";
@@ -1946,19 +1950,31 @@ function setupLipsync() {
     probe.preload = "metadata";
     probe.onloadedmetadata = () => {
       lipVideoDur = Math.round(probe.duration * 10) / 10;
-      const warn = (lipVideoDur < 2 || lipVideoDur > 10.5) ? " ⚠️ la vidéo doit faire 2 à 10 s !" : "";
+      const warn = lipVideoDur < 2
+        ? " ⚠️ trop courte : 2 s minimum !"
+        : (lipVideoDur > 10.5 ? " — plus de 10 s : choisis ⭐ Pro ci-dessous (le Standard s'arrête à 10 s)." : "");
       const pv = document.getElementById("lipPreview");
       pv.src = probe.src; pv.classList.remove("hidden");
-      const r = new FileReader();
-      r.onload = () => {
-        lipVideoSource = r.result;
+      // v36.1 : le fichier est gardé tel quel et hébergé au lancement (envoi direct,
+      // sans data URI géant en mémoire). Le data URI n'est préparé que pour les
+      // petits fichiers, comme secours du mode Standard si l'hébergement échoue.
+      lipVideoFile = f;
+      const fini = () => {
         document.getElementById("lipUseLast").classList.remove("on");
         document.getElementById("lipImportBtn").classList.add("on");
         document.getElementById("lipVideoName").textContent = `✓ ${f.name} (${lipVideoDur} s)${warn}`;
         maybePrepareAudio();
         refreshLip();
       };
-      r.readAsDataURL(f);
+      if (f.size <= 20 * 1024 * 1024) {
+        const r = new FileReader();
+        r.onload = () => { lipVideoSource = r.result; fini(); };
+        r.onerror = () => { lipVideoSource = null; fini(); };
+        r.readAsDataURL(f);
+      } else {
+        lipVideoSource = null;
+        fini();
+      }
     };
     probe.onerror = () => { document.getElementById("lipVideoName").textContent = "⚠️ Vidéo illisible — utilise un MP4 ou MOV."; };
     probe.src = URL.createObjectURL(f);
@@ -2118,19 +2134,28 @@ const LIP_MOTEURS = {
 // Necessaire pour le lip-sync : les data URI rendent la requete trop grosse
 // (« Request is too large »). Le fichier part DIRECTEMENT vers le stockage,
 // sans passer par notre serveur.
-async function hebergerFichier(dataUrl, nom) {
-  const [tete, b64] = dataUrl.split(",");
-  const type = (tete.match(/^data:([^;]+)/) || [])[1] || "application/octet-stream";
-  const bin = atob(b64);
-  const oct = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) oct[i] = bin.charCodeAt(i);
+async function hebergerFichier(source, nom) {
+  // v36.1 : accepte un data URI OU directement un fichier (File/Blob) — indispensable
+  // pour les vidéos Multi-plans de 30-80 Mo, qu'on n'ose pas convertir en base64 en mémoire.
+  let type, corps;
+  if (typeof source === "string") {
+    const [tete, b64] = source.split(",");
+    type = (tete.match(/^data:([^;]+)/) || [])[1] || "application/octet-stream";
+    const bin = atob(b64);
+    const oct = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) oct[i] = bin.charCodeAt(i);
+    corps = oct;
+  } else {
+    type = source.type || "application/octet-stream";
+    corps = source;
+  }
   const init = await fetch(WORKER_URL + "/upload-init", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code: getCode(), content_type: type, file_name: nom }),
   });
   const d = await init.json().catch(() => ({}));
   if (!init.ok || !d.upload_url) throw new Error(d.error || "Hébergement refusé.");
-  const put = await fetch(d.upload_url, { method: "PUT", headers: { "Content-Type": type }, body: oct });
+  const put = await fetch(d.upload_url, { method: "PUT", headers: { "Content-Type": type }, body: corps });
   if (!put.ok) throw new Error("Envoi du fichier impossible (" + put.status + ").");
   return d.file_url;
 }
@@ -2143,9 +2168,16 @@ async function runLipsync() {
     // v36.0 : les fichiers locaux sont d'abord hébergés (obligatoire — sans ça le
     // serveur répond « Request is too large »). En cas d'échec d'hébergement,
     // repli sur l'envoi direct : le moteur Standard l'accepte encore.
+    // v36.1 : le moteur Standard (Kling) n'accepte que 2 à 10 s de vidéo.
+    // Les vidéos Multi-plans (jusqu'à 15 s) passent par ⭐ Pro.
+    if (lipQualite !== "pro" && lipVideoDur > 10.5)
+      throw new Error("Le mode Standard s'arrête à 10 s de vidéo (la tienne fait " + lipVideoDur + " s). Choisis ⭐ Pro juste au-dessus : il accepte les vidéos plus longues, comme celles du Multi-plans.");
     let vSrc = lipVideoSource, aSrc = lipAudioDataUrl;
     try {
-      if (vSrc && vSrc.startsWith("data:")) {
+      if (lipVideoFile) {
+        setLipStatus("Hébergement de la vidéo (" + Math.round(lipVideoFile.size / 1024 / 1024) + " Mo)… sur réseau mobile, patiente.", 3);
+        vSrc = await hebergerFichier(lipVideoFile, "clip.mp4");
+      } else if (vSrc && vSrc.startsWith("data:")) {
         setLipStatus("Hébergement de la vidéo…", 3);
         vSrc = await hebergerFichier(vSrc, "clip.mp4");
       }
@@ -2154,9 +2186,10 @@ async function runLipsync() {
         aSrc = await hebergerFichier(aSrc, "chanson.wav");
       }
     } catch (upErr) {
-      if (lipQualite === "pro")
-        throw new Error("Hébergement des fichiers impossible (" + upErr.message + ") — le mode Pro en a besoin. Vérifie ta connexion puis réessaie.");
-      vSrc = lipVideoSource; aSrc = lipAudioDataUrl; // Standard : on tente l'envoi direct
+      // v36.1 : sans hébergement, seul un PETIT fichier peut partir en direct (Standard).
+      if (lipQualite === "pro" || !lipVideoSource)
+        throw new Error("Hébergement des fichiers impossible (" + upErr.message + "). Vérifie ta connexion (Wi-Fi de préférence) puis réessaie.");
+      vSrc = lipVideoSource; aSrc = lipAudioDataUrl; // Standard + petit fichier : envoi direct
     }
     let job = null;
     for (let a = 1; a <= 3; a++) {
