@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v35.9 — erreurs claires · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v36.0 — hébergement des fichiers · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -422,7 +422,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.9 — vraies erreurs serveur affichées + coupe audio visible</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v36.0 — lip-sync fiable : les fichiers sont hébergés avant l'envoi</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -2114,15 +2114,54 @@ const LIP_MOTEURS = {
   });
 })();
 
+// v36.0 : heberge un fichier sur le stockage fal et renvoie sa vraie URL.
+// Necessaire pour le lip-sync : les data URI rendent la requete trop grosse
+// (« Request is too large »). Le fichier part DIRECTEMENT vers le stockage,
+// sans passer par notre serveur.
+async function hebergerFichier(dataUrl, nom) {
+  const [tete, b64] = dataUrl.split(",");
+  const type = (tete.match(/^data:([^;]+)/) || [])[1] || "application/octet-stream";
+  const bin = atob(b64);
+  const oct = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) oct[i] = bin.charCodeAt(i);
+  const init = await fetch(WORKER_URL + "/upload-init", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: getCode(), content_type: type, file_name: nom }),
+  });
+  const d = await init.json().catch(() => ({}));
+  if (!init.ok || !d.upload_url) throw new Error(d.error || "Hébergement refusé.");
+  const put = await fetch(d.upload_url, { method: "PUT", headers: { "Content-Type": type }, body: oct });
+  if (!put.ok) throw new Error("Envoi du fichier impossible (" + put.status + ").");
+  return d.file_url;
+}
+
 async function runLipsync() {
   const path = LIP_MOTEURS[lipQualite] || LIP_MOTEURS.std;
   document.getElementById("lipGo").disabled = true;
   setLipStatus("Envoi de la vidéo et de l'audio…", 5);
   try {
+    // v36.0 : les fichiers locaux sont d'abord hébergés (obligatoire — sans ça le
+    // serveur répond « Request is too large »). En cas d'échec d'hébergement,
+    // repli sur l'envoi direct : le moteur Standard l'accepte encore.
+    let vSrc = lipVideoSource, aSrc = lipAudioDataUrl;
+    try {
+      if (vSrc && vSrc.startsWith("data:")) {
+        setLipStatus("Hébergement de la vidéo…", 3);
+        vSrc = await hebergerFichier(vSrc, "clip.mp4");
+      }
+      if (aSrc && aSrc.startsWith("data:")) {
+        setLipStatus("Hébergement de l'audio…", 4);
+        aSrc = await hebergerFichier(aSrc, "chanson.wav");
+      }
+    } catch (upErr) {
+      if (lipQualite === "pro")
+        throw new Error("Hébergement des fichiers impossible (" + upErr.message + ") — le mode Pro en a besoin. Vérifie ta connexion puis réessaie.");
+      vSrc = lipVideoSource; aSrc = lipAudioDataUrl; // Standard : on tente l'envoi direct
+    }
     let job = null;
     for (let a = 1; a <= 3; a++) {
       try {
-        job = await apiSubmit(path, { video_url: lipVideoSource, audio_url: lipAudioDataUrl });
+        job = await apiSubmit(path, { video_url: vSrc, audio_url: aSrc });
         break;
       } catch (netErr) {
         const reseau = /Load failed|Failed to fetch|NetworkError/i.test(netErr.message);

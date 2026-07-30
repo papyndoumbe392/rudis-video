@@ -1,9 +1,9 @@
 // StarClip Studio — service worker
-// v35.9 : le nom du cache DOIT être changé à chaque nouvelle version de l'app,
+// v36.0 : le nom du cache DOIT être changé à chaque nouvelle version de l'app,
 // sinon les anciennes copies restent sur l'appareil des clients et ils ne voient
 // jamais les nouveautés. Les caches des versions précédentes sont supprimés
 // automatiquement à l'activation.
-const CACHE = "starclip-v35-9";
+const CACHE = "starclip-v36-0";
 const FILES = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -41,5 +41,11 @@ self.addEventListener("fetch", e => {
         return rep;
       })
       .catch(() => caches.match(e.request, { ignoreSearch: true }))
+      // v36.0 : si le réseau échoue ET que le cache n'a rien, renvoyer une vraie
+      // réponse d'erreur — sinon le navigateur affiche
+      // « FetchEvent.respondWith received an error: Returned response is null ».
+      .then(rep => rep || new Response("Hors ligne — vérifie ta connexion.", {
+        status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" },
+      }))
   );
 });
