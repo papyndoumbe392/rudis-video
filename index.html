@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v36.2 — connexion blindée · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v36.3 — une photo par plan · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -422,7 +422,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v36.2 — connexion blindée contre les coupures réseau + vraies erreurs partout</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v36.3 — une photo par plan (vrai montage cinéma) + connexion blindée</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -2403,7 +2403,13 @@ function msRender() {
       <div class="estimate" data-charcount="${i}" style="margin-top:4px; text-align:right;"></div>
       <div class="chips" style="margin-top:4px;">
         ${[3, 4, 5].map(s => `<button class="chip ${p.d === s ? "on" : ""}" data-dur-idx="${i}" data-sec="${s}">${s} s</button>`).join("")}
-      </div>`;
+      </div>
+      <div class="chips" style="margin-top:6px; align-items:center;">
+        <button class="chip ${p.img ? "on" : ""}" data-photo-idx="${i}">${p.img ? "✓ Photo de ce plan" : "📷 Photo pour ce plan"}</button>
+        ${p.img ? `<button class="chip" data-photodel="${i}">✕ Retirer la photo</button>` : ""}
+        <span class="estimate" style="margin:0;">${p.img ? "" : "sinon la photo principale est utilisée"}</span>
+      </div>
+      ${p.img ? `<img src="${p.img}" style="margin-top:6px; width:88px; height:88px; object-fit:cover; border-radius:8px; border:1px solid var(--line);">` : ""}`;
     div.querySelector("textarea").value = p.prompt;
     zone.appendChild(div);
   });
@@ -2416,8 +2422,43 @@ function msRender() {
   zone.querySelectorAll("[data-dur-idx]").forEach(b => b.onclick = () => {
     msPlans[+b.dataset.durIdx].d = +b.dataset.sec; msRender();
   });
+  // v36.3 : une photo propre à chaque plan (facultatif) — c'est ce qui transforme
+  // le multi-plans en vrai film : chaque scène peut partir de son propre visuel.
+  zone.querySelectorAll("[data-photo-idx]").forEach(b => b.onclick = () => {
+    msPhotoCible = +b.dataset.photoIdx;
+    document.getElementById("msPhotoInput").click();
+  });
+  zone.querySelectorAll("[data-photodel]").forEach(b => b.onclick = () => {
+    msPlans[+b.dataset.photodel].img = null; msRender();
+  });
   msRefresh();
 }
+
+// v36.3 : lecture + réduction de la photo d'un plan (même traitement que la photo
+// principale : 1024 px max, JPEG 0,88 — assez détaillé pour Kling, assez léger pour l'envoi).
+let msPhotoCible = 0;
+(function initMsPhoto() {
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = "image/*"; inp.id = "msPhotoInput";
+  inp.style.display = "none";
+  document.body.appendChild(inp);
+  inp.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const sc = Math.min(1, 1024 / Math.max(img.width, img.height));
+      c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      if (msPlans[msPhotoCible]) msPlans[msPhotoCible].img = c.toDataURL("image/jpeg", 0.88);
+      msRender();
+    };
+    img.onerror = () => { alert("Cette image n'a pas pu être lue. Essaie une autre photo."); };
+    img.src = URL.createObjectURL(f);
+    inp.value = "";
+  };
+})();
 
 function msRefresh() {
   const total = msTotal();
@@ -2454,6 +2495,19 @@ function msSetStatus(html, pct) {
   document.getElementById("msStatusText").innerHTML = html;
   if (pct !== undefined) document.getElementById("msFill").style.width = pct + "%";
 }
+
+// v36.3 : petit mot d'explication au-dessus des plans
+(function msAstucePhoto() {
+  const z = document.getElementById("msPlans");
+  if (!z) return;
+  const d = document.createElement("div");
+  d.className = "estimate";
+  d.style.cssText = "border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px; margin-top:10px;";
+  d.innerHTML = "💡 <b>Comme au cinéma</b> : tu peux donner une <b>photo différente à chaque plan</b> "
+    + "(ex : tes 3 images d'une même scène), ou n'en mettre <b>aucune</b> et tout partira de ta photo principale. "
+    + "Tu peux aussi n'en mettre qu'à certains plans.";
+  z.parentNode.insertBefore(d, z);
+})();
 
 document.getElementById("msAdd").onclick = () => {
   if (msPlans.length >= 6) return;
@@ -2524,10 +2578,23 @@ document.getElementById("msGo").onclick = async () => {
       enPlans.push(en);
     }
 
+    // v36.3 : chaque plan peut avoir SA photo. On les empile dans image_urls et
+    // chaque plan cite la sienne (@Image2, @Image3…). fal limite elements + image_urls
+    // à 7 références au total : 1 élément visage + 6 images maximum.
+    const toutesOntPhoto = msPlans.every(p => p.img);
+    const imgUrls = [];
+    if (!toutesOntPhoto) imgUrls.push(stylePhotoUrl || photoDataUrl);
+    const idxPlan = msPlans.map(p => p.img ? imgUrls.push(p.img) : 1);
+    if (imgUrls.length > 6)
+      throw new Error("Trop de photos : " + imgUrls.length + " en tout, le studio en accepte 6 au maximum (plus ton visage). Retire une photo de plan.");
+
     const mp = msPlans.map((p, i) => {
-      const prefix = i === 0
-        ? "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. "
-        : "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ";
+      const monImage = "@Image" + idxPlan[i];
+      const prefix = p.img
+        ? `Use ${monImage} as the visual starting point for THIS shot. @Element1 refers ONLY to the man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. `
+        : (i === 0
+            ? "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. "
+            : "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ");
       const full = prefix + clip(enPlans[i].trim(), msBudget(i)) + shortSuffix;
       // Filet de sécurité absolu : quelle que soit la longueur réelle de faceGuard
       // (variable selon la description IA du visage), le prompt final ne dépasse
@@ -2536,7 +2603,7 @@ document.getElementById("msGo").onclick = async () => {
     });
     const payload = {
       multi_prompt: mp,
-      image_urls: [stylePhotoUrl || photoDataUrl],
+      image_urls: imgUrls,
       elements: [elem],
       aspect_ratio: aspect,
       shot_type: "customize",
