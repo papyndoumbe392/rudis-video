@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v36.3 — une photo par plan · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v36.4 — budget corrigé + remboursement auto · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -422,7 +422,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v36.3 — une photo par plan (vrai montage cinéma) + connexion blindée</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v36.4 — correctif du dépassement 512 caractères + remboursement automatique</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -2383,7 +2383,16 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 const MS_SHORT_GUARD_LEN = " Same props as photo, no duplicated items. Person fully in frame, eyes open, realistic smooth motion. Exact same face and identity, do not alter.".length;
 const MS_PREFIX0_LEN = "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. ".length;
 const MS_PREFIXN_LEN = "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ".length;
-function msBudget(i) { return 512 - (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN) - MS_SHORT_GUARD_LEN - 15; } // -15 : marge de sécurité
+// v36.4 : CORRECTIF DE FOND — le préfixe utilisé pour un plan AVEC sa propre photo est
+// plus long (217 car.) que les deux préfixes ci-dessus (211 et 153). Le budget d'hier
+// ignorait ce 3e cas : le texte final dépassait 512 caractères et le serveur refusait
+// le rendu APRÈS l'avoir déjà facturé. Le budget doit donc connaître, pour chaque
+// plan, s'il aura sa propre photo — pas seulement son numéro.
+const MS_PREFIXIMG_LEN = "Use @Image9 as the visual starting point for THIS shot. @Element1 refers ONLY to the man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. ".length;
+function msBudget(i, aSaPhoto) {
+  const prefixLen = aSaPhoto ? MS_PREFIXIMG_LEN : (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN);
+  return 512 - prefixLen - MS_SHORT_GUARD_LEN - 15; // -15 : marge de sécurité
+}
 
 let msPlans = [{ prompt: "", d: 5 }, { prompt: "", d: 5 }];
 function msTotal() { return msPlans.reduce((s, p) => s + p.d, 0); }
@@ -2545,10 +2554,29 @@ async function msTranslateOne(frText, maxChars) {
   }
 }
 
+// v36.4 : si un rendu FACTURÉ échoue ensuite (ex : le studio refuse un prompt trop
+// long APRÈS avoir accepté la commande), le Worker rembourse automatiquement — après
+// avoir lui-même vérifié auprès du studio que la vidéo n'existe vraiment pas.
+let msJobEnCours = null;
+async function msRembourserSiEchec() {
+  if (!msJobEnCours) return "";
+  try {
+    const r = await fetch(WORKER_URL + "/refund", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: getCode(), request_id: msJobEnCours }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok && !d.deja) return " Ton crédit t'a été rendu automatiquement.";
+    if (r.ok && d.ok && d.deja) return " (déjà remboursé.)";
+  } catch (_) {}
+  return "";
+}
+
 document.getElementById("msGo").onclick = async () => {
   const goBtn = document.getElementById("msGo");
   goBtn.disabled = true;
   document.getElementById("msResultZone").innerHTML = "";
+  msJobEnCours = null;
   try {
     const faceRefs = faceRefUrls.filter(Boolean);
     const elem = { frontal_image_url: faceRefs[0] };
@@ -2595,11 +2623,17 @@ document.getElementById("msGo").onclick = async () => {
         : (i === 0
             ? "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. "
             : "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ");
-      const full = prefix + clip(enPlans[i].trim(), msBudget(i)) + shortSuffix;
-      // Filet de sécurité absolu : quelle que soit la longueur réelle de faceGuard
-      // (variable selon la description IA du visage), le prompt final ne dépasse
-      // JAMAIS la limite serveur de 512 caractères.
-      return { prompt: full.length > 512 ? clip(full, 512) : full, duration: String(p.d) };
+      const full = prefix + clip(enPlans[i].trim(), msBudget(i, !!p.img)) + shortSuffix;
+      // v36.4 : FILET DE SÉCURITÉ EN OCTETS, pas seulement en caractères. Le tiret
+      // cadratin (—) et les points de suspension (…) présents dans nos propres textes
+      // pèsent 3 octets chacun en UTF-8 pour 1 seul caractère JavaScript : un texte de
+      // 512 caractères pouvait donc peser plus de 512 octets côté serveur et se faire
+      // refuser malgré le filet précédent, qui ne comptait que les caractères.
+      let finalPrompt = full;
+      while (new TextEncoder().encode(finalPrompt).length > 500) {  // 500 : marge de sécurité
+        finalPrompt = finalPrompt.slice(0, Math.floor(finalPrompt.length * 0.9));
+      }
+      return { prompt: finalPrompt, duration: String(p.d) };
     });
     const payload = {
       multi_prompt: mp,
@@ -2611,6 +2645,7 @@ document.getElementById("msGo").onclick = async () => {
     };
     msSetStatus("Envoi de ton storyboard au studio de rendu…", 8);
     const job = await apiSubmit(MODELS.ref.path, payload);
+    msJobEnCours = job.request_id || null;   // v36.4 : pour un remboursement automatique si ça échoue ensuite
     const statusUrl = job.status_url || `https://queue.fal.run/${MODELS.ref.path}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${MODELS.ref.path}/requests/${job.request_id}`;
     let pct = 10;
@@ -2657,7 +2692,8 @@ document.getElementById("msGo").onclick = async () => {
     const useLast = document.getElementById("lipUseLast");
     if (useLast) useLast.disabled = false;
   } catch (err) {
-    msSetStatus(`<span class="err">✗ ${err.message}</span>`, 0);
+    const rembourse = await msRembourserSiEchec();
+    msSetStatus(`<span class="err">✗ ${err.message}${rembourse}</span>`, 0);
   } finally {
     msRefresh();
     refresh();
