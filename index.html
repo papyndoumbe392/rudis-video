@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v36.1 — lip-sync des Multi-plans · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v36.2 — connexion blindée · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -422,7 +422,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v36.1 — le lip-sync accepte les vidéos Multi-plans (80 Mo, ⭐ Pro au-delà de 10 s)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v36.2 — connexion blindée contre les coupures réseau + vraies erreurs partout</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -636,9 +636,25 @@ async function apiSubmit(modelPath, payload) {
   }
   return d;
 }
+// v36.2 : ce sondage tourne des dizaines de fois par génération. Avant, une seule
+// réponse non-JSON (page d'erreur passagère, micro-coupure du réseau mobile) faisait
+// tout échouer avec le message Safari « The string did not match the expected
+// pattern » — alors que le rendu continuait tranquillement côté serveur.
+// Maintenant : lecture prudente + 3 tentatives espacées avant d'abandonner.
 async function apiPoll(u) {
-  const r = await fetch(WORKER_URL + "/poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: getCode(), url: u }) });
-  return r.json();
+  let derniere = "";
+  for (let essai = 1; essai <= 3; essai++) {
+    try {
+      const r = await fetch(WORKER_URL + "/poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: getCode(), url: u }) });
+      const texte = await r.text();
+      try { return JSON.parse(texte); }
+      catch (_) { throw new Error("réponse illisible du serveur (" + r.status + ")"); }
+    } catch (e) {
+      derniere = e.message;
+      if (essai < 3) await new Promise(rs => setTimeout(rs, 2500));
+    }
+  }
+  throw new Error("Connexion au serveur instable (" + derniere + "). Vérifie ton réseau (Wi-Fi de préférence) et réessaie.");
 }
 
 // ——— Photo ———
@@ -2538,8 +2554,17 @@ document.getElementById("msGo").onclick = async () => {
       if (sj.status === "IN_QUEUE") msSetStatus(`En file d'attente (position ${sj.queue_position ?? "…"})…`, pct);
       else if (sj.status === "IN_PROGRESS") msSetStatus(`Kling 3.0 tourne tes ${msPlans.length} plans… (2 à 8 min)`, pct);
       else if (sj.status === "COMPLETED") break;
-      if (sj.status === "FAILED" || sj.status === "ERROR")
-        throw new Error("La création a échoué côté serveur. Réessaie — si ça se reproduit, envoie ce message au studio sur WhatsApp.");
+      if (sj.status === "FAILED" || sj.status === "ERROR") {
+        // v36.2 : récupérer le motif exact, comme dans le lip-sync — règle du projet.
+        let motif = "";
+        try {
+          const rep = await apiPoll(responseUrl);
+          motif = rep.detail
+            ? (Array.isArray(rep.detail) ? rep.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(rep.detail))
+            : (rep.error || rep.message || "");
+        } catch (_) {}
+        throw new Error("La création a échoué côté serveur" + (motif ? " : « " + motif + " »" : ". Réessaie — si ça se reproduit, envoie ce message au studio sur WhatsApp."));
+      }
     }
     const data = await apiPoll(responseUrl);
     const videoUrl = data.video?.url || data.response?.video?.url;
