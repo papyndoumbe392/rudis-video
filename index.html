@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v35.8 — lip-sync Pro · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v35.9 — erreurs claires · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -422,7 +422,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v35.8 — lip-sync Pro (lèvres naturelles) + enregistrement corrigé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v35.9 — vraies erreurs serveur affichées + coupe audio visible</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1911,6 +1911,15 @@ function maybePrepareAudio() {
   }
   if (adur > lipVideoDur + 0.3) {
     trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
+    // v35.9 : bouton explicite, comme dans Kling — la coupe auto a déjà eu lieu,
+    // ce bouton rassure et permet de recouper après avoir changé le point de départ.
+    const ti = document.getElementById("trimInfo");
+    if (ti && !document.getElementById("cutToVideo")) {
+      ti.insertAdjacentHTML("afterend",
+        `<button class="btn small" id="cutToVideo" style="margin-top:8px;">✂️ Couper à la longueur de la vidéo (${Math.round(lipVideoDur)} s)</button>`);
+      document.getElementById("cutToVideo").onclick = () =>
+        trimAudio(parseFloat(document.getElementById("trimStart").value.replace(",", ".")) || 0);
+    }
   } else {
     trimAudio(0);
     if (adur < lipVideoDur - 0.5) {
@@ -2134,11 +2143,35 @@ async function runLipsync() {
       if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"}) — ${elapsed()} écoulées. Normal jusqu'à 12 min, laisse l'app ouverte.`, pct);
       else if (sj.status === "IN_PROGRESS") setLipStatus(`Le studio synchronise les lèvres — ${elapsed()} écoulées (normal : 5 à 12 min). Laisse l'app ouverte, écran allumé.`, pct);
       else if (sj.status === "COMPLETED") break;
-      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le lip-sync a échoué côté serveur. Vérifie que la vidéo fait 2 à 10 s, puis réessaie.");
+      if (sj.status === "FAILED" || sj.status === "ERROR") {
+        // v35.9 : récupérer le motif exact de l'échec au lieu d'un message générique
+        let motif = "";
+        try {
+          const rep = await apiPoll(responseUrl);
+          motif = rep.detail
+            ? (Array.isArray(rep.detail) ? rep.detail.map(d => d.msg || JSON.stringify(d)).join(" · ") : String(rep.detail))
+            : (rep.error || rep.message || "");
+        } catch (_) {}
+        throw new Error("Le lip-sync a échoué côté serveur" + (motif ? " : « " + motif + " »" : ". Vérifie que la vidéo fait 2 à 10 s, puis réessaie."));
+      }
+    }
+    // v35.9 : si l'attente s'épuise sans fin de traitement, le dire clairement
+    {
+      const dernier = await apiPoll(statusUrl).catch(() => null);
+      if (dernier && dernier.status !== "COMPLETED")
+        throw new Error("Le serveur travaille encore après " + elapsed() + " — c'est inhabituel. Laisse-lui 5 minutes puis relance : le crédit ne sera PAS débité deux fois pour la même vidéo non livrée.");
     }
     const data = await apiPoll(responseUrl);
-    const outUrl = data.video?.url || data.response?.video?.url;
-    if (!outUrl) throw new Error("Vidéo introuvable dans la réponse. Réessaie.");
+    // v35.9 : chaque moteur range sa vidéo à un endroit un peu différent — on les tente tous
+    const outUrl = data.video?.url || data.response?.video?.url || data.output?.video?.url
+      || data.video_url || (typeof data.video === "string" ? data.video : null);
+    if (!outUrl) {
+      // Règle d'or du projet : montrer la VRAIE erreur du serveur, jamais un message vague.
+      const brut = data.detail
+        ? (Array.isArray(data.detail) ? data.detail.map(d => d.msg || JSON.stringify(d)).join(" · ") : String(data.detail))
+        : (data.error || data.message || JSON.stringify(data).slice(0, 220));
+      throw new Error("Le serveur n'a pas produit de vidéo. Sa réponse exacte : « " + brut + " » — envoie ce message à Claude si ça se répète.");
+    }
     setLipStatus("<span class='okc'>✓ Lip-sync terminé !</span>", 100);
     lastVideoUrl = outUrl;
     videoFile = null;
