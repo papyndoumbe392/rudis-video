@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v36.5 — format d'origine respecté · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v36.7 — retoucher une image · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -348,6 +348,60 @@
     <div id="lipResult"></div>
   </section>
 
+  <!-- v36.6 : CHANGER LE FORMAT — vraie reconstruction des bords (Luma Reframe) -->
+  <section class="card">
+    <h2><span class="num">🔄</span> Changer le format d'une vidéo</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Transforme une vidéo <b>horizontale en verticale</b> (statut WhatsApp, TikTok, Reels) ou l'inverse.
+      L'IA <b>reconstruit vraiment</b> les zones manquantes — pas de bandes noires, pas de flou, rien de coupé.
+    </div>
+
+    <div class="label">Vidéo à convertir</div>
+    <div class="chips">
+      <button class="chip" id="rfUseLast" disabled>Dernière vidéo générée</button>
+      <button class="chip" id="rfImportBtn">📂 Importer une vidéo</button>
+    </div>
+    <input type="file" id="rfVideoInput" accept="video/*" style="display:none;">
+    <div class="estimate" id="rfVideoName"></div>
+    <video id="rfPreview" class="hidden" controls playsinline style="width:100%; border-radius:10px; margin-top:8px;"></video>
+
+    <div class="label">Nouveau format</div>
+    <div class="chips" id="rfRatio">
+      <button class="chip on" data-rf="9:16">📱 9:16 Vertical</button>
+      <button class="chip" data-rf="16:9">🖥️ 16:9 Horizontal</button>
+      <button class="chip" data-rf="1:1">◻️ 1:1 Carré</button>
+    </div>
+
+    <button class="master" id="rfGo" disabled style="margin-top:16px;">Choisis d'abord une vidéo</button>
+    <div class="estimate" id="rfCost" style="margin-top:8px;"></div>
+    <div class="status" id="rfStatus" style="margin-top:12px;"><div id="rfStatusText"></div><div class="bar"><div class="fill" id="rfFill"></div></div></div>
+    <div id="rfResult"></div>
+  </section>
+
+  <!-- v36.7 : RETOUCHER UNE IMAGE — enlever ou ajouter un élément sans refaire la scène -->
+  <section class="card">
+    <h2><span class="num">🧹</span> Retoucher une image</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Enlève ou ajoute un élément <b>sans refaire toute la scène</b> : « enlève l'homme en costume noir au centre »,
+      « enlève la femme en robe dorée », « ajoute de la pluie ». Le reste de l'image ne bouge pas.
+    </div>
+
+    <div class="chips" style="margin-top:10px;">
+      <button class="chip" id="rtUsePhoto">Photo du volet 1</button>
+      <button class="chip" id="rtImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="rtInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="rtName"></div>
+    <img id="rtPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+
+    <div class="label">Ce que tu veux changer</div>
+    <textarea id="rtPrompt" rows="2" placeholder="Ex : enlève l'homme en costume noir et la femme en robe dorée au premier plan, garde tout le reste identique" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
+
+    <button class="btn" id="rtGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
+    <div class="estimate" id="rtInfo" style="margin-top:8px;"></div>
+    <div id="rtResult"></div>
+  </section>
+
   <!-- STUDIO IMAGES : créer personnages, danseurs, décors à partir d'un texte (sans photo) -->
   <section class="card" style="border-color:var(--violet);">
     <h2><span class="num" style="background:var(--violet); color:#fff;">🎨</span> Studio Images — créer des décors & personnages</h2>
@@ -423,7 +477,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v36.5 — le format d'origine est enfin respecté (fini le portrait forcé)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v36.7 — nouveau : retoucher une image (enlever ou ajouter un élément)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -2719,6 +2773,8 @@ document.getElementById("msGo").onclick = async () => {
     renderTrimRow(card, videoUrl, Math.max(2, lastVideoDur - 0.1));
     const useLast = document.getElementById("lipUseLast");
     if (useLast) useLast.disabled = false;
+    const rfLast = document.getElementById("rfUseLast");   // v36.6
+    if (rfLast) rfLast.disabled = false;
   } catch (err) {
     const rembourse = await msRembourserSiEchec();
     msSetStatus(`<span class="err">✗ ${err.message}${rembourse}</span>`, 0);
@@ -2730,6 +2786,256 @@ document.getElementById("msGo").onclick = async () => {
 
 window.__msReady = true;
 msRender();
+
+// ═══════════ v36.6 : CHANGER LE FORMAT (Luma Reframe) ═══════════
+// Modèle fal-ai/luma-dream-machine/ray-2-flash/reframe — paramètres video_url + aspect_ratio.
+// Il reconstruit réellement les bords manquants, contrairement à un simple recadrage.
+// Coût studio ~0,20 $/s (3 $ pour 15 s) → facturé 2 vidéos du code, comme le multi-plans.
+const RF_MODEL = "fal-ai/luma-dream-machine/ray-2-flash/reframe";
+let rfSource = null;    // URL fal (dernière vidéo) ou null si fichier importé
+let rfFile = null;      // fichier importé, hébergé au lancement
+let rfDur = 0;
+let rfRatio = "9:16";
+let rfJobEnCours = null;
+
+function rfSetStatus(txt, pct) {
+  document.getElementById("rfStatus").classList.add("on");
+  document.getElementById("rfStatusText").innerHTML = txt;
+  document.getElementById("rfFill").style.width = (pct || 0) + "%";
+}
+function rfRefresh() {
+  const pret = !!(rfSource || rfFile);
+  const go = document.getElementById("rfGo");
+  go.disabled = !pret;
+  go.textContent = pret ? "🔄 Convertir en " + rfRatio + " (− 2 vidéos)" : "Choisis d'abord une vidéo";
+  document.getElementById("rfCost").innerHTML = pret
+    ? `Cette conversion débite <b>2 vidéos</b> de ton code${rfDur ? ` — vidéo de ${Math.round(rfDur)} s` : ""}.`
+    : "";
+}
+document.getElementById("rfImportBtn").onclick = () => document.getElementById("rfVideoInput").click();
+document.getElementById("rfVideoInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (f.size > 80 * 1024 * 1024) {
+    document.getElementById("rfVideoName").textContent = "⚠️ Vidéo trop lourde (max 80 Mo).";
+    return;
+  }
+  const probe = document.createElement("video");
+  probe.preload = "metadata";
+  probe.onloadedmetadata = () => {
+    rfDur = Math.round(probe.duration * 10) / 10;
+    const pv = document.getElementById("rfPreview");
+    pv.src = probe.src; pv.classList.remove("hidden");
+    rfFile = f; rfSource = null;
+    document.getElementById("rfUseLast").classList.remove("on");
+    document.getElementById("rfImportBtn").classList.add("on");
+    const trop = rfDur > 30 ? " ⚠️ le studio accepte 30 s maximum." : "";
+    document.getElementById("rfVideoName").textContent = `✓ ${f.name} (${rfDur} s)${trop}`;
+    rfRefresh();
+  };
+  probe.onerror = () => { document.getElementById("rfVideoName").textContent = "⚠️ Vidéo illisible."; };
+  probe.src = URL.createObjectURL(f);
+};
+document.getElementById("rfUseLast").onclick = () => {
+  if (!lastVideoUrl) return;
+  rfSource = lastVideoUrl; rfFile = null; rfDur = lastVideoDur || 0;
+  const pv = document.getElementById("rfPreview");
+  pv.src = lastVideoUrl; pv.classList.remove("hidden");
+  document.getElementById("rfImportBtn").classList.remove("on");
+  document.getElementById("rfUseLast").classList.add("on");
+  document.getElementById("rfVideoName").textContent = `✓ Dernière vidéo générée (${rfDur} s)`;
+  rfRefresh();
+};
+document.getElementById("rfRatio").querySelectorAll(".chip").forEach(b => b.onclick = () => {
+  rfRatio = b.dataset.rf;
+  document.getElementById("rfRatio").querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  b.classList.add("on");
+  rfRefresh();
+});
+
+async function rfRembourserSiEchec() {
+  if (!rfJobEnCours) return "";
+  try {
+    const r = await fetch(WORKER_URL + "/refund", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: getCode(), request_id: rfJobEnCours }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok && !d.deja) return " Tes crédits t'ont été rendus automatiquement.";
+  } catch (_) {}
+  return "";
+}
+
+document.getElementById("rfGo").onclick = async () => {
+  const go = document.getElementById("rfGo");
+  go.disabled = true;
+  document.getElementById("rfResult").innerHTML = "";
+  rfJobEnCours = null;
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    if (rfDur > 30.5) throw new Error("Le studio accepte 30 s maximum (ta vidéo fait " + rfDur + " s).");
+
+    let url = rfSource;
+    if (rfFile) {
+      rfSetStatus("Hébergement de la vidéo (" + Math.round(rfFile.size / 1024 / 1024) + " Mo)… sur réseau mobile, patiente.", 5);
+      url = await hebergerFichier(rfFile, "aconvertir.mp4");
+    }
+    rfSetStatus("Envoi au studio…", 10);
+    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: rfRatio });
+    rfJobEnCours = job.request_id || null;
+    const statusUrl = job.status_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}`;
+
+    let pct = 12;
+    for (let i = 0; i < 200; i++) {
+      await new Promise(rs => setTimeout(rs, 4000));
+      const sj = await apiPoll(statusUrl);
+      pct = Math.min(pct + 2, 92);
+      if (sj.status === "IN_QUEUE") rfSetStatus(`En file d'attente…`, pct);
+      else if (sj.status === "IN_PROGRESS") rfSetStatus(`L'IA reconstruit les bords… (2 à 6 min)`, pct);
+      else if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") {
+        let motif = "";
+        try {
+          const rep = await apiPoll(responseUrl);
+          motif = rep.detail
+            ? (Array.isArray(rep.detail) ? rep.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(rep.detail))
+            : (rep.error || rep.message || "");
+        } catch (_) {}
+        throw new Error("La conversion a échoué côté serveur" + (motif ? " : « " + motif + " »" : "."));
+      }
+    }
+    const data = await apiPoll(responseUrl);
+    const out = data.video?.url || data.response?.video?.url || data.output?.video?.url || data.video_url;
+    if (!out) {
+      const brut = data.detail
+        ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
+        : (data.error || data.message || JSON.stringify(data).slice(0, 200));
+      throw new Error("Vidéo introuvable dans la réponse. Détail serveur : « " + brut + " »");
+    }
+    rfSetStatus("<span class='okc'>✓ Vidéo convertie en " + rfRatio + " !</span>", 100);
+    lastVideoUrl = out;
+    document.getElementById("rfResult").innerHTML =
+      `<video controls playsinline style="width:100%; border-radius:10px; margin-top:12px;" src="${out}"></video>
+       <button class="dl btn" id="rfSaveBtn">⏳ Préparation de l'enregistrement…</button>
+       <div class="estimate" id="rfSaveHint"></div>
+       <div class="estimate">💡 Sur iPhone, tu peux aussi <b>appuyer longuement sur la vidéo</b> → « Enregistrer la vidéo ».</div>`;
+    prepareVideoFile(out, document.getElementById("rfSaveBtn"));
+    document.getElementById("rfSaveBtn").onclick = () => saveVideo(out, document.getElementById("rfSaveHint"));
+  } catch (err) {
+    const rembourse = await rfRembourserSiEchec();
+    rfSetStatus(`<span class="err">✗ ${err.message}${rembourse}</span>`, 0);
+  } finally {
+    rfRefresh();
+    refresh();
+  }
+};
+rfRefresh();
+
+// ═══════════ v36.7 : RETOUCHER UNE IMAGE (nano-banana/edit) ═══════════
+// Même moteur que les tenues et les décors : il modifie une zone précise en gardant
+// le reste intact. Gratuit en crédits vidéo, décompté du quota d'images du code.
+let rtSource = null;
+function rtRefresh() {
+  const pret = !!rtSource && document.getElementById("rtPrompt").value.trim().length > 3;
+  const b = document.getElementById("rtGo");
+  b.disabled = !pret;
+  b.textContent = !rtSource ? "Choisis d'abord une image"
+    : (pret ? "🧹 Retoucher l'image (≈ 0,04 $)" : "Décris ce que tu veux changer");
+}
+document.getElementById("rtPrompt").addEventListener("input", rtRefresh);
+document.getElementById("rtImportBtn").onclick = () => document.getElementById("rtInput").click();
+document.getElementById("rtInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    rtSource = c.toDataURL("image/jpeg", 0.92);
+    const pv = document.getElementById("rtPreview");
+    pv.src = rtSource; pv.classList.remove("hidden");
+    document.getElementById("rtUsePhoto").classList.remove("on");
+    document.getElementById("rtImportBtn").classList.add("on");
+    document.getElementById("rtName").textContent = `✓ ${f.name}`;
+    rtRefresh();
+  };
+  img.onerror = () => { document.getElementById("rtName").textContent = "⚠️ Image illisible."; };
+  img.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+document.getElementById("rtUsePhoto").onclick = () => {
+  if (!photoDataUrl) { document.getElementById("rtName").textContent = "⚠️ Aucune photo dans le volet 1."; return; }
+  rtSource = stylePhotoUrl || photoDataUrl;
+  const pv = document.getElementById("rtPreview");
+  pv.src = rtSource; pv.classList.remove("hidden");
+  document.getElementById("rtImportBtn").classList.remove("on");
+  document.getElementById("rtUsePhoto").classList.add("on");
+  document.getElementById("rtName").textContent = "✓ Photo du volet 1";
+  rtRefresh();
+};
+document.getElementById("rtGo").onclick = async () => {
+  const b = document.getElementById("rtGo"), info = document.getElementById("rtInfo");
+  b.disabled = true;
+  info.textContent = "⏳ Retouche en cours… (20 à 60 s)";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    const demande = document.getElementById("rtPrompt").value.trim();
+    // Traduction FR→EN puis consigne de préservation : c'est elle qui empêche le moteur
+    // de refaire toute la scène au lieu de modifier seulement ce qui est demandé.
+    const en = await msTranslateOne(demande, 240).catch(() => demande);
+    const prompt = en + ". Keep everything else in the image EXACTLY identical: same background, same architecture, "
+      + "same cars, same remaining people with their exact faces and outfits, same lighting, same camera angle. "
+      + "Fill the removed areas realistically with the existing background. Photorealistic, no text.";
+    const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt, image_urls: [rtSource] });
+    const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
+    for (let i = 0; i < 60; i++) {
+      await new Promise(rs => setTimeout(rs, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La retouche a échoué côté serveur.");
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) {
+      const brut = data.detail
+        ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
+        : (data.error || data.message || JSON.stringify(data).slice(0, 200));
+      throw new Error("Image introuvable. Détail serveur : « " + brut + " »");
+    }
+    info.innerHTML = `<span style="color:var(--ok)">✓ Image retouchée !</span>`;
+    document.getElementById("rtResult").innerHTML = `
+      <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a class="btn small" href="${url}" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger</a>
+        <button class="btn small pulse" id="rtUse">✓ Utiliser comme photo de départ</button>
+        <button class="btn small" id="rtAgain">🔄 Retoucher encore</button>
+      </div>`;
+    document.getElementById("rtUse").onclick = () => {
+      photoDataUrl = url; stylePhotoUrl = null;
+      const slot = document.getElementById("photoSlot");
+      if (slot) { slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled"); }
+      const lbl = document.getElementById("photoLabel");
+      if (lbl) lbl.textContent = "Image retouchée";
+      info.innerHTML = `<span style="color:var(--ok)">✓ Placée en photo de départ (volet 1).</span>`;
+      refresh();
+    };
+    document.getElementById("rtAgain").onclick = () => {
+      rtSource = url;
+      document.getElementById("rtPreview").src = url;
+      document.getElementById("rtName").textContent = "✓ Image retouchée (on repart de celle-ci)";
+      document.getElementById("rtResult").innerHTML = "";
+      document.getElementById("rtPrompt").value = "";
+      rtRefresh();
+    };
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { rtRefresh(); refresh(); }
+};
+rtRefresh();
 
 // ——— v34.7 : GALERIE DES CLIPS D'EXEMPLE ———
 // Les vidéos sont dans le même dossier que l'app (racine du dépôt rudis-video),
