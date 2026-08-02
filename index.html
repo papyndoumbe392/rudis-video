@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v36.9 — décor première classe · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.0 — deux visages stables · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -179,6 +179,20 @@
       <input type="file" id="faceRefInput" accept="image/*" class="hidden">
       <div class="estimate" id="faceRefStatus" style="margin-top:8px;"></div>
       <div class="estimate" style="margin-top:4px; font-style:italic;">L'IA analyse tes photos et décrit ton visage précisément pour mieux le préserver dans la vidéo.</div>
+
+      <!-- v37.0 : DEUXIÈME personne — indispensable pour les scènes de couple.
+           Sans elle, le moteur n'ancre qu'une identité et invente le second visage. -->
+      <div style="border-top:1px solid var(--line); margin-top:14px; padding-top:12px;">
+        <div class="label" style="margin-top:0; color:var(--violet);">💑 Deuxième personne (optionnel — pour les scènes à deux)</div>
+        <div class="estimate" style="margin-top:0;">Si ta vidéo montre <b>deux personnes</b> (ton/ta partenaire, un duo), ajoute aussi <b>ses</b> photos ici. Sans ça, l'IA garde ton visage mais <b>invente le sien</b>.</div>
+        <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
+          <div class="face-ref-slot face-ref-b" data-idxb="0">＋</div>
+          <div class="face-ref-slot face-ref-b" data-idxb="1">＋</div>
+          <div class="face-ref-slot face-ref-b" data-idxb="2">＋</div>
+        </div>
+        <input type="file" id="faceRefInputB" accept="image/*" class="hidden">
+        <div class="estimate" id="faceRefStatusB" style="margin-top:8px;"></div>
+      </div>
     </div>
 
     <div id="ratioZone" class="hidden" style="margin-top:14px;">
@@ -477,7 +491,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v36.9 — nouveau décor : première classe d'avion (26 décors)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.0 — scènes de couple : le visage de la deuxième personne est enfin préservé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -491,6 +505,10 @@ let dur = "5";
 
 // ——— Références visage v31 ———
 let faceRefUrls = [null, null, null]; // jusqu'à 3 photos
+// v37.0 : deuxième personne (partenaire) — ancrée comme @Element2 côté moteur.
+let faceRefUrlsB = [null, null, null];
+let faceRefCurrentSlotB = 0;
+const refsB = () => faceRefUrlsB.filter(Boolean);
 let faceRefOpen = false;
 let faceRefDescription = ""; // description IA du visage
 let faceRefCurrentSlot = 0;
@@ -510,6 +528,42 @@ function updateFaceRefCount() {
 }
 
 // Initialise les slots de référence visage
+// v37.0 : même traitement que les photos de la personne A (512 px max, minimum
+// 300 px imposé par fal.ai sur chaque référence visage).
+function initFaceRefSlotsB() {
+  const input = document.getElementById("faceRefInputB");
+  document.querySelectorAll(".face-ref-b").forEach(slot => {
+    slot.onclick = () => { faceRefCurrentSlotB = parseInt(slot.dataset.idxb); input.click(); };
+  });
+  input.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      let scale = Math.min(1, 512 / Math.max(img.width, img.height));
+      if (Math.min(img.width, img.height) * scale < 320)
+        scale = 320 / Math.min(img.width, img.height);
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      faceRefUrlsB[faceRefCurrentSlotB] = c.toDataURL("image/jpeg", 0.9);
+      const slot = document.querySelector(`.face-ref-b[data-idxb="${faceRefCurrentSlotB}"]`);
+      slot.style.backgroundImage = `url(${faceRefUrlsB[faceRefCurrentSlotB]})`;
+      slot.textContent = "";
+      slot.classList.add("filled");
+      const n = refsB().length;
+      document.getElementById("faceRefStatusB").innerHTML = n
+        ? `<span style="color:var(--ok)">✓ ${n} photo${n > 1 ? "s" : ""} — son visage sera préservé comme le tien.</span>`
+        : "";
+      refresh();
+    };
+    img.onerror = () => { document.getElementById("faceRefStatusB").innerHTML = `<span class="err">⚠️ Image illisible.</span>`; };
+    img.src = URL.createObjectURL(f);
+    e.target.value = "";
+  };
+}
+
 function initFaceRefSlots() {
   const slots = document.querySelectorAll(".face-ref-slot");
   const input = document.getElementById("faceRefInput");
@@ -712,6 +766,31 @@ async function apiPoll(u) {
     }
   }
   throw new Error("Connexion au serveur instable (" + derniere + "). Vérifie ton réseau (Wi-Fi de préférence) et réessaie.");
+}
+
+// v37.0 : construit le tableau `elements` envoyé au moteur.
+// @Element1 = la personne principale, @Element2 = la deuxième personne si elle
+// a ses propres photos. C'est LE mécanisme qui ancre réellement une identité :
+// sans élément dédié, le moteur invente le second visage, quoi que dise le texte.
+function construireElements() {
+  const a = faceRefUrls.filter(Boolean);
+  const b = refsB();
+  const els = [];
+  if (a.length) els.push({ frontal_image_url: a[0], reference_image_urls: a.length > 1 ? a.slice(1) : [a[0]] });
+  if (b.length) els.push({ frontal_image_url: b[0], reference_image_urls: b.length > 1 ? b.slice(1) : [b[0]] });
+  return els;
+}
+// Consigne d'identité adaptée au nombre de personnes ancrées. Termes NEUTRES :
+// l'ancien texte parlait de « the seated man », faux dès qu'on est debout ou à deux.
+function consigneIdentite(avecImage1) {
+  const deux = refsB().length > 0;
+  const debut = avecImage1 ? "Take @Image1 as the start frame. " : "";
+  return deux
+    ? debut + "@Element1 is the main person and @Element2 is the second person: keep BOTH their exact real faces, "
+      + "skin tones and identities unchanged at all times, never swap them, never replace either one with a "
+      + "lookalike or a stranger. Any other person in the scene keeps their own distinct appearance. "
+    : debut + "@Element1 refers ONLY to the main person — keep their exact face, skin tone and identity "
+      + "unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit. ";
 }
 
 // ——— Photo ———
@@ -1506,21 +1585,20 @@ document.getElementById("go").onclick = async () => {
       if (sp > max * 0.5) cut = cut.slice(0, sp);
       return cut.trim() + "\u2026";
     };
-    const REF_PREFIX = "Take @Image1 as the start frame. @Element1 refers ONLY to the seated man \u2014 keep his exact face, skin tone and identity unchanged at all times. Any other person in the scene keeps their own distinct appearance and outfit, never the man's. ";
     let payload;
     if (model === "ref") {
       // O1 Reference : la photo principale = @Image1 (start frame),
       // le visage du client = @Element1 (identité ancrée structurellement).
       const aspect = aspectChoisi();   // v36.5 : suit la forme réelle de la photo
-      const elem = { frontal_image_url: faceRefs[0] };
-      // v33.5 : reference_image_urls toujours requis par fal.ai, même avec 1 seule photo.
-      elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
+      // v37.0 : une ou DEUX identités ancrées selon les photos fournies.
+      const els = construireElements();
+      const prefixe = consigneIdentite(true);
       // Le préfixe compte dans la limite : on réserve sa place puis on coupe le reste.
-      const room = 2500 - REF_PREFIX.length - 5;
+      const room = 2500 - prefixe.length - 5;
       payload = {
-        prompt: REF_PREFIX + clipPrompt(prompt, room),
+        prompt: prefixe + clipPrompt(prompt, room),
         image_urls: [stylePhotoUrl || photoDataUrl],
-        elements: [elem],
+        elements: els,
         duration: dur,
         aspect_ratio: aspect,
         generate_audio: false,
@@ -2457,6 +2535,7 @@ function renderTrimRow(container, videoUrl, defaultEnd) {
 
 setupLipsync();
 initFaceRefSlots();
+initFaceRefSlotsB();   // v37.0
 refresh();
 refreshLip();   // v35.6 : le bouton annonce dès le départ ce qui manque
 appliquerPlan();
@@ -2478,9 +2557,17 @@ const MS_PREFIXN_LEN = "Same seated man @Element1, exact same face, identity and
 // le rendu APRÈS l'avoir déjà facturé. Le budget doit donc connaître, pour chaque
 // plan, s'il aura sa propre photo — pas seulement son numéro.
 const MS_PREFIXIMG_LEN = "Use @Image9 as the visual starting point for THIS shot. @Element1 refers ONLY to the man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. ".length;
+// v37.0 : longueurs réelles des préfixes, mesurées sur les textes effectivement
+// envoyés. Sert à viser la bonne longueur de traduction ; le calcul définitif est
+// refait au moment de l'envoi à partir du préfixe exact de chaque plan.
+const MS_QUI_UN = "@Element1 keeps their exact face and identity unchanged. Other people keep their own distinct appearance. ".length;
+const MS_QUI_DEUX = "@Element1 and @Element2 keep their exact real faces and identities, never swapped, never replaced by lookalikes. ".length;
 function msBudget(i, aSaPhoto) {
-  const prefixLen = aSaPhoto ? MS_PREFIXIMG_LEN : (i === 0 ? MS_PREFIX0_LEN : MS_PREFIXN_LEN);
-  return 512 - prefixLen - MS_SHORT_GUARD_LEN - 15; // -15 : marge de sécurité
+  const qui = (typeof refsB === "function" && refsB().length) ? MS_QUI_DEUX : MS_QUI_UN;
+  const debut = aSaPhoto ? "Use @Image1 as the visual starting point for THIS shot. ".length
+    : (i === 0 ? "Take @Image1 as the visual starting point. ".length
+               : "Same scene and same people as the previous shot. ".length);
+  return 512 - (debut + qui) - MS_SHORT_GUARD_LEN - 15; // -15 : marge de sécurité
 }
 
 let msPlans = [{ prompt: "", d: 5 }, { prompt: "", d: 5 }];
@@ -2668,10 +2755,8 @@ document.getElementById("msGo").onclick = async () => {
   msJobEnCours = null;
   try {
     const faceRefs = faceRefUrls.filter(Boolean);
-    const elem = { frontal_image_url: faceRefs[0] };
-    // v33.5 : fal.ai exige reference_image_urls (ou video_url) en plus de frontal_image_url —
-    // un tableau vide/absent fait échouer TOUTE génération avec 1 seule photo de référence.
-    elem.reference_image_urls = faceRefs.length > 1 ? faceRefs.slice(1) : [faceRefs[0]];
+    const els = construireElements();   // v37.0 : @Element1 (+ @Element2 si couple)
+    const deuxPersonnes = refsB().length > 0;
     const aspect = aspectChoisi();   // v36.5 : suit la forme réelle de la photo
     const faceGuard = buildFaceGuard();
     // v33.2 : garde-fous courts dédiés au multi-plans (mêmes constantes que le compteur affiché).
@@ -2689,7 +2774,7 @@ document.getElementById("msGo").onclick = async () => {
     msSetStatus(`Traduction de tes ${msPlans.length} plans…`, 4);
     const enPlans = [];
     for (let i = 0; i < msPlans.length; i++) {
-      const en = await msTranslateOne(msPlans[i].prompt, msBudget(i));
+      const en = await msTranslateOne(msPlans[i].prompt, msBudget(i, !!msPlans[i].img));  // v37.0
       enPlans.push(en);
     }
 
@@ -2700,17 +2785,27 @@ document.getElementById("msGo").onclick = async () => {
     const imgUrls = [];
     if (!toutesOntPhoto) imgUrls.push(stylePhotoUrl || photoDataUrl);
     const idxPlan = msPlans.map(p => p.img ? imgUrls.push(p.img) : 1);
-    if (imgUrls.length > 6)
-      throw new Error("Trop de photos : " + imgUrls.length + " en tout, le studio en accepte 6 au maximum (plus ton visage). Retire une photo de plan.");
+    // v37.0 : le studio accepte 7 références AU TOTAL (images + personnes ancrées).
+    const maxImages = 7 - Math.max(1, els.length);
+    if (imgUrls.length > maxImages)
+      throw new Error("Trop de photos : " + imgUrls.length + " images + " + els.length + " personne(s) ancrée(s). "
+        + "Le studio accepte 7 références en tout, soit " + maxImages + " photos maximum ici. Retire une photo de plan.");
 
     const mp = msPlans.map((p, i) => {
       const monImage = "@Image" + idxPlan[i];
+      // v37.0 : termes neutres (plus de « seated man ») et deuxième identité nommée.
+      const qui = deuxPersonnes
+        ? "@Element1 and @Element2 keep their exact real faces and identities, never swapped, never replaced by lookalikes. "
+        : "@Element1 keeps their exact face and identity unchanged. Other people keep their own distinct appearance. ";
       const prefix = p.img
-        ? `Use ${monImage} as the visual starting point for THIS shot. @Element1 refers ONLY to the man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. `
-        : (i === 0
-            ? "Take @Image1 as the visual starting point. @Element1 refers ONLY to the seated man — keep his exact face, skin tone and identity unchanged. Other people keep their own distinct appearance and outfit, never his. "
-            : "Same seated man @Element1, exact same face, identity and outfit as previous shot. Other people keep their own distinct appearance and outfit, never his. ");
-      const full = prefix + clip(enPlans[i].trim(), msBudget(i, !!p.img)) + shortSuffix;
+        ? `Use ${monImage} as the visual starting point for THIS shot. ` + qui
+        : (i === 0 ? "Take @Image1 as the visual starting point. " + qui
+                   : "Same scene and same people as the previous shot. " + qui);
+      // v37.0 : le budget se calcule sur la longueur EXACTE du préfixe de CE plan
+      // (elle varie selon photo/pas photo et une/deux personnes). C'est précisément
+      // l'erreur de la v36.3 qui avait fait dépasser 512 et coûté 2 crédits.
+      const budget = 512 - prefix.length - shortSuffix.length - 15;
+      const full = prefix + clip(enPlans[i].trim(), Math.max(40, budget)) + shortSuffix;
       // v36.4 : FILET DE SÉCURITÉ EN OCTETS, pas seulement en caractères. Le tiret
       // cadratin (—) et les points de suspension (…) présents dans nos propres textes
       // pèsent 3 octets chacun en UTF-8 pour 1 seul caractère JavaScript : un texte de
@@ -2725,7 +2820,7 @@ document.getElementById("msGo").onclick = async () => {
     const payload = {
       multi_prompt: mp,
       image_urls: imgUrls,
-      elements: [elem],
+      elements: els,
       aspect_ratio: aspect,
       shot_type: "customize",
       generate_audio: false,
