@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.5 — posture au choix dans le décor · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.6 — décors boîte de nuit · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -523,7 +523,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.5 — le décor peut aussi changer la posture, si le client le demande</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.6 — nouveaux décors : arrivée en boîte de nuit et salon VIP (28 décors)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1193,6 +1193,7 @@ const T2I_PRESETS = [
   ["💔 Reine mélancolique", "An elegant African woman sitting alone on the edge of a grand bed in a luxurious royal bedroom at night, wearing a dusty pink satin robe and a delicate golden tiara, head lowered, melancholic mood. Green velvet bedspread, gilded gold furniture, warm lamp light, city lights through the window. Photorealistic, cinematic, emotional."],
   ["🏛️ Chambre royale vide", "An opulent baroque royal bedroom at night, no people: deep green velvet curtains and bedspread, ornate gilded gold furniture and mirrors, grand crystal chandelier, warm candlelight, framed royal portrait, polished marble floor, city skyline through tall windows. Photorealistic, cinematic, ultra detailed."],
   ["💃 Danseuse afro", "An African dancer in a shimmering gold dress dancing energetically in a stylish nightclub, dynamic pose, colourful stage lights, light haze, blurred crowd in the background. Photorealistic, cinematic, ultra detailed."],
+  ["🌙 Nuit en boîte VIP", "A stylish African music artist arriving at a glamorous nightclub at night: stepping out of a black luxury sedan onto a red carpet, doorman in white gloves holding the door, golden stanchions with red velvet ropes, neon lights reflecting on the wet street. Elegant, cinematic, festive. No logos, no brand names, no readable text. Photorealistic, ultra detailed."],
   ["🛫 Voyage première classe", "A stylish African man seated in the first-class suite of a wide-body airliner, beige woven fabric seat with cream leather trim, tall privacy divider, soft cushion, polished side console, warm indirect cabin lighting, oval window with daylight above the clouds. Elegant, calm and luxurious. No logos, no text, no brand marks. Photorealistic, cinematic, ultra detailed."],
   ["🏎️ Star & supercar", "A stylish African man in a richly embroidered red and gold royal suit and a red traditional cap, leaning confidently against a glossy red Italian supercar on a grand luxury shopping avenue at night. Illuminated boutique windows, ornate street lamps, trees with fairy lights, a lit triumphal arch in the far background, wet pavement reflecting golden light. Photorealistic, cinematic, ultra detailed."],
   ["🎩 Soirée casino", "An elegant African man in a black tuxedo with a bow tie, a red hat and sunglasses, standing beside a black supercar in front of a grand belle-epoque casino at night. Tall palm trees, warm golden building lights, wet glistening asphalt, hillside city lights behind. Photorealistic, cinematic, ultra detailed."],
@@ -1235,6 +1236,10 @@ const LIEUX = [
    "a luxury black sports car parked on a city street at night, wet asphalt reflecting golden street lights and neon signs, elegant buildings behind, cinematic night atmosphere, shallow depth of field"],
   ["jetprive", "✈️ Jet privé",
    "the luxurious cream leather interior of a private jet cabin, polished wood panels, soft warm ambient lighting, oval windows showing blue sky above the clouds, elegant and exclusive"],
+  ["nightclubarrivee", "🌙 Arrivée en boîte de nuit",
+   "a glamorous nightclub entrance at night on a wet city street: a black luxury sedan with an open rear door, a doorman in a black suit and white gloves holding the door, a red carpet leading to golden stanchions with red velvet ropes, warm golden entrance lights and colorful neon signs glowing on the wet pavement, city lights in the background, cinematic night atmosphere, no logos, no brand names, no readable text"],
+  ["nightclubvip", "🥂 Boîte de nuit VIP",
+   "the VIP lounge of a luxurious nightclub at night: dark leather sofas, a low black marble table with candles and an unbranded golden ice bucket with champagne bottles, crystal chandeliers, warm golden light mixed with deep blue club lighting, mirrored golden columns, elegant blurred crowd in the background, exclusive festive atmosphere, no logos, no brand names, no readable text"],
   ["premiereclasse", "🛫 Première classe",
    "the first-class cabin of a wide-body airliner: two private suites side by side with beige woven fabric seats, cream leather trim, a tall privacy divider between them, plain unbranded headrest covers, soft cushions, a polished side console with a small folded blanket, warm indirect ambient lighting, oval windows with daylight, luxurious calm and spacious atmosphere, no logos, no text, no brand marks"],
   ["villapiscine", "🏊 Villa & piscine",
