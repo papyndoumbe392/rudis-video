@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.4 — retouche fiabilisée · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.5 — plus d'invités surprises · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -576,7 +576,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v38.4 — retouche fiabilisée : plus de consignes contradictoires, 2e essai automatique</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.5 — corrections rapides en anglais contrôlé + interdiction d'ajouter sans demande</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -3266,15 +3266,24 @@ function rtRefresh() {
 }
 // v38.2 : corrections rapides — les formulations qui marchent, prêtes à l'emploi.
 // Le client touche, le texte s'écrit dans la zone, et il peut encore le modifier.
+// v38.5 : chaque correction rapide porte son anglais FIXE, relu mot à mot.
+// La traduction automatique est une variable aléatoire : « couleurs d'ambiance »
+// peut devenir « atmospheric » et « dans ce lieu » « in this space » — et pour
+// un moteur d'images, space + atmosphere = astronaute. Texte inchangé = anglais
+// fixe envoyé tel quel, sans traduction. Texte modifié = traduction normale.
 const RT_FIX = [
   ["💡 Harmoniser la lumière",
-   "harmonise l'éclairage sur moi avec la scène : mêmes reflets de lumière et mêmes couleurs d'ambiance que sur les autres personnes, même direction d'ombre, je dois paraître photographié dans ce lieu et pas collé dessus"],
+   "harmonise l'éclairage sur moi avec la scène : mêmes reflets de lumière et mêmes couleurs d'ambiance que sur les autres personnes, même direction d'ombre, je dois paraître photographié dans ce lieu et pas collé dessus",
+   "Relight me so I match the scene: give me the same neon reflections and ambient colour cast as the other people, the same shadow direction, so I look naturally photographed in this location instead of pasted onto it"],
   ["📏 Corriger ma taille",
-   "corrige ma taille et ma perspective : je dois avoir des proportions réalistes par rapport aux autres personnes et aux objets autour de moi, ni trop grand ni trop petit, mes pieds bien posés au sol à la bonne profondeur"],
+   "corrige ma taille et ma perspective : je dois avoir des proportions réalistes par rapport aux autres personnes et aux objets autour de moi, ni trop grand ni trop petit, mes pieds bien posés au sol à la bonne profondeur",
+   "Fix my scale and perspective: give me realistic proportions relative to the other people and the objects around me, neither too big nor too small, with my feet properly planted on the ground at the correct depth"],
   ["🧹 Nettoyer les traces",
-   "nettoie les défauts de montage : bords nets autour des personnes, aucune trace de découpe, aucune silhouette en double, ombres de contact réalistes au sol"],
+   "nettoie les défauts de montage : bords nets autour des personnes, aucune trace de découpe, aucune silhouette en double, ombres de contact réalistes au sol",
+   "Clean up the editing flaws: natural sharp edges around each person, no cut-out traces, no duplicated silhouette, realistic contact shadows on the ground"],
   ["✨ Plus réaliste",
-   "rends l'image plus réaliste et homogène : même grain photo, même netteté et même profondeur de champ sur toute l'image, rendu photographique naturel"],
+   "rends l'image plus réaliste et homogène : même grain photo, même netteté et même profondeur de champ sur toute l'image, rendu photographique naturel",
+   "Make the image more realistic and uniform: consistent photographic grain, sharpness and depth of field across the whole image, natural photographic look"],
 ];
 (function initRtFix() {
   const box = document.getElementById("rtFix");
@@ -3330,7 +3339,10 @@ document.getElementById("rtGo").onclick = async () => {
     const demande = document.getElementById("rtPrompt").value.trim();
     // Traduction FR→EN puis consigne de préservation : c'est elle qui empêche le moteur
     // de refaire toute la scène au lieu de modifier seulement ce qui est demandé.
-    const en = await msTranslateOne(demande, 240).catch(() => demande);
+    // v38.5 : si la demande est exactement un préréglage, on envoie son anglais
+    // fixe — aucune traduction, aucun mot imprévisible dans la chaîne.
+    const prereg = RT_FIX.find(f => f[1] === demande);
+    const en = prereg ? prereg[2] : await msTranslateOne(demande, 240).catch(() => demande);
     // v38.0 : la consigne de préservation passe EN TÊTE et protège explicitement
     // les personnes DÉJÀ présentes. L'ancienne version ne parlait que des « personnes
     // restantes » et des « zones supprimées » : en demandant d'AJOUTER des gens, le
@@ -3354,6 +3366,10 @@ document.getElementById("rtGo").onclick = async () => {
       if (rtOrigine !== "auto")
         regle += "The people you add should look " + (ORIGINES.find(o => o[0] === rtOrigine) || [])[2]
           + ", while everyone already in the photo keeps their own appearance unchanged. ";
+    } else {
+      // v38.5 : sans demande d'ajout, l'ajout est INTERDIT — c'est cette absence
+      // qui a laissé le moteur inventer un personnage sorti de nulle part.
+      regle += "Do NOT add any new person, character, object, costume or prop that is not already in the photo. ";
     }
 
     let garde = "Keep the rest of the image identical: same background, same architecture, same objects";
@@ -3381,7 +3397,8 @@ document.getElementById("rtGo").onclick = async () => {
     let url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) {
       info.textContent = "⏳ Nouvelle tentative avec une consigne simplifiée…";
-      data = await lancer(en + ". Keep the same people with their exact faces and clothing. Photorealistic, no text.");
+      data = await lancer(en + ". Keep the same people with their exact faces and clothing. "
+        + (veutAjouter ? "" : "Do not add anyone or anything new. ") + "Photorealistic, no text.");
       url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     }
     if (!url) {
