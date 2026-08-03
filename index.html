@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.3 — guide bilingue FR/EN · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.4 — retouche fiabilisée · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -576,7 +576,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v38.3 — guide bilingue FR/EN (application inchangée depuis v38.2)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.4 — retouche fiabilisée : plus de consignes contradictoires, 2e essai automatique</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -3335,32 +3335,55 @@ document.getElementById("rtGo").onclick = async () => {
     // les personnes DÉJÀ présentes. L'ancienne version ne parlait que des « personnes
     // restantes » et des « zones supprimées » : en demandant d'AJOUTER des gens, le
     // moteur remplaçait la personne d'origine par des inconnus.
-    const prompt = "ABSOLUTE RULE: every person already present in this photo MUST stay in the result, "
-      + "at the same place, at the same size, in the same pose, with their face pixel-identical to the original "
-      + "(same eyes, nose, mouth, beard, jawline, skin tone, hairstyle, age) and the exact same clothing. "
-      + "Never remove them, never replace them with someone else, never swap their face, never hide them behind "
-      + "anything or anyone. If new people are requested, they are ADDED around the existing person, who stays "
-      + "clearly visible in the foreground. "
-      + en + ". "
-      + (rtOrigine !== "auto"
-          ? "Any NEW person added to the scene must be " + (ORIGINES.find(o => o[0] === rtOrigine) || [])[2]
-            + ". This applies ONLY to the people being added — never change the appearance, skin tone or "
-            + "ethnicity of anyone already present in the photo. "
-          : "")
-      + "Keep everything else in the image EXACTLY identical: same background, same architecture, "
-      + "same cars, same lighting, same camera angle. Natural anatomy, correct hands with five fingers. "
-      + "Fill any freed area realistically with the existing background. Photorealistic, no text.";
-    const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt, image_urls: [rtSource] });
-    const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
-    const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
-    for (let i = 0; i < 60; i++) {
-      await new Promise(rs => setTimeout(rs, 3000));
-      const sj = await apiPoll(statusUrl);
-      if (sj.status === "COMPLETED") break;
-      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La retouche a échoué côté serveur.");
+    // v38.4 : le prompt s'adapte à la demande. Une consigne de préservation qui
+    // CONTREDIT la demande fait échouer le moteur : « harmonise la lumière » +
+    // « garde la même lumière » = deux ordres opposés, aucune image produite.
+    const tout = (demande + " " + en).toLowerCase();
+    const veutLumiere = /lumi|clairage|light/.test(tout);
+    const veutTaille = /taille|scale|proportion|perspectiv/.test(tout);
+    const veutAjouter = /ajout|rajout|\badd/.test(tout);
+
+    let regle = "ABSOLUTE RULE: every person already present in this photo MUST stay in the result, "
+      + "at the same place, " + (veutTaille ? "" : "at the same size, ")
+      + "in the same pose, with their face pixel-identical to the original "
+      + "(same eyes, nose, mouth, beard, jawline, hairstyle) and the exact same clothing. "
+      + "Never remove them, never replace them with someone else, never swap their face, never hide them "
+      + "behind anything or anyone. ";
+    if (veutAjouter) {
+      regle += "Any new people are ADDED around the existing person, who stays clearly visible in the foreground. ";
+      if (rtOrigine !== "auto")
+        regle += "The people you add should look " + (ORIGINES.find(o => o[0] === rtOrigine) || [])[2]
+          + ", while everyone already in the photo keeps their own appearance unchanged. ";
     }
-    const data = await apiPoll(responseUrl);
-    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+
+    let garde = "Keep the rest of the image identical: same background, same architecture, same objects";
+    if (!veutLumiere) garde += ", same lighting";
+    garde += ", same camera angle. ";
+
+    const prompt = regle + en + ". " + garde
+      + "Natural anatomy, correct hands with five fingers. Photorealistic, no text.";
+    // v38.4 : deux essais. Si le moteur ne rend rien avec le prompt complet
+    // (« did not generate the expected output »), on retente avec une consigne
+    // beaucoup plus courte — c'est presque toujours la complexité qui bloque.
+    const lancer = async (txt) => {
+      const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt: txt, image_urls: [rtSource] });
+      const st = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
+      const rp = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
+      for (let i = 0; i < 60; i++) {
+        await new Promise(rs => setTimeout(rs, 3000));
+        const sj = await apiPoll(st);
+        if (sj.status === "COMPLETED") break;
+        if (sj.status === "FAILED" || sj.status === "ERROR") break;
+      }
+      return await apiPoll(rp);
+    };
+    let data = await lancer(prompt);
+    let url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) {
+      info.textContent = "⏳ Nouvelle tentative avec une consigne simplifiée…";
+      data = await lancer(en + ". Keep the same people with their exact faces and clothing. Photorealistic, no text.");
+      url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    }
     if (!url) {
       const brut = data.detail
         ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
