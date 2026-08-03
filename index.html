@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.7 — photos de groupe protégées · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.8 — décor d'après une image · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -237,6 +237,14 @@
     <h2><span class="num" style="background:var(--up);">🏛️</span> Décor royal — change le lieu en 1 clic <span class="dot" id="dotLieu"></span></h2>
     <p class="sub" style="margin:0 0 10px;">Garde ton visage, ta pose <b>et ta tenue</b> — seul le lieu change. À faire <b>après</b> la tenue si tu veux les deux.</p>
     <div class="chips" id="lieuChips"></div>
+    <!-- v37.8 : décor d'après une image de référence — sans rien écrire -->
+    <div id="lieuRefZone" class="hidden" style="margin-top:10px;">
+      <div class="estimate" style="margin-top:0;">Montre une image du <b>style de lieu</b> que tu veux (ambiance, couleurs, mobilier) : l'app crée un décor <b>dans cet esprit</b> — pas une copie — et t'y installe. Aucun texte à écrire.</div>
+      <button class="chip" id="lieuRefBtn" style="margin-top:8px;">📂 Choisir l'image de référence</button>
+      <input type="file" id="lieuRefInput" accept="image/*" style="display:none;">
+      <div class="estimate" id="lieuRefName"></div>
+      <img id="lieuRefPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+    </div>
     <input type="text" id="lieuCustom" placeholder="Décris le décor… Ex : un salon de palace avec lustre en cristal et vue sur la ville la nuit" class="hidden" style="width:100%; margin-top:10px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
     <!-- v37.5 : changer aussi la posture, au choix du client -->
     <label class="opt" id="lieuPoseBox" style="display:none; margin-top:10px;">
@@ -523,7 +531,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.7 — le décor garde TOUTES les personnes de la photo (groupes, couples)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.8 — nouveau : créer un décor d'après une image de référence, sans rien écrire</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1272,6 +1280,7 @@ const LIEUX = [
    "a luxury marina at night, large white yachts moored along the quay with their lights reflecting on dark calm water, palm trees and warm dockside lamps, quay paved with large polished stone tiles, elegant waterfront buildings lit in gold, cinematic"],
   ["fondstudio", "🎬 Fond studio coloré",
    "a professional photo studio with a smooth seamless coloured backdrop in deep gold and warm amber tones, soft even studio lighting, subtle gradient, clean fashion editorial look"],
+  ["lieuref", "🖼️ D'après une image", ""],
   ["lieucustom", "Personnalisé…", ""],
 ];
 let lieuSel = "keep";
@@ -1287,6 +1296,7 @@ let lieuSel = "keep";
       box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
       b.classList.add("on");
       document.getElementById("lieuCustom").classList.toggle("hidden", id !== "lieucustom");
+      document.getElementById("lieuRefZone").classList.toggle("hidden", id !== "lieuref");   // v37.8
       document.getElementById("lieuGo").style.display = (id === "keep") ? "none" : "block";
       document.getElementById("lieuPoseBox").style.display = (id === "keep") ? "none" : "flex";   // v37.5
       if (id === "keep") {
@@ -1315,12 +1325,41 @@ const LIEUX_VEHICULE = ["jetprive", "premiereclasse", "voiturenuit", "supercars"
   };
 })();
 
+// v37.8 : image de référence du décor — même réduction que partout (1600 px).
+let lieuRefUrl = null;
+(function initLieuRef() {
+  const btn = document.getElementById("lieuRefBtn");
+  const inp = document.getElementById("lieuRefInput");
+  if (!btn) return;
+  btn.onclick = () => inp.click();
+  inp.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
+      c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      lieuRefUrl = c.toDataURL("image/jpeg", 0.92);
+      const pv = document.getElementById("lieuRefPreview");
+      pv.src = lieuRefUrl; pv.classList.remove("hidden");
+      document.getElementById("lieuRefName").textContent = `✓ ${f.name}`;
+      document.getElementById("lieuRefBtn").classList.add("on");
+    };
+    img.onerror = () => { document.getElementById("lieuRefName").textContent = "⚠️ Image illisible."; };
+    img.src = URL.createObjectURL(f);
+    e.target.value = "";
+  };
+})();
+
 async function transformLieu() {
   const info = document.getElementById("lieuInfo");
   const desc = lieuSel === "lieucustom"
     ? document.getElementById("lieuCustom").value.trim()
-    : (LIEUX.find(d => d[0] === lieuSel) || [])[2];
+    : (lieuSel === "lieuref" ? "(image de référence)" : (LIEUX.find(d => d[0] === lieuSel) || [])[2]);
   if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
+  if (lieuSel === "lieuref" && !lieuRefUrl) { info.textContent = "Choisis d'abord l'image de référence du décor."; return; }
   if (!desc) { info.textContent = "Décris le décor souhaité."; return; }
 
   const btn = document.getElementById("lieuGo");
@@ -1346,7 +1385,9 @@ async function transformLieu() {
       // capot. (b) Ancrage explicite au sol / au siège, avec ombres de contact.
       // (c) La règle du sol en marbre ne s'applique PLUS aux véhicules : elle
       // faisait apparaître du marbre dans la cabine d'avion.
-      prompt: `Replace the ENTIRE background and setting of this image with ${desc}. `
+      prompt: (lieuSel === "lieuref"
+          ? "Replace the ENTIRE background and setting of the FIRST image with a new setting closely INSPIRED by the SECOND image: same type of place, similar atmosphere, similar colors, lighting and furniture style — but NOT an identical copy of it. No logos, no brand names, no readable text anywhere. "
+          : `Replace the ENTIRE background and setting of this image with ${desc}. `)
         + "No element of the original background may remain visible — not the original floor, "
         + "not the original walls, not a strip at the edge of the frame. "
         + "Keep EVERY person present in the photo — do not remove anyone, do not add anyone. "
@@ -1362,11 +1403,13 @@ async function transformLieu() {
         + "never oversized or undersized compared to the furniture around them. Correct scale, correct perspective, "
         + "correct eye level, realistic contact shadows where the body touches the floor or the seat. "
         + "Relight the person naturally so they match the new scene. "
-        + (LIEUX_VEHICULE.includes(lieuSel)
-            ? "The floor must be the vehicle's own carpet or flooring — never marble, never stone tiles. "
-            : "If the scene is a luxury interior, the floor MUST be made of large polished marble or stone tiles with clearly visible joint lines and realistic mirror-like reflections. ")
+        + (lieuSel === "lieuref"
+            ? "The floor and materials follow the style of the SECOND image. "
+            : (LIEUX_VEHICULE.includes(lieuSel)
+                ? "The floor must be the vehicle's own carpet or flooring — never marble, never stone tiles. "
+                : "If the scene is a luxury interior, the floor MUST be made of large polished marble or stone tiles with clearly visible joint lines and realistic mirror-like reflections. "))
         + "Photorealistic, seamless integration, no duplicated person, no extra limbs, high quality.",
-      image_urls: [source],
+      image_urls: lieuSel === "lieuref" ? [source, lieuRefUrl] : [source],
       num_images: 1,
     });
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
