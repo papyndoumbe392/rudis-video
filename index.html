@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.5 — plus d'invités surprises · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.6 — personne ne disparaît · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -304,6 +304,7 @@
 
     <div class="label">Corrections rapides — touche, le texte s'écrit tout seul</div>
     <div class="chips" id="rtFix"></div>
+    <div class="estimate">💡 Fais-les <b>une par une</b> et garde l'image précédente : la correction de taille est la plus délicate, car elle recompose la personne.</div>
 
     <div class="label">Ce que tu veux changer</div>
     <textarea id="rtPrompt" rows="2" placeholder="Ex : enlève l'homme en costume noir et la femme en robe dorée au premier plan, garde tout le reste identique" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
@@ -576,7 +577,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v38.5 — corrections rapides en anglais contrôlé + interdiction d'ajouter sans demande</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.6 — le nombre de personnes est verrouillé ; plus aucun « moi » ambigu</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -3274,13 +3275,13 @@ function rtRefresh() {
 const RT_FIX = [
   ["💡 Harmoniser la lumière",
    "harmonise l'éclairage sur moi avec la scène : mêmes reflets de lumière et mêmes couleurs d'ambiance que sur les autres personnes, même direction d'ombre, je dois paraître photographié dans ce lieu et pas collé dessus",
-   "Relight me so I match the scene: give me the same neon reflections and ambient colour cast as the other people, the same shadow direction, so I look naturally photographed in this location instead of pasted onto it"],
+   "Relight the person in the foreground, the one closest to the camera, so they match the scene: same neon reflections and same ambient colour cast as the other people, same shadow direction, so they look naturally photographed on location instead of pasted on. Everyone else stays exactly as they are."],
   ["📏 Corriger ma taille",
    "corrige ma taille et ma perspective : je dois avoir des proportions réalistes par rapport aux autres personnes et aux objets autour de moi, ni trop grand ni trop petit, mes pieds bien posés au sol à la bonne profondeur",
-   "Fix my scale and perspective: give me realistic proportions relative to the other people and the objects around me, neither too big nor too small, with my feet properly planted on the ground at the correct depth"],
+   "Adjust ONLY the size of the person in the foreground, the one closest to the camera: make their proportions realistic next to the other people, neither too big nor too small, feet properly planted on the ground at the correct depth. Keep that person in the same position, same pose, same face and same clothing — only their size changes. Do not delete them and do not delete anyone else."],
   ["🧹 Nettoyer les traces",
    "nettoie les défauts de montage : bords nets autour des personnes, aucune trace de découpe, aucune silhouette en double, ombres de contact réalistes au sol",
-   "Clean up the editing flaws: natural sharp edges around each person, no cut-out traces, no duplicated silhouette, realistic contact shadows on the ground"],
+   "Clean up the editing flaws: natural sharp edges around each person, no cut-out traces, no duplicated silhouette, realistic contact shadows on the ground. Keep every person exactly where they are."],
   ["✨ Plus réaliste",
    "rends l'image plus réaliste et homogène : même grain photo, même netteté et même profondeur de champ sur toute l'image, rendu photographique naturel",
    "Make the image more realistic and uniform: consistent photographic grain, sharpness and depth of field across the whole image, natural photographic look"],
@@ -3355,11 +3356,17 @@ document.getElementById("rtGo").onclick = async () => {
     const veutTaille = /taille|scale|proportion|perspectiv/.test(tout);
     const veutAjouter = /ajout|rajout|\badd/.test(tout);
 
-    let regle = "ABSOLUTE RULE: every person already present in this photo MUST stay in the result, "
+    // v38.6 : deux durcissements. (a) Conservation du NOMBRE de personnes — la
+    // règle interdisait de retirer quelqu'un mais ne vérifiait jamais le compte.
+    // (b) Les textes prédéfinis ne disent plus « moi » : le moteur ne sait pas qui
+    // est « moi » dans une photo de groupe, il retirait la personne « en trop ».
+    let regle = "ABSOLUTE RULE: the result must show EXACTLY the same people as the input image — "
+      + "the same number of people, nobody removed, nobody replaced, nobody swapped. "
+      + "Every person already present MUST stay in the result, "
       + "at the same place, " + (veutTaille ? "" : "at the same size, ")
       + "in the same pose, with their face pixel-identical to the original "
       + "(same eyes, nose, mouth, beard, jawline, hairstyle) and the exact same clothing. "
-      + "Never remove them, never replace them with someone else, never swap their face, never hide them "
+      + "This includes the person in the foreground: never delete them, never hide them "
       + "behind anything or anyone. ";
     if (veutAjouter) {
       regle += "Any new people are ADDED around the existing person, who stays clearly visible in the foreground. ";
@@ -3397,7 +3404,8 @@ document.getElementById("rtGo").onclick = async () => {
     let url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) {
       info.textContent = "⏳ Nouvelle tentative avec une consigne simplifiée…";
-      data = await lancer(en + ". Keep the same people with their exact faces and clothing. "
+      data = await lancer(en + ". Keep exactly the same people, the same number of people, "
+        + "with their exact faces and clothing, nobody removed. "
         + (veutAjouter ? "" : "Do not add anyone or anything new. ") + "Photorealistic, no text.");
       url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     }
