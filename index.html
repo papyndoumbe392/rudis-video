@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.6 — personne ne disparaît · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.7 — visage recollé automatiquement · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -252,6 +252,12 @@
       <span>🕺 <b>Changer aussi la posture</b> — sinon la personne garde sa pose, simplement adaptée au nouveau lieu.</span>
     </label>
     <input type="text" id="lieuPoseTxt" placeholder="Quelle posture ? Ex : assis dans le fauteuil, une main sur l'accoudoir, regard vers la caméra" class="hidden" style="width:100%; margin-top:8px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
+
+    <!-- v38.7 : recollage automatique du vrai visage après le décor -->
+    <label class="opt" id="lieuFaceBox" style="display:none; margin-top:10px;">
+      <input type="checkbox" id="lieuFaceChk" checked>
+      <span>🎯 <b>Recoller mon vrai visage après</b> — recommandé : le changement de décor redessine toute l'image et peut modifier le visage. Coûte 1 image de plus.</span>
+    </label>
 
     <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor (≈ 0,04 $)</button>
     <div class="estimate" id="lieuInfo">Le visage et les habits restent identiques — seul le décor change.</div>
@@ -577,7 +583,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v38.6 — le nombre de personnes est verrouillé ; plus aucun « moi » ambigu</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.7 — le décor recolle ton vrai visage automatiquement</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1345,6 +1351,7 @@ let lieuSel = "keep";
       document.getElementById("lieuRefZone").classList.toggle("hidden", id !== "lieuref");   // v37.8
       document.getElementById("lieuGo").style.display = (id === "keep") ? "none" : "block";
       document.getElementById("lieuPoseBox").style.display = (id === "keep") ? "none" : "flex";   // v37.5
+      document.getElementById("lieuFaceBox").style.display = (id === "keep") ? "none" : "flex";   // v38.7
       if (id === "keep") {
         document.getElementById("lieuPreview").innerHTML = "";
         document.getElementById("lieuInfo").textContent = "Le visage et les habits restent identiques — seul le décor change.";
@@ -1470,11 +1477,21 @@ async function transformLieu() {
       info.textContent = `🏛️ Changement de décor en cours… (${(i + 1) * 3} s)`;
     }
     const data = await apiPoll(responseUrl);
-    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    let url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) throw new Error("Image introuvable. Réessaie.");
     const avant = stylePhotoUrl;
     stylePhotoUrl = url;
     info.innerHTML = `<span style="color:var(--ok)">✓ Décor changé — c'est cette photo qui sera utilisée pour la vidéo.</span>`;
+    // v38.7 : recollage automatique du vrai visage si la case est cochée.
+    // Échec sans conséquence : on garde l'image du décor.
+    const chkFace = document.getElementById("lieuFaceChk");
+    if (chkFace && chkFace.checked) {
+      info.textContent = "🎯 Recollage de ton vrai visage… (20 à 60 s)";
+      try {
+        const corrigee = await recollerVisage(url, typeof fxGenre !== "undefined" ? fxGenre : "male");
+        if (corrigee) url = corrigee;
+      } catch (e) { /* on garde l'image du décor */ }
+    }
     lastLieuUrl = url;   // v37.9 : disponible pour « Recoller le vrai visage »
     const fxLast = document.getElementById("fxUseLast");
     if (fxLast) fxLast.disabled = false;
@@ -3633,6 +3650,30 @@ document.getElementById("fxUseLast").onclick = () => {
   document.getElementById("fxName").textContent = "✓ Dernier décor généré";
   fxRefresh();
 };
+// v38.7 : recollage réutilisable — appelé par le volet dédié ET automatiquement
+// après un changement de décor si la case est cochée.
+async function recollerVisage(cible, genre) {
+  const visage = (faceRefUrls.filter(Boolean)[0]) || photoDataUrl;
+  if (!visage) throw new Error("Aucune photo de référence pour le visage.");
+  const job = await apiSubmit("easel-ai/advanced-face-swap", {
+    face_image_0: visage,
+    gender_0: genre || "male",
+    target_image: cible,
+    workflow_type: "target_hair",
+    upscale: true,
+  });
+  const st = job.status_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}/status`;
+  const rp = job.response_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}`;
+  for (let i = 0; i < 60; i++) {
+    await new Promise(rs => setTimeout(rs, 3000));
+    const sj = await apiPoll(st);
+    if (sj.status === "COMPLETED") break;
+    if (sj.status === "FAILED" || sj.status === "ERROR") break;
+  }
+  const data = await apiPoll(rp);
+  return data.image?.url || data.images?.[0]?.url || data.response?.image?.url || data.response?.images?.[0]?.url || null;
+}
+
 document.getElementById("fxGo").onclick = async () => {
   const b = document.getElementById("fxGo"), info = document.getElementById("fxInfo");
   b.disabled = true;
