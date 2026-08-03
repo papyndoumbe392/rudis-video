@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.6 — décors boîte de nuit · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.7 — photos de groupe protégées · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -523,7 +523,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.6 — nouveaux décors : arrivée en boîte de nuit et salon VIP (28 décors)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.7 — le décor garde TOUTES les personnes de la photo (groupes, couples)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1349,11 +1349,12 @@ async function transformLieu() {
       prompt: `Replace the ENTIRE background and setting of this image with ${desc}. `
         + "No element of the original background may remain visible — not the original floor, "
         + "not the original walls, not a strip at the edge of the frame. "
-        + "Keep the person's identity and clothing completely unchanged: exact same face, skin tone, facial hair, "
+        + "Keep EVERY person present in the photo — do not remove anyone, do not add anyone. "
+        + "Each person stays completely unchanged: exact same face, skin tone, facial hair, "
         + "hairstyle, exact same garments, colors and accessories, exact same body build. "
-        + "The person's face must stay pixel-identical to the source photo: same eyes, same nose, same mouth, same beard, same jawline and cheeks, same skin tone, same hairstyle and same age. Never beautify, never rejuvenate, never smooth the skin. Keep the exact same body: same weight, same build, same belly and shoulders, never slim the person down, never make them more muscular or taller. "
+        + "Every face must stay pixel-identical to the source photo: same eyes, same nose, same mouth, same beard, same jawline and cheeks, same skin tone, same hairstyle and same age. Never beautify, never rejuvenate, never smooth the skin. Keep each body exactly the same: same weight, same build, same belly and shoulders, never slim anyone down, never make anyone more muscular or taller. "
         + poseDemandee
-        + "IMPORTANT — the person must be physically GROUNDED in the new scene: "
+        + "IMPORTANT — every person must be physically GROUNDED in the new scene: "
         + (poseDemandee ? "" : "adapt their pose naturally so it makes sense there. ")
         + "If they are standing, both feet rest flat on the ground. If the scene has a seat, "
         + "they are properly and fully seated on it, back against the backrest, legs and feet naturally supported. "
