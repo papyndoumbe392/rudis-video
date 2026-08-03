@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.2 — visage et morphologie protégés · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.3 — posture · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -392,6 +392,31 @@
     <div id="rfResult"></div>
   </section>
 
+  <!-- v37.3 : CHANGER LA POSTURE — volet dédié, séparé du changement de tenue -->
+  <section class="card">
+    <h2><span class="num">🕺</span> Changer la posture</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Change la <b>pose</b> de la personne sans toucher à son visage, sa tenue ni le décor.
+      Les autres volets (tenue, décor) ne modifient plus la posture — c'est ici qu'on la change, quand tu le veux.
+    </div>
+
+    <div class="chips" style="margin-top:10px;">
+      <button class="chip" id="poUsePhoto">Photo du volet 1</button>
+      <button class="chip" id="poImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="poInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="poName"></div>
+    <img id="poPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+
+    <div class="label">Nouvelle posture</div>
+    <div class="chips" id="poChips"></div>
+    <textarea id="poCustom" rows="2" class="hidden" placeholder="Ex : debout de profil, une main qui ajuste sa veste, regard vers l'objectif" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical; margin-top:8px;"></textarea>
+
+    <button class="btn" id="poGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
+    <div class="estimate" id="poInfo" style="margin-top:8px;"></div>
+    <div id="poResult"></div>
+  </section>
+
   <!-- v36.7 : RETOUCHER UNE IMAGE — enlever ou ajouter un élément sans refaire la scène -->
   <section class="card">
     <h2><span class="num">🧹</span> Retoucher une image</h2>
@@ -491,7 +516,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.2 — le visage ET la morphologie ne bougent plus quand on change la tenue</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.3 — la posture est verrouillée, et un volet dédié permet de la changer</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1328,7 +1353,7 @@ function pickTryTarget(el) {
 // v37.2 : garde-fou visage + morphologie, placé EN TÊTE du prompt (les moteurs
 // d'image pondèrent davantage le début). Il ne suffisait pas de dire « même visage »
 // à la fin : le résultat rajeunissait, lissait et amincissait la personne.
-const GARDE_VISAGE = "ABSOLUTE RULE: ONLY the garments change. The face must stay pixel-identical to the original photo: same eyes, same nose, same mouth, same beard and moustache, same jawline and cheeks, same skin tone, same hairstyle and hairline, same age, same expression. Never beautify, never rejuvenate, never smooth the skin, never reshape the head or face. Keep the exact same BODY as well: same weight, same build, same belly, same shoulders and height — never slim the person down, never make them more muscular or taller. Keep the same pose and the same background. ";
+const GARDE_VISAGE = "ABSOLUTE RULE: ONLY the garments change. The face must stay pixel-identical to the original photo: same eyes, same nose, same mouth, same beard and moustache, same jawline and cheeks, same skin tone, same hairstyle and hairline, same age, same expression. Never beautify, never rejuvenate, never smooth the skin, never reshape the head or face. Keep the exact same BODY as well: same weight, same build, same belly, same shoulders and height — never slim the person down, never make them more muscular or taller. Keep EXACTLY the same posture and pose: same position of the arms and hands, same angle of the head, same body orientation, same stance and the same legs position, same camera framing and the same background. ";
 
 const UNIQUE_PERSON = "The result must contain EXACTLY ONE person: modify the existing person IN PLACE. Do NOT add a second person, do NOT duplicate or clone anyone, no ghost figure, no double exposure, no leftover of the original clothing floating in the scene, no extra head, no extra limbs. ";
 
@@ -3158,6 +3183,143 @@ document.getElementById("rtGo").onclick = async () => {
   } finally { rtRefresh(); refresh(); }
 };
 rtRefresh();
+
+// ═══════════ v37.3 : CHANGER LA POSTURE (nano-banana/edit) ═══════════
+// Volet séparé : les volets Tenue et Décor verrouillent désormais la pose,
+// c'est ici — et seulement ici — qu'on la modifie volontairement.
+const POSTURES = [
+  ["poches", "🧍 Mains dans les poches", "standing upright with both hands in the trouser pockets, relaxed and confident"],
+  ["bras", "🤝 Bras croisés", "standing with arms confidently crossed over the chest"],
+  ["profil", "👤 De profil, regard caméra", "standing turned three-quarters to the side, head turned back toward the camera"],
+  ["assis", "🪑 Assis élégamment", "sitting elegantly, back straight, one hand resting on the knee"],
+  ["adosse", "🧱 Adossé", "leaning casually back against the wall or surface behind, one shoulder resting, relaxed"],
+  ["ouverts", "🙌 Bras ouverts", "standing with both arms opened wide in a welcoming generous gesture"],
+  ["coeur", "❤️ Main sur le cœur", "standing with one hand placed on the heart, the other relaxed along the body"],
+  ["marche", "🚶 En marche vers la caméra", "walking forward toward the camera in mid-stride, natural confident walk"],
+  ["veste", "👔 Ajuste sa veste", "standing while adjusting the lapel of the jacket with both hands, elegant gesture"],
+  ["chant", "🎤 En train de chanter", "standing and singing with emotion, mouth open, one hand raised at chest height"],
+  ["pocustom", "Personnalisé…", ""],
+];
+let poSource = null, poSel = "poches";
+(function initPo() {
+  const box = document.getElementById("poChips");
+  box.innerHTML = POSTURES.map((p, i) =>
+    `<button class="chip ${i === 0 ? "on" : ""}" data-po="${p[0]}">${p[1]}</button>`).join("");
+  box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    poSel = b.dataset.po;
+    box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    b.classList.add("on");
+    document.getElementById("poCustom").classList.toggle("hidden", poSel !== "pocustom");
+    poRefresh();
+  });
+})();
+document.getElementById("poCustom").addEventListener("input", poRefresh);
+function poRefresh() {
+  // v37.3 : avec un préréglage, rien à écrire — le bouton doit être actif dès
+  // qu'une image est choisie. Seul le mode « Personnalisé » exige un texte.
+  const pret = !!poSource && (poSel !== "pocustom"
+    || document.getElementById("poCustom").value.trim().length > 2);
+  const b = document.getElementById("poGo");
+  b.disabled = !pret;
+  b.textContent = !poSource ? "Choisis d'abord une image"
+    : (pret ? "🕺 Changer la posture (≈ 0,04 $)" : "Décris la posture souhaitée");
+}
+document.getElementById("poImportBtn").onclick = () => document.getElementById("poInput").click();
+document.getElementById("poInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    poSource = c.toDataURL("image/jpeg", 0.92);
+    const pv = document.getElementById("poPreview");
+    pv.src = poSource; pv.classList.remove("hidden");
+    document.getElementById("poUsePhoto").classList.remove("on");
+    document.getElementById("poImportBtn").classList.add("on");
+    document.getElementById("poName").textContent = `✓ ${f.name}`;
+    poRefresh();
+  };
+  img.onerror = () => { document.getElementById("poName").textContent = "⚠️ Image illisible."; };
+  img.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+document.getElementById("poUsePhoto").onclick = () => {
+  if (!photoDataUrl) { document.getElementById("poName").textContent = "⚠️ Aucune photo dans le volet 1."; return; }
+  poSource = stylePhotoUrl || photoDataUrl;
+  const pv = document.getElementById("poPreview");
+  pv.src = poSource; pv.classList.remove("hidden");
+  document.getElementById("poImportBtn").classList.remove("on");
+  document.getElementById("poUsePhoto").classList.add("on");
+  document.getElementById("poName").textContent = "✓ Photo du volet 1";
+  poRefresh();
+};
+document.getElementById("poGo").onclick = async () => {
+  const b = document.getElementById("poGo"), info = document.getElementById("poInfo");
+  b.disabled = true;
+  info.textContent = "🕺 Changement de posture… (20 à 60 s)";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    let desc = poSel === "pocustom"
+      ? await msTranslateOne(document.getElementById("poCustom").value.trim(), 220).catch(() => document.getElementById("poCustom").value.trim())
+      : POSTURES.find(p => p[0] === poSel)[2];
+    // Ici la pose CHANGE volontairement — mais le visage, la tenue et le décor
+    // restent verrouillés, exactement comme dans les autres volets.
+    const prompt = "Change ONLY the body posture of the person: " + desc + ". "
+      + "The face must stay pixel-identical to the source photo: same eyes, same nose, same mouth, same beard, "
+      + "same jawline and cheeks, same skin tone, same hairstyle, same age. Never beautify, never rejuvenate. "
+      + "Keep the exact same body: same weight, same build, same belly and shoulders, never slim the person down, "
+      + "never make them more muscular or taller. Keep EXACTLY the same clothing (same garments, same colors, "
+      + "same patterns and accessories) and the exact same background and lighting. "
+      + UNIQUE_PERSON + "Natural anatomy, correct hands with five fingers. Photorealistic, seamless, high quality.";
+    const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt, image_urls: [poSource], num_images: 1 });
+    const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
+    for (let i = 0; i < 60; i++) {
+      await new Promise(rs => setTimeout(rs, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le changement de posture a échoué côté serveur.");
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) {
+      const brut = data.detail
+        ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
+        : (data.error || data.message || JSON.stringify(data).slice(0, 200));
+      throw new Error("Image introuvable. Détail serveur : « " + brut + " »");
+    }
+    info.innerHTML = `<span style="color:var(--ok)">✓ Posture changée !</span>`;
+    document.getElementById("poResult").innerHTML = `
+      <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a class="btn small" href="${url}" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger</a>
+        <button class="btn small pulse" id="poUse">✓ Utiliser comme photo de départ</button>
+        <button class="btn small" id="poAgain">🔄 Repartir de cette image</button>
+      </div>`;
+    document.getElementById("poUse").onclick = () => {
+      photoDataUrl = url; stylePhotoUrl = null;
+      const slot = document.getElementById("photoSlot");
+      if (slot) { slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled"); }
+      const lbl = document.getElementById("photoLabel");
+      if (lbl) lbl.textContent = "Nouvelle posture";
+      info.innerHTML = `<span style="color:var(--ok)">✓ Placée en photo de départ (volet 1).</span>`;
+      refresh();
+    };
+    document.getElementById("poAgain").onclick = () => {
+      poSource = url;
+      document.getElementById("poPreview").src = url;
+      document.getElementById("poName").textContent = "✓ Nouvelle posture (on repart de celle-ci)";
+      document.getElementById("poResult").innerHTML = "";
+      poRefresh();
+    };
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { poRefresh(); refresh(); }
+};
+poRefresh();
 
 // ——— v34.7 : GALERIE DES CLIPS D'EXEMPLE ———
 // Les vidéos sont dans le même dossier que l'app (racine du dépôt rudis-video),
