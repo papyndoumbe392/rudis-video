@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.9 — recoller le vrai visage · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.0 — retouche : tu ne disparais plus · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -437,7 +437,8 @@
     <h2><span class="num">🧹</span> Retoucher une image</h2>
     <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
       Enlève ou ajoute un élément <b>sans refaire toute la scène</b> : « enlève l'homme en costume noir au centre »,
-      « enlève la femme en robe dorée », « ajoute de la pluie ». Le reste de l'image ne bouge pas.
+      « ajoute quatre amis élégants autour de moi », « ajoute de la pluie ».
+      La personne déjà sur la photo <b>reste toujours</b>, au même endroit et avec son vrai visage.
     </div>
 
     <div class="chips" style="margin-top:10px;">
@@ -560,7 +561,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.9 — nouveau : 🎯 recoller ton vrai visage si un décor l'a fait dériver</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.0 — retouche : ajouter des gens ne te fait plus disparaître de la photo</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -3266,9 +3267,20 @@ document.getElementById("rtGo").onclick = async () => {
     // Traduction FR→EN puis consigne de préservation : c'est elle qui empêche le moteur
     // de refaire toute la scène au lieu de modifier seulement ce qui est demandé.
     const en = await msTranslateOne(demande, 240).catch(() => demande);
-    const prompt = en + ". Keep everything else in the image EXACTLY identical: same background, same architecture, "
-      + "same cars, same remaining people with their exact faces and outfits, same lighting, same camera angle. "
-      + "Fill the removed areas realistically with the existing background. Photorealistic, no text.";
+    // v38.0 : la consigne de préservation passe EN TÊTE et protège explicitement
+    // les personnes DÉJÀ présentes. L'ancienne version ne parlait que des « personnes
+    // restantes » et des « zones supprimées » : en demandant d'AJOUTER des gens, le
+    // moteur remplaçait la personne d'origine par des inconnus.
+    const prompt = "ABSOLUTE RULE: every person already present in this photo MUST stay in the result, "
+      + "at the same place, at the same size, in the same pose, with their face pixel-identical to the original "
+      + "(same eyes, nose, mouth, beard, jawline, skin tone, hairstyle, age) and the exact same clothing. "
+      + "Never remove them, never replace them with someone else, never swap their face, never hide them behind "
+      + "anything or anyone. If new people are requested, they are ADDED around the existing person, who stays "
+      + "clearly visible in the foreground. "
+      + en + ". "
+      + "Keep everything else in the image EXACTLY identical: same background, same architecture, "
+      + "same cars, same lighting, same camera angle. Natural anatomy, correct hands with five fingers. "
+      + "Fill any freed area realistically with the existing background. Photorealistic, no text.";
     const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt, image_urls: [rtSource] });
     const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
