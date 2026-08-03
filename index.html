@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.4 — personnage bien posé · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.5 — posture au choix dans le décor · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -238,8 +238,15 @@
     <p class="sub" style="margin:0 0 10px;">Garde ton visage, ta pose <b>et ta tenue</b> — seul le lieu change. À faire <b>après</b> la tenue si tu veux les deux.</p>
     <div class="chips" id="lieuChips"></div>
     <input type="text" id="lieuCustom" placeholder="Décris le décor… Ex : un salon de palace avec lustre en cristal et vue sur la ville la nuit" class="hidden" style="width:100%; margin-top:10px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
+    <!-- v37.5 : changer aussi la posture, au choix du client -->
+    <label class="opt" id="lieuPoseBox" style="display:none; margin-top:10px;">
+      <input type="checkbox" id="lieuPoseChk">
+      <span>🕺 <b>Changer aussi la posture</b> — sinon la personne garde sa pose, simplement adaptée au nouveau lieu.</span>
+    </label>
+    <input type="text" id="lieuPoseTxt" placeholder="Quelle posture ? Ex : assis dans le fauteuil, une main sur l'accoudoir, regard vers la caméra" class="hidden" style="width:100%; margin-top:8px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
+
     <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor (≈ 0,04 $)</button>
-    <div class="estimate" id="lieuInfo">Le visage, la pose et les habits restent identiques — seul le décor change.</div>
+    <div class="estimate" id="lieuInfo">Le visage et les habits restent identiques — seul le décor change.</div>
     <div id="lieuPreview"></div>
   </section>
 
@@ -516,7 +523,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.4 — fini de flotter : le personnage est vraiment assis ou posé au sol</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.5 — le décor peut aussi changer la posture, si le client le demande</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1276,9 +1283,10 @@ let lieuSel = "keep";
       b.classList.add("on");
       document.getElementById("lieuCustom").classList.toggle("hidden", id !== "lieucustom");
       document.getElementById("lieuGo").style.display = (id === "keep") ? "none" : "block";
+      document.getElementById("lieuPoseBox").style.display = (id === "keep") ? "none" : "flex";   // v37.5
       if (id === "keep") {
         document.getElementById("lieuPreview").innerHTML = "";
-        document.getElementById("lieuInfo").textContent = "Le visage, la pose et les habits restent identiques — seul le décor change.";
+        document.getElementById("lieuInfo").textContent = "Le visage et les habits restent identiques — seul le décor change.";
       }
       document.getElementById("dotLieu").classList.toggle("on", id !== "keep");
     };
@@ -1290,6 +1298,17 @@ let lieuSel = "keep";
 // v37.4 : décors situés DANS un véhicule — pas de sol en marbre, et l'ancrage
 // se fait sur un siège ou une carrosserie, pas sur un plancher de palais.
 const LIEUX_VEHICULE = ["jetprive", "premiereclasse", "voiturenuit", "supercars", "marina", "champselysees", "monaco", "portmonaco"];
+
+// v37.5 : la case « Changer aussi la posture » ouvre un champ libre.
+(function initLieuPose() {
+  const chk = document.getElementById("lieuPoseChk");
+  const txt = document.getElementById("lieuPoseTxt");
+  if (!chk) return;
+  chk.onchange = () => {
+    txt.classList.toggle("hidden", !chk.checked);
+    if (chk.checked) txt.focus();
+  };
+})();
 
 async function transformLieu() {
   const info = document.getElementById("lieuInfo");
@@ -1303,6 +1322,17 @@ async function transformLieu() {
   btn.disabled = true; info.textContent = "🏛️ Changement de décor en cours (10-30 s)…";
   try {
     const path = "fal-ai/nano-banana/edit";
+    // v37.5 : posture demandée par le client (facultatif), traduite en anglais.
+    let poseDemandee = "";
+    const chkPose = document.getElementById("lieuPoseChk");
+    const txtPose = document.getElementById("lieuPoseTxt").value.trim();
+    if (chkPose && chkPose.checked && txtPose.length > 2) {
+      info.textContent = "🕺 Préparation de la posture…";
+      const enPose = await msTranslateOne(txtPose, 200).catch(() => txtPose);
+      poseDemandee = "Change the person's posture to: " + enPose
+        + ". Keep the face, the clothing and the body build unchanged. ";
+      info.textContent = "🏛️ Changement de décor en cours (10-30 s)…";
+    }
     // On part de la photo AVEC la tenue déjà transformée si elle existe : les deux se cumulent.
     const source = stylePhotoUrl || photoDataUrl;
     const job = await apiSubmit(path, {
@@ -1317,8 +1347,10 @@ async function transformLieu() {
         + "Keep the person's identity and clothing completely unchanged: exact same face, skin tone, facial hair, "
         + "hairstyle, exact same garments, colors and accessories, exact same body build. "
         + "The person's face must stay pixel-identical to the source photo: same eyes, same nose, same mouth, same beard, same jawline and cheeks, same skin tone, same hairstyle and same age. Never beautify, never rejuvenate, never smooth the skin. Keep the exact same body: same weight, same build, same belly and shoulders, never slim the person down, never make them more muscular or taller. "
-        + "IMPORTANT — the person must be physically GROUNDED in the new scene: adapt their pose naturally so it "
-        + "makes sense there. If they are standing, both feet rest flat on the ground. If the scene has a seat, "
+        + poseDemandee
+        + "IMPORTANT — the person must be physically GROUNDED in the new scene: "
+        + (poseDemandee ? "" : "adapt their pose naturally so it makes sense there. ")
+        + "If they are standing, both feet rest flat on the ground. If the scene has a seat, "
         + "they are properly and fully seated on it, back against the backrest, legs and feet naturally supported. "
         + "Never floating in the air, never hovering above a surface, never sitting on nothing, never dangling legs, "
         + "never oversized or undersized compared to the furniture around them. Correct scale, correct perspective, "
