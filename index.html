@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.3 — posture · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.4 — personnage bien posé · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -516,7 +516,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.3 — la posture est verrouillée, et un volet dédié permet de la changer</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.4 — fini de flotter : le personnage est vraiment assis ou posé au sol</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1287,6 +1287,10 @@ let lieuSel = "keep";
   document.getElementById("lieuGo").onclick = transformLieu;
 })();
 
+// v37.4 : décors situés DANS un véhicule — pas de sol en marbre, et l'ancrage
+// se fait sur un siège ou une carrosserie, pas sur un plancher de palais.
+const LIEUX_VEHICULE = ["jetprive", "premiereclasse", "voiturenuit", "supercars", "marina", "champselysees", "monaco", "portmonaco"];
+
 async function transformLieu() {
   const info = document.getElementById("lieuInfo");
   const desc = lieuSel === "lieucustom"
@@ -1302,12 +1306,28 @@ async function transformLieu() {
     // On part de la photo AVEC la tenue déjà transformée si elle existe : les deux se cumulent.
     const source = stylePhotoUrl || photoDataUrl;
     const job = await apiSubmit(path, {
-      prompt: `Replace the entire background and setting of this image with ${desc}. `
-        + "Keep the person completely unchanged: exact same face, identity, skin tone, facial hair, hairstyle, "
-        + "clothing, pose and body proportions. Relight the person naturally so they match the new scene. "
+      // v37.4 : trois correctifs. (a) La POSE peut s'adapter au nouveau lieu — la
+      // verrouiller faisait « flotter » la personne dans un siège d'avion ou sur un
+      // capot. (b) Ancrage explicite au sol / au siège, avec ombres de contact.
+      // (c) La règle du sol en marbre ne s'applique PLUS aux véhicules : elle
+      // faisait apparaître du marbre dans la cabine d'avion.
+      prompt: `Replace the ENTIRE background and setting of this image with ${desc}. `
+        + "No element of the original background may remain visible — not the original floor, "
+        + "not the original walls, not a strip at the edge of the frame. "
+        + "Keep the person's identity and clothing completely unchanged: exact same face, skin tone, facial hair, "
+        + "hairstyle, exact same garments, colors and accessories, exact same body build. "
         + "The person's face must stay pixel-identical to the source photo: same eyes, same nose, same mouth, same beard, same jawline and cheeks, same skin tone, same hairstyle and same age. Never beautify, never rejuvenate, never smooth the skin. Keep the exact same body: same weight, same build, same belly and shoulders, never slim the person down, never make them more muscular or taller. "
-        + "If the scene is a luxury interior, the floor MUST be made of large polished marble or stone tiles with clearly visible joint lines and realistic mirror-like reflections. "
-        + "Photorealistic, seamless integration, correct perspective and scale, no duplicated person, no extra limbs, high quality.",
+        + "IMPORTANT — the person must be physically GROUNDED in the new scene: adapt their pose naturally so it "
+        + "makes sense there. If they are standing, both feet rest flat on the ground. If the scene has a seat, "
+        + "they are properly and fully seated on it, back against the backrest, legs and feet naturally supported. "
+        + "Never floating in the air, never hovering above a surface, never sitting on nothing, never dangling legs, "
+        + "never oversized or undersized compared to the furniture around them. Correct scale, correct perspective, "
+        + "correct eye level, realistic contact shadows where the body touches the floor or the seat. "
+        + "Relight the person naturally so they match the new scene. "
+        + (LIEUX_VEHICULE.includes(lieuSel)
+            ? "The floor must be the vehicle's own carpet or flooring — never marble, never stone tiles. "
+            : "If the scene is a luxury interior, the floor MUST be made of large polished marble or stone tiles with clearly visible joint lines and realistic mirror-like reflections. ")
+        + "Photorealistic, seamless integration, no duplicated person, no extra limbs, high quality.",
       image_urls: [source],
       num_images: 1,
     });
