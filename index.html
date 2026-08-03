@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.8 — décor d'après une image · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.9 — recoller le vrai visage · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -456,6 +456,35 @@
     <div id="rtResult"></div>
   </section>
 
+  <!-- v37.9 : RECOLLER LE VRAI VISAGE — correctif quand un décor a fait dériver le visage -->
+  <section class="card">
+    <h2><span class="num">🎯</span> Recoller le vrai visage</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Si un décor ou une retouche a <b>légèrement changé ton visage</b> (souvent quand il est petit dans l'image),
+      ce volet <b>replace ton vrai visage</b> depuis ta photo d'origine — la scène, la tenue et la lumière ne bougent pas.
+    </div>
+
+    <div class="label">Image à corriger</div>
+    <div class="chips">
+      <button class="chip" id="fxUseLast" disabled>Dernier décor généré</button>
+      <button class="chip" id="fxImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="fxInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="fxName"></div>
+    <img id="fxPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+
+    <div class="label">La personne est…</div>
+    <div class="chips" id="fxGender">
+      <button class="chip on" data-fx="male">♂️ Un homme</button>
+      <button class="chip" data-fx="female">♀️ Une femme</button>
+    </div>
+    <div class="estimate">Le vrai visage vient automatiquement de ta <b>photo de référence visage</b> (ou de ta photo du volet 1).</div>
+
+    <button class="btn" id="fxGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
+    <div class="estimate" id="fxInfo" style="margin-top:8px;"></div>
+    <div id="fxResult"></div>
+  </section>
+
   <!-- STUDIO IMAGES : créer personnages, danseurs, décors à partir d'un texte (sans photo) -->
   <section class="card" style="border-color:var(--violet);">
     <h2><span class="num" style="background:var(--violet); color:#fff;">🎨</span> Studio Images — créer des décors & personnages</h2>
@@ -531,7 +560,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.8 — nouveau : créer un décor d'après une image de référence, sans rien écrire</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.9 — nouveau : 🎯 recoller ton vrai visage si un décor l'a fait dériver</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1427,6 +1456,9 @@ async function transformLieu() {
     const avant = stylePhotoUrl;
     stylePhotoUrl = url;
     info.innerHTML = `<span style="color:var(--ok)">✓ Décor changé — c'est cette photo qui sera utilisée pour la vidéo.</span>`;
+    lastLieuUrl = url;   // v37.9 : disponible pour « Recoller le vrai visage »
+    const fxLast = document.getElementById("fxUseLast");
+    if (fxLast) fxLast.disabled = false;
     document.getElementById("lieuPreview").innerHTML = `
       <img src="${url}" style="width:100%; border-radius:12px; margin-top:12px;">
       <button class="btn small" id="lieuRevert" style="margin-top:8px;">↩ Revenir au décor précédent</button>`;
@@ -3421,6 +3453,109 @@ document.getElementById("poGo").onclick = async () => {
   } finally { poRefresh(); refresh(); }
 };
 poRefresh();
+
+// ═══════════ v37.9 : RECOLLER LE VRAI VISAGE (easel-ai/advanced-face-swap) ═══════════
+// Le moteur de décor REDESSINE toute l'image : quand le visage est petit dans le
+// cadre, il dérive malgré les consignes. Ce volet fait une passe dédiée qui
+// replace le visage de la photo d'origine en gardant la scène — c'est la
+// correction fiable, pas une consigne de plus.
+let fxTarget = null, fxGenre = "male";
+let lastLieuUrl = null;   // rempli par le volet Décor à chaque résultat
+function fxRefresh() {
+  const b = document.getElementById("fxGo");
+  const pret = !!fxTarget;
+  b.disabled = !pret;
+  b.textContent = pret ? "🎯 Recoller le vrai visage (− 1 image)" : "Choisis d'abord une image";
+}
+document.getElementById("fxGender").querySelectorAll(".chip").forEach(c => c.onclick = () => {
+  fxGenre = c.dataset.fx;
+  document.getElementById("fxGender").querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+});
+document.getElementById("fxImportBtn").onclick = () => document.getElementById("fxInput").click();
+document.getElementById("fxInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    fxTarget = c.toDataURL("image/jpeg", 0.92);
+    const pv = document.getElementById("fxPreview");
+    pv.src = fxTarget; pv.classList.remove("hidden");
+    document.getElementById("fxUseLast").classList.remove("on");
+    document.getElementById("fxImportBtn").classList.add("on");
+    document.getElementById("fxName").textContent = `✓ ${f.name}`;
+    fxRefresh();
+  };
+  img.onerror = () => { document.getElementById("fxName").textContent = "⚠️ Image illisible."; };
+  img.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+document.getElementById("fxUseLast").onclick = () => {
+  if (!lastLieuUrl) return;
+  fxTarget = lastLieuUrl;
+  const pv = document.getElementById("fxPreview");
+  pv.src = lastLieuUrl; pv.classList.remove("hidden");
+  document.getElementById("fxImportBtn").classList.remove("on");
+  document.getElementById("fxUseLast").classList.add("on");
+  document.getElementById("fxName").textContent = "✓ Dernier décor généré";
+  fxRefresh();
+};
+document.getElementById("fxGo").onclick = async () => {
+  const b = document.getElementById("fxGo"), info = document.getElementById("fxInfo");
+  b.disabled = true;
+  info.textContent = "🎯 Recollage du visage… (20 à 60 s)";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    const visage = (faceRefUrls.filter(Boolean)[0]) || photoDataUrl;
+    if (!visage) throw new Error("Ajoute d'abord ta photo (volet 1) ou une photo de référence visage.");
+    const job = await apiSubmit("easel-ai/advanced-face-swap", {
+      face_image_0: visage,
+      gender_0: fxGenre,
+      target_image: fxTarget,
+      workflow_type: "target_hair",   // garde la coiffure/chapeau de la scène
+      upscale: true,
+    });
+    const statusUrl = job.status_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}`;
+    for (let i = 0; i < 60; i++) {
+      await new Promise(rs => setTimeout(rs, 3000));
+      const sj = await apiPoll(statusUrl);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le recollage a échoué côté serveur.");
+    }
+    const data = await apiPoll(responseUrl);
+    const url = data.image?.url || data.images?.[0]?.url || data.response?.image?.url || data.response?.images?.[0]?.url;
+    if (!url) {
+      const brut = data.detail
+        ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
+        : (data.error || data.message || JSON.stringify(data).slice(0, 200));
+      throw new Error("Image introuvable. Détail serveur : « " + brut + " »");
+    }
+    info.innerHTML = `<span style="color:var(--ok)">✓ Vrai visage recollé !</span>`;
+    document.getElementById("fxResult").innerHTML = `
+      <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a class="btn small" href="${url}" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger</a>
+        <button class="btn small pulse" id="fxUse">✓ Utiliser comme photo de départ</button>
+      </div>`;
+    document.getElementById("fxUse").onclick = () => {
+      photoDataUrl = url; stylePhotoUrl = null;
+      const slot = document.getElementById("photoSlot");
+      if (slot) { slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled"); }
+      const lbl = document.getElementById("photoLabel");
+      if (lbl) lbl.textContent = "Visage recollé";
+      info.innerHTML = `<span style="color:var(--ok)">✓ Placée en photo de départ (volet 1).</span>`;
+      refresh();
+    };
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { fxRefresh(); refresh(); }
+};
+fxRefresh();
 
 // ——— v34.7 : GALERIE DES CLIPS D'EXEMPLE ———
 // Les vidéos sont dans le même dossier que l'app (racine du dépôt rudis-video),
