@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.0 — retouche : tu ne disparais plus · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.1 — choisir l'origine des figurants · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -449,6 +449,10 @@
     <div class="estimate" id="rtName"></div>
     <img id="rtPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
 
+    <div class="label">Si tu ajoutes des personnes, elles seront…</div>
+    <div class="chips" id="rtOrigine"></div>
+    <div class="estimate">Ne s'applique qu'aux personnes <b>ajoutées</b>. Les personnes déjà sur la photo ne changent jamais.</div>
+
     <div class="label">Ce que tu veux changer</div>
     <textarea id="rtPrompt" rows="2" placeholder="Ex : enlève l'homme en costume noir et la femme en robe dorée au premier plan, garde tout le reste identique" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
 
@@ -561,7 +565,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v38.0 — retouche : ajouter des gens ne te fait plus disparaître de la photo</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.1 — tu choisis l'origine des personnes ajoutées à la scène</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -3217,6 +3221,29 @@ rfRefresh();
 // Même moteur que les tenues et les décors : il modifie une zone précise en gardant
 // le reste intact. Gratuit en crédits vidéo, décompté du quota d'images du code.
 let rtSource = null;
+// v38.1 : origine des personnes AJOUTÉES par la retouche. Sans consigne, le moteur
+// met par défaut des personnes blanches — inadapté à sa clientèle.
+const ORIGINES = [
+  ["auto", "Peu importe", ""],
+  ["noire", "🌍 Noires", "Black African"],
+  ["metisse", "Métisses", "mixed-race"],
+  ["blanche", "Blanches", "White"],
+  ["latino", "Latinos", "Latino"],
+  ["asiatique", "Asiatiques", "Asian"],
+  ["mixte", "Groupe mélangé", "of mixed different ethnicities"],
+];
+let rtOrigine = "auto";
+(function initRtOrigine() {
+  const box = document.getElementById("rtOrigine");
+  if (!box) return;
+  box.innerHTML = ORIGINES.map((o, i) =>
+    `<button class="chip ${i === 0 ? "on" : ""}" data-or="${o[0]}">${o[1]}</button>`).join("");
+  box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    rtOrigine = b.dataset.or;
+    box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    b.classList.add("on");
+  });
+})();
 function rtRefresh() {
   const pret = !!rtSource && document.getElementById("rtPrompt").value.trim().length > 3;
   const b = document.getElementById("rtGo");
@@ -3278,6 +3305,11 @@ document.getElementById("rtGo").onclick = async () => {
       + "anything or anyone. If new people are requested, they are ADDED around the existing person, who stays "
       + "clearly visible in the foreground. "
       + en + ". "
+      + (rtOrigine !== "auto"
+          ? "Any NEW person added to the scene must be " + (ORIGINES.find(o => o[0] === rtOrigine) || [])[2]
+            + ". This applies ONLY to the people being added — never change the appearance, skin tone or "
+            + "ethnicity of anyone already present in the photo. "
+          : "")
       + "Keep everything else in the image EXACTLY identical: same background, same architecture, "
       + "same cars, same lighting, same camera angle. Natural anatomy, correct hands with five fingers. "
       + "Fill any freed area realistically with the existing background. Photorealistic, no text.";
