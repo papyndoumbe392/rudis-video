@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.1 — choisir l'origine des figurants · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.3 — guide bilingue FR/EN · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -259,6 +259,110 @@
   </section>
 
   <section class="card">
+    <h2><span class="num">🕺</span> Changer la posture</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Change la <b>pose</b> de la personne sans toucher à son visage, sa tenue ni le décor.
+      Les autres volets (tenue, décor) ne modifient plus la posture — c'est ici qu'on la change, quand tu le veux.
+    </div>
+
+    <div class="chips" style="margin-top:10px;">
+      <button class="chip" id="poUsePhoto">Photo du volet 1</button>
+      <button class="chip" id="poImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="poInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="poName"></div>
+    <img id="poPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+
+    <div class="label">Nouvelle posture</div>
+    <div class="chips" id="poChips"></div>
+    <textarea id="poCustom" rows="2" class="hidden" placeholder="Ex : debout de profil, une main qui ajuste sa veste, regard vers l'objectif" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical; margin-top:8px;"></textarea>
+
+    <button class="btn" id="poGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
+    <div class="estimate" id="poInfo" style="margin-top:8px;"></div>
+    <div id="poResult"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">🧹</span> Retoucher une image</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Enlève ou ajoute un élément <b>sans refaire toute la scène</b> : « enlève l'homme en costume noir au centre »,
+      « ajoute quatre amis élégants autour de moi », « ajoute de la pluie ».
+      La personne déjà sur la photo <b>reste toujours</b>, au même endroit et avec son vrai visage.
+    </div>
+
+    <div class="chips" style="margin-top:10px;">
+      <button class="chip" id="rtUsePhoto">Photo du volet 1</button>
+      <button class="chip" id="rtImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="rtInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="rtName"></div>
+    <img id="rtPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+
+    <div class="label">Si tu ajoutes des personnes, elles seront…</div>
+    <div class="chips" id="rtOrigine"></div>
+    <div class="estimate">Ne s'applique qu'aux personnes <b>ajoutées</b>. Les personnes déjà sur la photo ne changent jamais.</div>
+
+    <div class="label">Corrections rapides — touche, le texte s'écrit tout seul</div>
+    <div class="chips" id="rtFix"></div>
+
+    <div class="label">Ce que tu veux changer</div>
+    <textarea id="rtPrompt" rows="2" placeholder="Ex : enlève l'homme en costume noir et la femme en robe dorée au premier plan, garde tout le reste identique" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
+
+    <button class="btn" id="rtGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
+    <div class="estimate" id="rtInfo" style="margin-top:8px;"></div>
+    <div id="rtResult"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">🎯</span> Recoller le vrai visage</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Si un décor ou une retouche a <b>légèrement changé ton visage</b> (souvent quand il est petit dans l'image),
+      ce volet <b>replace ton vrai visage</b> depuis ta photo d'origine — la scène, la tenue et la lumière ne bougent pas.
+    </div>
+
+    <div class="label">Image à corriger</div>
+    <div class="chips">
+      <button class="chip" id="fxUseLast" disabled>Dernier décor généré</button>
+      <button class="chip" id="fxImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="fxInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="fxName"></div>
+    <img id="fxPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+
+    <div class="label">La personne est…</div>
+    <div class="chips" id="fxGender">
+      <button class="chip on" data-fx="male">♂️ Un homme</button>
+      <button class="chip" data-fx="female">♀️ Une femme</button>
+    </div>
+    <div class="estimate">Le vrai visage vient automatiquement de ta <b>photo de référence visage</b> (ou de ta photo du volet 1).</div>
+
+    <button class="btn" id="fxGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
+    <div class="estimate" id="fxInfo" style="margin-top:8px;"></div>
+    <div id="fxResult"></div>
+  </section>
+
+  <section class="card" style="border-color:var(--violet);">
+    <h2><span class="num" style="background:var(--violet); color:#fff;">🎨</span> Studio Images — créer des décors & personnages</h2>
+    <p class="sub" style="margin:0 0 12px;">Crée une image à partir d'un simple texte, <b>sans photo</b> : un danseur, une danseuse, une rue de Monaco, une boîte de nuit… pour enrichir ton clip. Tu peux ensuite l'animer.<br><span style="opacity:.85">Create an image from text, <b>no photo needed</b>: a dancer, a street, a nightclub… then animate it.</span></p>
+    <div class="label">Idées toutes prêtes · Ready-made ideas</div>
+    <div class="chips" id="t2iPresets"></div>
+    <div class="label">Décris l'image · Describe the image (FR / EN)</div>
+    <textarea id="t2iPrompt" rows="2" placeholder="Ex : une danseuse africaine en robe dorée qui danse dans une boîte de nuit / an African dancer in a gold dress dancing in a nightclub" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
+    <div class="label">Format · Aspect</div>
+    <div class="chips" id="t2iRatio">
+      <button class="chip on" data-t2iratio="16:9" onclick="pickT2iRatio(this)">🖥️ 16:9</button>
+      <button class="chip" data-t2iratio="9:16" onclick="pickT2iRatio(this)">📱 9:16</button>
+      <button class="chip" data-t2iratio="1:1" onclick="pickT2iRatio(this)">◻️ 1:1</button>
+    </div>
+    <div id="t2iLock" class="estimate" style="border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
+      🔒 <b>Réservé aux packs Pro.</b> Entre ton code StarClip en haut de l'app. Si tu as un pack Éco, commande un <b>Pack Pro</b> sur WhatsApp pour débloquer le Studio Images.
+    </div>
+    <button class="btn" id="t2iGo" style="margin-top:12px;" disabled>🎨 Créer l'image · Create image (≈ 0,04 $)</button>
+    <div class="estimate" id="t2iInfo" style="margin-top:8px;"></div>
+    <div id="t2iPreview"></div>
+  </section>
+
+  <section class="card">
     <h2><span class="num" id="num2">2</span> Scénario du clip <span class="dot" id="dot2"></span></h2>
     <div class="label" style="margin-top:0;">✨ Décris ton idée simplement · Describe your idea simply <span style="opacity:.7">(FR / EN)</span></div>
     <textarea id="ideaFr" rows="2" placeholder="En français ou en anglais · Ex : je chante sur la plage au coucher du soleil / I sing on the beach at sunset" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
@@ -408,109 +512,16 @@
   </section>
 
   <!-- v37.3 : CHANGER LA POSTURE — volet dédié, séparé du changement de tenue -->
-  <section class="card">
-    <h2><span class="num">🕺</span> Changer la posture</h2>
-    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
-      Change la <b>pose</b> de la personne sans toucher à son visage, sa tenue ni le décor.
-      Les autres volets (tenue, décor) ne modifient plus la posture — c'est ici qu'on la change, quand tu le veux.
-    </div>
 
-    <div class="chips" style="margin-top:10px;">
-      <button class="chip" id="poUsePhoto">Photo du volet 1</button>
-      <button class="chip" id="poImportBtn">📂 Importer une image</button>
-    </div>
-    <input type="file" id="poInput" accept="image/*" style="display:none;">
-    <div class="estimate" id="poName"></div>
-    <img id="poPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
-
-    <div class="label">Nouvelle posture</div>
-    <div class="chips" id="poChips"></div>
-    <textarea id="poCustom" rows="2" class="hidden" placeholder="Ex : debout de profil, une main qui ajuste sa veste, regard vers l'objectif" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical; margin-top:8px;"></textarea>
-
-    <button class="btn" id="poGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
-    <div class="estimate" id="poInfo" style="margin-top:8px;"></div>
-    <div id="poResult"></div>
-  </section>
 
   <!-- v36.7 : RETOUCHER UNE IMAGE — enlever ou ajouter un élément sans refaire la scène -->
-  <section class="card">
-    <h2><span class="num">🧹</span> Retoucher une image</h2>
-    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
-      Enlève ou ajoute un élément <b>sans refaire toute la scène</b> : « enlève l'homme en costume noir au centre »,
-      « ajoute quatre amis élégants autour de moi », « ajoute de la pluie ».
-      La personne déjà sur la photo <b>reste toujours</b>, au même endroit et avec son vrai visage.
-    </div>
 
-    <div class="chips" style="margin-top:10px;">
-      <button class="chip" id="rtUsePhoto">Photo du volet 1</button>
-      <button class="chip" id="rtImportBtn">📂 Importer une image</button>
-    </div>
-    <input type="file" id="rtInput" accept="image/*" style="display:none;">
-    <div class="estimate" id="rtName"></div>
-    <img id="rtPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
-
-    <div class="label">Si tu ajoutes des personnes, elles seront…</div>
-    <div class="chips" id="rtOrigine"></div>
-    <div class="estimate">Ne s'applique qu'aux personnes <b>ajoutées</b>. Les personnes déjà sur la photo ne changent jamais.</div>
-
-    <div class="label">Ce que tu veux changer</div>
-    <textarea id="rtPrompt" rows="2" placeholder="Ex : enlève l'homme en costume noir et la femme en robe dorée au premier plan, garde tout le reste identique" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
-
-    <button class="btn" id="rtGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
-    <div class="estimate" id="rtInfo" style="margin-top:8px;"></div>
-    <div id="rtResult"></div>
-  </section>
 
   <!-- v37.9 : RECOLLER LE VRAI VISAGE — correctif quand un décor a fait dériver le visage -->
-  <section class="card">
-    <h2><span class="num">🎯</span> Recoller le vrai visage</h2>
-    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
-      Si un décor ou une retouche a <b>légèrement changé ton visage</b> (souvent quand il est petit dans l'image),
-      ce volet <b>replace ton vrai visage</b> depuis ta photo d'origine — la scène, la tenue et la lumière ne bougent pas.
-    </div>
 
-    <div class="label">Image à corriger</div>
-    <div class="chips">
-      <button class="chip" id="fxUseLast" disabled>Dernier décor généré</button>
-      <button class="chip" id="fxImportBtn">📂 Importer une image</button>
-    </div>
-    <input type="file" id="fxInput" accept="image/*" style="display:none;">
-    <div class="estimate" id="fxName"></div>
-    <img id="fxPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
-
-    <div class="label">La personne est…</div>
-    <div class="chips" id="fxGender">
-      <button class="chip on" data-fx="male">♂️ Un homme</button>
-      <button class="chip" data-fx="female">♀️ Une femme</button>
-    </div>
-    <div class="estimate">Le vrai visage vient automatiquement de ta <b>photo de référence visage</b> (ou de ta photo du volet 1).</div>
-
-    <button class="btn" id="fxGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
-    <div class="estimate" id="fxInfo" style="margin-top:8px;"></div>
-    <div id="fxResult"></div>
-  </section>
 
   <!-- STUDIO IMAGES : créer personnages, danseurs, décors à partir d'un texte (sans photo) -->
-  <section class="card" style="border-color:var(--violet);">
-    <h2><span class="num" style="background:var(--violet); color:#fff;">🎨</span> Studio Images — créer des décors & personnages</h2>
-    <p class="sub" style="margin:0 0 12px;">Crée une image à partir d'un simple texte, <b>sans photo</b> : un danseur, une danseuse, une rue de Monaco, une boîte de nuit… pour enrichir ton clip. Tu peux ensuite l'animer.<br><span style="opacity:.85">Create an image from text, <b>no photo needed</b>: a dancer, a street, a nightclub… then animate it.</span></p>
-    <div class="label">Idées toutes prêtes · Ready-made ideas</div>
-    <div class="chips" id="t2iPresets"></div>
-    <div class="label">Décris l'image · Describe the image (FR / EN)</div>
-    <textarea id="t2iPrompt" rows="2" placeholder="Ex : une danseuse africaine en robe dorée qui danse dans une boîte de nuit / an African dancer in a gold dress dancing in a nightclub" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
-    <div class="label">Format · Aspect</div>
-    <div class="chips" id="t2iRatio">
-      <button class="chip on" data-t2iratio="16:9" onclick="pickT2iRatio(this)">🖥️ 16:9</button>
-      <button class="chip" data-t2iratio="9:16" onclick="pickT2iRatio(this)">📱 9:16</button>
-      <button class="chip" data-t2iratio="1:1" onclick="pickT2iRatio(this)">◻️ 1:1</button>
-    </div>
-    <div id="t2iLock" class="estimate" style="border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
-      🔒 <b>Réservé aux packs Pro.</b> Entre ton code StarClip en haut de l'app. Si tu as un pack Éco, commande un <b>Pack Pro</b> sur WhatsApp pour débloquer le Studio Images.
-    </div>
-    <button class="btn" id="t2iGo" style="margin-top:12px;" disabled>🎨 Créer l'image · Create image (≈ 0,04 $)</button>
-    <div class="estimate" id="t2iInfo" style="margin-top:8px;"></div>
-    <div id="t2iPreview"></div>
-  </section>
+
 
   <!-- PAIEMENT MOBILE -->
   <section class="card" style="border-color:var(--gold);">
@@ -565,7 +576,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v38.1 — tu choisis l'origine des personnes ajoutées à la scène</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.3 — guide bilingue FR/EN (application inchangée depuis v38.2)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1434,7 +1445,9 @@ async function transformLieu() {
         + "If they are standing, both feet rest flat on the ground. If the scene has a seat, "
         + "they are properly and fully seated on it, back against the backrest, legs and feet naturally supported. "
         + "Never floating in the air, never hovering above a surface, never sitting on nothing, never dangling legs, "
-        + "never oversized or undersized compared to the furniture around them. Correct scale, correct perspective, "
+        + "never oversized or undersized compared to the furniture AND to the other people around them — "
+        + "everyone must share the same realistic human scale for their distance from the camera. "
+        + "Correct scale, correct perspective, "
         + "correct eye level, realistic contact shadows where the body touches the floor or the seat. "
         + "Relight the person naturally so they match the new scene. "
         + (lieuSel === "lieuref"
@@ -3251,6 +3264,30 @@ function rtRefresh() {
   b.textContent = !rtSource ? "Choisis d'abord une image"
     : (pret ? "🧹 Retoucher l'image (≈ 0,04 $)" : "Décris ce que tu veux changer");
 }
+// v38.2 : corrections rapides — les formulations qui marchent, prêtes à l'emploi.
+// Le client touche, le texte s'écrit dans la zone, et il peut encore le modifier.
+const RT_FIX = [
+  ["💡 Harmoniser la lumière",
+   "harmonise l'éclairage sur moi avec la scène : mêmes reflets de lumière et mêmes couleurs d'ambiance que sur les autres personnes, même direction d'ombre, je dois paraître photographié dans ce lieu et pas collé dessus"],
+  ["📏 Corriger ma taille",
+   "corrige ma taille et ma perspective : je dois avoir des proportions réalistes par rapport aux autres personnes et aux objets autour de moi, ni trop grand ni trop petit, mes pieds bien posés au sol à la bonne profondeur"],
+  ["🧹 Nettoyer les traces",
+   "nettoie les défauts de montage : bords nets autour des personnes, aucune trace de découpe, aucune silhouette en double, ombres de contact réalistes au sol"],
+  ["✨ Plus réaliste",
+   "rends l'image plus réaliste et homogène : même grain photo, même netteté et même profondeur de champ sur toute l'image, rendu photographique naturel"],
+];
+(function initRtFix() {
+  const box = document.getElementById("rtFix");
+  if (!box) return;
+  box.innerHTML = RT_FIX.map((f, i) => `<button class="chip" data-fix="${i}">${f[0]}</button>`).join("");
+  box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    const ta = document.getElementById("rtPrompt");
+    ta.value = RT_FIX[parseInt(b.dataset.fix)][1];
+    box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    b.classList.add("on");
+    rtRefresh();
+  });
+})();
 document.getElementById("rtPrompt").addEventListener("input", rtRefresh);
 document.getElementById("rtImportBtn").onclick = () => document.getElementById("rtInput").click();
 document.getElementById("rtInput").onchange = (e) => {
