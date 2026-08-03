@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.7 — visage recollé automatiquement · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v38.8 — le bon visage source · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -341,7 +341,16 @@
       <button class="chip on" data-fx="male">♂️ Un homme</button>
       <button class="chip" data-fx="female">♀️ Une femme</button>
     </div>
-    <div class="estimate">Le vrai visage vient automatiquement de ta <b>photo de référence visage</b> (ou de ta photo du volet 1).</div>
+    <div class="label">Visage source — c'est CE visage qui sera recollé</div>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div id="fxVisagePv" style="width:64px; height:64px; border-radius:10px; border:1px solid var(--line); background:var(--up) center/cover no-repeat; flex:none;"></div>
+      <div style="flex:1; min-width:180px;">
+        <div class="estimate" id="fxVisageNom" style="margin:0;">—</div>
+        <button class="chip" id="fxVisageBtn" style="margin-top:6px;">📂 Choisir une autre photo de mon visage</button>
+      </div>
+    </div>
+    <input type="file" id="fxVisageInput" accept="image/*" style="display:none;">
+    <div class="estimate">⚠️ Vérifie cette vignette avant de lancer : si elle montre un visage déjà déformé, importe ta <b>vraie photo d'origine</b>.</div>
 
     <button class="btn" id="fxGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
     <div class="estimate" id="fxInfo" style="margin-top:8px;"></div>
@@ -583,7 +592,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v38.7 — le décor recolle ton vrai visage automatiquement</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.8 — le recollage part enfin de ta VRAIE photo, visible à l'écran</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -592,6 +601,7 @@
 <script>
 // ——— État ———
 let photoDataUrl = null;
+let photoOriginaleUrl = null;   // v38.8 : la photo VRAIMENT importée par le client
 let model = "eco";
 let dur = "5";
 
@@ -1088,6 +1098,10 @@ function applyPhotoRatio(ratio, label) {
   }
   const brightened = autoBrighten(c);
   photoDataUrl = c.toDataURL("image/jpeg", 0.9);
+  // v38.8 : on garde à part la VRAIE photo importée. photoDataUrl est écrasée
+  // à chaque « Utiliser comme photo de départ » : si le recollage s'en servait,
+  // il recollait le visage DÉJÀ DÉFORMÉ d'une image générée.
+  photoOriginaleUrl = photoDataUrl;
   stylePhotoUrl = null;
   const op = document.getElementById("outfitPreview"); if (op) op.innerHTML = "";
   const slot = document.getElementById("photoSlot");
@@ -3605,9 +3619,24 @@ poRefresh();
 // cadre, il dérive malgré les consignes. Ce volet fait une passe dédiée qui
 // replace le visage de la photo d'origine en gardant la scène — c'est la
 // correction fiable, pas une consigne de plus.
-let fxTarget = null, fxGenre = "male";
+let fxTarget = null, fxGenre = "male", fxVisageUrl = null;
 let lastLieuUrl = null;   // rempli par le volet Décor à chaque résultat
+// v38.8 : affiche en clair le visage qui sera recollé.
+function fxMajVisage() {
+  const pv = document.getElementById("fxVisagePv"), nom = document.getElementById("fxVisageNom");
+  if (!pv) return;
+  let src = null, txt = "";
+  if (fxVisageUrl) { src = fxVisageUrl; txt = "Photo que tu as choisie"; }
+  else if (faceRefUrls.filter(Boolean)[0]) { src = faceRefUrls.filter(Boolean)[0]; txt = "Ta photo de référence visage (volet 1)"; }
+  else if (photoOriginaleUrl) { src = photoOriginaleUrl; txt = "Ta photo d'origine (volet 1)"; }
+  else if (photoDataUrl) { src = photoDataUrl; txt = "⚠️ Photo de départ actuelle — vérifie que c'est bien ton vrai visage"; }
+  else txt = "Aucune photo : ajoute-la au volet 1 ou importe-la ici.";
+  pv.style.backgroundImage = src ? `url(${src})` : "";
+  nom.innerHTML = src ? txt : `<span class="err">${txt}</span>`;
+}
+
 function fxRefresh() {
+  fxMajVisage();
   const b = document.getElementById("fxGo");
   const pret = !!fxTarget;
   b.disabled = !pret;
@@ -3618,6 +3647,22 @@ document.getElementById("fxGender").querySelectorAll(".chip").forEach(c => c.onc
   document.getElementById("fxGender").querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
   c.classList.add("on");
 });
+document.getElementById("fxVisageBtn").onclick = () => document.getElementById("fxVisageInput").click();
+document.getElementById("fxVisageInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    const sc = Math.min(1, 1024 / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    fxVisageUrl = c.toDataURL("image/jpeg", 0.92);
+    fxMajVisage();
+  };
+  img.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
 document.getElementById("fxImportBtn").onclick = () => document.getElementById("fxInput").click();
 document.getElementById("fxInput").onchange = (e) => {
   const f = e.target.files[0];
@@ -3653,7 +3698,7 @@ document.getElementById("fxUseLast").onclick = () => {
 // v38.7 : recollage réutilisable — appelé par le volet dédié ET automatiquement
 // après un changement de décor si la case est cochée.
 async function recollerVisage(cible, genre) {
-  const visage = (faceRefUrls.filter(Boolean)[0]) || photoDataUrl;
+  const visage = fxVisageUrl || (faceRefUrls.filter(Boolean)[0]) || photoOriginaleUrl || photoDataUrl;
   if (!visage) throw new Error("Aucune photo de référence pour le visage.");
   const job = await apiSubmit("easel-ai/advanced-face-swap", {
     face_image_0: visage,
@@ -3680,7 +3725,7 @@ document.getElementById("fxGo").onclick = async () => {
   info.textContent = "🎯 Recollage du visage… (20 à 60 s)";
   try {
     if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
-    const visage = (faceRefUrls.filter(Boolean)[0]) || photoDataUrl;
+    const visage = fxVisageUrl || (faceRefUrls.filter(Boolean)[0]) || photoOriginaleUrl || photoDataUrl;
     if (!visage) throw new Error("Ajoute d'abord ta photo (volet 1) ou une photo de référence visage.");
     const job = await apiSubmit("easel-ai/advanced-face-swap", {
       face_image_0: visage,

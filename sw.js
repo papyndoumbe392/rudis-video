@@ -1,9 +1,9 @@
 // StarClip Studio — service worker
-// v38.7 : le nom du cache DOIT être changé à chaque nouvelle version de l'app,
+// v38.8 : le nom du cache DOIT être changé à chaque nouvelle version de l'app,
 // sinon les anciennes copies restent sur l'appareil des clients et ils ne voient
 // jamais les nouveautés. Les caches des versions précédentes sont supprimés
 // automatiquement à l'activation.
-const CACHE = "starclip-v38-7";
+const CACHE = "starclip-v38-8";
 const FILES = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
