@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v37.0 — deux visages stables · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v37.2 — visage et morphologie protégés · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -491,7 +491,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v37.0 — scènes de couple : le visage de la deuxième personne est enfin préservé</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v37.2 — le visage ET la morphologie ne bougent plus quand on change la tenue</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1280,6 +1280,7 @@ async function transformLieu() {
       prompt: `Replace the entire background and setting of this image with ${desc}. `
         + "Keep the person completely unchanged: exact same face, identity, skin tone, facial hair, hairstyle, "
         + "clothing, pose and body proportions. Relight the person naturally so they match the new scene. "
+        + "The person's face must stay pixel-identical to the source photo: same eyes, same nose, same mouth, same beard, same jawline and cheeks, same skin tone, same hairstyle and same age. Never beautify, never rejuvenate, never smooth the skin. Keep the exact same body: same weight, same build, same belly and shoulders, never slim the person down, never make them more muscular or taller. "
         + "If the scene is a luxury interior, the floor MUST be made of large polished marble or stone tiles with clearly visible joint lines and realistic mirror-like reflections. "
         + "Photorealistic, seamless integration, correct perspective and scale, no duplicated person, no extra limbs, high quality.",
       image_urls: [source],
@@ -1322,6 +1323,15 @@ function pickTryTarget(el) {
   el.classList.add("on");
 }
 
+// v37.1 : consigne d'unicité — le défaut le plus visible du volet Tenue était que
+// l'IA composait un nouveau personnage devant l'ancien au lieu de le rhabiller.
+// v37.2 : garde-fou visage + morphologie, placé EN TÊTE du prompt (les moteurs
+// d'image pondèrent davantage le début). Il ne suffisait pas de dire « même visage »
+// à la fin : le résultat rajeunissait, lissait et amincissait la personne.
+const GARDE_VISAGE = "ABSOLUTE RULE: ONLY the garments change. The face must stay pixel-identical to the original photo: same eyes, same nose, same mouth, same beard and moustache, same jawline and cheeks, same skin tone, same hairstyle and hairline, same age, same expression. Never beautify, never rejuvenate, never smooth the skin, never reshape the head or face. Keep the exact same BODY as well: same weight, same build, same belly, same shoulders and height — never slim the person down, never make them more muscular or taller. Keep the same pose and the same background. ";
+
+const UNIQUE_PERSON = "The result must contain EXACTLY ONE person: modify the existing person IN PLACE. Do NOT add a second person, do NOT duplicate or clone anyone, no ghost figure, no double exposure, no leftover of the original clothing floating in the scene, no extra head, no extra limbs. ";
+
 async function transformOutfit() {
   const info = document.getElementById("outfitInfo");
   let desc = outfitSel === "custom" ? document.getElementById("outfitCustom").value.trim() : OUTFITS.find(o => o[0] === outfitSel)[2];
@@ -1333,7 +1343,13 @@ async function transformOutfit() {
     if (tryTarget === "me") {
       if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1) — ou choisis un mannequin."; return; }
       images = [photoDataUrl, outfitPhotoUrl];
-      tryPrompt = "Completely REPLACE all clothing worn by the person in the first image with the outfit shown in the second image. Copy the second image's garments faithfully: exact same fabric, exact same pattern (checks, prints, embroidery), exact same colors, buttons, lapels and cut, applied to the corresponding garments (jacket replaces jacket, trousers replace trousers). No element of the original clothing may remain visible. Keep the person's face, identity, skin tone, hairstyle, pose, body and background completely unchanged. Photorealistic, seamless, high quality.";
+      tryPrompt = GARDE_VISAGE   // v37.2
+        + "Completely REPLACE all clothing worn by the person in the first image with the outfit shown in the second image. "
+        + "Copy the second image's garments faithfully: exact same fabric, exact same pattern (checks, prints, embroidery), "
+        + "exact same colors, buttons, lapels and cut, applied to the corresponding garments (jacket replaces jacket, "
+        + "trousers replace trousers). No element of the original clothing may remain visible. "
+        + UNIQUE_PERSON   // v37.1
+        + "Photorealistic, seamless, high quality.";
     } else {
       images = [outfitPhotoUrl];
       const who = tryTarget === "homme" ? "male" : "female";
@@ -1349,7 +1365,13 @@ async function transformOutfit() {
   try {
     const path = "fal-ai/nano-banana/edit";
     const job = await apiSubmit(path, ({
-        prompt: tryPrompt || `Change the person's outfit to ${desc}. Keep the exact same face, identity, skin tone, facial hair, hairstyle, pose, body proportions and background completely unchanged. Photorealistic, seamless, high quality.`,
+        // v37.1 : la consigne anti-duplication manquait ici alors qu'elle existait
+        // dans le volet Décor — l'IA ajoutait un personnage habillé devant l'original
+        // au lieu de rhabiller la personne (deux têtes, silhouette fantôme derrière).
+        // v37.2 : la préservation du visage ET DU CORPS est placée en tête et détaillée —
+        // le moteur amincissait la personne et retouchait ses traits en changeant la tenue.
+        prompt: tryPrompt || `${GARDE_VISAGE}Replace ONLY the clothing worn by the person in the photo with ${desc}. `
+          + `${UNIQUE_PERSON}Photorealistic, seamless, high quality.`,
         image_urls: images,
         num_images: 1,
       }));
