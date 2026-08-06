@@ -131,20 +131,6 @@
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
   </header>
 
-  <!-- v39.0 : NAVIGATION RAPIDE (Niveau 1) — puces collantes pour sauter à chaque volet -->
-  <nav id="quicknav" style="position:sticky; top:0; z-index:50; background:var(--bg,#0f0d17); border-bottom:1px solid var(--line); padding:8px 4px; margin:0 0 8px; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
-    <a href="#nav-photo" class="qnav">📸 Photo</a>
-    <a href="#nav-tenue" class="qnav">👔 Tenue</a>
-    <a href="#nav-decor" class="qnav">🏛️ Décor</a>
-    <a href="#nav-scenario" class="qnav">🎬 Scénario</a>
-    <a href="#nav-lipsync" class="qnav">🎤 Lip-sync</a>
-  </nav>
-  <style>
-    #quicknav .qnav { flex:0 0 auto; padding:7px 13px; border-radius:999px; border:1px solid var(--line); background:var(--up,#1a1726); color:var(--dim,#b9b4c7); text-decoration:none; font-size:13px; font-weight:600; white-space:nowrap; transition:all .15s; }
-    #quicknav .qnav:hover, #quicknav .qnav:active { border-color:var(--gold); color:var(--gold); }
-    #nav-photo, #nav-tenue, #nav-decor, #nav-scenario, #nav-lipsync { scroll-margin-top:58px; }
-  </style>
-
   <!-- v34.7 — GALERIE DES CLIPS D'EXEMPLE (vitrine qualité) -->
   <section class="card" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1A1204;">🎬</span> Nos clips en exemple</h2>
@@ -165,7 +151,7 @@
   </section>
 
   <!-- PHOTO -->
-  <section class="card" id="nav-photo">
+  <section class="card">
     <h2><span class="num" id="num1">1</span> Photo <span class="dot" id="dot1"></span></h2>
     <div style="display:flex; gap:14px; align-items:center;">
       <div class="photo-slot" id="photoSlot">＋</div>
@@ -223,7 +209,7 @@
   </section>
 
   <!-- PROMPT -->
-  <section class="card" id="nav-tenue">
+  <section class="card">
     <h2><span class="num" style="background:var(--up);">👔</span> Tenue — change les habits <span class="dot" id="dotOutfit"></span></h2>
     <div class="chips" id="outfitChips"></div>
     <input type="text" id="outfitCustom" placeholder="Décris la tenue… Ex : chemise en pagne wax bleu et or, chapeau fedora" class="hidden" style="width:100%; margin-top:10px; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:14px;">
@@ -247,7 +233,7 @@
   </section>
 
   <!-- v35.1 — DÉCOR : change le lieu sans toucher à la personne -->
-  <section class="card" id="nav-decor">
+  <section class="card">
     <h2><span class="num" style="background:var(--up);">🏛️</span> Décor royal — change le lieu en 1 clic <span class="dot" id="dotLieu"></span></h2>
     <p class="sub" style="margin:0 0 10px;">Garde ton visage, ta pose <b>et ta tenue</b> — seul le lieu change. À faire <b>après</b> la tenue si tu veux les deux.</p>
     <div class="chips" id="lieuChips"></div>
@@ -392,7 +378,7 @@
     <div id="t2iPreview"></div>
   </section>
 
-  <section class="card" id="nav-scenario">
+  <section class="card">
     <h2><span class="num" id="num2">2</span> Scénario du clip <span class="dot" id="dot2"></span></h2>
     <div class="label" style="margin-top:0;">✨ Décris ton idée simplement · Describe your idea simply <span style="opacity:.7">(FR / EN)</span></div>
     <textarea id="ideaFr" rows="2" placeholder="En français ou en anglais · Ex : je chante sur la plage au coucher du soleil / I sing on the beach at sunset" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
@@ -459,7 +445,7 @@
   </section>
 
   <!-- LIP-SYNC (volet permanent, double source) -->
-  <section class="card" id="nav-lipsync">
+  <section class="card">
     <h2><span class="num" id="num3">3</span> Lip-sync — fais chanter ta vidéo <span class="dot" id="dot3"></span></h2>
 
     <div class="label" style="margin-top:0;">Vidéo source (2 à 10 s en Standard · plus long en ⭐ Pro)</div>
@@ -608,7 +594,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v39.0 — navigation rapide : saute à chaque volet en 1 clic (fini le scroll infini)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v38.9 — nouveau « Décor fidèle » : change le lieu en gardant ton visage pixel pour pixel</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
