@@ -608,7 +608,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v39.0 — navigation rapide : saute à chaque volet en 1 clic (fini le scroll infini)</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v39.1 — volets repliables : la page devient courte, clique un titre pour ouvrir/fermer</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -3903,6 +3903,35 @@ fxRefresh();
   });
 })();
 
+</script>
+
+<!-- v39.1 : NIVEAU 2 — volets repliables (accordéon). Clique un titre pour ouvrir/fermer. -->
+<style>
+  section.card.foldable > h2 { cursor:pointer; user-select:none; position:relative; padding-right:26px; }
+  section.card.foldable > h2::after { content:"▾"; position:absolute; right:6px; top:50%; transform:translateY(-50%); color:var(--dim,#b9b4c7); font-size:14px; transition:transform .15s; }
+  section.card.folded > h2::after { transform:translateY(-50%) rotate(-90deg); }
+  section.card.folded > *:not(h2) { display:none !important; }
+</style>
+<script>
+(function(){
+  // Chaque volet devient repliable via son titre. Par défaut : tout replié
+  // sauf le 1er volet (réglages) et la Photo — le point de départ du client.
+  var secs = document.querySelectorAll('section.card');
+  secs.forEach(function(s, i){
+    var h2 = s.querySelector(':scope > h2');
+    if (!h2) return;                    // volet sans titre : on ne touche pas
+    s.classList.add('foldable');
+    if (i !== 0 && s.id !== 'nav-photo') s.classList.add('folded');
+    h2.addEventListener('click', function(){ s.classList.toggle('folded'); });
+  });
+  // La barre de navigation ouvre automatiquement le volet visé.
+  document.querySelectorAll('#quicknav a').forEach(function(a){
+    a.addEventListener('click', function(){
+      var t = document.querySelector(a.getAttribute('href'));
+      if (t) t.classList.remove('folded');
+    });
+  });
+})();
 </script>
 </body>
 </html>
