@@ -131,22 +131,24 @@
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
   </header>
 
-  <!-- v39.0 : NAVIGATION RAPIDE (Niveau 1) — puces collantes pour sauter à chaque volet -->
-  <nav id="quicknav" style="position:sticky; top:0; z-index:50; background:var(--bg,#0f0d17); border-bottom:1px solid var(--line); padding:8px 4px; margin:0 0 8px; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
-    <a href="#nav-photo" class="qnav">📸 Photo</a>
-    <a href="#nav-tenue" class="qnav">👔 Tenue</a>
-    <a href="#nav-decor" class="qnav">🏛️ Décor</a>
-    <a href="#nav-scenario" class="qnav">🎬 Scénario</a>
-    <a href="#nav-lipsync" class="qnav">🎤 Lip-sync</a>
+  <!-- v39.2 : NIVEAU 3 — vrais onglets façon AKOOL. Un seul groupe visible à la fois. -->
+  <nav id="tabbar" style="position:sticky; top:0; z-index:50; background:var(--bg,#0f0d17); border-bottom:1px solid var(--line); padding:8px 4px; margin:0 0 8px; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <a data-tab="accueil" class="qnav">🎬 Accueil</a>
+    <a data-tab="photo" class="qnav">📸 Ma photo</a>
+    <a data-tab="look" class="qnav">👔 Habillage & Décor</a>
+    <a data-tab="scenario" class="qnav">🎬 Scénario</a>
+    <a data-tab="finition" class="qnav">🎤 Finition</a>
+    <a data-tab="commander" class="qnav">💳 Commander</a>
+    <a data-tab="tout" class="qnav">📜 Tout voir</a>
   </nav>
   <style>
-    #quicknav .qnav { flex:0 0 auto; padding:7px 13px; border-radius:999px; border:1px solid var(--line); background:var(--up,#1a1726); color:var(--dim,#b9b4c7); text-decoration:none; font-size:13px; font-weight:600; white-space:nowrap; transition:all .15s; }
-    #quicknav .qnav:hover, #quicknav .qnav:active { border-color:var(--gold); color:var(--gold); }
-    #nav-photo, #nav-tenue, #nav-decor, #nav-scenario, #nav-lipsync { scroll-margin-top:58px; }
+    #tabbar .qnav { flex:0 0 auto; padding:8px 14px; border-radius:999px; border:1px solid var(--line); background:var(--up,#1a1726); color:var(--dim,#b9b4c7); text-decoration:none; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; transition:all .15s; }
+    #tabbar .qnav:hover { border-color:var(--gold); color:var(--gold); }
+    #tabbar .qnav.active { background:var(--gold); color:#1a1726; border-color:var(--gold); }
   </style>
 
   <!-- v34.7 — GALERIE DES CLIPS D'EXEMPLE (vitrine qualité) -->
-  <section class="card" style="border-color:var(--gold);">
+  <section class="card" id="sec-auto1" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1A1204;">🎬</span> Nos clips en exemple</h2>
     <p class="sub" style="margin:0 0 12px;">Regarde la qualité des vidéos créées avec StarClip. Touche une vignette : la vidéo s'ouvre en grand, avec le son 🔊.</p>
     <div class="video-gallery" id="videoGallery"></div>
@@ -154,7 +156,7 @@
 
   <div class="cards-area">
   <!-- RÉGLAGES / CLÉ -->
-  <section class="card">
+  <section class="card" id="sec-auto2">
     <h2><span class="num" id="numKey">🎟️</span> Ton code StarClip <span class="dot" id="dotKey"></span></h2>
     <div class="keyrow">
       <input type="text" id="starCode" placeholder="Ex : STAR-7K3M" autocapitalize="characters" autocomplete="off">
@@ -278,7 +280,7 @@
     <div id="lieuPreview"></div>
   </section>
 
-  <section class="card">
+  <section class="card" id="sec-auto3">
     <h2><span class="num">🕺</span> Changer la posture</h2>
     <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
       Change la <b>pose</b> de la personne sans toucher à son visage, sa tenue ni le décor.
@@ -302,7 +304,7 @@
     <div id="poResult"></div>
   </section>
 
-  <section class="card">
+  <section class="card" id="sec-auto4">
     <h2><span class="num">🧹</span> Retoucher une image</h2>
     <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
       Enlève ou ajoute un élément <b>sans refaire toute la scène</b> : « enlève l'homme en costume noir au centre »,
@@ -334,7 +336,7 @@
     <div id="rtResult"></div>
   </section>
 
-  <section class="card">
+  <section class="card" id="sec-auto5">
     <h2><span class="num">🎯</span> Recoller le vrai visage</h2>
     <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
       Si un décor ou une retouche a <b>légèrement changé ton visage</b> (souvent quand il est petit dans l'image),
@@ -371,7 +373,7 @@
     <div id="fxResult"></div>
   </section>
 
-  <section class="card" style="border-color:var(--violet);">
+  <section class="card" id="sec-auto6" style="border-color:var(--violet);">
     <h2><span class="num" style="background:var(--violet); color:#fff;">🎨</span> Studio Images — créer des décors & personnages</h2>
     <p class="sub" style="margin:0 0 12px;">Crée une image à partir d'un simple texte, <b>sans photo</b> : un danseur, une danseuse, une rue de Monaco, une boîte de nuit… pour enrichir ton clip. Tu peux ensuite l'animer.<br><span style="opacity:.85">Create an image from text, <b>no photo needed</b>: a dancer, a street, a nightclub… then animate it.</span></p>
     <div class="label">Idées toutes prêtes · Ready-made ideas</div>
@@ -443,7 +445,7 @@
   <div id="resultZone"></div>
 
   <!-- v33.1 — MULTI-PLANS 3.0 (Kling 3.0, storyboard) -->
-  <section class="card" style="border-color:var(--gold);">
+  <section class="card" id="sec-auto7" style="border-color:var(--gold);">
     <h2>🎬 Multi-plans 3.0 — ton mini-clip <span class="dot" id="dotMS"></span></h2>
     <p class="sub" style="margin-top:4px;">Enchaîne <b>2 à 6 plans</b> dans UNE seule vidéo (15 s max au total), générée d'un coup par <b>Kling 3.0</b>, le moteur du rendu cinéma. Ton visage est ancré sur tes <b>photos de référence</b> (volet 1) et reste identique d'un plan à l'autre.<br><b style="color:var(--gold)">✍️ Écris chaque plan en français ou en anglais</b> — l'app le met en forme automatiquement pour toi.</p>
     <div id="msPlans"></div>
@@ -514,7 +516,7 @@
   </section>
 
   <!-- v36.6 : CHANGER LE FORMAT — vraie reconstruction des bords (Luma Reframe) -->
-  <section class="card">
+  <section class="card" id="sec-auto8">
     <h2><span class="num">🔄</span> Changer le format d'une vidéo</h2>
     <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
       Transforme une vidéo <b>horizontale en verticale</b> (statut WhatsApp, TikTok, Reels) ou l'inverse.
@@ -556,7 +558,7 @@
 
 
   <!-- PAIEMENT MOBILE -->
-  <section class="card" style="border-color:var(--gold);">
+  <section class="card" id="sec-auto9" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1A1204;">💰</span> Commander ta vidéo — paiement mobile</h2>
     <p class="sub" style="margin:0 0 12px;">Pas besoin de carte bancaire : paie par Orange Money ou MTN Mobile Money, et reçois ton CODE StarClip sur WhatsApp — tu crées ensuite tes vidéos toi-même, ici, dans l'app !</p>
 
@@ -591,7 +593,7 @@
   </section>
 
   <!-- CLIP SIGNATURE : offre montée par Papy (haut de gamme) -->
-  <section class="card" style="border-color:var(--violet); background:linear-gradient(180deg, rgba(139,92,246,.08), transparent);">
+  <section class="card" id="sec-auto10" style="border-color:var(--violet); background:linear-gradient(180deg, rgba(139,92,246,.08), transparent);">
     <h2><span class="num" style="background:var(--violet); color:#fff;">🎬</span> Clip Signature — réalisé par un professionnel</h2>
     <p class="sub" style="margin:0 0 12px;">Tu veux un <b>vrai vidéoclip professionnel</b>, pas seulement des scènes ? Le studio s'occupe de tout : <b>scénario</b>, création des <b>vidéos IA</b>, <b>montage</b> pro (Premiere Pro), <b>synchronisation</b> avec ta chanson, colorimétrie, titrage et <b>révisions</b>. Livraison clé en main, prête pour YouTube, la TV et les réseaux.<br><span style="opacity:.85">A real professional music video — scenario, AI videos, editing, sync & revisions, done by the studio.</span></p>
     <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:2;">
@@ -608,7 +610,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v39.1 — volets repliables : la page devient courte, clique un titre pour ouvrir/fermer</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v39.2 — vrais onglets (façon AKOOL) : navigue par thème, page enfin aérée</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -3905,32 +3907,43 @@ fxRefresh();
 
 </script>
 
-<!-- v39.1 : NIVEAU 2 — volets repliables (accordéon). Clique un titre pour ouvrir/fermer. -->
+<!-- v39.2 : NIVEAU 3 — moteur d'onglets. Range chaque volet dans son onglet, affiche un seul groupe. -->
 <style>
-  section.card.foldable > h2 { cursor:pointer; user-select:none; position:relative; padding-right:26px; }
-  section.card.foldable > h2::after { content:"▾"; position:absolute; right:6px; top:50%; transform:translateY(-50%); color:var(--dim,#b9b4c7); font-size:14px; transition:transform .15s; }
-  section.card.folded > h2::after { transform:translateY(-50%) rotate(-90deg); }
-  section.card.folded > *:not(h2) { display:none !important; }
+  section.card.tab-hidden { display:none !important; }
 </style>
 <script>
 (function(){
-  // Chaque volet devient repliable via son titre. Par défaut : tout replié
-  // sauf le 1er volet (réglages) et la Photo — le point de départ du client.
-  var secs = document.querySelectorAll('section.card');
-  secs.forEach(function(s, i){
-    var h2 = s.querySelector(':scope > h2');
-    if (!h2) return;                    // volet sans titre : on ne touche pas
-    s.classList.add('foldable');
-    if (i !== 0 && s.id !== 'nav-photo') s.classList.add('folded');
-    h2.addEventListener('click', function(){ s.classList.toggle('folded'); });
-  });
-  // La barre de navigation ouvre automatiquement le volet visé.
-  document.querySelectorAll('#quicknav a').forEach(function(a){
-    a.addEventListener('click', function(){
-      var t = document.querySelector(a.getAttribute('href'));
-      if (t) t.classList.remove('folded');
+  // Correspondance : chaque section -> son onglet.
+  var MAP = {
+    'sec-auto1':'accueil', 'sec-auto2':'accueil',
+    'nav-photo':'photo', 'sec-auto3':'photo', 'sec-auto4':'photo', 'sec-auto5':'photo',
+    'nav-tenue':'look', 'nav-decor':'look', 'sec-auto6':'look',
+    'nav-scenario':'scenario', 'sec-auto7':'scenario',
+    'nav-lipsync':'finition', 'sec-auto8':'finition',
+    'sec-auto9':'commander', 'sec-auto10':'commander'
+  };
+  var tabs = document.querySelectorAll('#tabbar .qnav');
+
+  function show(tab){
+    // "tout" : on affiche toutes les sections. Sinon, seules celles de l'onglet.
+    Object.keys(MAP).forEach(function(id){
+      var s = document.getElementById(id);
+      if (!s) return;
+      if (tab === 'tout' || MAP[id] === tab) s.classList.remove('tab-hidden');
+      else s.classList.add('tab-hidden');
     });
-  });
+    // Toute section imprévue (id non listé) reste toujours visible → filet de sécurité.
+    tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.tab === tab); });
+    try { localStorage.setItem('starclip_tab', tab); } catch(e){}
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.tab); }); });
+
+  // Onglet de départ : le dernier utilisé, sinon "photo" (le vrai point de départ du client).
+  var start = 'photo';
+  try { var saved = localStorage.getItem('starclip_tab'); if (saved) start = saved; } catch(e){}
+  show(start);
 })();
 </script>
 </body>
