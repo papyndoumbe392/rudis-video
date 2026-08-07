@@ -675,7 +675,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.5</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.6</span>
   </footer>
 </div>
 
@@ -1068,16 +1068,42 @@ async function aiExtendPhoto(ratio) {
   const prevLabel = label.textContent;
   label.innerHTML = "<span style='color:var(--violet)'>🎨 L'IA prolonge le décor de ta photo… (10-30 s)</span>";
 
-  // v41.5 : VRAI outpainting masqué (fal-ai/bria/expand) — même principe que Runway.
+  // v41.6 : VRAI outpainting masqué (fal-ai/bria/expand) — principe Runway.
   // L'image d'origine est conservée telle quelle et sert d'ancre : le modèle ne génère
-  // QUE le pourtour. La personne et son visage ne sont jamais retouchés ni dupliqués.
+  // QUE le pourtour. IMPORTANT : la doc précise que `original_image_location` est IGNORÉ
+  // si on envoie `aspect_ratio`. On calcule donc nous-mêmes la toile et on CENTRE la photo,
+  // pour que l'IA ait la même petite bande à inventer de chaque côté (au lieu d'une
+  // énorme zone d'un seul côté, où elle finissait par recopier un morceau du sujet).
   try {
+    const src = await new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => rej(new Error("photo illisible"));
+      im.src = photoDataUrl;
+    });
+    const w = src.naturalWidth || src.width, hh = src.naturalHeight || src.height;
+    const [rw, rh] = ratio.split(":").map(Number);
+    const target = rw / rh;
+    // Toile qui contient toute la photo, au format demandé
+    let cw, ch;
+    if (target > w / hh) { ch = hh; cw = Math.round(hh * target); }
+    else { cw = w; ch = Math.round(w / target); }
+    // On borne la taille (coût + limites du modèle)
+    const MAXD = 2200;
+    const s = Math.min(1, MAXD / Math.max(cw, ch));
+    cw = Math.round(cw * s); ch = Math.round(ch * s);
+    const iw2 = Math.round(w * s), ih2 = Math.round(hh * s);
+    // Photo parfaitement centrée dans la toile
+    const ox = Math.round((cw - iw2) / 2), oy = Math.round((ch - ih2) / 2);
+
     const path = "fal-ai/bria/expand";
     const job = await apiSubmit(path, {
       image_url: photoDataUrl,
-      aspect_ratio: ratio,
-      prompt: "natural continuation of the same background scenery, same lighting, same colours, same perspective, empty surroundings only",
-      negative_prompt: "another person, duplicated person, cloned person, repeated figure, mirrored subject, twin, collage, visible seams",
+      canvas_size: [cw, ch],
+      original_image_size: [iw2, ih2],
+      original_image_location: [ox, oy],
+      prompt: "continue the same background scenery outwards: same street, same ground, same sky, same buildings, same lighting and perspective. Only empty scenery in the new areas.",
+      negative_prompt: "person, people, man, woman, figure, body, arm, leg, clothing, jacket, trousers, close-up foreground object, blurry foreground shape, duplicated subject, cloned person, repeated figure, mirrored subject, twin, collage, visible seams",
       num_images: 1,
     });
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
