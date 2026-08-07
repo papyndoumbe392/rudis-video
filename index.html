@@ -610,7 +610,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v39.5 — décors uniques pour chaque client + navigation par onglets</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v39.6 — décor fidèle amélioré : le décor change vraiment, ton visage reste le tien</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1771,11 +1771,15 @@ document.getElementById("decorBria").onclick = async () => {
   info.textContent = "🎯 Remplacement du décor en cours (10–40 s)…";
   try {
     const path = "fal-ai/bria/background/replace";
-    // Bria garde le sujet au premier plan et ne régénère QUE l'arrière-plan à partir du prompt.
+    // v39.6 : Bria garde le sujet et ne régénère QUE le fond.
+    // Le negative_prompt exclut automatiquement les objets d'intérieur qui collaient au sujet
+    // (escalier, rampe, meubles…) — le client n'a AUCUNE instruction à écrire.
     const job = await apiSubmit(path, {
       image_url: base,
-      prompt: scene + ", photorealistic, cinematic, natural realistic lighting matching the subject, high detail, balanced exposure, no washed-out highlights",
-      num_results: 1,
+      prompt: scene + ", the person stands naturally in this new location, photorealistic, cinematic, natural realistic lighting matching the subject, high detail, balanced exposure, no washed-out highlights",
+      negative_prompt: "staircase, stairs, steps, handrail, railing, banister, indoor wall, ceiling, curtain, window blinds, door, furniture, chair, table, floor tiles, interior room, office, leftover objects from the original photo, floating objects, cut-out edges, duplicated person, distorted face, blurry, low quality, watermark, text",
+      refine_prompt: true,
+      num_images: 1,
     });
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
