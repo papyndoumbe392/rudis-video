@@ -33,12 +33,15 @@
        donc leur bas est parfaitement aligné. */
     .cards-area { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch; }
     .cards-area > .card { margin-top:0; margin-bottom:0; width:auto; display:flex; flex-direction:column; }
-    /* v40.3 : dans l'onglet Scénario, les 2 volets s'empilent sur UNE colonne,
-       Multi-plans en premier — fini la grande case vide à côté du long scénario.
-       Les autres onglets et « Tout voir » gardent la mise en page 2 colonnes. */
+    /* v40.4 : l'onglet Scénario s'empile sur UNE colonne, dans l'ordre naturel
+       (Scénario d'abord — tout le monde le fait — puis Multi-plans, optionnel). */
     body.tab-scenario .cards-area { grid-template-columns:1fr; }
-    body.tab-scenario .cards-area > #sec-auto7 { order:1; }
-    body.tab-scenario .cards-area > #nav-scenario { order:2; }
+    /* v40.4 : le bouton « Générer / Complète les étapes », la barre de statut et le
+       résultat ne sont pas des volets : ils occupent toute la largeur et passent
+       TOUJOURS en dernier, sous les cartes — jamais au milieu ni en haut. */
+    .cards-area > #go,
+    .cards-area > #status,
+    .cards-area > #resultZone { grid-column:1 / -1; order:99; }
   }
   /* v34.9 : galerie des clips — très petites vignettes carrées, 4 par ligne sur
      téléphone, 6 sur tablette, 8 sur ordinateur. On touche une vignette → la vidéo
@@ -650,7 +653,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v40.3 — onglet Scénario réorganisé : Multi-plans en haut, plus de case vide</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v40.4 — le bouton Générer est toujours en bas, jamais au milieu</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
