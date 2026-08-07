@@ -29,8 +29,10 @@
      et les sections se répartissent sur 2 colonnes. Mobile : inchangé (1 colonne). */
   @media (min-width: 1000px) {
     .wrap { max-width:1180px; padding-left:32px; padding-right:32px; }
-    .cards-area { column-count:2; column-gap:22px; }
-    .cards-area > .card { break-inside:avoid; -webkit-column-break-inside:avoid; margin-top:0; margin-bottom:22px; display:inline-block; width:100%; }
+    /* v39.7 : vraie grille 2 colonnes — les cartes d'une même rangée ont la MÊME hauteur,
+       donc leur bas est parfaitement aligné (le multi-colonnes précédent les décalait). */
+    .cards-area { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch; }
+    .cards-area > .card { margin-top:0; margin-bottom:0; width:auto; display:flex; flex-direction:column; }
   }
   /* v34.9 : galerie des clips — très petites vignettes carrées, 4 par ligne sur
      téléphone, 6 sur tablette, 8 sur ordinateur. On touche une vignette → la vidéo
@@ -89,7 +91,9 @@
   }
   textarea { resize:vertical; line-height:1.55; min-height:88px; }
   textarea:focus, input:focus { border-color:var(--gold); }
-  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:stretch; align-content:flex-start; }
+  /* v39.7 : chaque puce a la même hauteur, donc les rangées de boutons sont bien alignées. */
+  .chips > * { display:inline-flex; align-items:center; justify-content:center; }
   .chip { padding:7px 13px; border-radius:999px; border:1px solid var(--line); background:transparent;
     color:var(--dim); font-size:12.5px; cursor:pointer; }
   .chip.on { border-color:var(--gold); background:rgba(242,179,61,.12); color:var(--gold); }
@@ -610,7 +614,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v39.6 — décor fidèle amélioré : le décor change vraiment, ton visage reste le tien</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v39.7 — mise en page alignée au pixel + décor fidèle amélioré</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
