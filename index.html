@@ -131,7 +131,7 @@
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
   </header>
 
-  <!-- v39.2 : NIVEAU 3 — vrais onglets façon AKOOL. Un seul groupe visible à la fois. -->
+  <!-- v39.2 : NIVEAU 3 — navigation par onglets. Un seul groupe visible à la fois. -->
   <nav id="tabbar" style="position:sticky; top:0; z-index:50; background:var(--bg,#0f0d17); border-bottom:1px solid var(--line); padding:8px 4px; margin:0 0 8px; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
     <a data-tab="accueil" class="qnav">🎬 Accueil</a>
     <a data-tab="photo" class="qnav">📸 Ma photo</a>
@@ -610,7 +610,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v39.2 — vrais onglets (façon AKOOL) : navigue par thème, page enfin aérée</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
+    StarClip Studio <b style="color:var(--gold)">v39.3 — décors uniques pour chaque client + navigation par onglets</b> · par Studio Rudis, Douala. Chaque création est débitée du crédit du studio.
     Génère des segments de 5–10 s puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1438,11 +1438,51 @@ let lieuRefUrl = null;
   };
 })();
 
+// v39.3 : chaque décor donne une prise de vue DIFFÉRENTE à chaque client.
+// Le lieu choisi reste le même, mais l'angle, le cadrage, l'heure et les détails varient.
+const VARI_ANGLE = [
+  "shot from a low angle looking slightly up",
+  "shot from a slightly high angle",
+  "eye-level shot",
+  "shot from a three-quarter side angle",
+  "frontal centered shot",
+  "shot from a slightly off-center angle"
+];
+const VARI_CADRE = [
+  "wide establishing shot showing the whole place",
+  "medium wide shot",
+  "medium shot with the background clearly visible",
+  "wide cinematic shot with strong depth"
+];
+const VARI_AMBI = [
+  "soft hazy light and long shadows",
+  "crisp clear light with vivid colors",
+  "warm glowing light with lens flare",
+  "rich contrasted light with deep shadows",
+  "gentle diffused light",
+  "dramatic directional light"
+];
+const VARI_DETAIL = [
+  "a different corner of the location than usual",
+  "an unusual vantage point of the location",
+  "a fresh perspective on the location",
+  "a distinctive part of the setting",
+  "a less common viewpoint of the place"
+];
+function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+function varieDecor(desc){
+  if (!desc) return desc;
+  return desc + ", " + pick(VARI_CADRE) + ", " + pick(VARI_ANGLE) + ", " + pick(VARI_AMBI)
+       + ", framed on " + pick(VARI_DETAIL) + ", unique composition, seed " + Math.floor(Math.random()*100000);
+}
+
 async function transformLieu() {
   const info = document.getElementById("lieuInfo");
-  const desc = lieuSel === "lieucustom"
+  let desc = lieuSel === "lieucustom"
     ? document.getElementById("lieuCustom").value.trim()
     : (lieuSel === "lieuref" ? "(image de référence)" : (LIEUX.find(d => d[0] === lieuSel) || [])[2]);
+  // Variation appliquée aux décors prédéfinis (pas à l'image de référence).
+  if (lieuSel !== "lieuref") desc = varieDecor(desc);
   if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
   if (lieuSel === "lieuref" && !lieuRefUrl) { info.textContent = "Choisis d'abord l'image de référence du décor."; return; }
   if (!desc) { info.textContent = "Décris le décor souhaité."; return; }

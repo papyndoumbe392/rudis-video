@@ -3,7 +3,7 @@
 // sinon les anciennes copies restent sur l'appareil des clients et ils ne voient
 // jamais les nouveautés. Les caches des versions précédentes sont supprimés
 // automatiquement à l'activation.
-const CACHE = "starclip-v39-2";
+const CACHE = "starclip-v39-3";
 const FILES = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
