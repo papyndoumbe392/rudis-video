@@ -30,9 +30,15 @@
   @media (min-width: 1000px) {
     .wrap { max-width:1180px; padding-left:32px; padding-right:32px; }
     /* v39.7 : vraie grille 2 colonnes — les cartes d'une même rangée ont la MÊME hauteur,
-       donc leur bas est parfaitement aligné (le multi-colonnes précédent les décalait). */
+       donc leur bas est parfaitement aligné. */
     .cards-area { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch; }
     .cards-area > .card { margin-top:0; margin-bottom:0; width:auto; display:flex; flex-direction:column; }
+    /* v40.3 : dans l'onglet Scénario, les 2 volets s'empilent sur UNE colonne,
+       Multi-plans en premier — fini la grande case vide à côté du long scénario.
+       Les autres onglets et « Tout voir » gardent la mise en page 2 colonnes. */
+    body.tab-scenario .cards-area { grid-template-columns:1fr; }
+    body.tab-scenario .cards-area > #sec-auto7 { order:1; }
+    body.tab-scenario .cards-area > #nav-scenario { order:2; }
   }
   /* v34.9 : galerie des clips — très petites vignettes carrées, 4 par ligne sur
      téléphone, 6 sur tablette, 8 sur ordinateur. On touche une vignette → la vidéo
@@ -644,7 +650,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v40.1 — étapes numérotées en doré dans « Tout voir »</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v40.3 — onglet Scénario réorganisé : Multi-plans en haut, plus de case vide</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -4057,6 +4063,8 @@ fxRefresh();
     // v40.1 : dans "Tout voir", chaque volet reçoit son numéro d'ordre en doré,
     // pour que le client voie d'un coup d'œil dans quel ordre avancer.
     numeroter(tab === 'tout');
+    // v40.3 : marque l'onglet actif sur le body (utilisé par le CSS pour la mise en page).
+    document.body.classList.toggle('tab-scenario', tab === 'scenario');
     // Toute section imprévue (id non listé) reste toujours visible → filet de sécurité.
     tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.tab === tab); });
     try { localStorage.setItem('starclip_tab', tab); } catch(e){}
