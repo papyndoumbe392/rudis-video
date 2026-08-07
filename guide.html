@@ -53,6 +53,12 @@
   .toc a:last-child{border-bottom:0}
   footer{text-align:center;color:var(--dim);font-size:13px;padding:26px 16px}
   .hidden{display:none}
+  /* v41.2 : chaque sous-partie d'une case devient un bloc rectangulaire —
+     le client lit par petits morceaux au lieu d'un gros pavé. */
+  .sub{background:var(--up);border:1px solid var(--line);border-radius:11px;
+       padding:13px 15px;margin:14px 0 0}
+  .sub h3{margin:0 0 8px}
+  .sub p:last-child,.sub ul:last-child{margin-bottom:0}
   /* v40.7 : bouton de retour vers l'app — le client n'est plus obligé de fermer la page. */
   .retour{display:inline-block;background:var(--gold);color:#20160a;text-decoration:none;
        border-radius:999px;padding:11px 22px;font-size:15px;font-weight:800;
@@ -131,7 +137,9 @@
 <div class="card" id="fr-photo">
   <h2><span class="num">1</span> Ta photo et tes visages de référence</h2>
 
-  <h3>La photo de départ</h3>
+  
+<div class="sub">
+<h3>La photo de départ</h3>
   <p>C'est elle qui donne le corps, la tenue et la scène. Choisis-la bien :</p>
   <ul>
     <li>Visage <b>net et bien éclairé</b> — c'est le point le plus important.</li>
@@ -143,15 +151,20 @@
     une grande scène, l'IA a peu de pixels pour reconstruire ton visage.
     Solution : pars d'une photo rapprochée, ou utilise
     <a href="#fr-recoller" style="color:var(--gold)">🎯 Recoller le vrai visage</a> après.</div>
+</div>
 
-  <h3>Les références visage</h3>
+<div class="sub">
+<h3>Les références visage</h3>
   <p>Ajoute 1 à 3 portraits nets de toi. Ils servent à <b>verrouiller ton identité</b>
      dans les vidéos. C'est bien plus efficace que d'écrire « garde mon visage » dans le texte.</p>
+</div>
 
-  <h3>💑 Deuxième personne</h3>
+<div class="sub">
+<h3>💑 Deuxième personne</h3>
   <p>Si ta vidéo montre <b>deux personnes</b> (ton ou ta partenaire, un duo), ajoute aussi
      <b>ses</b> photos dans le second groupe. Sans ça, l'app garde ton visage mais
      <b>invente le sien</b>, et il peut changer d'un plan à l'autre.</p>
+</div>
 </div>
 
 <!-- ─────────────────────────────────────── -->
@@ -172,7 +185,9 @@
   <p>Près de 30 lieux : palais, villa avec piscine, jet privé, première classe,
      boîte de nuit, supercars, rooftop, Monaco…</p>
 
-  <h3>🎯 Décor fidèle — ton visage reste le tien</h3>
+  
+<div class="sub">
+<h3>🎯 Décor fidèle — ton visage reste le tien</h3>
   <p>Deux boutons pour changer de lieu, et ils ne font <b>pas</b> la même chose :</p>
   <ul>
     <li><b>🎨 Créer le décor par IA</b> — l'IA redessine toute l'image. Elle peut ajouter
@@ -183,14 +198,18 @@
         utiliser quand tu dois absolument te reconnaître.</li>
   </ul>
   <div class="tip">Pour un artiste qui doit rester reconnaissable : <b>🎯 Décor fidèle</b>.</div>
+</div>
 
-  <h3>🖼️ D'après une image</h3>
+<div class="sub">
+<h3>🖼️ D'après une image</h3>
   <p>Tu as trouvé une ambiance qui te plaît ? Touche cette puce et
      <b>importe simplement l'image</b> — aucun texte à écrire. L'app crée un décor
      <b>dans cet esprit</b> (même type de lieu, mêmes couleurs, même lumière),
      sans le copier et sans aucune marque visible.</p>
+</div>
 
-  <h3>🕺 Changer aussi la posture</h3>
+<div class="sub">
+<h3>🕺 Changer aussi la posture</h3>
   <p>Coche la case et écris la pose voulue, <b>en français</b>. Si tu ne coches rien,
      ta pose s'adapte naturellement au nouveau lieu.</p>
   <div class="warn"><b>Le piège de la posture :</b> décris toujours une pose
@@ -201,6 +220,7 @@
   <p>Ce que le décor préserve automatiquement : <b>toutes</b> les personnes de la photo,
      leurs visages, leurs tenues, leur corpulence, et l'ancrage au sol
      (pieds posés, vraiment assis, ombres de contact, bonne échelle).</p>
+</div>
 </div>
 
 <!-- ─────────────────────────────────────── -->
@@ -216,7 +236,9 @@
   <h2><span class="num">🧹</span> Retoucher une image</h2>
   <p>Enlève ou ajoute un élément <b>sans refaire toute la scène</b>.</p>
 
-  <h3>Corrections rapides</h3>
+  
+<div class="sub">
+<h3>Corrections rapides</h3>
   <p>Quatre boutons écrivent pour toi les formulations qui marchent :</p>
   <table>
     <tr><th>Bouton</th><th>Quand l'utiliser</th></tr>
@@ -227,20 +249,25 @@
     <tr><td>🧹 Nettoyer les traces</td><td>Bords de découpe visibles, silhouette en double</td></tr>
     <tr><td>✨ Plus réaliste</td><td>L'image manque d'homogénéité (grain, netteté)</td></tr>
   </table>
+</div>
 
-  <h3>Ajouter des personnes</h3>
+<div class="sub">
+<h3>Ajouter des personnes</h3>
   <p>Choisis d'abord <b>l'apparence des figurants</b> : Noires, Métisses, Blanches,
      Latinos, Asiatiques ou groupe mélangé. Ce choix ne concerne que les personnes
      <b>ajoutées</b> — celles déjà sur la photo ne changent jamais.</p>
   <pre>ajoute autour de moi quatre amis élégants qui marchent vers l'entrée :
 deux hommes en costume de soirée et deux femmes en robe scintillante,
 souriants, ils me laissent bien visible au premier plan</pre>
+</div>
 
-  <h3>Enlever quelqu'un</h3>
+<div class="sub">
+<h3>Enlever quelqu'un</h3>
   <p>Sois <b>très précis</b> s'il y a plusieurs personnes semblables :</p>
   <pre>enlève la femme en robe dorée debout devant la voiture noire à droite</pre>
   <div class="tip">Enlever deux personnes ? Fais-le <b>en deux fois</b>, avec
     « 🔄 Retoucher encore » entre les deux. Chaque retouche est plus petite, donc plus propre.</div>
+</div>
 </div>
 
 <!-- ─────────────────────────────────────── -->
@@ -293,13 +320,16 @@ souriants, ils me laissent bien visible au premier plan</pre>
   <pre>Camera moves slowly closer to his face. He brings one hand
 to his heart, still singing, eyes full of sadness.</pre>
 
-  <h3>Faire chanter la bonne personne</h3>
+  
+<div class="sub">
+<h3>Faire chanter la bonne personne</h3>
   <p>Désigne le chanteur par sa <b>tenue ou sa position</b>, et précise que les autres
      ne chantent pas :</p>
   <pre>The man in the black hat sings, mouth open.
 The others stay silent, lips closed.</pre>
   <p>Avec deux personnes de référence, tu peux écrire directement
      <code>@Element1</code> et <code>@Element2</code>.</p>
+</div>
 </div>
 
 <!-- ─────────────────────────────────────── -->
@@ -415,7 +445,9 @@ The others stay silent, lips closed.</pre>
 
 <div class="card" id="en-photo">
   <h2><span class="num">1</span> Your photo and face references</h2>
-  <h3>The starting photo</h3>
+  
+<div class="sub">
+<h3>The starting photo</h3>
   <p>It provides the body, the outfit and the scene. Choose it carefully:</p>
   <ul>
     <li>A <b>sharp, well-lit face</b> — this matters most of all.</li>
@@ -427,13 +459,20 @@ The others stay silent, lips closed.</pre>
     scene, the AI has very few pixels to rebuild your face.
     Fix: start from a closer photo, or use
     <a href="#en-face" style="color:var(--gold)">🎯 Restore the real face</a> afterwards.</div>
-  <h3>Face references</h3>
+</div>
+
+<div class="sub">
+<h3>Face references</h3>
   <p>Add 1 to 3 sharp portraits of yourself. They <b>lock your identity</b> in the videos —
      far more effective than writing "keep my face" in the text.</p>
-  <h3>💑 Second person</h3>
+</div>
+
+<div class="sub">
+<h3>💑 Second person</h3>
   <p>If your video shows <b>two people</b> (your partner, a duo), add <b>their</b> photos
      in the second group too. Without this, the app keeps your face but
      <b>invents theirs</b>, and it may change from shot to shot.</p>
+</div>
 </div>
 
 <div class="card" id="en-outfit">
@@ -451,7 +490,9 @@ The others stay silent, lips closed.</pre>
   <h2><span class="num">🏛️</span> Location — change the setting</h2>
   <p>Nearly 30 settings: palace, villa with pool, private jet, first class,
      nightclub, supercars, rooftop, Monaco…</p>
-  <h3>🎯 Faithful background — your face stays yours</h3>
+  
+<div class="sub">
+<h3>🎯 Faithful background — your face stays yours</h3>
   <p>Two buttons change the setting, and they do <b>not</b> work the same way:</p>
   <ul>
     <li><b>🎨 Build the scene with AI</b> — the AI redraws the whole image. It can add
@@ -462,12 +503,17 @@ The others stay silent, lips closed.</pre>
         you must stay recognisable.</li>
   </ul>
   <div class="tip">For an artist who must stay recognisable: <b>🎯 Faithful background</b>.</div>
+</div>
 
-  <h3>🖼️ From an image</h3>
+<div class="sub">
+<h3>🖼️ From an image</h3>
   <p>Found an atmosphere you like? Tap this chip and <b>simply upload the image</b> —
      no text needed. The app builds a setting <b>in that spirit</b> (same kind of place,
      same colours, same lighting), without copying it and without any visible brand.</p>
-  <h3>🕺 Change the pose as well</h3>
+</div>
+
+<div class="sub">
+<h3>🕺 Change the pose as well</h3>
   <p>Tick the box and describe the pose you want. If you leave it unticked,
      your pose adapts naturally to the new setting.</p>
   <div class="warn"><b>The pose trap:</b> always describe a <b>stable, held</b> pose,
@@ -477,6 +523,7 @@ The others stay silent, lips closed.</pre>
   <p>What the location change preserves automatically: <b>every</b> person in the photo,
      their faces, outfits and build, plus proper grounding (feet flat, genuinely seated,
      contact shadows, correct scale).</p>
+</div>
 </div>
 
 <div class="card" id="en-pose">
@@ -489,7 +536,9 @@ The others stay silent, lips closed.</pre>
 <div class="card" id="en-retouch">
   <h2><span class="num">🧹</span> Retouch an image</h2>
   <p>Remove or add an element <b>without rebuilding the whole scene</b>.</p>
-  <h3>Quick fixes</h3>
+  
+<div class="sub">
+<h3>Quick fixes</h3>
   <p>Four buttons write the proven wording for you:</p>
   <table>
     <tr><th>Button</th><th>When to use it</th></tr>
@@ -500,18 +549,25 @@ The others stay silent, lips closed.</pre>
     <tr><td>🧹 Clean up artefacts</td><td>Visible cut-out edges, duplicated silhouette</td></tr>
     <tr><td>✨ More realistic</td><td>The image lacks consistency (grain, sharpness)</td></tr>
   </table>
-  <h3>Adding people</h3>
+</div>
+
+<div class="sub">
+<h3>Adding people</h3>
   <p>First choose <b>the appearance of the extras</b>: Black, mixed-race, White,
      Latino, Asian or a mixed group. This choice only affects the people being
      <b>added</b> — those already in the photo never change.</p>
   <pre>add four elegant friends around me walking towards the entrance:
 two men in evening suits and two women in sequin gowns,
 smiling, leaving me clearly visible in the foreground</pre>
-  <h3>Removing someone</h3>
+</div>
+
+<div class="sub">
+<h3>Removing someone</h3>
   <p>Be <b>very specific</b> when several people look alike:</p>
   <pre>remove the woman in the gold dress standing in front of the black car on the right</pre>
   <div class="tip">Removing two people? Do it <b>in two passes</b>, using
     "🔄 Retouch again" in between. Each edit is smaller, so it comes out cleaner.</div>
+</div>
 </div>
 
 <div class="card" id="en-face">
@@ -559,13 +615,16 @@ smiling, leaving me clearly visible in the foreground</pre>
     disappointing results. Write short and precise.</div>
   <pre>Camera moves slowly closer to his face. He brings one hand
 to his heart, still singing, eyes full of sadness.</pre>
-  <h3>Making the right person sing</h3>
+  
+<div class="sub">
+<h3>Making the right person sing</h3>
   <p>Identify the singer by <b>outfit or position</b>, and state that the others
      are not singing:</p>
   <pre>The man in the black hat sings, mouth open.
 The others stay silent, lips closed.</pre>
   <p>With two reference people, you can write <code>@Element1</code> and
      <code>@Element2</code> directly.</p>
+</div>
 </div>
 
 <div class="card violet" id="en-lipsync">
