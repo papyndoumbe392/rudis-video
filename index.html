@@ -675,7 +675,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.3</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.5</span>
   </footer>
 </div>
 
@@ -1068,28 +1068,16 @@ async function aiExtendPhoto(ratio) {
   const prevLabel = label.textContent;
   label.innerHTML = "<span style='color:var(--violet)'>🎨 L'IA prolonge le décor de ta photo… (10-30 s)</span>";
 
-  // 1) Canevas au format cible, image entière centrée, zones vides en blanc neutre
-  const [rw, rh] = ratio.split(":").map(Number);
-  const targetRatio = rw / rh;
-  const MAXD = 1280;
-  let tw, th;
-  if (targetRatio >= 1) { tw = MAXD; th = Math.round(MAXD / targetRatio); }
-  else { th = MAXD; tw = Math.round(MAXD * targetRatio); }
-  const c = document.createElement("canvas");
-  c.width = tw; c.height = th;
-  const ctx = c.getContext("2d");
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, tw, th);
-  const containScale = Math.min(tw / img.width, th / img.height);
-  const iw = img.width * containScale, ih = img.height * containScale;
-  ctx.drawImage(img, (tw - iw) / 2, (th - ih) / 2, iw, ih);
-  const compositeUrl = c.toDataURL("image/jpeg", 0.92);
-
+  // v41.5 : VRAI outpainting masqué (fal-ai/bria/expand) — même principe que Runway.
+  // L'image d'origine est conservée telle quelle et sert d'ancre : le modèle ne génère
+  // QUE le pourtour. La personne et son visage ne sont jamais retouchés ni dupliqués.
   try {
-    const path = "fal-ai/nano-banana/edit";
+    const path = "fal-ai/bria/expand";
     const job = await apiSubmit(path, {
-      prompt: "Extend and continue the real background scenery seamlessly into the plain white areas on the sides of this image. Prolong the exact same environment: same lighting, same colors, same architecture, same street, same sky, same textures, perfectly continuous with the existing photo. Keep the person and everything already visible completely unchanged. Photorealistic outpainting, no borders, no white areas remaining, no mirroring, no duplication of existing elements.",
-      image_urls: [compositeUrl],
+      image_url: photoDataUrl,
+      aspect_ratio: ratio,
+      prompt: "natural continuation of the same background scenery, same lighting, same colours, same perspective, empty surroundings only",
+      negative_prompt: "another person, duplicated person, cloned person, repeated figure, mirrored subject, twin, collage, visible seams",
       num_images: 1,
     });
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -1102,7 +1090,7 @@ async function aiExtendPhoto(ratio) {
       label.innerHTML = `<span style='color:var(--violet)'>🎨 L'IA prolonge le décor… (${(i + 1) * 3} s)</span>`;
     }
     const data = await apiPoll(responseUrl);
-    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    const url = data.images?.[0]?.url || data.image?.url || data.result?.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) throw new Error("image introuvable");
     aiExtendCache[ratio] = url; // mémorisé : recliquer ce format sera gratuit
     photoDataUrl = url;
