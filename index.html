@@ -134,8 +134,14 @@
     font-weight:700; font-size:14.5px; padding:12px 16px; cursor:not-allowed; opacity:1;
   }
   .btn.guide-btn:disabled::before {
-    content:"👉 "; display:inline-block;
-    animation:arrowBlink 1.4s ease-in-out infinite;
+    content:"☝️ "; display:inline-block;
+    animation:arrowUp 1.4s ease-in-out infinite;
+  }
+  /* v41.7 : la flèche MONTE vers la case à remplir (au-dessus du bouton) —
+     sinon le client croit qu'il faut cliquer le bouton qui clignote. */
+  @keyframes arrowUp {
+    0%,100% { opacity:1;  transform:translateY(0); }
+    50%     { opacity:.3; transform:translateY(-5px); }
   }
   @media (prefers-reduced-motion: reduce) {
     .btn.guide-btn:disabled::before { animation:none; opacity:1; }
@@ -291,7 +297,7 @@
       </div>
     </div>
     <button class="btn" id="outfitGo" style="display:none; margin-top:12px;">👔 Transformer la tenue (≈ 0,04 $)</button>
-    <div class="estimate" id="outfitInfo">Le visage, la pose et le décor restent identiques — seuls les habits changent.</div>
+    <div class="estimate" id="outfitInfo">Le visage, la pose et le décor restent identiques — seuls les habits changent.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT les habits.</b> · <i>This tool only changes the clothes.</i></div>
     <div id="outfitPreview"></div>
   </section>
 
@@ -323,14 +329,14 @@
     </label>
 
     <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor (≈ 0,04 $)</button>
-    <div class="estimate" id="lieuInfo">Le visage et les habits restent identiques — seul le décor change.</div>
+    <div class="estimate" id="lieuInfo">Le visage et les habits restent identiques — seul le décor change.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT le lieu derrière toi.</b> · <i>This tool only swaps the place behind you.</i><br>💡 <b>Tu veux une vraie scène — assis à une table, entouré d'amis, en action ? C'est le <span style='color:var(--gold)'>🎬 Multi-plans</span> (onglet Scénario) qui fait ça</b>, avec ton visage garanti. · <i>For a full scene — seated at a table, with friends, in action — use <b>Multi-shot</b> (Scenario tab): it builds the whole scene with your face locked.</i></div>
     <div id="lieuPreview"></div>
   </section>
 
   <section class="card" id="sec-auto3">
     <h2><span class="num">🕺</span> Changer la posture</h2>
     <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
-      Change la <b>pose</b> de la personne sans toucher à son visage, sa tenue ni le décor.
+      Change la <b>pose</b> de la personne sans toucher à son visage, sa tenue ni le décor. <b style='color:var(--gold)'>Cet outil change UNIQUEMENT la pose.</b> · <i>This tool only changes the pose.</i>
       Les autres volets (tenue, décor) ne modifient plus la posture — c'est ici qu'on la change, quand tu le veux.
     </div>
 
@@ -675,7 +681,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.6</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.7</span>
   </footer>
 </div>
 
