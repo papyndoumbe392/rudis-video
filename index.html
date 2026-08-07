@@ -478,7 +478,7 @@
     <div class="estimate" id="estimate">Coût estimé : ≈ 0,28 $</div>
   </section>
 
-  <button class="master" id="go" disabled>Complète les étapes pour générer</button>
+  <button class="master" id="go" disabled>Complète les étapes pour générer ta vidéo</button>
 
   <div class="status" id="status">
     <div id="statusText">…</div>
@@ -494,7 +494,7 @@
     <div id="msPlans"></div>
     <button class="btn" id="msAdd" style="margin-top:10px;">＋ Ajouter un plan</button>
     <div class="estimate" id="msInfo"></div>
-    <button class="master" id="msGo" style="margin-top:10px;" disabled>Complète les plans pour générer</button>
+    <button class="master" id="msGo" style="margin-top:10px;" disabled>Complète les plans du mini-clip</button>
     <div class="estimate" id="msCost" style="margin-top:8px;"></div>
     <div class="status" id="msStatus">
       <div id="msStatusText">…</div>
@@ -653,7 +653,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v40.5 — chaque onglet affiche uniquement ce qui le concerne</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v40.6 — 12 nouvelles tenues (maillots, joggings, costumes, tee-shirts)</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1203,7 +1203,7 @@ function refresh() {
   document.getElementById("estimate").textContent = `Coût estimé : ≈ ${cost.toFixed(2)} $`;
   const go = document.getElementById("go");
   go.disabled = !(hasKey && hasPhoto && hasPrompt);
-  go.textContent = go.disabled ? "Complète les étapes pour générer" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
+  go.textContent = go.disabled ? "Complète les étapes pour générer ta vidéo" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
   if (window.__msReady) msRefresh();
 }
 document.getElementById("prompt").addEventListener("input", refresh);
@@ -1290,6 +1290,18 @@ const OUTFITS = [
   ["damasrouge", "🔴 Damassé rouge", "an elegant red damask patterned tuxedo jacket with black satin lapels, a black waistcoat, a red shirt, a bright yellow silk cravat and a red traditional Cameroonian royal cap, opulent African royalty style"],
   ["robebal", "💚 Robe de bal royale", "a majestic emerald green off-shoulder ball gown with intricate gold beadwork and embroidery, a full voluminous skirt, matching emerald and gold jewellery and a golden crown, royal queen style"],
   ["soie", "🌸 Peignoir de soie", "an elegant long dusty pink satin robe with delicate lace sleeves and a soft silk belt, refined and graceful, worn indoors"],
+  ["costumebleucarreaux", "🔷 Costume bleu à carreaux", "an elegant royal blue double-breasted suit with a gold windowpane check pattern, peak lapels, gold buttons, a crisp white dress shirt, a patterned silk tie and a gold pocket square, high-end tailoring"],
+  ["costumenoircreme", "🖤 Costume noir & crème", "a sharp black tailored suit jacket with cream white peak lapels, a cream double-breasted waistcoat, cream trousers, a white shirt, a black silk tie with a gold tie bar and a white pocket square, luxury tailoring"],
+  ["costumeblanc", "🤍 Costume blanc", "an immaculate white tailored three-piece suit with a white shirt, silk pocket square and polished shoes, elegant summer luxury style"],
+  ["costumebeige", "🟤 Costume beige d’été", "a light beige linen summer suit with an open-collar shirt, relaxed elegant Mediterranean style"],
+  ["teeshirtmoulant", "👕 Tee-shirt moulant", "a fitted long-sleeve slim red t-shirt that hugs the body, worn with black tailored trousers, a designer belt and a silk scarf around the neck, stylish modern look"],
+  ["teeshirtnoir", "🖤 Tee-shirt moulant noir", "a fitted slim black t-shirt that hugs the body, worn with dark jeans, a gold chain and a luxury watch, modern urban style"],
+  ["jogging", "🏃 Jogging de luxe", "a premium matching tracksuit set, soft fabric, modern athletic cut with subtle designer details and clean white sneakers, stylish streetwear"],
+  ["joggingafro", "👟 Jogging afro-chic", "a stylish designer tracksuit with African-inspired patterns, a gold chain and fresh white sneakers, trendy afrobeats streetwear"],
+  ["maillothomme", "🩳 Maillot de bain homme", "stylish men’s swim shorts in a bold colour, bare chest, sunglasses, relaxed beach holiday look"],
+  ["maillotfemme", "👙 Maillot de bain femme", "an elegant one-piece women’s swimsuit in a flattering colour with a light sheer beach cover-up and sunglasses, chic summer beach look"],
+  ["chemiseplage", "🌴 Chemise de plage", "an open floral print short-sleeve summer shirt worn over light trousers, sunglasses, relaxed tropical holiday style"],
+  ["robesoiree", "✨ Robe de soirée", "a refined floor-length evening gown in flowing satin with subtle sparkle and elegant jewellery, red-carpet style"],
   ["custom", "Personnalisée…", ""],
   ["photo", "📷 D'après une photo", ""],
 ];
@@ -3080,7 +3092,7 @@ function msRefresh() {
   const go = document.getElementById("msGo");
   go.disabled = !(hasKey && hasPhoto && hasFace && filled && okDur && msPlans.length >= 2);
   go.textContent = go.disabled
-    ? "Complète les plans pour générer"
+    ? "Complète les plans du mini-clip"
     : "🎬 Générer le multi-plans (− 2 vidéos de ton code)";
   document.getElementById("msCost").innerHTML = go.disabled
     ? (hasFace ? "" : `⭐ Ajoute au moins <b>1 photo de référence visage</b> (volet 1, bouton violet) — c'est elle qui garde ton visage identique d'un plan à l'autre.`)
