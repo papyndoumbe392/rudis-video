@@ -644,7 +644,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v40.0 — l'app guide le client à chaque étape, en douceur</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v40.1 — étapes numérotées en doré dans « Tout voir »</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -4005,6 +4005,13 @@ fxRefresh();
 <!-- v39.2 : NIVEAU 3 — moteur d'onglets. Range chaque volet dans son onglet, affiche un seul groupe. -->
 <style>
   section.card.tab-hidden { display:none !important; }
+  /* v40.1 : numéro d'ordre doré affiché devant chaque volet en mode « Tout voir ». */
+  .ordre-num {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:26px; height:26px; padding:0 7px; margin-right:9px;
+    border-radius:999px; background:var(--gold); color:#1A1204;
+    font-size:14px; font-weight:800; flex-shrink:0;
+  }
 </style>
 <script>
 (function(){
@@ -4019,6 +4026,26 @@ fxRefresh();
   };
   var tabs = document.querySelectorAll('#tabbar .qnav');
 
+  // v40.1 : pose (ou retire) un numéro d'ordre doré devant le titre de chaque volet.
+  function numeroter(actif){
+    var n = 0;
+    Object.keys(MAP).forEach(function(id){
+      var s = document.getElementById(id);
+      if (!s) return;
+      var h2 = s.querySelector('h2');
+      if (!h2) return;
+      var badge = h2.querySelector('.ordre-num');
+      if (!actif) { if (badge) badge.remove(); return; }
+      n++;
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'ordre-num';
+        h2.insertBefore(badge, h2.firstChild);
+      }
+      badge.textContent = n;
+    });
+  }
+
   function show(tab){
     // "tout" : on affiche toutes les sections. Sinon, seules celles de l'onglet.
     Object.keys(MAP).forEach(function(id){
@@ -4027,6 +4054,9 @@ fxRefresh();
       if (tab === 'tout' || MAP[id] === tab) s.classList.remove('tab-hidden');
       else s.classList.add('tab-hidden');
     });
+    // v40.1 : dans "Tout voir", chaque volet reçoit son numéro d'ordre en doré,
+    // pour que le client voie d'un coup d'œil dans quel ordre avancer.
+    numeroter(tab === 'tout');
     // Toute section imprévue (id non listé) reste toujours visible → filet de sécurité.
     tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.tab === tab); });
     try { localStorage.setItem('starclip_tab', tab); } catch(e){}
