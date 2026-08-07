@@ -100,7 +100,21 @@
   .label { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin-top:14px; }
   .master { width:100%; margin-top:20px; padding:16px; border-radius:12px; border:none; font-size:15.5px;
     font-weight:700; background:linear-gradient(135deg, var(--gold), #E08E2B); color:#1A1204; cursor:pointer; }
-  .master:disabled { background:var(--up); color:var(--dim); }
+  .master:disabled {
+    background:linear-gradient(135deg, #C0392B, #E67E22); color:#fff;
+    font-size:19px; padding:20px 16px; letter-spacing:.02em;
+    border:2px solid #FFB84D; cursor:not-allowed;
+    animation:masterPulse 1.2s ease-in-out infinite;
+  }
+  /* v39.8 : le message « Complète les étapes » clignote en couleur pour que
+     le client comprenne tout de suite qu'il lui manque quelque chose. */
+  @keyframes masterPulse {
+    0%,100% { opacity:1;   box-shadow:0 0 0 0 rgba(255,184,77,.65); }
+    50%     { opacity:.72; box-shadow:0 0 18px 6px rgba(255,184,77,0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .master:disabled { animation:none; }
+  }
   .status { margin-top:14px; padding:12px 14px; border-radius:10px; background:var(--up); font-size:13.5px;
     line-height:1.55; display:none; }
   .status.show { display:block; }
@@ -439,7 +453,7 @@
     <div class="estimate" id="estimate">Coût estimé : ≈ 0,28 $</div>
   </section>
 
-  <button class="master" id="go" disabled>Complète les étapes pour générer</button>
+  <button class="master" id="go" disabled>⚠️ Complète les étapes pour générer</button>
 
   <div class="status" id="status">
     <div id="statusText">…</div>
@@ -455,7 +469,7 @@
     <div id="msPlans"></div>
     <button class="btn" id="msAdd" style="margin-top:10px;">＋ Ajouter un plan</button>
     <div class="estimate" id="msInfo"></div>
-    <button class="master" id="msGo" style="margin-top:10px;" disabled>Complète les plans pour générer</button>
+    <button class="master" id="msGo" style="margin-top:10px;" disabled>⚠️ Complète les plans pour générer</button>
     <div class="estimate" id="msCost" style="margin-top:8px;"></div>
     <div class="status" id="msStatus">
       <div id="msStatusText">…</div>
@@ -614,7 +628,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v39.7 — mise en page alignée au pixel + décor fidèle amélioré</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v39.8 — message d'alerte bien visible quand il manque une étape</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1164,7 +1178,7 @@ function refresh() {
   document.getElementById("estimate").textContent = `Coût estimé : ≈ ${cost.toFixed(2)} $`;
   const go = document.getElementById("go");
   go.disabled = !(hasKey && hasPhoto && hasPrompt);
-  go.textContent = go.disabled ? "Complète les étapes pour générer" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
+  go.textContent = go.disabled ? "⚠️ Complète les étapes pour générer" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
   if (window.__msReady) msRefresh();
 }
 document.getElementById("prompt").addEventListener("input", refresh);
@@ -3024,7 +3038,7 @@ function msRefresh() {
   const go = document.getElementById("msGo");
   go.disabled = !(hasKey && hasPhoto && hasFace && filled && okDur && msPlans.length >= 2);
   go.textContent = go.disabled
-    ? "Complète les plans pour générer"
+    ? "⚠️ Complète les plans pour générer"
     : "🎬 Générer le multi-plans (− 2 vidéos de ton code)";
   document.getElementById("msCost").innerHTML = go.disabled
     ? (hasFace ? "" : `⭐ Ajoute au moins <b>1 photo de référence visage</b> (volet 1, bouton violet) — c'est elle qui garde ton visage identique d'un plan à l'autre.`)
