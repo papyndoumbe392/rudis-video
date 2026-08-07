@@ -53,6 +53,11 @@
   .toc a:last-child{border-bottom:0}
   footer{text-align:center;color:var(--dim);font-size:13px;padding:26px 16px}
   .hidden{display:none}
+  /* v40.7 : bouton de retour vers l'app — le client n'est plus obligé de fermer la page. */
+  .retour{display:inline-block;background:var(--gold);color:#20160a;text-decoration:none;
+       border-radius:999px;padding:11px 22px;font-size:15px;font-weight:800;
+       font-family:inherit;margin:0 0 4px}
+  .retourbar{display:flex;justify-content:center;margin:16px 0 0}
   .langbar{display:flex;justify-content:center;gap:8px;margin:14px 0 0}
   .langbar button{background:var(--up);border:1px solid var(--line);color:var(--text);
        border-radius:999px;padding:8px 18px;font-size:15px;cursor:pointer;
@@ -65,6 +70,7 @@
 <header>
   <h1>StarClip Studio</h1>
   <p>Studio Rudis, Douala · WhatsApp 695 535 475</p>
+  <div class="retourbar"><a class="retour" href="index.html">← Retour à l'app · Back to the app</a></div>
   <div class="langbar">
     <button id="btnFr" class="on" type="button">🇫🇷 Français</button>
     <button id="btnEn" type="button">🇬🇧 English</button>
@@ -154,6 +160,9 @@
   <p>Choisis une tenue dans la liste, ou <b>importe la photo d'un vêtement</b> pour l'essayer.</p>
   <p>Ce volet ne change <b>que les vêtements</b>. Ton visage, ta corpulence, ta posture
      et le décor restent identiques.</p>
+  <p><b>Plus de 20 tenues</b> : Toghu royal, costumes (bleu à carreaux, noir &amp; crème,
+     blanc, beige), smoking, pagne wax, robes de bal et de soirée, tee-shirts moulants,
+     joggings de luxe, <b>maillots de bain homme et femme</b>, chemise de plage…</p>
   <div class="tip">Ordre conseillé : la tenue <b>avant</b> le décor. Les deux se cumulent.</div>
 </div>
 
@@ -162,6 +171,18 @@
   <h2><span class="num">🏛️</span> Décor — changer le lieu</h2>
   <p>Près de 30 lieux : palais, villa avec piscine, jet privé, première classe,
      boîte de nuit, supercars, rooftop, Monaco…</p>
+
+  <h3>🎯 Décor fidèle — ton visage reste le tien</h3>
+  <p>Deux boutons pour changer de lieu, et ils ne font <b>pas</b> la même chose :</p>
+  <ul>
+    <li><b>🎨 Créer le décor par IA</b> — l'IA redessine toute l'image. Elle peut ajouter
+        des objets autour de toi (une voiture, un fauteuil), mais ton visage peut
+        <b>légèrement changer</b>.</li>
+    <li><b>🎯 Décor fidèle</b> — ton visage, ton chapeau et ta tenue sont gardés
+        <b>pixel pour pixel</b> : seul l'arrière-plan est remplacé. C'est le bouton à
+        utiliser quand tu dois absolument te reconnaître.</li>
+  </ul>
+  <div class="tip">Pour un artiste qui doit rester reconnaissable : <b>🎯 Décor fidèle</b>.</div>
 
   <h3>🖼️ D'après une image</h3>
   <p>Tu as trouvé une ambiance qui te plaît ? Touche cette puce et
@@ -624,5 +645,6 @@ document.getElementById("btnEn").addEventListener("click", function () { setLang
 })();
 </script>
 
+<div class="retourbar" style="margin:8px 0 40px"><a class="retour" href="index.html">← Retour à l'app · Back to the app</a></div>
 </body>
 </html>

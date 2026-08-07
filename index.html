@@ -441,7 +441,7 @@
     <h2><span class="num" id="num2">2</span> Scénario du clip <span class="dot" id="dot2"></span></h2>
     <div class="label" style="margin-top:0;">✨ Décris ton idée simplement · Describe your idea simply <span style="opacity:.7">(FR / EN)</span></div>
     <textarea id="ideaFr" rows="2" placeholder="En français ou en anglais · Ex : je chante sur la plage au coucher du soleil / I sing on the beach at sunset" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical;"></textarea>
-    <button class="btn guide-btn" id="ideaGo" style="margin-top:8px;" disabled>Écris d'abord ton idée ci-dessus</button>
+    <button class="btn guide-btn" id="ideaGo" style="margin-top:8px;" disabled>Écris d'abord ton idée ci-dessus · Write your idea first</button>
     <div class="estimate" id="ideaInfo"></div>
 
     <div class="label">Scénario professionnel (généré ou écrit à la main)</div>
@@ -478,7 +478,7 @@
     <div class="estimate" id="estimate">Coût estimé : ≈ 0,28 $</div>
   </section>
 
-  <button class="master" id="go" disabled>Complète les étapes pour générer ta vidéo</button>
+  <button class="master" id="go" disabled>Complète les étapes pour générer ta vidéo · Complete the steps</button>
 
   <div class="status" id="status">
     <div id="statusText">…</div>
@@ -494,7 +494,7 @@
     <div id="msPlans"></div>
     <button class="btn" id="msAdd" style="margin-top:10px;">＋ Ajouter un plan</button>
     <div class="estimate" id="msInfo"></div>
-    <button class="master" id="msGo" style="margin-top:10px;" disabled>Complète les plans du mini-clip</button>
+    <button class="master" id="msGo" style="margin-top:10px;" disabled>Complète les plans du mini-clip · Complete your shots</button>
     <div class="estimate" id="msCost" style="margin-top:8px;"></div>
     <div class="status" id="msStatus">
       <div id="msStatusText">…</div>
@@ -653,7 +653,7 @@
   </div>
 
   <footer>
-    StarClip Studio <b style="color:var(--gold)">v40.6 — 12 nouvelles tenues (maillots, joggings, costumes, tee-shirts)</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
+    StarClip Studio <b style="color:var(--gold)">v40.7 — retour depuis le guide + guide à jour + textes bilingues</b> · par Studio Rudis, Douala. <b style="color:var(--gold)">Chaque création est débitée du crédit du studio.</b>
     <b style="color:var(--gold)">Génère des segments de 5–10 s</b> puis assemble-les dans CapCut avec ton audio original.
   </footer>
 </div>
@@ -1203,7 +1203,7 @@ function refresh() {
   document.getElementById("estimate").textContent = `Coût estimé : ≈ ${cost.toFixed(2)} $`;
   const go = document.getElementById("go");
   go.disabled = !(hasKey && hasPhoto && hasPrompt);
-  go.textContent = go.disabled ? "Complète les étapes pour générer ta vidéo" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
+  go.textContent = go.disabled ? "Complète les étapes pour générer ta vidéo · Complete the steps" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
   if (window.__msReady) msRefresh();
 }
 document.getElementById("prompt").addEventListener("input", refresh);
@@ -1228,8 +1228,8 @@ function copyNum(num, btn) {
     var rempli = zone.value.trim().length > 0;
     bouton.disabled = !rempli;
     bouton.textContent = rempli
-      ? "✨ Écrire mon scénario professionnel"
-      : "Écris d'abord ton idée ci-dessus";
+      ? "✨ Écrire mon scénario professionnel · Write my pro scenario"
+      : "Écris d'abord ton idée ci-dessus · Write your idea first";
   }
   zone.addEventListener("input", majBouton);
   majBouton();
@@ -3092,7 +3092,7 @@ function msRefresh() {
   const go = document.getElementById("msGo");
   go.disabled = !(hasKey && hasPhoto && hasFace && filled && okDur && msPlans.length >= 2);
   go.textContent = go.disabled
-    ? "Complète les plans du mini-clip"
+    ? "Complète les plans du mini-clip · Complete your shots"
     : "🎬 Générer le multi-plans (− 2 vidéos de ton code)";
   document.getElementById("msCost").innerHTML = go.disabled
     ? (hasFace ? "" : `⭐ Ajoute au moins <b>1 photo de référence visage</b> (volet 1, bouton violet) — c'est elle qui garde ton visage identique d'un plan à l'autre.`)
