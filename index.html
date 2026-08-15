@@ -137,7 +137,7 @@
     content:"☝️ "; display:inline-block;
     animation:arrowUp 1.4s ease-in-out infinite;
   }
-  /* v41.7 : la flèche MONTE vers la case à remplir (au-dessus du bouton) —
+  /* v41.8 : styles de danse prêts à l'emploi (Makossa, Bikutsi, Reggae, Dancehall, Afropop) — v41.7 : la flèche MONTE vers la case à remplir (au-dessus du bouton) —
      sinon le client croit qu'il faut cliquer le bouton qui clignote. */
   @keyframes arrowUp {
     0%,100% { opacity:1;  transform:translateY(0); }
@@ -457,6 +457,11 @@
     <div class="label">Scénario professionnel (généré ou écrit à la main)</div>
     <textarea id="prompt" placeholder="Décris la vidéo… Ex : The man sings passionately and dances to an afrobeats groove at sunset on a beach, smooth camera orbit, warm cinematic light. (l'anglais donne de meilleurs résultats)"></textarea>
 
+    <!-- v41.8 : styles de danse prêts à l'emploi — la mécanique corporelle est décrite au moteur -->
+    <div class="label">💃 Style de danse · Dance style <span style="opacity:.7">(optionnel · optional)</span></div>
+    <div class="chips" id="danseChips"></div>
+    <div class="estimate">La description complète de la danse s'ajoute à ton scénario — tu peux la relire et la modifier. · The full dance description is added to your script — you can edit it.</div>
+
     <div class="estimate" id="decorBox" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px; margin-top:10px;">
       <b style="color:var(--gold)">🎨 Créer une vraie image de la scène · Build a real scene image (optionnel)</b>
       <div style="font-size:13px; color:var(--dim); margin-top:6px;">Pour les décors riches (jet privé, villa, boîte de nuit…), l'IA crée d'abord une <b>vraie image complète de la scène avec ton visage</b>, puis tu l'animes. Bien meilleur qu'un simple portrait. · For rich scenery, the AI first builds a full scene image with your face, then you animate it.</div>
@@ -501,6 +506,10 @@
   <section class="card" id="sec-auto7" style="border-color:var(--gold);">
     <h2>🎬 Multi-plans 3.0 — ton mini-clip <span class="dot" id="dotMS"></span></h2>
     <p class="sub" style="margin-top:4px;">Enchaîne <b>2 à 6 plans</b> dans UNE seule vidéo (15 s max au total), générée d'un coup par <b>Kling 3.0</b>, le moteur du rendu cinéma. Ton visage est ancré sur tes <b>photos de référence</b> (volet 1) et reste identique d'un plan à l'autre.<br><b style="color:var(--gold)">✍️ Écris chaque plan en français ou en anglais</b> — l'app le met en forme automatiquement pour toi.</p>
+    <!-- v41.8 : même idée pour le Multi-plans, en version courte injectée par plan -->
+    <div class="label">💃 Style de danse pour tous les plans · Dance style for all shots <span style="opacity:.7">(optionnel)</span></div>
+    <div class="chips" id="msDanseChips"></div>
+
     <div id="msPlans"></div>
     <button class="btn" id="msAdd" style="margin-top:10px;">＋ Ajouter un plan</button>
     <div class="estimate" id="msInfo"></div>
@@ -681,7 +690,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.7</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.8</span>
   </footer>
 </div>
 
@@ -3160,6 +3169,59 @@ function msSetStatus(html, pct) {
   z.parentNode.insertBefore(d, z);
 })();
 
+// ═══════════ v41.8 : STYLES DE DANSE PRÊTS À L'EMPLOI ═══════════
+// Son retour terrain : « danse le Makossa » seul fait SAUTILLER le personnage —
+// le moteur ne connaît pas la danse, il faut lui décrire la MÉCANIQUE CORPORELLE.
+// Textes en anglais FIXE relu mot à mot (leçon v38.5 : jamais de traduction
+// automatique dans une chaîne contrôlée). Version longue pour le Scénario,
+// version courte insérée automatiquement dans chaque plan du Multi-plans
+// (comptée dans le budget de caractères, donc jamais de dépassement).
+const DANSES = {
+  makossa: ["🇨🇲 Makossa",
+    "Authentic Makossa: weight rolls leg to leg, hips swaying, knees soft, feet gliding low. He never jumps or hops. ",
+    "He dances authentic Cameroonian Makossa, mature and elegant, one continuous flowing movement. The dance comes from transferring body weight between the left leg and the right leg: he rests his weight on one leg, lightly frees the other foot, then transfers his weight the other way. Feet stay close to the floor with short gliding steps. Knees stay soft and slightly bent. His hips answer every weight transfer with a supple controlled Makossa sway; chest and shoulders follow the groove lightly. He NEVER jumps and never hops: no vertical bouncing, no repeated up-down motion, no jogging, no marching. Centre of gravity low and stable. Arms relaxed with small natural gestures. He dances with the quiet confidence of an experienced Makossa singer: elegant, poised, smiling, musical."],
+  bikutsi: ["🥁 Bikutsi",
+    "Fast Bikutsi: feet stamp the ground in rhythm, shoulders pulsing, hips quick, knees bent, joyful energy. No jumping. ",
+    "He dances energetic Cameroonian Bikutsi in its fast 6/8 pulse. His feet stamp the ground in rhythm — real grounded stamps, never jumps: the body stays low, it is the feet that strike the floor. Shoulders pulse quickly with the beat, hips move fast and loose, knees stay bent, upper body and lower body undulate together. The energy is joyful, intense and continuous. No vertical bouncing, no hopping on the spot, no marching. Arms follow the pulse with lively natural gestures close to the body. He dances with festive confidence, smiling, fully in the rhythm."],
+  reggae: ["🇯🇲 Reggae",
+    "Slow reggae skank: relaxed side-to-side sway, knees soft, head nodding, arms low and loose. Laid-back, no jumping. ",
+    "He dances a slow laid-back reggae skank. His body sways gently from side to side on the offbeat, knees soft and springy, weight rolling calmly from one leg to the other. His head nods naturally with the rhythm. Arms stay low and loose, moving in small relaxed waves. Everything is smooth, unhurried and grounded: no jumping, no bouncing, no fast footwork, no marching. He radiates calm, cool, positive vibes, eyes half closed at times, fully inside the music."],
+  dancehall: ["🔥 Dancehall",
+    "Dancehall groove: strong marked steps, chest and hips leading, controlled knee bounce, confident attitude. ",
+    "He dances a confident dancehall groove. Strong marked steps into the floor, chest and hips leading the movement, with a controlled knee bounce that stays low and grounded — a groove, not jumps. Hips roll and punch with the riddim, shoulders and chest answer, arms mark the beat with sharp assured gestures. The attitude is bold, charismatic, playful. No random hopping, no jogging, no marching: every move is intentional and connected to the music."],
+  afropop: ["🌍 Afropop",
+    "Afrobeats groove: smooth low legwork and shuffles, relaxed shoulders, chest waves, one continuous flowing motion. ",
+    "He dances a smooth Afrobeats groove. Low continuous legwork: feet shuffle and slide close to the floor, knees soft, weight shifting fluidly leg to leg. Relaxed shoulders bounce lightly with the beat, the chest sends easy waves through the torso, hips follow naturally. Everything connects in one continuous flowing motion, effortless and musical. No vertical jumping, no jogging on the spot, no stiff marching. Arms move loosely and naturally with the groove. Confident, modern, charismatic energy."],
+};
+let msDanse = null;   // style choisi pour TOUS les plans du Multi-plans
+
+function initDanseChips(boxId, onPick) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  box.innerHTML = `<button class="chip on" data-danse="">Aucun · None</button>`
+    + Object.entries(DANSES).map(([id, d]) => `<button class="chip" data-danse="${id}">${d[0]}</button>`).join("");
+  box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    box.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    b.classList.add("on");
+    onPick(b.dataset.danse || null);
+  });
+}
+
+// Scénario : la version LONGUE est écrite dans le texte, visible et modifiable.
+initDanseChips("danseChips", (id) => {
+  const ta = document.getElementById("prompt");
+  let txt = ta.value;
+  Object.values(DANSES).forEach(d => {           // retirer une danse déjà insérée
+    txt = txt.replace(d[2], "").replace(/\n{3,}/g, "\n\n").trim();
+  });
+  if (id) txt = (txt ? txt + "\n\n" : "") + DANSES[id][2];
+  ta.value = txt;
+  ta.dispatchEvent(new Event("input", { bubbles: true }));
+});
+
+// Multi-plans : la version COURTE sera insérée automatiquement dans CHAQUE plan.
+initDanseChips("msDanseChips", (id) => { msDanse = id; });
+
 document.getElementById("msAdd").onclick = () => {
   if (msPlans.length >= 6) return;
   msPlans.push({ prompt: "", d: 3 });
@@ -3270,8 +3332,11 @@ document.getElementById("msGo").onclick = async () => {
       // v37.0 : le budget se calcule sur la longueur EXACTE du préfixe de CE plan
       // (elle varie selon photo/pas photo et une/deux personnes). C'est précisément
       // l'erreur de la v36.3 qui avait fait dépasser 512 et coûté 2 crédits.
-      const budget = 512 - prefix.length - shortSuffix.length - 15;
-      const full = prefix + clip(enPlans[i].trim(), Math.max(40, budget)) + shortSuffix;
+      // v41.8 : la consigne de danse est insérée AVANT le texte du plan et
+      // COMPTÉE dans le budget — impossible de dépasser les 512 octets.
+      const danse = msDanse && DANSES[msDanse] ? DANSES[msDanse][1] : "";
+      const budget = 512 - prefix.length - danse.length - shortSuffix.length - 15;
+      const full = prefix + danse + clip(enPlans[i].trim(), Math.max(40, budget)) + shortSuffix;
       // v36.4 : FILET DE SÉCURITÉ EN OCTETS, pas seulement en caractères. Le tiret
       // cadratin (—) et les points de suspension (…) présents dans nos propres textes
       // pèsent 3 octets chacun en UTF-8 pour 1 seul caractère JavaScript : un texte de
