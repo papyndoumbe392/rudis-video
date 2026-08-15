@@ -428,7 +428,17 @@
 
   <section class="card" id="sec-auto6" style="border-color:var(--violet);">
     <h2><span class="num" style="background:var(--violet); color:#fff;">🎨</span> Studio Images — créer des décors & personnages</h2>
-    <p class="sub" style="margin:0 0 12px;">Crée une image à partir d'un simple texte, <b>sans photo</b> : un danseur, une danseuse, une rue de Monaco, une boîte de nuit… pour enrichir ton clip. Tu peux ensuite l'animer.<br><span style="opacity:.85">Create an image from text, <b>no photo needed</b>: a dancer, a street, a nightclub… then animate it.</span></p>
+    <p class="sub" style="margin:0 0 12px;">Crée une image à partir d'un texte — <b>avec ta photo</b> (toi ou ton artiste dans la scène décrite) <b>ou sans photo</b> (personnages et décors inventés : un danseur, une rue de Monaco, une boîte de nuit…). Tu peux ensuite l'animer.<br><span style="opacity:.85">Create an image from text — <b>with your photo</b> (you inside the scene) <b>or without</b> (invented characters & places) — then animate it.</span></p>
+    <div class="label">📷 Avec ta photo (optionnel) · With your photo (optional)</div>
+    <div class="chips">
+      <button class="chip" id="t2iUsePhoto">🙂 Ma photo du volet 1</button>
+      <button class="chip" id="t2iImportBtn">📂 Importer une photo</button>
+      <button class="chip on" id="t2iNoPhoto">✨ Sans photo (scène inventée)</button>
+    </div>
+    <input type="file" id="t2iInput" accept="image/*" class="hidden" style="display:none;">
+    <div class="estimate" id="t2iPhotoName" style="margin:4px 0 0;"></div>
+    <img id="t2iPhotoPrev" class="hidden" style="max-width:120px; border-radius:10px; margin-top:6px;">
+    <div class="estimate" style="margin:6px 0 0;">💡 Avec une photo, la personne est <b>gardée telle quelle</b> (visage, corps, tenue) et la scène décrite est construite autour d'elle — le format suit ta photo. · With a photo, the person is kept as-is and the scene is built around them.</div>
     <div class="label">Idées toutes prêtes · Ready-made ideas</div>
     <div class="chips" id="t2iPresets"></div>
     <div class="label">Décris l'image · Describe the image (FR / EN)</div>
@@ -690,7 +700,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.8</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.9</span>
   </footer>
 </div>
 
@@ -1943,7 +1953,70 @@ document.getElementById("decorBria").onclick = async () => {
 };
 
 // ——— v34.3 : Studio Images — création d'image à partir d'un texte (sans photo) ———
+// ——— v41.9 : + mode « avec ta photo » — la personne est préservée, la scène décrite est construite autour ———
 let t2iRatio = "16:9";
+let t2iPhotoUrl = null;   // v41.9 : photo optionnelle du Studio (null = scène inventée)
+
+function t2iEtatPhoto(actif) {
+  document.getElementById("t2iUsePhoto").classList.toggle("on", actif === "volet1");
+  document.getElementById("t2iImportBtn").classList.toggle("on", actif === "import");
+  document.getElementById("t2iNoPhoto").classList.toggle("on", actif === "aucune");
+  const pv = document.getElementById("t2iPhotoPrev");
+  if (t2iPhotoUrl) { pv.src = t2iPhotoUrl; pv.classList.remove("hidden"); }
+  else { pv.classList.add("hidden"); document.getElementById("t2iPhotoName").textContent = ""; }
+}
+document.getElementById("t2iUsePhoto").onclick = () => {
+  const src = stylePhotoUrl || photoDataUrl;
+  if (!src) { document.getElementById("t2iPhotoName").textContent = "⚠️ Aucune photo dans le volet 1. · No photo in step 1."; return; }
+  t2iPhotoUrl = src;
+  document.getElementById("t2iPhotoName").textContent = "✓ Photo du volet 1";
+  t2iEtatPhoto("volet1");
+};
+document.getElementById("t2iImportBtn").onclick = () => document.getElementById("t2iInput").click();
+document.getElementById("t2iInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    t2iPhotoUrl = c.toDataURL("image/jpeg", 0.92);
+    document.getElementById("t2iPhotoName").textContent = `✓ ${f.name}`;
+    t2iEtatPhoto("import");
+  };
+  img.onerror = () => { document.getElementById("t2iPhotoName").textContent = "⚠️ Image illisible. · Unreadable image."; };
+  img.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+document.getElementById("t2iNoPhoto").onclick = () => { t2iPhotoUrl = null; t2iEtatPhoto("aucune"); };
+
+// Traduction dédiée Studio : garde TOUS les détails de la scène (≠ msTranslateOne,
+// calibré plans vidéo). Anglais rendu tel quel si déjà anglais.
+async function t2iTraduire(texte) {
+  const src = texte.trim();
+  if (!src) return "";
+  try {
+    const path = "fal-ai/any-llm";
+    const job = await apiSubmit(path, {
+      model: "google/gemini-2.5-flash",
+      system_prompt: "Tu reçois la description d'une SCÈNE d'image, en français ou en anglais. Rends-la EN ANGLAIS : si elle est en français, traduis-la fidèlement ; si elle est déjà en anglais, nettoie-la simplement. Garde TOUS les lieux, personnes, objets, lumières et détails demandés, sans rien ajouter ni retirer. 80 mots maximum. Réponds UNIQUEMENT avec le texte anglais, sans guillemets ni commentaire.",
+      prompt: src,
+    });
+    const st = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 20; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const sj = await apiPoll(st);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") break;
+    }
+    const data = await apiPoll(rp);
+    const out = (data.output || data.response?.output || "").trim();
+    return out || src;
+  } catch (e) { return src; }
+}
 function pickT2iRatio(el) {
   el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
   el.classList.add("on");
@@ -1960,12 +2033,30 @@ document.getElementById("t2iGo").onclick = async () => {
   btn.disabled = true;
   info.textContent = "🎨 Création de l'image en cours (10–40 s)…";
   try {
-    const path = "fal-ai/nano-banana"; // text-to-image (sans photo)
-    const job = await apiSubmit(path, {
-      prompt: desc + `. Photorealistic, cinematic lighting, high detail, high quality, ${t2iRatio} framing.`,
-      num_images: 1,
-      aspect_ratio: t2iRatio,
-    });
+    let path, payload;
+    if (t2iPhotoUrl) {
+      // v41.9 — AVEC PHOTO : nano-banana/edit, personne préservée EN TÊTE (règles v37-v38 :
+      // jamais « me/my », nombre de personnes verrouillé, ajouts non demandés interdits, pose stable).
+      info.textContent = "🎨 1/2 — Mise en forme de ta description…";
+      const en = await t2iTraduire(desc);
+      const GARDE = "The person from the FIRST input image must appear in the result STRICTLY unchanged and fully recognizable: exact same face, same facial features, same skin tone, same hairstyle, same body shape and same outfit — never slimmer, never larger, never altered. Keep this person in the foreground as the main subject, in a stable, natural standing or seated pose. Do not remove or replace this person. Build the scene described below AROUND them. Do not add any person, object or costume that is not requested in the scene description. Scene: ";
+      path = "fal-ai/nano-banana/edit";
+      const images = [t2iPhotoUrl].concat(faceRefUrls.filter(Boolean).slice(0, 2));
+      payload = {
+        prompt: GARDE + en + ". Photorealistic, cinematic lighting, natural realistic light on the person matching the scene, high detail, high quality.",
+        image_urls: images,
+        num_images: 1,
+      };
+      info.textContent = "🎨 2/2 — Création de la scène autour de ta personne…";
+    } else {
+      path = "fal-ai/nano-banana"; // text-to-image (sans photo)
+      payload = {
+        prompt: desc + `. Photorealistic, cinematic lighting, high detail, high quality, ${t2iRatio} framing.`,
+        num_images: 1,
+        aspect_ratio: t2iRatio,
+      };
+    }
+    const job = await apiSubmit(path, payload);
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
     for (let i = 0; i < 40; i++) {
