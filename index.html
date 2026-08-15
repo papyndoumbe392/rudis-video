@@ -224,9 +224,11 @@
     <h2><span class="num" id="num1">1</span> Photo <span class="dot" id="dot1"></span></h2>
     <div style="display:flex; gap:14px; align-items:center;">
       <div class="photo-slot" id="photoSlot">＋</div>
+      <style>.photo-slot.dragover { border-color: var(--gold) !important; background: rgba(233,196,106,.12); }</style>
       <div style="flex:1;">
         <div class="sub" id="photoLabel" style="margin:0 0 10px;">Photo nette, de face, bien éclairée.</div>
         <button class="btn" id="photoBtn">Choisir une photo</button>
+        <div class="estimate" style="margin-top:6px;">🖱️ Sur ordinateur : tu peux aussi <b>glisser-déposer</b> ta photo sur la case. · On desktop, drag & drop your photo onto the box.</div>
       </div>
     </div>
     <input type="file" id="photoInput" accept="image/*" class="hidden">
@@ -352,6 +354,10 @@
     <div class="chips" id="poChips"></div>
     <textarea id="poCustom" rows="2" class="hidden" placeholder="Ex : debout de profil, une main qui ajuste sa veste, regard vers l'objectif" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical; margin-top:8px;"></textarea>
 
+    <label class="opt" style="margin-top:10px; display:flex;">
+      <input type="checkbox" id="poFaceChk" checked>
+      <span>🎯 <b>Recoller mon vrai visage après</b> — recommandé : changer la posture <b>redessine toute la personne</b> et peut modifier le visage. Coûte 1 image de plus. · Re-applies your real face after the pose change.</span>
+    </label>
     <button class="btn" id="poGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
     <div class="estimate" id="poInfo" style="margin-top:8px;"></div>
     <div id="poResult"></div>
@@ -700,7 +706,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.9</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.11</span>
   </footer>
 </div>
 
@@ -1036,9 +1042,14 @@ function majIndiceFormat() {
   const mot = a === "16:9" ? "horizontale 🖥️" : (a === "1:1" ? "carrée ◻️" : "verticale 📱");
   el.innerHTML = `→ ta photo est <b>${mot}</b>, la vidéo sortira donc en <b>${a}</b>.`;
 }
-photoInput.onchange = (e) => {
-  const f = e.target.files[0];
+// v41.11 : traitement partagé du fichier photo — bouton, clic sur la case, ET glisser-déposer
+function traiterFichierPhoto(f) {
   if (!f) return;
+  if (f.type && !f.type.startsWith("image/")) {
+    const lbl = document.getElementById("photoLabel");
+    if (lbl) lbl.textContent = "⚠️ Ce fichier n'est pas une image. · Not an image file.";
+    return;
+  }
   const img = new Image();
   img.onload = () => {
     originalPhotoImg = img;
@@ -1052,7 +1063,33 @@ photoInput.onchange = (e) => {
     document.getElementById("faceRefToggle").classList.remove("hidden");
   };
   img.src = URL.createObjectURL(f);
+}
+photoInput.onchange = (e) => {
+  traiterFichierPhoto(e.target.files[0]);
+  e.target.value = "";
 };
+
+// ═══ v41.11 : GLISSER-DÉPOSER sur la case photo du volet 1 ═══
+(function () {
+  const zone = document.getElementById("photoSlot");
+  if (!zone) return;
+  const marquer = (on) => zone.classList.toggle("dragover", on);
+  ["dragenter", "dragover"].forEach(ev => zone.addEventListener(ev, (e) => {
+    e.preventDefault(); e.stopPropagation(); marquer(true);
+  }));
+  ["dragleave", "dragend"].forEach(ev => zone.addEventListener(ev, (e) => {
+    e.preventDefault(); e.stopPropagation(); marquer(false);
+  }));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault(); e.stopPropagation(); marquer(false);
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    traiterFichierPhoto(f);
+  });
+  // Empêche le navigateur d'OUVRIR l'image lâchée à côté de la case
+  ["dragover", "drop"].forEach(ev => window.addEventListener(ev, (e) => {
+    if (e.target !== zone) e.preventDefault();
+  }));
+})();
 
 function pickRatio(el) {
   el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
@@ -3969,13 +4006,26 @@ document.getElementById("poGo").onclick = async () => {
       if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le changement de posture a échoué côté serveur.");
     }
     const data = await apiPoll(responseUrl);
-    const url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    let url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
     if (!url) {
       const brut = data.detail
         ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
         : (data.error || data.message || JSON.stringify(data).slice(0, 200));
       throw new Error("Image introuvable. Détail serveur : « " + brut + " »");
     }
+    // v41.10 : la posture reconstruit la personne (🎯 Face Lock) — recollage
+    // automatique du VRAI visage, comme le Décor depuis la v38.7. En cas
+    // d'échec du recollage, on garde l'image de posture telle quelle.
+    let urlFinale = url;
+    const poChk = document.getElementById("poFaceChk");
+    if (poChk && poChk.checked) {
+      info.textContent = "🎯 Recollage de ton vrai visage… (20 à 60 s)";
+      try {
+        const corrigee = await recollerVisage(urlFinale, typeof fxGenre !== "undefined" ? fxGenre : "male");
+        if (corrigee) urlFinale = corrigee;
+      } catch (e) { /* on garde l'image de posture */ }
+    }
+    url = urlFinale;
     info.innerHTML = `<span style="color:var(--ok)">✓ Posture changée !</span>`;
     document.getElementById("poResult").innerHTML = `
       <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
