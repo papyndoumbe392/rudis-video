@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.21 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.22 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -705,7 +705,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.21</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.22</span>
   </footer>
 </div>
 
@@ -3909,19 +3909,19 @@ rtRefresh();
 // Volet séparé : les volets Tenue et Décor verrouillent désormais la pose,
 // c'est ici — et seulement ici — qu'on la modifie volontairement.
 const POSTURES = [
-  ["poches", "🧍 Mains dans les poches", "standing upright with both hands in the trouser pockets, relaxed and confident"],
-  ["bras", "🤝 Bras croisés", "standing with arms confidently crossed over the chest"],
+  ["poches", "🧍 Mains dans les poches", "standing upright with both hands in the trouser pockets, relaxed and confident. If the person was holding a bag or any object, it is now placed neatly on the ground beside their feet"],
+  ["bras", "🤝 Bras croisés", "standing with arms confidently crossed over the chest. If the person was holding a bag or any object, it is now placed neatly on the ground beside their feet"],
   ["profil", "👤 De profil, regard caméra", "standing turned three-quarters to the side, head turned back toward the camera"],
   ["assis", "🪑 Assis élégamment", "sitting elegantly, back straight, one hand resting on the knee"],
   ["adosse", "🧱 Adossé", "leaning casually back against the wall or surface behind, one shoulder resting, relaxed"],
-  ["ouverts", "🙌 Bras ouverts", "standing with both arms opened wide in a welcoming generous gesture"],
+  ["ouverts", "🙌 Bras ouverts", "standing with both arms opened wide in a welcoming generous gesture. If the person was holding a bag or any object, it is now placed neatly on the ground beside their feet"],
   // v41.21 : « ❤️ Main sur le cœur » RETIRÉE du menu — 4 essais réels, 4 défauts
   // (mains dupliquées, sac disparu, mitaine perdue). Inventer un bras traversant
   // la poitrine dépasse la fiabilité du moteur actuel. À réactiver seulement avec
   // un moteur de pose à référence photo (ex. leffa/pose-transfer) prouvé.
   // ["coeur", "❤️ Main sur le cœur", "standing with the LEFT hand placed flat on the chest over the heart. The other arm and hand remain EXACTLY as in the original photo, including any bag or object they hold"],
   ["marche", "🚶 En marche vers la caméra", "walking forward toward the camera in mid-stride, natural confident walk"],
-  ["veste", "👔 Ajuste sa veste", "standing while adjusting the lapel of the jacket with both hands, elegant gesture"],
+  ["veste", "👔 Ajuste sa veste", "standing while adjusting the lapel of the jacket with both hands, elegant gesture. If the person was holding a bag or any object, it is now placed neatly on the ground beside their feet"],
   ["chant", "🎤 En train de chanter", "standing and singing with emotion, mouth open, one hand raised at chest height"],
   ["pocustom", "Personnalisé…", ""],
 ];
