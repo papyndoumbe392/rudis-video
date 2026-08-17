@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.23 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.25 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -299,7 +299,7 @@
       </div>
     </div>
     <button class="btn" id="outfitGo" style="display:none; margin-top:12px;">👔 Transformer la tenue (≈ 0,04 $)</button>
-    <div class="estimate" id="outfitInfo">Le visage, la pose et le décor restent identiques — seuls les habits changent.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT les habits.</b> · <i>This tool only changes the clothes.</i></div>
+    <div class="estimate" id="outfitInfo">Le visage, la pose et le décor sont préservés au maximum — seuls les habits changent. Si le visage bouge un peu, le volet 🎯 « Recoller le vrai visage » le corrige.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT les habits.</b> · <i>This tool only changes the clothes.</i></div>
     <div id="outfitPreview"></div>
   </section>
 
@@ -331,7 +331,7 @@
     </label>
 
     <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor (≈ 0,04 $)</button>
-    <div class="estimate" id="lieuInfo">Le visage et les habits restent identiques — seul le décor change.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT le lieu derrière toi.</b> · <i>This tool only swaps the place behind you.</i><br>💡 <b>Tu veux une vraie scène — assis à une table, entouré d'amis, en action ? C'est le <span style='color:var(--gold)'>🎬 Multi-plans</span> (onglet Scénario) qui fait ça</b>, avec ton visage garanti. · <i>For a full scene — seated at a table, with friends, in action — use <b>Multi-shot</b> (Scenario tab): it builds the whole scene with your face locked.</i></div>
+    <div class="estimate" id="lieuInfo">Le visage et les habits sont préservés au maximum — seul le décor change. La case 🎯 ci-dessous garantit ton vrai visage.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT le lieu derrière toi.</b> · <i>This tool only swaps the place behind you.</i><br>💡 <b>Tu veux une vraie scène — assis à une table, entouré d'amis, en action ? C'est le <span style='color:var(--gold)'>🎬 Multi-plans</span> (onglet Scénario) qui fait ça</b>, avec ton visage garanti. · <i>For a full scene — seated at a table, with friends, in action — use <b>Multi-shot</b> (Scenario tab): it builds the whole scene with your face locked.</i></div>
     <div id="lieuPreview"></div>
   </section>
 
@@ -481,8 +481,12 @@
       <b style="color:var(--gold)">🎨 Créer une vraie image de la scène · Build a real scene image (optionnel)</b>
       <div style="font-size:13px; color:var(--dim); margin-top:6px;">Pour les décors riches (jet privé, villa, boîte de nuit…), l'IA crée d'abord une <b>vraie image complète de la scène avec ton visage</b>, puis tu l'animes. Bien meilleur qu'un simple portrait. · For rich scenery, the AI first builds a full scene image with your face, then you animate it.</div>
       <button class="btn" id="decorGo" style="margin-top:10px;">🎨 Créer le décor par IA · Build the scene (≈ 0,04 $)</button>
+      <label class="opt" style="margin-top:8px; display:flex;">
+        <input type="checkbox" id="pxlChk" checked>
+        <span>🔒 <b>Pixel Lock</b> — les pixels de ta photo d'import sont <b>copiés, jamais régénérés</b>, avec vérification numérique incluse. Coûte 1 image de plus (masque). Décoché : mode 🎯 classique. · Your pixels are copied, never regenerated — with numeric verification.</span>
+      </label>
       <button class="btn" id="decorBria" style="margin-top:8px; background:var(--violet); color:#fff;">🎯 Décor fidèle — garde ton visage à l'identique (≈ 0,03 $)</button>
-      <div style="font-size:12px; color:var(--dim); margin-top:6px;">🎯 <b>Décor fidèle</b> ne touche pas du tout à la personne (visage, chapeau, tenue gardés pixel pour pixel) — il remplace seulement l'arrière-plan. Idéal quand tu dois te reconnaître. · Keeps the person identical, only swaps the background.</div>
+      <div style="font-size:12px; color:var(--dim); margin-top:6px;">🎯 <b>Décor fidèle</b> remplace seulement l'arrière-plan. Avec la case <b>🔒 Pixel Lock cochée</b>, ta personne est <b>gardée pixel pour pixel, vérification numérique incluse</b> — la seule garantie prouvée de l'app. Décochée : préservation fidèle classique. · With 🔒 checked, your person is kept pixel-for-pixel, numerically verified.</div>
       <div class="estimate" id="decorInfo" style="margin-top:8px;"></div>
       <div id="decorPreview"></div>
     </div>
@@ -520,7 +524,7 @@
   <!-- v33.1 — MULTI-PLANS 3.0 (Kling 3.0, storyboard) -->
   <section class="card" id="sec-auto7" style="border-color:var(--gold);">
     <h2>🎬 Multi-plans 3.0 — ton mini-clip <span class="dot" id="dotMS"></span></h2>
-    <p class="sub" style="margin-top:4px;">Enchaîne <b>2 à 6 plans</b> dans UNE seule vidéo (15 s max au total), générée d'un coup par <b>Kling 3.0</b>, le moteur du rendu cinéma. Ton visage est ancré sur tes <b>photos de référence</b> (volet 1) et reste identique d'un plan à l'autre.<br><b style="color:var(--gold)">✍️ Écris chaque plan en français ou en anglais</b> — l'app le met en forme automatiquement pour toi.</p>
+    <p class="sub" style="margin-top:4px;">Enchaîne <b>2 à 6 plans</b> dans UNE seule vidéo (15 s max au total), générée d'un coup par <b>Kling 3.0</b>, le moteur du rendu cinéma. Ton visage est ancré sur tes <b>photos de référence</b> (volet 1) et reste fidèle d'un plan à l'autre.<br><b style="color:var(--gold)">✍️ Écris chaque plan en français ou en anglais</b> — l'app le met en forme automatiquement pour toi.</p>
     <!-- v41.8 : même idée pour le Multi-plans, en version courte injectée par plan -->
     <div class="label">💃 Style de danse pour tous les plans · Dance style for all shots <span style="opacity:.7">(optionnel)</span></div>
     <div class="chips" id="msDanseChips"></div>
@@ -705,7 +709,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.23</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.25</span>
   </footer>
 </div>
 
@@ -713,6 +717,7 @@
 <script>
 // ——— État ———
 let photoDataUrl = null;
+let photoMasterPng = null;      // 🔒 v41.24 : master PNG sans perte — étalon de la garantie Pixel Lock
 let photoOriginaleUrl = null;   // v38.8 : la photo VRAIMENT importée par le client
 let model = "eco";
 let dur = "5";
@@ -1253,6 +1258,13 @@ function applyPhotoRatio(ratio, label) {
     const iw = img.width * containScale, ih = img.height * containScale;
     ctx.drawImage(img, (tw - iw) / 2, (th - ih) / 2, iw, ih);
   }
+  // 🔒 v41.24 : MASTER CANONIQUE capturé AVANT toute retouche — avant autoBrighten,
+  // avant tout. C'est l'étalon de la garantie Pixel Lock : « pixels strictement
+  // identiques au master créé à l'import » (résolution plafonnée pour mobile =
+  // master canonique assumé, Option B validée). Grâce au traitement partagé
+  // v41.11, le master est capturé aussi en glisser-déposer (le proto v41.8
+  // ne couvrait que le bouton).
+  photoMasterPng = c.toDataURL("image/png");
   const brightened = autoBrighten(c);
   photoDataUrl = c.toDataURL("image/jpeg", 0.9);
   // v38.8 : on garde à part la VRAIE photo importée. photoDataUrl est écrasée
@@ -1364,8 +1376,8 @@ document.getElementById("ideaGo").onclick = async () => {
     if (riskyWords.test(text)) {
       const faceRefs = faceRefUrls.filter(Boolean);
       const hint = faceRefs.length > 0
-        ? `⭐ Cette scène a du mouvement — pense à choisir <b>« Visage stable »</b> dans Qualité/Prix pour garder ton visage identique !`
-        : `⭐ Cette scène a du mouvement — <b>ajoute une photo de référence visage</b> (volet 1) puis choisis <b>« Visage stable »</b> ci-dessous, pour garder ton visage identique !`;
+        ? `⭐ Cette scène a du mouvement — pense à choisir <b>« Visage stable »</b> dans Qualité/Prix pour garder ton visage fidèle !`
+        : `⭐ Cette scène a du mouvement — <b>ajoute une photo de référence visage</b> (volet 1) puis choisis <b>« Visage stable »</b> ci-dessous, pour garder ton visage fidèle !`;
       info.innerHTML += `<div class="estimate" style="margin-top:8px; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:8px 10px;">${hint}</div>`;
     }
   } catch (err) {
@@ -1414,7 +1426,7 @@ const OUTFITS = [
       document.getElementById("outfitCustom").classList.toggle("hidden", id !== "custom");
       document.getElementById("outfitPhotoZone").classList.toggle("hidden", id !== "photo");
       document.getElementById("outfitGo").style.display = (id === "keep") ? "none" : "block";
-      if (id === "keep") { stylePhotoUrl = null; document.getElementById("outfitPreview").innerHTML = ""; document.getElementById("outfitInfo").textContent = "Le visage, la pose et le décor restent identiques — seuls les habits changent."; }
+      if (id === "keep") { stylePhotoUrl = null; document.getElementById("outfitPreview").innerHTML = ""; document.getElementById("outfitInfo").textContent = "Le visage, la pose et le décor sont préservés au maximum — seuls les habits changent. Si le visage bouge un peu, le volet 🎯 « Recoller le vrai visage » le corrige."; }
       document.getElementById("dotOutfit").classList.toggle("on", id !== "keep");
     };
     box.appendChild(b);
@@ -1554,7 +1566,7 @@ let lieuSel = "keep";
       document.getElementById("lieuFaceBox").style.display = (id === "keep") ? "none" : "flex";   // v38.7
       if (id === "keep") {
         document.getElementById("lieuPreview").innerHTML = "";
-        document.getElementById("lieuInfo").textContent = "Le visage et les habits restent identiques — seul le décor change.";
+        document.getElementById("lieuInfo").textContent = "Le visage et les habits sont préservés au maximum — seul le décor change. La case 🎯 ci-dessous garantit ton vrai visage.";
       }
       document.getElementById("dotLieu").classList.toggle("on", id !== "keep");
     };
@@ -1924,6 +1936,210 @@ document.getElementById("decorGo").onclick = async () => {
 };
 
 // ——— v38.9 : Décor fidèle (Bria Background Replace) — remplace SEULEMENT le fond, la personne reste identique ———
+// ═══ 🔒 v41.24 : PIXEL LOCK — Décor fidèle (intégration du prototype v3.1 validé) ═══
+// Pipeline validé : photoMasterPng → BiRefNet → personRGBA → fond (Bria bg-replace)
+// → composite Canvas CÔTÉ CLIENT → vérification NUMÉRIQUE des pixels protégés.
+// RÈGLE ABSOLUE : aucun repli silencieux. En cas d'échec, le client choisit.
+
+function pxlChargerImage(src) {
+  return new Promise((res, rej) => {
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    im.onload = () => res(im);
+    im.onerror = () => rej(new Error("Image illisible."));
+    im.src = src;
+  });
+}
+
+async function pxlAttendre(job, base) {
+  const st = job.status_url || `https://queue.fal.run/${base}/requests/${job.request_id}/status`;
+  const rp = job.response_url || `https://queue.fal.run/${base}/requests/${job.request_id}`;
+  for (let i = 0; i < 40; i++) {
+    await new Promise(r => setTimeout(r, 3000));
+    const sj = await apiPoll(st);
+    if (sj.status === "COMPLETED") break;
+    if (sj.status === "FAILED" || sj.status === "ERROR") break;
+  }
+  return await apiPoll(rp);
+}
+
+// 🔒 v2 : BiRefNet ne fournit QUE LE MASQUE (mask_only). Ses RGB ne sont
+// JAMAIS utilisés — refine_foreground retouche l'avant-plan, donc interdit ici.
+// La personne finale = RGB du MASTER + alpha du masque. Rien d'autre.
+async function pxlExtraireMasque(masterPng) {
+  const job = await apiSubmit("fal-ai/birefnet/v2", {
+    image_url: masterPng,
+    model: "Matting",
+    operating_resolution: "2048x2048",
+    mask_only: true,
+    output_format: "png",
+  });
+  const data = await pxlAttendre(job, "fal-ai/birefnet");
+  const url = data.image?.url || data.response?.image?.url;
+  if (!url) throw new Error("BiRefNet n'a pas renvoyé de masque.");
+  return url;   // masque niveaux de gris : blanc = sujet
+}
+
+// 🔒 v3 : lecture UNIQUE du master et du masque en tableaux d'octets.
+// Le même tableau master sert à construire ET à vérifier — zéro double-lecture.
+function pxlLireDonnees(masterImg, maskImg, w, h) {
+  const cm = document.createElement("canvas"); cm.width = w; cm.height = h;
+  const xm = cm.getContext("2d"); xm.drawImage(masterImg, 0, 0, w, h);
+  const M = xm.getImageData(0, 0, w, h).data;          // MASTER — l'étalon unique
+  const ck = document.createElement("canvas"); ck.width = w; ck.height = h;
+  const xk = ck.getContext("2d"); xk.drawImage(maskImg, 0, 0, w, h);
+  const K = xk.getImageData(0, 0, w, h).data;          // masque (luminance = alpha)
+  return { M, K };
+}
+
+
+// Fond : Bria bg-replace sur le master (géométrie du sujet préservée) ;
+// NOTRE personne d'origine sera recomposée PAR-DESSUS son rendu.
+async function pxlFond(masterPng, scene) {
+  const job = await apiSubmit("fal-ai/bria/background/replace", {
+    image_url: masterPng,
+    prompt: scene + ", photorealistic, cinematic, natural lighting, high detail",
+    negative_prompt: "duplicated person, distorted face, blurry, low quality, watermark, text",
+    refine_prompt: true,
+    fast: false,
+    num_images: 1,
+  });
+  const data = await pxlAttendre(job, "fal-ai/bria");
+  const url = data.images?.[0]?.url || data.response?.images?.[0]?.url || data.image?.url;
+  if (!url) throw new Error("Le remplacement du fond a échoué.");
+  return url;
+}
+
+// Composite côté client : fond puis personne d'origine PAR-DESSUS. Aucune IA.
+// 🔒 v3 : composite par COPIE D'OCTETS. Là où le masque est plein (255),
+// les octets RGB du master sont ÉCRITS tels quels dans l'image finale — plus
+// aucun mélange du navigateur sur ces pixels (v2 : son moteur arrondissait
+// parfois d'1 unité → 8/56884 pixels refusés sur sa vraie photo).
+// Seule la plume (0 < alpha < 255) est mélangée, à part, hors contrôle strict.
+function pxlComposer(fondImg, M, K, largeur, hauteur) {
+  const c = document.createElement("canvas");
+  c.width = largeur; c.height = hauteur;
+  const ctx = c.getContext("2d");
+  ctx.drawImage(fondImg, 0, 0, largeur, hauteur);
+  const F = ctx.getImageData(0, 0, largeur, hauteur);
+  const plume = ctx.createImageData(largeur, hauteur);
+  let aPlume = false;
+  for (let i = 0; i < F.data.length; i += 4) {
+    const a = K[i];
+    if (a === 255) {
+      F.data[i] = M[i]; F.data[i + 1] = M[i + 1]; F.data[i + 2] = M[i + 2]; F.data[i + 3] = 255;
+    } else if (a > 0) {
+      plume.data[i] = M[i]; plume.data[i + 1] = M[i + 1]; plume.data[i + 2] = M[i + 2]; plume.data[i + 3] = a;
+      aPlume = true;
+    }
+  }
+  ctx.putImageData(F, 0, 0);
+  // v3.1 : AUTO-CONTRÔLE de l'écriture — on relit ce qu'on vient d'écrire.
+  // Si ça diffère ici, l'étage fautif est identifié : putImageData/getImageData
+  // du navigateur (gestion couleur), et non le compositing ni les données.
+  const relu = ctx.getImageData(0, 0, largeur, hauteur).data;
+  let ecritureAlteree = 0;
+  for (let i = 0; i < K.length; i += 4) {
+    if (K[i] === 255 && (relu[i] !== M[i] || relu[i+1] !== M[i+1] || relu[i+2] !== M[i+2])) ecritureAlteree++;
+  }
+  if (ecritureAlteree > 0)
+    throw new Error("Étage identifié : le navigateur altère l'écriture putImageData/getImageData sur "
+      + ecritureAlteree + " pixel(s) — problème de gestion des couleurs du canvas, pas du pipeline.");
+  if (aPlume) {
+    const cp = document.createElement("canvas"); cp.width = largeur; cp.height = hauteur;
+    cp.getContext("2d").putImageData(plume, 0, 0);
+    ctx.drawImage(cp, 0, 0);
+  }
+  return c;
+}
+
+// 🔒 v2 — VÉRIFICATION NUMÉRIQUE CONTRE LE MASTER (jamais contre une
+// sortie IA) : là où le masque est plein (alpha 255), FINAL.rgb doit être
+// STRICTEMENT égal à MASTER.rgb. La plume (alpha partiel) est exclue du
+// contrôle strict — seule zone mélangée, par construction.
+function pxlVerifier(finalCanvas, M, K) {
+  const w = finalCanvas.width, h = finalCanvas.height;
+  const B = finalCanvas.getContext("2d").getImageData(0, 0, w, h).data;
+  let proteges = 0, differents = 0;
+  const details = [];   // v3.1 : rapport par pixel déviant (16 premiers)
+  for (let i = 0; i < M.length; i += 4) {
+    if (K[i] === 255) {
+      proteges++;
+      if (M[i] !== B[i] || M[i + 1] !== B[i + 1] || M[i + 2] !== B[i + 2]) {
+        differents++;
+        if (details.length < 16) {
+          const p = i / 4, x = p % w, y = Math.floor(p / w);
+          // bord de masque ? un voisin direct avec alpha < 255
+          let bord = false;
+          for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < w && ny >= 0 && ny < h && K[(ny * w + nx) * 4] < 255) { bord = true; break; }
+          }
+          details.push({ x, y, maskAlpha: K[i], bord,
+            MASTER: [M[i], M[i+1], M[i+2]],
+            FINAL:  [B[i], B[i+1], B[i+2]],
+            delta:  [B[i]-M[i], B[i+1]-M[i+1], B[i+2]-M[i+2]] });
+        }
+      }
+    }
+  }
+  if (differents > 0) {
+    console.warn("🔒 DIAGNOSTIC PIXEL LOCK — pixels déviants (personRGBA ≡ MASTER par construction en v3) :");
+    console.table(details);
+  }
+  return { proteges, differents, details };
+}
+
+// Dialogue d'échec — le client AUTORISE explicitement la dégradation. Jamais automatique.
+function pxlDialogueEchec(raison) {
+  return new Promise((res) => {
+    const ov = document.createElement("div");
+    ov.id = "pxlDialog";
+    ov.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;";
+    ov.innerHTML = `
+      <div style="background:var(--panel,#141824); border:1px solid var(--gold,#e9c46a); border-radius:14px; max-width:420px; padding:20px;">
+        <b>🔒 Pixel Lock n'a pas pu être appliqué.</b>
+        <div class="estimate" style="margin-top:8px;">${raison || ""}</div>
+        <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="pxlRetry" style="flex:1;">🔁 Réessayer</button>
+          <button class="btn" id="pxlDegrade" style="flex:1; background:var(--violet); color:#fff;">🎯 Continuer en Face Lock</button>
+        </div>
+        <div class="estimate" style="margin-top:10px;">Face Lock : le décor est remplacé par Bria puis ton vrai visage est recollé — le corps est préservé par le modèle, sans garantie pixel par pixel.</div>
+      </div>`;
+    document.body.appendChild(ov);
+    ov.querySelector("#pxlRetry").onclick = () => { ov.remove(); res("retry"); };
+    ov.querySelector("#pxlDegrade").onclick = () => { ov.remove(); res("degrade"); };
+  });
+}
+
+async function pixelLockDecor(scene, info) {
+  if (!photoMasterPng) throw new Error("Ajoute d'abord ta photo (volet 1) — le master d'origine est requis.");
+  info.textContent = "🔒 1/4 — Calcul du masque de ta silhouette (BiRefNet, masque SEUL)…";
+  const maskUrl = await pxlExtraireMasque(photoMasterPng);
+  info.textContent = "🔒 2/4 — Création du nouveau décor…";
+  const fondUrl = await pxlFond(photoMasterPng, scene);
+  info.textContent = "🔒 3/4 — Reconstruction : RGB du master + alpha du masque, puis composite…";
+  const [maskImg, fondImg, masterImg] = await Promise.all([
+    pxlChargerImage(maskUrl), pxlChargerImage(fondUrl), pxlChargerImage(photoMasterPng)]);
+  const w = masterImg.naturalWidth, h = masterImg.naturalHeight;
+  const { M, K } = pxlLireDonnees(masterImg, maskImg, w, h);   // master lu UNE seule fois
+  const canvas = pxlComposer(fondImg, M, K, w, h);             // octets du master écrits tels quels
+  info.textContent = "🔒 4/4 — Vérification numérique : résultat contre MASTER…";
+  const v = pxlVerifier(canvas, M, K);
+  if (v.proteges === 0 || v.differents > 0) {
+    let rap = `La vérification a détecté ${v.differents} pixel(s) différent(s) du master sur ${v.proteges} protégés.`;
+    if (v.details && v.details.length) {
+      rap += "<br><br><b>Diagnostic (x, y · α masque · MASTER → FINAL · Δ · bord)</b>"
+        + "<div style='font-size:11px; font-family:monospace; text-align:left; max-height:150px; overflow:auto; margin-top:6px;'>"
+        + v.details.map(d =>
+            `(${d.x},${d.y}) α${d.maskAlpha} [${d.MASTER.join(",")}] → [${d.FINAL.join(",")}] Δ[${d.delta.join(",")}] ${d.bord ? "BORD" : "intérieur"}`
+          ).join("<br>") + "</div>";
+    }
+    throw new Error(rap);
+  }
+  return { url: canvas.toDataURL("image/png"), verif: v };   // PNG : le JPEG détruirait la garantie
+}
+
 document.getElementById("decorBria").onclick = async () => {
   const info = document.getElementById("decorInfo");
   const base = stylePhotoUrl || photoDataUrl;
@@ -1936,6 +2152,50 @@ document.getElementById("decorBria").onclick = async () => {
   }
   const btn = document.getElementById("decorBria");
   btn.disabled = true;
+
+  // ═══ 🔒 v41.24 : voie PIXEL LOCK si la case est cochée ═══
+  // AUCUN repli silencieux : en cas d'échec, dialogue — le client choisit
+  // « Réessayer » ou « Continuer en mode classique » (la voie ci-dessous).
+  const pxlChk = document.getElementById("pxlChk");
+  if (pxlChk && pxlChk.checked) {
+    while (true) {
+      try {
+        const r = await pixelLockDecor(scene, info);
+        const urlPxl = r.url;
+        info.innerHTML = `<span style="color:var(--ok)">🔒 Décor Pixel Lock réussi — ` +
+          `${r.verif.proteges.toLocaleString("fr-FR")} pixels protégés, 100 % identiques à ton master d'import.</span>`;
+        document.getElementById("decorPreview").innerHTML = `
+      <img src="${urlPxl}" style="width:100%; border-radius:12px; margin-top:10px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <button class="btn small pulse" id="decorUse">✓ Utiliser cette image · Use this image</button>
+        <button class="btn small" id="decorRevert" style="opacity:.8;">↩ Revenir à ma photo · Back to my photo</button>
+      </div>`;
+        document.getElementById("decorUse").onclick = () => {
+          document.getElementById("decorUse").classList.remove("pulse");
+          photoDataUrl = urlPxl;
+          stylePhotoUrl = null;
+          const slot = document.getElementById("photoSlot");
+          if (slot) { slot.style.backgroundImage = `url(${urlPxl})`; slot.textContent = ""; slot.classList.add("filled"); }
+          const lbl = document.getElementById("photoLabel");
+          if (lbl) lbl.textContent = "🔒 Décor Pixel Lock";
+          info.innerHTML = `<span style="color:var(--ok)">✓ Décor utilisé comme photo de départ (volet 1) !</span>`;
+          refresh();
+        };
+        document.getElementById("decorRevert").onclick = () => {
+          document.getElementById("decorPreview").innerHTML = "";
+          info.textContent = "Photo d'origine conservée. · Original photo kept.";
+        };
+        btn.disabled = false;
+        return;
+      } catch (e) {
+        const choix = await pxlDialogueEchec(e.message || String(e));
+        if (choix === "retry") { continue; }
+        info.textContent = "🎯 Poursuite en mode classique (autorisée par toi)…";
+        break;   // → tombe dans la voie classique ci-dessous, sur décision explicite
+      }
+    }
+  }
+
   info.textContent = "🎯 Remplacement du décor en cours (10–40 s)…";
   try {
     const path = "fal-ai/bria/background/replace";
@@ -2249,7 +2509,7 @@ document.getElementById("go").onclick = async () => {
       </div>
       <div class="card" style="margin-top:12px; border-color:var(--violet);">
         <h2>🔧 Un détail te gêne ?</h2>
-        <p class="sub" style="margin:4px 0 10px;">Décris UNIQUEMENT ce qui ne va pas (ex : « ouvre les yeux de l'homme », « la tête de la femme ne doit pas être coupée », « le champagne doit couler normalement, pas de mousse »). Le reste de la vidéo reste identique — c'est une <b>retouche</b>, pas une nouvelle vidéo.</p>
+        <p class="sub" style="margin:4px 0 10px;">Décris UNIQUEMENT ce qui ne va pas (ex : « ouvre les yeux de l'homme », « la tête de la femme ne doit pas être coupée », « le champagne doit couler normalement, pas de mousse »). Le reste de la vidéo est préservé — c'est une <b>retouche</b>, pas une nouvelle vidéo.</p>
         <textarea id="fixPrompt" rows="2" placeholder="Ex : garde les yeux ouverts pendant toute la vidéo"></textarea>
         <button class="btn" id="fixGo" style="margin-top:8px; width:100%;">🔧 Corriger ce détail (≈ ${(0.168 * lastVideoDur).toFixed(2)} $)</button>
         <div class="estimate" id="fixInfo" style="margin-top:6px;"></div>
