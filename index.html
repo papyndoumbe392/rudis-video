@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.25 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.27 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -462,6 +462,41 @@
     <div id="t2iPreview"></div>
   </section>
 
+  <section class="card" id="sec-danses" style="border-color:var(--gold);">
+    <h2><span class="num">🕺</span> Danses</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Ta photo <b>danse pour de vrai</b> : le mouvement d'un <b>vrai danseur filmé</b> est transféré sur ta personne —
+      visage, tenue et silhouette préservés. Rien n'est inventé par l'IA : elle copie une vraie chorégraphie.
+      · <i>A real dancer's movement is transferred onto your photo.</i>
+    </div>
+
+    <div class="label">🎬 Danses StarClip — chorégraphies du studio</div>
+    <div id="danseBiblio"></div>
+
+    <div class="label" style="margin-top:12px;">📹 Ma propre danse — importe ta vidéo</div>
+    <div class="estimate" style="margin:0 0 6px;">Filme <b>UNE seule personne</b> qui danse, <b>corps entier visible</b>, caméra fixe, <b>5 secondes maximum</b>. C'est CE mouvement qui sera reproduit par ta photo. · <i>One person, full body, max 5 seconds.</i></div>
+    <div class="chips">
+      <button class="chip" id="dansePersoBtn">📂 Importer une vidéo de danse (max 5 s)</button>
+    </div>
+    <input type="file" id="dansePersoInput" accept="video/*" style="display:none;">
+    <div class="estimate" id="dansePersoNom"></div>
+
+    <div class="label" style="margin-top:12px;">🧍 Qui danse ? — la photo de la personne</div>
+    <div class="chips">
+      <button class="chip on" id="dansePhotoV1">📸 Photo du volet 1</button>
+      <button class="chip" id="dansePhotoImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="dansePhotoInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="dansePhotoNom"></div>
+    <img id="dansePhotoPreview" class="hidden" style="width:38%; border-radius:10px; margin-top:8px;">
+
+    <div class="estimate" style="margin-top:10px;">Vidéo verticale prête pour tes clips. <b>Coût : 1 crédit vidéo.</b> ⚠️ Tu es responsable des vidéos que tu importes : n'utilise que des danses que tu as le droit d'utiliser. · <i>You are responsible for imported dance videos.</i></div>
+    <button class="master" id="danseGo" disabled>⬆️ Choisis d'abord une danse (en haut de ce volet)</button>
+    <div class="estimate" style="margin-top:6px;">💡 C'est <b>CE bouton</b> qui crée ton clip de danse — pas le grand bouton doré « Générer la vidéo » en bas de page (lui sert aux vidéos écrites au scénario). · <i>THIS button makes the dance clip.</i></div>
+    <div class="estimate" id="danseInfo" style="margin-top:8px;"></div>
+    <div id="danseResult"></div>
+  </section>
+
   <section class="card" id="nav-scenario">
     <h2><span class="num" id="num2">2</span> Scénario du clip <span class="dot" id="dot2"></span></h2>
     <div class="label" style="margin-top:0;">✨ Décris ton idée simplement · Describe your idea simply <span style="opacity:.7">(FR / EN)</span></div>
@@ -709,7 +744,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.25</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.27</span>
   </footer>
 </div>
 
@@ -3402,6 +3437,183 @@ refresh();
 refreshLip();   // v35.6 : le bouton annonce dès le départ ce qui manque
 appliquerPlan();
 
+
+// ═══════════ 🕺 v41.26 : DANSES — Motion Transfer (fal-ai/kling-video/v2.6/pro/motion-control) ═══════════
+// Choisi par test A/B réel du 17 août : Kling v2.6 Pro (0,112 $/s) a parfaitement
+// transféré un vrai Makossa (appuis, hanches, bras, rythme, tenue, visage) là où
+// Wan Motion (0,06 $/s) a produit des mains géantes flottantes et un corps figé.
+// PRINCIPE : l'IA n'invente JAMAIS la danse — elle copie le mouvement d'un vrai
+// danseur filmé. Le prompt ne décrit que le CONTEXTE, jamais le mouvement
+// (règle officielle du guide Kling Motion Control).
+// BIBLIOTHÈQUE : ajouter un style = déposer la vidéo dans le dépôt GitHub
+// (à côté des exemple*.mp4) + ajouter UNE ligne ci-dessous. Familles libres :
+// 🌍 Africaines, 🎤 Urbaines, ✨ Autres… Jamais de vidéo dont on n'a pas les droits.
+const MOTION_DANSES = [
+  { id: "makossa01", fam: "🌍 Africaines", nom: "Makossa 01", fichier: "danse-makossa-01.mp4" },
+  // { id: "hiphop01", fam: "🎤 Urbaines", nom: "Hip-Hop 01", fichier: "danse-hiphop-01.mp4" },
+];
+const DANSE_DUREE_MAX = 5.5;   // secondes — 1 crédit vidéo, coût studio ≤ 0,62 $
+const DANSE_MOTEUR = "fal-ai/kling-video/v2.6/pro/motion-control";
+// Contexte SEULEMENT — la chorégraphie vient à 100 % de la vidéo de référence.
+const DANSE_PROMPT = "the person from the reference image dancing naturally, keeping the exact same appearance, face, clothing, accessories and background as the reference image, natural realistic lighting, photorealistic";
+
+let danseChoisie = null;        // { type:"biblio", url } ou { type:"perso", file }
+let dansePhotoUrl = null;       // v41.26.1 : photo importée ICI (sinon = photo du volet 1)
+
+function danseRefresh() {
+  const b = document.getElementById("danseGo");
+  const photoOk = !!(dansePhotoUrl || stylePhotoUrl || photoDataUrl);
+  // v41.26.1 : la vignette du volet 1 s'affiche quand c'est elle la source
+  const pv = document.getElementById("dansePhotoPreview");
+  if (pv && !dansePhotoUrl) {
+    const p = stylePhotoUrl || photoDataUrl;
+    if (p) { pv.src = p; pv.classList.remove("hidden"); } else pv.classList.add("hidden");
+  }
+  b.disabled = !(danseChoisie && photoOk);
+  b.textContent = !danseChoisie ? "⬆️ Choisis d'abord une danse (en haut de ce volet)"
+    : (!photoOk ? "⬆️ Choisis la photo qui danse (juste au-dessus) — ou ajoute-la au volet 1"
+    : "🕺 Générer le clip de danse (1 crédit vidéo)");
+}
+
+// v41.26.1 : sélecteur de photo — même motif que le volet Posture.
+document.getElementById("dansePhotoV1").onclick = () => {
+  dansePhotoUrl = null;
+  document.getElementById("dansePhotoV1").classList.add("on");
+  document.getElementById("dansePhotoImportBtn").classList.remove("on");
+  document.getElementById("dansePhotoNom").textContent = "";
+  danseRefresh();
+};
+document.getElementById("dansePhotoImportBtn").onclick = () => document.getElementById("dansePhotoInput").click();
+document.getElementById("dansePhotoInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    dansePhotoUrl = r.result;
+    document.getElementById("dansePhotoV1").classList.remove("on");
+    document.getElementById("dansePhotoImportBtn").classList.add("on");
+    document.getElementById("dansePhotoNom").innerHTML = '<span style="color:var(--ok)">✓ ' + f.name + "</span>";
+    const pv = document.getElementById("dansePhotoPreview");
+    pv.src = dansePhotoUrl; pv.classList.remove("hidden");
+    danseRefresh();
+  };
+  r.readAsDataURL(f);
+};
+
+// Bibliothèque : boutons groupés par famille. Nécessite l'app EN LIGNE (https),
+// car le moteur doit pouvoir télécharger la vidéo — en local, seule
+// « Ma propre danse » fonctionne (elle est hébergée chez fal à l'envoi).
+(function danseBiblioInit() {
+  const zone = document.getElementById("danseBiblio");
+  if (!zone) return;
+  if (!MOTION_DANSES.length) { zone.innerHTML = '<div class="estimate">Bibliothèque en préparation — utilise « Ma propre danse » ci-dessous.</div>'; return; }
+  const fams = [...new Set(MOTION_DANSES.map(d => d.fam))];
+  zone.innerHTML = fams.map(f =>
+    '<div class="estimate" style="margin:6px 0 2px;"><b>' + f + '</b></div>' +
+    '<div class="chips">' + MOTION_DANSES.filter(d => d.fam === f).map(d =>
+      '<button class="chip" data-danse="' + d.id + '">' + d.nom + '</button>').join("") + '</div>'
+  ).join("");
+  zone.querySelectorAll("[data-danse]").forEach(c => c.onclick = () => {
+    const d = MOTION_DANSES.find(x => x.id === c.dataset.danse);
+    if (location.protocol !== "https:") {
+      document.getElementById("danseInfo").innerHTML = '<span class="err">Les Danses StarClip nécessitent l\'app en ligne (le moteur télécharge la vidéo du studio). En local, utilise « Ma propre danse ». · StarClip dances need the online app.</span>';
+      return;
+    }
+    danseChoisie = { type: "biblio", url: new URL(d.fichier, location.href).href, nom: d.nom };
+    zone.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on");
+    document.getElementById("dansePersoNom").textContent = "";
+    document.getElementById("danseInfo").textContent = "Danse choisie : " + d.nom;
+    danseRefresh();
+  });
+})();
+
+// Ma propre danse : durée vérifiée AVANT tout envoi — pas de mauvaise surprise de coût.
+document.getElementById("dansePersoBtn").onclick = () => document.getElementById("dansePersoInput").click();
+document.getElementById("dansePersoInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const v = document.createElement("video");
+  v.preload = "metadata";
+  v.onloadedmetadata = () => {
+    URL.revokeObjectURL(v.src);
+    if (!isFinite(v.duration) || v.duration <= 0) {
+      document.getElementById("danseInfo").innerHTML = '<span class="err">Vidéo illisible — réessaie avec un autre fichier.</span>'; return;
+    }
+    if (v.duration > DANSE_DUREE_MAX) {
+      document.getElementById("danseInfo").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — le maximum est 5 s. Coupe-la dans ton téléphone (Photos → Modifier) puis réimporte-la. · Max 5 seconds, please trim it.</span>';
+      danseChoisie = null; danseRefresh(); return;
+    }
+    danseChoisie = { type: "perso", file: f, nom: f.name };
+    document.getElementById("danseBiblio").querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+    document.getElementById("dansePersoNom").innerHTML = '<span style="color:var(--ok)">✓ ' + f.name + " (" + v.duration.toFixed(1) + " s)</span>";
+    document.getElementById("danseInfo").textContent = "";
+    danseRefresh();
+  };
+  v.onerror = () => { document.getElementById("danseInfo").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
+  v.src = URL.createObjectURL(f);
+};
+
+document.getElementById("danseGo").onclick = async () => {
+  const b = document.getElementById("danseGo"), info = document.getElementById("danseInfo");
+  b.disabled = true;
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    let photo = dansePhotoUrl || stylePhotoUrl || photoDataUrl;
+    if (!photo) throw new Error("Ajoute d'abord ta photo (volet 1), ou importe-la ci-dessus.");
+    if (!danseChoisie) throw new Error("Choisis une danse ou importe ta vidéo.");
+    // Le moteur veut des URLs publiques : on héberge chez fal ce qui ne l'est pas
+    // (les octets partent en direct, jamais par le Worker — circuit v5.3).
+    if (typeof photo === "string" && photo.startsWith("data:")) {
+      info.textContent = "📤 Envoi de ta photo…";
+      photo = await hebergerFichier(photo, "danseur.jpg");
+    }
+    let videoUrl;
+    if (danseChoisie.type === "perso") {
+      info.textContent = "📤 Envoi de ta vidéo de danse…";
+      videoUrl = await hebergerFichier(danseChoisie.file, "danse-perso.mp4");
+    } else {
+      videoUrl = danseChoisie.url;
+    }
+    info.textContent = "🕺 Transfert de la danse sur ta photo… (2 à 6 min, laisse l'app ouverte)";
+    const job = await apiSubmit(DANSE_MOTEUR, {
+      prompt: DANSE_PROMPT,
+      image_url: photo,
+      video_url: videoUrl,
+      character_orientation: "video",   // suit la vidéo — le bon réglage pour la danse (test validé)
+    });
+    const st = job.status_url || `https://queue.fal.run/fal-ai/kling-video/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/fal-ai/kling-video/requests/${job.request_id}`;
+    let statut = "";
+    for (let i = 0; i < 160; i++) {   // 160 × 3 s = 8 minutes de patience
+      await new Promise(rs => setTimeout(rs, 3000));
+      const sj = await apiPoll(st);
+      statut = sj.status || statut;
+      info.textContent = "🕺 Transfert de la danse — " + (statut === "IN_QUEUE" ? "en file d'attente" : "en cours") + "… (" + ((i + 1) * 3) + " s)";
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") {
+        const det = pxlDetailErreur(sj);
+        throw new Error("Le transfert de danse a échoué" + (det ? " : " + det : ". Réessaie."));
+      }
+    }
+    const data = await apiPoll(rp);
+    const url = data.video?.url || data.response?.video?.url || data.output?.video?.url || data.videos?.[0]?.url;
+    if (!url) {
+      const det = pxlDetailErreur(data);
+      throw new Error("Vidéo introuvable" + (statut ? " (dernier statut : " + statut + ")" : "") + (det ? " — " + det : "."));
+    }
+    info.innerHTML = '<span style="color:var(--ok)">✓ Ta photo danse ! Télécharge la vidéo, puis monte-la dans CapCut avec ta chanson.</span>';
+    document.getElementById("danseResult").innerHTML = `
+      <video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a class="btn small" href="${url}" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger</a>
+      </div>`;
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { b.disabled = false; danseRefresh(); }
+};
+danseRefresh();
+
 // ——— PWA : service worker ———
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 
@@ -4700,7 +4912,7 @@ fxRefresh();
     'sec-auto1':'accueil', 'sec-auto2':'accueil',
     'nav-photo':'photo', 'sec-auto3':'photo', 'sec-auto4':'photo', 'sec-auto5':'photo',
     'nav-tenue':'look', 'nav-decor':'look', 'sec-auto6':'look',
-    'nav-scenario':'scenario', 'sec-auto7':'scenario',
+    'sec-danses':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
     'sec-auto9':'commander', 'sec-auto10':'commander'
   };
