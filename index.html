@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.18 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.19 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -406,7 +406,7 @@
 
     <div class="label">Image à corriger</div>
     <div class="chips">
-      <button class="chip" id="fxUseLast" disabled>Dernier décor généré</button>
+      <button class="chip" id="fxUseLast" disabled>🖼️ Dernière image générée (posture ou décor)</button>
       <button class="chip" id="fxImportBtn">📂 Importer une image</button>
     </div>
     <input type="file" id="fxInput" accept="image/*" style="display:none;">
@@ -705,7 +705,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.18</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.19</span>
   </footer>
 </div>
 
@@ -4094,6 +4094,13 @@ document.getElementById("poGo").onclick = async () => {
       }
     }
     url = urlFinale;
+    // v41.19 : le résultat de Posture devient AUSSI disponible dans le volet
+    // « Recoller le vrai visage » (bouton « Dernière image générée »).
+    // Avant, seul le volet Décor remplissait lastLieuUrl (héritage v37.9) —
+    // le bouton restait gris après une posture, incohérent depuis que le
+    // recollage après posture existe.
+    lastLieuUrl = url;
+    { const fxLast = document.getElementById("fxUseLast"); if (fxLast) fxLast.disabled = false; }
     info.innerHTML = visageRecolle
       ? `<span style="color:var(--ok)">✓ Posture changée — 🎯 vrai visage recollé !</span>`
       : (sansGarantie
@@ -4140,7 +4147,7 @@ poRefresh();
 // replace le visage de la photo d'origine en gardant la scène — c'est la
 // correction fiable, pas une consigne de plus.
 let fxTarget = null, fxGenre = "male", fxVisageUrl = null;
-let lastLieuUrl = null;   // rempli par le volet Décor à chaque résultat
+let lastLieuUrl = null;   // v41.19 : rempli par les volets Décor ET Posture à chaque résultat
 // v38.8 : affiche en clair le visage qui sera recollé.
 function fxMajVisage() {
   const pv = document.getElementById("fxVisagePv"), nom = document.getElementById("fxVisageNom");
