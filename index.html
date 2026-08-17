@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v38.8 — le bon visage source · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.17 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -326,8 +326,8 @@
 
     <!-- v38.7 : recollage automatique du vrai visage après le décor -->
     <label class="opt" id="lieuFaceBox" style="display:none; margin-top:10px;">
-      <input type="checkbox" id="lieuFaceChk" checked>
-      <span>🎯 <b>Recoller mon vrai visage après</b> — recommandé : le changement de décor redessine toute l'image et peut modifier le visage. Coûte 1 image de plus.</span>
+      <input type="checkbox" id="lieuFaceChk">
+      <span>🎯 <b>Recoller mon vrai visage après</b> — <b>option qualité maximale</b> : replace ton vrai visage sur le résultat, pour une ressemblance parfaite. Coûte 1 image de plus et prend <b>quelques minutes</b> (moteur haute fidélité). · Optional maximum quality: re-applies your real face for a perfect likeness (takes a few extra minutes).</span>
     </label>
 
     <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor (≈ 0,04 $)</button>
@@ -355,8 +355,8 @@
     <textarea id="poCustom" rows="2" class="hidden" placeholder="Ex : debout de profil, une main qui ajuste sa veste, regard vers l'objectif" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; line-height:1.5; resize:vertical; margin-top:8px;"></textarea>
 
     <label class="opt" style="margin-top:10px; display:flex;">
-      <input type="checkbox" id="poFaceChk" checked>
-      <span>🎯 <b>Recoller mon vrai visage après</b> — recommandé : changer la posture <b>redessine toute la personne</b> et peut modifier le visage. Coûte 1 image de plus. · Re-applies your real face after the pose change.</span>
+      <input type="checkbox" id="poFaceChk">
+      <span>🎯 <b>Recoller mon vrai visage après</b> — <b>option qualité maximale</b> : replace ton vrai visage sur le résultat, pour une ressemblance parfaite. Coûte 1 image de plus et prend <b>quelques minutes</b> (moteur haute fidélité). · Optional maximum quality: re-applies your real face for a perfect likeness (takes a few extra minutes).</span>
     </label>
     <button class="btn" id="poGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
     <div class="estimate" id="poInfo" style="margin-top:8px;"></div>
@@ -706,7 +706,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.11</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.17</span>
   </footer>
 </div>
 
@@ -1729,7 +1729,7 @@ async function transformLieu() {
     if (chkFace && chkFace.checked) {
       info.textContent = "🎯 Recollage de ton vrai visage… (20 à 60 s)";
       try {
-        const corrigee = await recollerVisage(url, typeof fxGenre !== "undefined" ? fxGenre : "male");
+        const corrigee = await recollerVisage(url, typeof fxGenre !== "undefined" ? fxGenre : "male", info);
         if (corrigee) url = corrigee;
       } catch (e) { /* on garde l'image du décor */ }
     }
@@ -2998,8 +2998,8 @@ async function runLipsync() {
       await new Promise(r => setTimeout(r, 5000));
       const sj = await apiPoll(statusUrl);
       pct = Math.min(pct + 1, 95);
-      if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"}) — ${elapsed()} écoulées. Normal jusqu'à 12 min, laisse l'app ouverte.`, pct);
-      else if (sj.status === "IN_PROGRESS") setLipStatus(`Le studio synchronise les lèvres — ${elapsed()} écoulées (normal : 5 à 12 min). Laisse l'app ouverte, écran allumé.`, pct);
+      if (sj.status === "IN_QUEUE") setLipStatus(`En file d'attente (position ${sj.queue_position ?? "…"}) — ${elapsed()} écoulées. Laisse l'app ouverte, ça démarre.`, pct);
+      else if (sj.status === "IN_PROGRESS") setLipStatus(`Le studio synchronise les lèvres — ${elapsed()} écoulées. La haute qualité prend quelques minutes : laisse l'app ouverte, écran allumé.`, pct);
       else if (sj.status === "COMPLETED") break;
       if (sj.status === "FAILED" || sj.status === "ERROR") {
         // v35.9 : récupérer le motif exact de l'échec au lieu d'un message générique
@@ -3978,6 +3978,28 @@ document.getElementById("poUsePhoto").onclick = () => {
   document.getElementById("poName").textContent = "✓ Photo du volet 1";
   poRefresh();
 };
+// v41.12 — Dialogue Face Lock : la dégradation est une décision explicite du client.
+function poDialogueFaceLock(raison) {
+  return new Promise((res) => {
+    const ov = document.createElement("div");
+    ov.id = "poFaceDialog";
+    ov.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;";
+    ov.innerHTML = `
+      <div style="background:var(--panel,#141824); border:1px solid var(--gold,#e9c46a); border-radius:14px; max-width:420px; padding:20px;">
+        <b>🎯 Face Lock n'a pas pu être appliqué.</b>
+        <div class="estimate" style="margin-top:6px;">La nouvelle posture a été créée, mais l'identité du visage n'est pas garantie.</div>
+        <div class="estimate" style="margin-top:6px; opacity:.8;">${raison || ""}</div>
+        <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="poFlRetry" style="flex:1;">🔁 Réessayer le Face Lock</button>
+          <button class="btn" id="poFlKeep" style="flex:1; background:#7a3030; color:#fff;">⚠️ Utiliser quand même cette image</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    ov.querySelector("#poFlRetry").onclick = () => { ov.remove(); res("retry"); };
+    ov.querySelector("#poFlKeep").onclick = () => { ov.remove(); res("keep"); };
+  });
+}
+
 document.getElementById("poGo").onclick = async () => {
   const b = document.getElementById("poGo"), info = document.getElementById("poInfo");
   b.disabled = true;
@@ -3989,14 +4011,39 @@ document.getElementById("poGo").onclick = async () => {
       : POSTURES.find(p => p[0] === poSel)[2];
     // Ici la pose CHANGE volontairement — mais le visage, la tenue et le décor
     // restent verrouillés, exactement comme dans les autres volets.
-    const prompt = "Change ONLY the body posture of the person: " + desc + ". "
-      + "The face must stay pixel-identical to the source photo: same eyes, same nose, same mouth, same beard, "
+    // ═══ v41.15 : RÉFÉRENCES D'IDENTITÉ ET DE MORPHOLOGIE ═══
+    // Constat d'audit : jusqu'ici poGo n'envoyait AUCUNE référence — le moteur
+    // reconstruisait le corps sans modèle, d'où la silhouette amincie.
+    // On joint désormais la référence visage frontale et la photo d'origine
+    // plein pied, en les désignant explicitement dans la consigne.
+    const refVisage = (typeof fxVisageUrl !== "undefined" && fxVisageUrl) || (faceRefUrls.filter(Boolean)[0]) || null;
+    const refCorps  = photoOriginaleUrl || null;   // la vraie photo importée : morphologie réelle
+    const images = [poSource];
+    if (refVisage && refVisage !== poSource) images.push(refVisage);
+    if (refCorps && refCorps !== poSource && refCorps !== refVisage) images.push(refCorps);
+    const nRef = images.length - 1;
+
+    // Anglais FIXE relu. Désignation par position, jamais « me/my ».
+    const ROLE_REFS = nRef === 0 ? "" :
+      (nRef === 1
+        ? "The SECOND image is a reference photo of the SAME person: use it only to keep their exact face and body, never copy its background, its pose or its clothing. "
+        : "The SECOND image is a face reference of the SAME person and the THIRD image is a full-body reference of the SAME person: use them ONLY to keep their exact face and their exact body shape, never copy their backgrounds, their poses or their clothing. ");
+
+    const MORPHOLOGIE =
+      "Keep the body of the person EXACTLY as it is in the reference photos: same weight, same build and corpulence, "
+      + "same shoulder width, same chest and same belly, same leg-to-torso proportions, same height and same apparent size in the frame. "
+      + "Do NOT slim the person down, do NOT make them thinner, do NOT make them taller, do NOT make them more muscular, "
+      + "do NOT reshape their silhouette in any way. Only the posture changes. ";
+
+    const prompt = "Use the FIRST image as the base image. " + ROLE_REFS
+      + "Change ONLY the body posture of the person: " + desc + ". "
+      + "The face must stay identical to the reference photos: same eyes, same nose, same mouth, same beard, "
       + "same jawline and cheeks, same skin tone, same hairstyle, same age. Never beautify, never rejuvenate. "
-      + "Keep the exact same body: same weight, same build, same belly and shoulders, never slim the person down, "
-      + "never make them more muscular or taller. Keep EXACTLY the same clothing (same garments, same colors, "
-      + "same patterns and accessories) and the exact same background and lighting. "
+      + MORPHOLOGIE
+      + "Keep EXACTLY the same clothing as in the FIRST image (same garments, same colors, "
+      + "same patterns and accessories) and the exact same background and lighting as the FIRST image. "
       + UNIQUE_PERSON + "Natural anatomy, correct hands with five fingers. Photorealistic, seamless, high quality.";
-    const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt, image_urls: [poSource], num_images: 1 });
+    const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt, image_urls: images, num_images: 1 });
     const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
     for (let i = 0; i < 60; i++) {
@@ -4013,20 +4060,46 @@ document.getElementById("poGo").onclick = async () => {
         : (data.error || data.message || JSON.stringify(data).slice(0, 200));
       throw new Error("Image introuvable. Détail serveur : « " + brut + " »");
     }
-    // v41.10 : la posture reconstruit la personne (🎯 Face Lock) — recollage
-    // automatique du VRAI visage, comme le Décor depuis la v38.7. En cas
-    // d'échec du recollage, on garde l'image de posture telle quelle.
+    // v41.12 : Face Lock après posture — MÊME RÈGLE que le Pixel Lock :
+    // AUCUN échec silencieux. Si le recollage échoue, le client CHOISIT :
+    // réessayer, ou utiliser l'image sans garantie (décision explicite).
+    // Ordre du visage source (validé) : choisi manuellement → identityRefs.front
+    // (quand il existera) → faceRefUrls[0] → photoOriginaleUrl. JAMAIS une image
+    // générée — s'il n'existe aucune source sûre, c'est un échec, pas un repli.
     let urlFinale = url;
+    let visageRecolle = false, sansGarantie = false;
     const poChk = document.getElementById("poFaceChk");
     if (poChk && poChk.checked) {
-      info.textContent = "🎯 Recollage de ton vrai visage… (20 à 60 s)";
-      try {
-        const corrigee = await recollerVisage(urlFinale, typeof fxGenre !== "undefined" ? fxGenre : "male");
-        if (corrigee) urlFinale = corrigee;
-      } catch (e) { /* on garde l'image de posture */ }
+      const sourceVisage =
+        (typeof fxVisageUrl !== "undefined" && fxVisageUrl) ||
+        (typeof identityRefs !== "undefined" && identityRefs && identityRefs.front) ||
+        (faceRefUrls.filter(Boolean)[0]) ||
+        photoOriginaleUrl || null;   // photoDataUrl EXCLUE : peut être une image générée
+      let continuer = true;
+      while (continuer) {
+        if (!sourceVisage) {
+          const choix = await poDialogueFaceLock("Aucune photo sûre de ton visage n'est disponible (ni référence, ni photo d'origine importée). Ajoute une photo de référence au volet 1, ou choisis un visage dans « Recoller le vrai visage ».");
+          if (choix === "retry") { continue; }
+          sansGarantie = true; break;
+        }
+        info.textContent = "🎯 Recollage de ton vrai visage… (20 à 60 s)";
+        try {
+          const corrigee = await recollerVisage(urlFinale, typeof fxGenre !== "undefined" ? fxGenre : "male", info);
+          if (!corrigee) throw new Error("Le recollage n'a renvoyé aucune image.");
+          urlFinale = corrigee; visageRecolle = true; continuer = false;
+        } catch (e) {
+          const choix = await poDialogueFaceLock(e && e.message ? e.message : String(e));
+          if (choix === "retry") { continue; }
+          sansGarantie = true; continuer = false;
+        }
+      }
     }
     url = urlFinale;
-    info.innerHTML = `<span style="color:var(--ok)">✓ Posture changée !</span>`;
+    info.innerHTML = visageRecolle
+      ? `<span style="color:var(--ok)">✓ Posture changée — 🎯 vrai visage recollé !</span>`
+      : (sansGarantie
+        ? `<span class="err">⚠️ Posture utilisée SANS garantie du visage — ton choix explicite.</span>`
+        : `<span style="color:var(--ok)">✓ Posture changée !</span>`);
     document.getElementById("poResult").innerHTML = `
       <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
@@ -4056,7 +4129,13 @@ document.getElementById("poGo").onclick = async () => {
 };
 poRefresh();
 
-// ═══════════ v37.9 : RECOLLER LE VRAI VISAGE (easel-ai/advanced-face-swap) ═══════════
+// ═══════════ v41.16 : RECOLLER LE VRAI VISAGE (fal-ai/hy-wu-edit) — MOTEUR UNIQUE ═══════════
+// easel-ai/advanced-face-swap est DEPRECATED depuis le 15 janvier 2026 : il acceptait
+// les demandes et ne les exécutait JAMAIS (découvert le 15 août 2026). Remplacé par
+// fal-ai/hy-wu-edit, prouvé par 4 générations réellement abouties (~0,10 $/image, ~100 s).
+// RÈGLE : recollerVisage() est le SEUL moteur Face Lock de StarClip. Posture, Décor et
+// le volet dédié passent tous par cette fonction — endpoint, prompt, patience, erreurs :
+// un seul endroit, aucune divergence possible.
 // Le moteur de décor REDESSINE toute l'image : quand le visage est petit dans le
 // cadre, il dérive malgré les consignes. Ce volet fait une passe dédiée qui
 // replace le visage de la photo d'origine en gardant la scène — c'est la
@@ -4139,26 +4218,110 @@ document.getElementById("fxUseLast").onclick = () => {
 };
 // v38.7 : recollage réutilisable — appelé par le volet dédié ET automatiquement
 // après un changement de décor si la case est cochée.
+// v41.13 : recollage DIAGNOSTIQUE — la vraie erreur du serveur n'est plus avalée.
+// Avant : le statut FAILED était ignoré et la fonction rendait null → message
+// inutile « n'a renvoyé aucune image ». Désormais chaque étage parle.
+function pxlDetailErreur(o) {
+  if (!o || typeof o !== "object") return "";
+  const d = o.detail || o.error || o.message || (o.response && (o.response.detail || o.response.error));
+  if (!d) return "";
+  if (typeof d === "string") return d.slice(0, 220);
+  try { return JSON.stringify(d).slice(0, 220); } catch (e) { return ""; }
+}
+
+// v41.16 : consigne Face Lock en anglais FIXE (validée en test réel hy-wu-edit).
+// Image 1 = scène cible (le corps, la posture, la tenue et le décor font foi).
+// Image 2 = visage de référence (SEULS les traits du visage en sont extraits).
+// Le chapeau/les lunettes déjà présents dans l'image 1 RESTENT ; seuls les
+// accessoires venant de l'image 2 sont bloqués (défaut constaté en playground).
+const PROMPT_FACELOCK =
+  "Using image 1 as the base image, replace only the facial features of the person "
++ "with the face identity from image 2. Preserve the exact head pose and viewing "
++ "direction required by image 1. Preserve the characteristic eyes, nose, mouth, "
++ "beard, jawline, cheeks, skin tone and facial proportions from image 2. "
++ "Do NOT copy any hat, cap, glasses, sunglasses, jewellery, clothing or background "
++ "from image 2. Keep the body, body proportions, posture, clothing, accessories, "
++ "hands, background, framing and lighting of image 1 unchanged. "
++ "Do not beautify, rejuvenate or redesign the person.";
+
+// v41.16 : `genre` reste dans la signature pour la compatibilité des appelants,
+// mais hy-wu-edit n'en a pas besoin — il n'est plus utilisé.
 async function recollerVisage(cible, genre) {
-  const visage = fxVisageUrl || (faceRefUrls.filter(Boolean)[0]) || photoOriginaleUrl || photoDataUrl;
-  if (!visage) throw new Error("Aucune photo de référence pour le visage.");
-  const job = await apiSubmit("easel-ai/advanced-face-swap", {
-    face_image_0: visage,
-    gender_0: genre || "male",
-    target_image: cible,
-    workflow_type: "target_hair",
-    upscale: true,
+  // Ordre STRICT du visage source (règle validée) :
+  // fxVisageUrl → identityRefs.front → faceRefUrls[0] → photoOriginaleUrl.
+  // JAMAIS photoDataUrl : elle peut contenir une image GÉNÉRÉE, et recoller une
+  // approximation sur une approximation détruit l'identité. S'il n'existe aucune
+  // vraie référence : erreur explicite, AUCUNE génération (pas de repli).
+  const visage =
+    (typeof fxVisageUrl !== "undefined" && fxVisageUrl) ||
+    (typeof identityRefs !== "undefined" && identityRefs && identityRefs.front) ||
+    (faceRefUrls.filter(Boolean)[0]) ||
+    photoOriginaleUrl || null;
+  if (!visage) throw new Error("Aucune vraie photo de référence pour le visage (ni référence visage, ni photo d'origine importée). Ajoute une photo de référence au volet 1.");
+
+  // v41.13 : les grosses images en data URI dépassent la limite d'envoi (même
+  // limite que le lip-sync). Si le visage source est une data URI, on l'héberge
+  // d'abord chez fal (PUT direct, les octets ne passent pas par le Worker).
+  let visageEnvoye = visage, viaHebergement = false;
+  if (typeof visage === "string" && visage.startsWith("data:") && visage.length > 200000) {
+    try {
+      visageEnvoye = await hebergerFichier(visage, "visage-source.jpg");
+      viaHebergement = true;
+    } catch (e) { /* on tente quand même en data URI */ }
+  }
+  // v41.16 : la CIBLE aussi peut être une data URI volumineuse (image importée
+  // dans le volet dédié). Même règle, même hébergement.
+  let cibleEnvoyee = cible;
+  if (typeof cible === "string" && cible.startsWith("data:") && cible.length > 200000) {
+    try { cibleEnvoyee = await hebergerFichier(cible, "scene-cible.jpg"); } catch (e) { /* idem */ }
+  }
+
+  const job = await apiSubmit("fal-ai/hy-wu-edit", {
+    prompt: PROMPT_FACELOCK,
+    image_urls: [cibleEnvoyee, visageEnvoye],   // image 1 = scène, image 2 = visage
+    num_images: 1,
   });
-  const st = job.status_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}/status`;
-  const rp = job.response_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}`;
-  for (let i = 0; i < 60; i++) {
+  const st = job.status_url || `https://queue.fal.run/fal-ai/hy-wu-edit/requests/${job.request_id}/status`;
+  const rp = job.response_url || `https://queue.fal.run/fal-ai/hy-wu-edit/requests/${job.request_id}`;
+  // v41.14 : le recollage passe par une FILE D'ATTENTE et peut rester plusieurs
+  // minutes avant de démarrer (constaté en test réel ; hy-wu-edit ≈ 100 s de calcul).
+  // On attend jusqu'à 5 minutes, temps écoulé et état affichés en direct.
+  const zoneInfo = arguments.length > 2 && arguments[2] ? arguments[2] : null;
+  const LIBELLE = { IN_QUEUE: "en file d'attente", IN_PROGRESS: "en cours de traitement" };
+  let statutFinal = "";
+  // v41.16.1 : hy-wu-edit est LENT. Mesuré sur le compte fal : 554 s (9 min 14) et
+  // 143 s sur deux générations réelles. La patience de 5 min coupait AVANT la fin —
+  // le crédit était dépensé chez fal et l'image perdue. Portée à 12 minutes.
+  const TOTAL = 240;   // 240 × 3 s = 12 minutes
+  for (let i = 0; i < TOTAL; i++) {
     await new Promise(rs => setTimeout(rs, 3000));
     const sj = await apiPoll(st);
+    statutFinal = sj.status || statutFinal;
+    if (zoneInfo) zoneInfo.textContent = "🎯 Recollage de ton vrai visage — "
+      + (LIBELLE[sj.status] || "en cours") + "… (" + ((i + 1) * 3) + " s — la haute fidélité prend quelques minutes, ne ferme pas la page)";
     if (sj.status === "COMPLETED") break;
-    if (sj.status === "FAILED" || sj.status === "ERROR") break;
+    if (sj.status === "FAILED" || sj.status === "ERROR") {
+      const det = pxlDetailErreur(sj);
+      throw new Error("Le moteur de recollage a refusé (" + sj.status + ")"
+        + (det ? " : " + det : ".")
+        + (viaHebergement ? " [visage hébergé]" : " [visage envoyé directement]"));
+    }
+  }
+  if (statutFinal === "IN_QUEUE" || statutFinal === "IN_PROGRESS") {
+    throw new Error("Le moteur haute fidélité est très sollicité en ce moment "
+      + "(" + (LIBELLE[statutFinal] || statutFinal) + "). Ce n'est pas une erreur de ta photo : "
+      + "ta nouvelle posture est prête et utilisable, et tu peux relancer le recollage dans un instant.");
   }
   const data = await apiPoll(rp);
-  return data.image?.url || data.images?.[0]?.url || data.response?.image?.url || data.response?.images?.[0]?.url || null;
+  const url = data.image?.url || data.images?.[0]?.url || data.response?.image?.url || data.response?.images?.[0]?.url || null;
+  if (!url) {
+    const det = pxlDetailErreur(data);
+    throw new Error("Le recollage n'a renvoyé aucune image"
+      + (statutFinal ? " (dernier statut : " + statutFinal + ")" : "")
+      + (det ? " — " + det : ".")
+      + (viaHebergement ? " [visage hébergé]" : " [visage envoyé directement]"));
+  }
+  return url;
 }
 
 document.getElementById("fxGo").onclick = async () => {
@@ -4167,31 +4330,12 @@ document.getElementById("fxGo").onclick = async () => {
   info.textContent = "🎯 Recollage du visage… (20 à 60 s)";
   try {
     if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
-    const visage = fxVisageUrl || (faceRefUrls.filter(Boolean)[0]) || photoOriginaleUrl || photoDataUrl;
-    if (!visage) throw new Error("Ajoute d'abord ta photo (volet 1) ou une photo de référence visage.");
-    const job = await apiSubmit("easel-ai/advanced-face-swap", {
-      face_image_0: visage,
-      gender_0: fxGenre,
-      target_image: fxTarget,
-      workflow_type: "target_hair",   // garde la coiffure/chapeau de la scène
-      upscale: true,
-    });
-    const statusUrl = job.status_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}/status`;
-    const responseUrl = job.response_url || `https://queue.fal.run/easel-ai/advanced-face-swap/requests/${job.request_id}`;
-    for (let i = 0; i < 60; i++) {
-      await new Promise(rs => setTimeout(rs, 3000));
-      const sj = await apiPoll(statusUrl);
-      if (sj.status === "COMPLETED") break;
-      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le recollage a échoué côté serveur.");
-    }
-    const data = await apiPoll(responseUrl);
-    const url = data.image?.url || data.images?.[0]?.url || data.response?.image?.url || data.response?.images?.[0]?.url;
-    if (!url) {
-      const brut = data.detail
-        ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
-        : (data.error || data.message || JSON.stringify(data).slice(0, 200));
-      throw new Error("Image introuvable. Détail serveur : « " + brut + " »");
-    }
+    // v41.16 : PLUS AUCUN pipeline propre à ce volet. recollerVisage() est le
+    // moteur Face Lock UNIQUE de StarClip (hy-wu-edit) — même choix de visage
+    // source (ordre strict, jamais photoDataUrl), même prompt, même patience de
+    // 5 minutes, mêmes messages d'erreur. Corriger un chemin = corriger tous.
+    const url = await recollerVisage(fxTarget, fxGenre, info);
+    if (!url) throw new Error("Le recollage n'a renvoyé aucune image.");
     info.innerHTML = `<span style="color:var(--ok)">✓ Vrai visage recollé !</span>`;
     document.getElementById("fxResult").innerHTML = `
       <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
