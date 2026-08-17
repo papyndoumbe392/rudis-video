@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.29 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.30 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -470,7 +470,7 @@
       · <i>A real dancer's movement is transferred onto your photo.</i>
     </div>
 
-    <div class="label" style="color:var(--gold);">① QUI DANSE ? — ta photo</div>
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px;">① QUI DANSE ? — ta photo</div>
     <div class="estimate" style="margin:0 0 6px;">La personne sur cette photo va danser. · <i>This person will dance.</i></div>
     <div class="chips">
       <button class="chip on" id="dansePhotoV1">📸 Photo du volet 1</button>
@@ -480,13 +480,13 @@
     <div class="estimate" id="dansePhotoNom"></div>
     <img id="dansePhotoPreview" class="hidden" style="width:38%; border-radius:10px; margin-top:8px;">
 
-    <div class="label" style="margin-top:16px; color:var(--gold);">② QUELLE DANSE ? — choisis <u>UNE</u> des deux façons</div>
-    <div class="estimate" style="margin:0 0 8px;">⭐ <b>Soit</b> tu prends une danse du studio (A) — <b>soit</b> tu importes ta propre vidéo (B). <b>Pas les deux</b> : le dernier choix remplace l'autre. · <i>Either A or B — not both.</i></div>
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:18px;">② QUELLE DANSE ? — choisis <u>UNE</u> des deux façons</div>
+    <div class="estimate" style="margin:0 0 8px;">⭐ <b>Soit</b> tu prends une danse du studio (A) — <b>soit</b> tu importes ta propre vidéo (B). <b style="color:var(--gold);">Pas les deux</b> : le dernier choix remplace l'autre. · <i>Either A or B — not both.</i></div>
 
-    <div class="estimate" style="margin:10px 0 2px;"><b>A · 🎬 Danses StarClip</b> — chorégraphies filmées par le studio, prêtes à l'emploi. <b>Rien à importer.</b></div>
+    <div class="estimate" style="margin:10px 0 2px;"><b style="color:var(--gold);">A · 🎬 Danses StarClip</b> — chorégraphies filmées par le studio, prêtes à l'emploi. <b style="color:var(--gold);">Rien à importer.</b></div>
     <div id="danseBiblio"></div>
 
-    <div class="estimate" style="margin:14px 0 2px;"><b>B · 📹 Ma propre danse</b> — uniquement si tu veux une danse qui n'est pas dans la liste A.</div>
+    <div class="estimate" style="margin:14px 0 2px;"><b style="color:var(--gold);">B · 📹 Ma propre danse</b> — uniquement si tu veux une danse qui n'est pas dans la liste A.</div>
     <div class="estimate" style="margin:0 0 6px;">Filme <b>UNE seule personne</b> qui danse, <b>corps entier visible</b>, caméra fixe, <b>10 secondes maximum</b>. C'est CE mouvement qui sera reproduit par ta photo. · <i>One person, full body, max 10 seconds.</i></div>
     <div class="chips">
       <button class="chip" id="dansePersoBtn">📂 Importer une vidéo de danse (max 10 s)</button>
@@ -494,7 +494,7 @@
     <input type="file" id="dansePersoInput" accept="video/*" style="display:none;">
     <div class="estimate" id="dansePersoNom"></div>
 
-    <div class="label" style="margin-top:16px; color:var(--gold);">③ C'EST PARTI</div>
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:18px;">③ C'EST PARTI</div>
     <div class="estimate" style="margin-top:6px;">Vidéo verticale prête pour tes clips. <b>Coût : 1 crédit vidéo jusqu'à 5 s · 2 crédits de 5 à 10 s</b> — le prix exact s'affiche sur le bouton avant de lancer. ⚠️ Tu es responsable des vidéos que tu importes : n'utilise que des danses que tu as le droit d'utiliser. · <i>You are responsible for imported dance videos.</i></div>
     <button class="master" id="danseGo" disabled>⬆️ Choisis d'abord une danse (en haut de ce volet)</button>
     <div class="estimate" style="margin-top:6px;">💡 C'est <b>CE bouton</b> qui crée ton clip de danse — pas le grand bouton doré « Générer la vidéo » en bas de page (lui sert aux vidéos écrites au scénario). · <i>THIS button makes the dance clip.</i></div>
@@ -749,7 +749,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.29</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.30</span>
   </footer>
 </div>
 
@@ -1210,8 +1210,8 @@ async function aiExtendPhoto(ratio) {
       canvas_size: [cw, ch],
       original_image_size: [iw2, ih2],
       original_image_location: [ox, oy],
-      prompt: "continue the same background scenery outwards: same street, same ground, same sky, same buildings, same lighting and perspective. Only empty scenery in the new areas.",
-      negative_prompt: "person, people, man, woman, figure, body, arm, leg, clothing, jacket, trousers, close-up foreground object, blurry foreground shape, duplicated subject, cloned person, repeated figure, mirrored subject, twin, collage, visible seams",
+      prompt: "continue the same background scenery outwards: same street, same ground, same sky, same buildings, same lighting and perspective. The new side areas must contain ONLY plain empty background (ground, wall, vegetation, sky) — no object, no vehicle, no furniture. If an object such as a car is cut by the edge of the original photo, do NOT extend it, do NOT repeat it and do NOT invent a second one: simply let the plain background continue behind it.",
+      negative_prompt: "person, people, man, woman, figure, body, arm, leg, clothing, jacket, trousers, close-up foreground object, blurry foreground shape, duplicated subject, cloned person, repeated figure, mirrored subject, twin, collage, visible seams, duplicated car, second car, repeated vehicle, mirrored vehicle, stretched car body, elongated car, smeared object, cloned object, repeated furniture, duplicated background element, symmetrical repetition",
       num_images: 1,
     });
     const statusUrl = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -1233,7 +1233,7 @@ async function aiExtendPhoto(ratio) {
     const slot = document.getElementById("photoSlot");
     slot.style.backgroundImage = `url(${url})`;
     slot.textContent = ""; slot.classList.add("filled");
-    label.innerHTML = `<span style="color:var(--ok)">✓ Décor prolongé par l'IA au format ${ratio} — vrai décor, sans duplication.</span>`;
+    label.innerHTML = `<span style="color:var(--ok)">✓ Décor prolongé par l'IA au format ${ratio}. 💡 Vérifie les bords : si un objet coupé (voiture, meuble) a été recopié, reviens au format Original ou refais l'extension.</span>`;
     refresh();
   } catch (err) {
     // Repli : ancien fond flouté si l'IA échoue
