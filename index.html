@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.28 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.29 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -470,18 +470,8 @@
       · <i>A real dancer's movement is transferred onto your photo.</i>
     </div>
 
-    <div class="label">🎬 Danses StarClip — chorégraphies du studio</div>
-    <div id="danseBiblio"></div>
-
-    <div class="label" style="margin-top:12px;">📹 Ma propre danse — importe ta vidéo</div>
-    <div class="estimate" style="margin:0 0 6px;">Filme <b>UNE seule personne</b> qui danse, <b>corps entier visible</b>, caméra fixe, <b>10 secondes maximum</b>. C'est CE mouvement qui sera reproduit par ta photo. · <i>One person, full body, max 10 seconds.</i></div>
-    <div class="chips">
-      <button class="chip" id="dansePersoBtn">📂 Importer une vidéo de danse (max 10 s)</button>
-    </div>
-    <input type="file" id="dansePersoInput" accept="video/*" style="display:none;">
-    <div class="estimate" id="dansePersoNom"></div>
-
-    <div class="label" style="margin-top:12px;">🧍 Qui danse ? — la photo de la personne</div>
+    <div class="label" style="color:var(--gold);">① QUI DANSE ? — ta photo</div>
+    <div class="estimate" style="margin:0 0 6px;">La personne sur cette photo va danser. · <i>This person will dance.</i></div>
     <div class="chips">
       <button class="chip on" id="dansePhotoV1">📸 Photo du volet 1</button>
       <button class="chip" id="dansePhotoImportBtn">📂 Importer une image</button>
@@ -490,7 +480,22 @@
     <div class="estimate" id="dansePhotoNom"></div>
     <img id="dansePhotoPreview" class="hidden" style="width:38%; border-radius:10px; margin-top:8px;">
 
-    <div class="estimate" style="margin-top:10px;">Vidéo verticale prête pour tes clips. <b>Coût : 1 crédit vidéo jusqu'à 5 s · 2 crédits de 5 à 10 s</b> — le prix exact s'affiche sur le bouton avant de lancer. ⚠️ Tu es responsable des vidéos que tu importes : n'utilise que des danses que tu as le droit d'utiliser. · <i>You are responsible for imported dance videos.</i></div>
+    <div class="label" style="margin-top:16px; color:var(--gold);">② QUELLE DANSE ? — choisis <u>UNE</u> des deux façons</div>
+    <div class="estimate" style="margin:0 0 8px;">⭐ <b>Soit</b> tu prends une danse du studio (A) — <b>soit</b> tu importes ta propre vidéo (B). <b>Pas les deux</b> : le dernier choix remplace l'autre. · <i>Either A or B — not both.</i></div>
+
+    <div class="estimate" style="margin:10px 0 2px;"><b>A · 🎬 Danses StarClip</b> — chorégraphies filmées par le studio, prêtes à l'emploi. <b>Rien à importer.</b></div>
+    <div id="danseBiblio"></div>
+
+    <div class="estimate" style="margin:14px 0 2px;"><b>B · 📹 Ma propre danse</b> — uniquement si tu veux une danse qui n'est pas dans la liste A.</div>
+    <div class="estimate" style="margin:0 0 6px;">Filme <b>UNE seule personne</b> qui danse, <b>corps entier visible</b>, caméra fixe, <b>10 secondes maximum</b>. C'est CE mouvement qui sera reproduit par ta photo. · <i>One person, full body, max 10 seconds.</i></div>
+    <div class="chips">
+      <button class="chip" id="dansePersoBtn">📂 Importer une vidéo de danse (max 10 s)</button>
+    </div>
+    <input type="file" id="dansePersoInput" accept="video/*" style="display:none;">
+    <div class="estimate" id="dansePersoNom"></div>
+
+    <div class="label" style="margin-top:16px; color:var(--gold);">③ C'EST PARTI</div>
+    <div class="estimate" style="margin-top:6px;">Vidéo verticale prête pour tes clips. <b>Coût : 1 crédit vidéo jusqu'à 5 s · 2 crédits de 5 à 10 s</b> — le prix exact s'affiche sur le bouton avant de lancer. ⚠️ Tu es responsable des vidéos que tu importes : n'utilise que des danses que tu as le droit d'utiliser. · <i>You are responsible for imported dance videos.</i></div>
     <button class="master" id="danseGo" disabled>⬆️ Choisis d'abord une danse (en haut de ce volet)</button>
     <div class="estimate" style="margin-top:6px;">💡 C'est <b>CE bouton</b> qui crée ton clip de danse — pas le grand bouton doré « Générer la vidéo » en bas de page (lui sert aux vidéos écrites au scénario). · <i>THIS button makes the dance clip.</i></div>
     <div class="estimate" id="danseInfo" style="margin-top:8px;"></div>
@@ -744,7 +749,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.28</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.29</span>
   </footer>
 </div>
 
@@ -3477,8 +3482,8 @@ function danseRefresh() {
     if (p) { pv.src = p; pv.classList.remove("hidden"); } else pv.classList.add("hidden");
   }
   b.disabled = !(danseChoisie && photoOk);
-  b.textContent = !danseChoisie ? "⬆️ Choisis d'abord une danse (en haut de ce volet)"
-    : (!photoOk ? "⬆️ Choisis la photo qui danse (juste au-dessus) — ou ajoute-la au volet 1"
+  b.textContent = !photoOk ? "⬆️ Étape ① : choisis la photo qui danse (ou ajoute-la dans l'onglet 📸 Ta photo)"
+    : (!danseChoisie ? "⬆️ Étape ② : choisis une danse du studio (A) ou importe la tienne (B)"
     : "🕺 Générer le clip de danse (" + danseCredits(danseChoisie.duree || 5) + " crédit" + (danseCredits(danseChoisie.duree || 5) > 1 ? "s" : "") + " vidéo — " + Math.round(danseChoisie.duree || 5) + " s)");
 }
 
@@ -3529,8 +3534,9 @@ document.getElementById("dansePhotoInput").onchange = (e) => {
     danseChoisie = { type: "biblio", url: new URL(d.fichier, location.href).href, nom: d.nom, duree: d.duree || 5 };
     zone.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
     c.classList.add("on");
-    document.getElementById("dansePersoNom").textContent = "";
-    document.getElementById("danseInfo").textContent = "Danse choisie : " + d.nom;
+    document.getElementById("dansePersoNom").innerHTML = "";
+    document.getElementById("dansePersoInput").value = "";
+    document.getElementById("danseInfo").innerHTML = '<span style="color:var(--ok)">✓ Danse du studio choisie : <b>' + d.nom + '</b> — rien à importer.</span>';
     danseRefresh();
   });
 })();
@@ -3554,7 +3560,7 @@ document.getElementById("dansePersoInput").onchange = (e) => {
     danseChoisie = { type: "perso", file: f, nom: f.name, duree: v.duration };
     document.getElementById("danseBiblio").querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
     document.getElementById("dansePersoNom").innerHTML = '<span style="color:var(--ok)">✓ ' + f.name + " (" + v.duration.toFixed(1) + " s)</span>";
-    document.getElementById("danseInfo").textContent = "";
+    document.getElementById("danseInfo").innerHTML = '<span style="color:var(--ok)">✓ Ta vidéo est choisie — la danse du studio a été désélectionnée.</span>';
     danseRefresh();
   };
   v.onerror = () => { document.getElementById("danseInfo").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
