@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.32 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.33 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -800,7 +800,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.32</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.33</span>
   </footer>
 </div>
 
@@ -3848,8 +3848,14 @@ document.getElementById("dvCreerBtn").onclick = async () => {
     if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
     info.textContent = "🎨 Création de ton décor… (10–30 s)";
     const job = await apiSubmit("fal-ai/nano-banana/edit", {
+      // v41.33 : cadrage imposé EN DUR (garantie par construction, le client n'écrit que
+      // le lieu). Constat des essais du 18 août : un décor cadré comme nos vidéos sources
+      // (appareil à hauteur de poitrine) + un sol légèrement réfléchissant ancrent les
+      // pieds ; sans cela, la personne semble flotter (aucune ombre de contact — l'ombre
+      // d'origine appartenait à l'ancien fond et disparaît avec lui). Preuve par test
+      // réel : décor Arc de Triomphe mouillé = pieds ancrés ; décor pavés secs = flottement.
       prompt: "A photorealistic wide establishing shot of " + desc
-        + ". Empty scene with NO people in the foreground, camera at eye level, deep perspective, cinematic natural lighting, high detail. No text, no watermark, no brand logos.",
+        + ". Empty scene with NO people, photographed from chest height, eye-level horizon, ground plane clearly visible in the lower third of the frame, slightly wet reflective ground surface, empty foreground area at the bottom center, cinematic natural lighting, high detail. No text, no watermark, no brand logos.",
       image_urls: [],
       num_images: 1,
       output_format: "png",
@@ -3893,6 +3899,14 @@ document.getElementById("dvGo").onclick = async () => {
     const job = await apiSubmit(DV_MOTEUR, {
       video_url: videoUrl,
       image_url: imageUrl,
+      // v41.33 : clause d'ancrage EN DUR — pixverse remplace le fond mais ne recrée pas
+      // l'ombre que la personne projetait dans la scène d'origine (elle appartenait à
+      // l'ancien fond) ; sans ombre de contact, les pieds semblent flotter. Cette clause
+      // demande explicitement l'ombre sous les pieds. ⚠️ À VALIDER par le test local
+      // v41.33 (règle : documentation ≠ modèle opérationnel) : si le moteur refuse le
+      // champ, l'erreur s'affichera en clair (aucun échec silencieux) et on retirera
+      // la clause ; s'il l'ignore, les décors corrigés (sols réfléchissants) suffisent.
+      prompt: "soft natural contact shadow beneath the subject's feet, subject firmly planted on the ground surface, feet touching the ground",
       mode: "background",          // EN DUR : "person" (défaut de l'API) remplacerait la personne !
       keyframe_id: 1,
       resolution: "720p",
