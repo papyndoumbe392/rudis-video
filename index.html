@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.30 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.31 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -470,6 +470,7 @@
       · <i>A real dancer's movement is transferred onto your photo.</i>
     </div>
 
+    <div class="atelier"><div>
     <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px;">① QUI DANSE ? — ta photo</div>
     <div class="estimate" style="margin:0 0 6px;">La personne sur cette photo va danser. · <i>This person will dance.</i></div>
     <div class="chips">
@@ -498,8 +499,58 @@
     <div class="estimate" style="margin-top:6px;">Vidéo verticale prête pour tes clips. <b>Coût : 1 crédit vidéo jusqu'à 5 s · 2 crédits de 5 à 10 s</b> — le prix exact s'affiche sur le bouton avant de lancer. ⚠️ Tu es responsable des vidéos que tu importes : n'utilise que des danses que tu as le droit d'utiliser. · <i>You are responsible for imported dance videos.</i></div>
     <button class="master" id="danseGo" disabled>⬆️ Choisis d'abord une danse (en haut de ce volet)</button>
     <div class="estimate" style="margin-top:6px;">💡 C'est <b>CE bouton</b> qui crée ton clip de danse — pas le grand bouton doré « Générer la vidéo » en bas de page (lui sert aux vidéos écrites au scénario). · <i>THIS button makes the dance clip.</i></div>
-    <div class="estimate" id="danseInfo" style="margin-top:8px;"></div>
-    <div id="danseResult"></div>
+    </div>
+    <div class="atelier-sortie">
+      <h3>🎬 RÉSULTAT</h3>
+      <div class="estimate" id="danseInfo">Ton clip de danse s'affichera ici, avec le son. · <i>Your dance clip will appear here.</i></div>
+      <div id="danseResult"></div>
+    </div></div>
+  </section>
+
+  <section class="card" id="sec-decorvid" style="border-color:var(--gold);">
+    <h2><span class="num">🏙️</span> Changer le décor de ma vidéo</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Ta vidéo garde <b>la personne, ses mouvements, sa tenue et le son</b> — <b>seul l'arrière-plan change</b>.
+      Danse à Douala, aux Champs-Élysées, ou dans le décor que tu inventes.
+      · <i>Only the background changes — person, motion, outfit and sound stay.</i>
+    </div>
+
+    <div class="atelier"><div>
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px;">① QUELLE VIDÉO ?</div>
+    <div class="estimate" style="margin:0 0 6px;"><b>10 secondes maximum.</b> Une vidéo déjà créée par StarClip (danse, clip) ou la tienne. · <i>Max 10 seconds.</i></div>
+    <div class="chips">
+      <button class="chip" id="dvUseDanse">🕺 Ma dernière danse</button>
+      <button class="chip" id="dvImportBtn">📂 Importer une vidéo</button>
+    </div>
+    <input type="file" id="dvInput" accept="video/*" style="display:none;">
+    <div class="estimate" id="dvNom"></div>
+
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:16px;">② QUEL DÉCOR ? — choisis <u>UNE</u> des trois façons</div>
+    <div class="estimate" style="margin:0 0 8px;">⭐ <b style="color:var(--gold);">Une seule</b> : le dernier choix remplace les autres.</div>
+
+    <div class="estimate" style="margin:10px 0 2px;"><b style="color:var(--gold);">A · 🎬 Décors StarClip</b> — prêts à l'emploi. <b style="color:var(--gold);">Rien à importer.</b></div>
+    <div id="dvBiblio"></div>
+
+    <div class="estimate" style="margin:14px 0 2px;"><b style="color:var(--gold);">B · 🎨 Créer mon décor</b> — décris la ville ou le lieu que tu veux : StarClip le fabrique, puis l'applique.</div>
+    <textarea id="dvPrompt" rows="2" placeholder="Ex : une avenue de New York la nuit, néons, taxis jaunes, sol mouillé"></textarea>
+    <button class="chip" id="dvCreerBtn" style="margin-top:6px;">✨ Créer ce décor (≈ 0,04 $ · 1 image)</button>
+
+    <div class="estimate" style="margin:14px 0 2px;"><b style="color:var(--gold);">C · 📂 Importer mon image</b> — si tu as déjà la photo du lieu.</div>
+    <div class="chips">
+      <button class="chip" id="dvImgBtn">📂 Importer une image de décor</button>
+    </div>
+    <input type="file" id="dvImgInput" accept="image/*" style="display:none;">
+    <img id="dvImgPreview" class="hidden" style="width:45%; border-radius:10px; margin-top:8px;">
+
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:16px;">③ C'EST PARTI</div>
+    <div class="estimate" style="margin-top:6px;"><b>Coût : 1 crédit vidéo jusqu'à 5 s · 2 crédits de 5 à 10 s</b> — le prix exact s'affiche sur le bouton. ⚠️ Tu es responsable des vidéos et images que tu importes.</div>
+    <button class="master" id="dvGo" disabled>⬆️ Étape ① : choisis d'abord ta vidéo</button>
+    </div>
+    <div class="atelier-sortie">
+      <h3>🎬 RÉSULTAT</h3>
+      <div class="estimate" id="dvInfo">Ta vidéo avec son nouveau décor s'affichera ici, avec le son. · <i>Your video with its new background will appear here.</i></div>
+      <div id="dvResult"></div>
+    </div></div>
   </section>
 
   <section class="card" id="nav-scenario">
@@ -749,7 +800,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.30</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.31</span>
   </footer>
 </div>
 
@@ -3520,11 +3571,19 @@ document.getElementById("dansePhotoInput").onchange = (e) => {
   if (!zone) return;
   if (!MOTION_DANSES.length) { zone.innerHTML = '<div class="estimate">Bibliothèque en préparation — utilise « Ma propre danse » ci-dessous.</div>'; return; }
   const fams = [...new Set(MOTION_DANSES.map(d => d.fam))];
+  // v41.31 : vignettes CARRÉES avec aperçu vidéo — le client voit le mouvement avant de choisir.
   zone.innerHTML = fams.map(f =>
-    '<div class="estimate" style="margin:6px 0 2px;"><b>' + f + '</b></div>' +
-    '<div class="chips">' + MOTION_DANSES.filter(d => d.fam === f).map(d =>
-      '<button class="chip" data-danse="' + d.id + '">' + d.nom + '</button>').join("") + '</div>'
+    '<div class="estimate" style="margin:8px 0 2px;"><b>' + f + '</b></div>' +
+    '<div class="vignettes">' + MOTION_DANSES.filter(d => d.fam === f).map(d =>
+      '<button class="vign" data-danse="' + d.id + '" title="' + d.nom + '">'
+      + '<video src="' + d.fichier + '" muted loop playsinline preload="metadata"></video>'
+      + '<span>' + d.nom + '</span></button>').join("") + '</div>'
   ).join("");
+  // aperçu animé au survol (ordinateur) — sans autoplay gênant sur mobile
+  zone.querySelectorAll(".vign video").forEach(v => {
+    v.parentElement.onmouseenter = () => { v.play().catch(() => {}); };
+    v.parentElement.onmouseleave = () => { v.pause(); v.currentTime = 0; };
+  });
   zone.querySelectorAll("[data-danse]").forEach(c => c.onclick = () => {
     const d = MOTION_DANSES.find(x => x.id === c.dataset.danse);
     if (location.protocol !== "https:") {
@@ -3532,7 +3591,7 @@ document.getElementById("dansePhotoInput").onchange = (e) => {
       return;
     }
     danseChoisie = { type: "biblio", url: new URL(d.fichier, location.href).href, nom: d.nom, duree: d.duree || 5 };
-    zone.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+    zone.querySelectorAll(".vign").forEach(x => x.classList.remove("on"));
     c.classList.add("on");
     document.getElementById("dansePersoNom").innerHTML = "";
     document.getElementById("dansePersoInput").value = "";
@@ -3558,7 +3617,7 @@ document.getElementById("dansePersoInput").onchange = (e) => {
       danseChoisie = null; danseRefresh(); return;
     }
     danseChoisie = { type: "perso", file: f, nom: f.name, duree: v.duration };
-    document.getElementById("danseBiblio").querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+    document.getElementById("danseBiblio").querySelectorAll(".vign").forEach(x => x.classList.remove("on"));
     document.getElementById("dansePersoNom").innerHTML = '<span style="color:var(--ok)">✓ ' + f.name + " (" + v.duration.toFixed(1) + " s)</span>";
     document.getElementById("danseInfo").innerHTML = '<span style="color:var(--ok)">✓ Ta vidéo est choisie — la danse du studio a été désélectionnée.</span>';
     danseRefresh();
@@ -3615,7 +3674,8 @@ document.getElementById("danseGo").onclick = async () => {
       const det = pxlDetailErreur(data);
       throw new Error("Vidéo introuvable" + (statut ? " (dernier statut : " + statut + ")" : "") + (det ? " — " + det : "."));
     }
-    info.innerHTML = '<span style="color:var(--ok)">✓ Ta photo danse ! Télécharge la vidéo, puis monte-la dans CapCut avec ta chanson.</span>';
+    window.derniereDanseUrl = url;   // v41.31 : réutilisable dans « Changer le décor »
+    info.innerHTML = '<span style="color:var(--ok)">✓ Ta photo danse ! Télécharge la vidéo, ou change son décor dans le volet 🏙️ juste en dessous.</span>';
     document.getElementById("danseResult").innerHTML = `
       <video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
@@ -3626,6 +3686,203 @@ document.getElementById("danseGo").onclick = async () => {
   } finally { b.disabled = false; danseRefresh(); }
 };
 danseRefresh();
+
+
+// ═══════════ 🏙️ v41.31 : CHANGER LE DÉCOR D'UNE VIDÉO (fal-ai/pixverse/swap) ═══════════
+// Validé par test réel du 18 août : la personne, ses mouvements, sa tenue et le son sont
+// conservés ; seul l'arrière-plan est remplacé par l'image fournie (avenue de Douala).
+// Schéma officiel fal vérifié : { video_url, image_url, mode, keyframe_id, resolution,
+// original_sound_switch }. Le mode par défaut de l'API est "person" — il RECOLLE une
+// autre personne à la place du client (erreur constatée au premier essai). StarClip
+// écrit donc "background" EN DUR : aucun réglage laissé au hasard côté client.
+const DV_MOTEUR = "fal-ai/pixverse/swap";
+const DV_PALIER_1 = 5.5;     // ≤ 5 s = 1 crédit vidéo (0,20 $ studio)
+const DV_DUREE_MAX = 10.5;   // au-delà : refus AVANT tout envoi (0,40 $ studio à 2 crédits)
+function dvCredits(d) { return d > DV_PALIER_1 ? 2 : 1; }
+
+// Bibliothèque de décors : ajouter un lieu = déposer l'image sur GitHub + 1 ligne ici.
+const DV_DECORS = [
+  { id: "douala-crep", fam: "🌍 Afrique", nom: "Douala · crépuscule", fichier: "decor-douala-crepuscule.png" },
+  { id: "douala-nuit", fam: "🌍 Afrique", nom: "Douala · nuit",       fichier: "decor-douala-nuit.png" },
+  { id: "champs",      fam: "🌏 Ailleurs", nom: "Champs-Élysées",     fichier: "decor-champs-elysees.png" },
+  { id: "eiffel",      fam: "🌏 Ailleurs", nom: "Tour Eiffel",        fichier: "decor-tour-eiffel.png" },
+];
+
+let dvVideo = null;    // { file } ou { url }
+let dvDuree = 5;
+let dvDecor = null;    // data URL ou URL
+
+function dvRefresh() {
+  const b = document.getElementById("dvGo");
+  b.disabled = !(dvVideo && dvDecor);
+  b.textContent = !dvVideo ? "⬆️ Étape ① : choisis d'abord ta vidéo"
+    : (!dvDecor ? "⬆️ Étape ② : choisis un décor (A, B ou C)"
+    : "🏙️ Changer le décor (" + dvCredits(dvDuree) + " crédit" + (dvCredits(dvDuree) > 1 ? "s" : "") + " vidéo — " + Math.round(dvDuree) + " s)");
+}
+
+(function dvBiblioInit() {
+  const zone = document.getElementById("dvBiblio");
+  if (!zone) return;
+  const fams = [...new Set(DV_DECORS.map(d => d.fam))];
+  zone.innerHTML = fams.map(f =>
+    '<div class="estimate" style="margin:8px 0 2px;"><b>' + f + '</b></div>' +
+    '<div class="vignettes">' + DV_DECORS.filter(d => d.fam === f).map(d =>
+      '<button class="vign" data-decor="' + d.id + '" title="' + d.nom + '">'
+      + '<img src="' + d.fichier + '" alt="' + d.nom + '" loading="lazy">'
+      + '<span>' + d.nom + '</span></button>').join("") + '</div>'
+  ).join("");
+  zone.querySelectorAll("[data-decor]").forEach(c => c.onclick = () => {
+    const d = DV_DECORS.find(x => x.id === c.dataset.decor);
+    if (location.protocol !== "https:") {
+      document.getElementById("dvInfo").innerHTML = '<span class="err">Les décors StarClip nécessitent l\'app en ligne. En local, utilise B (créer) ou C (importer).</span>';
+      return;
+    }
+    dvDecor = new URL(d.fichier, location.href).href;
+    zone.querySelectorAll(".vign").forEach(x => x.classList.remove("on"));
+    c.classList.add("on");
+    document.getElementById("dvImgPreview").classList.add("hidden");
+    document.getElementById("dvInfo").innerHTML = '<span style="color:var(--ok)">✓ Décor choisi : <b>' + d.nom + '</b> — rien à importer.</span>';
+    dvRefresh();
+  });
+})();
+
+// ① la vidéo — durée vérifiée AVANT tout envoi
+function dvLireVideo(src, nom, fichier) {
+  const v = document.createElement("video");
+  v.preload = "metadata";
+  v.onloadedmetadata = () => {
+    if (v.duration > DV_DUREE_MAX) {
+      document.getElementById("dvInfo").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — le maximum est 10 s. Coupe-la puis réimporte-la.</span>';
+      dvVideo = null; dvRefresh(); return;
+    }
+    dvDuree = v.duration;
+    dvVideo = fichier ? { file: fichier } : { url: src };
+    document.getElementById("dvNom").innerHTML = '<span style="color:var(--ok)">✓ ' + nom + " (" + v.duration.toFixed(1) + " s)</span>";
+    dvRefresh();
+  };
+  v.onerror = () => { document.getElementById("dvInfo").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
+  v.src = src;
+}
+document.getElementById("dvUseDanse").onclick = () => {
+  if (!window.derniereDanseUrl) {
+    document.getElementById("dvInfo").innerHTML = '<span class="err">Aucune danse créée pour l\'instant — crée-en une dans le volet 🕺 Danses, ou importe une vidéo.</span>';
+    return;
+  }
+  document.getElementById("dvUseDanse").classList.add("on");
+  document.getElementById("dvImportBtn").classList.remove("on");
+  dvLireVideo(window.derniereDanseUrl, "ta dernière danse", null);
+};
+document.getElementById("dvImportBtn").onclick = () => document.getElementById("dvInput").click();
+document.getElementById("dvInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  document.getElementById("dvImportBtn").classList.add("on");
+  document.getElementById("dvUseDanse").classList.remove("on");
+  dvLireVideo(URL.createObjectURL(f), f.name, f);
+};
+
+// ② C · importer une image de décor
+document.getElementById("dvImgBtn").onclick = () => document.getElementById("dvImgInput").click();
+document.getElementById("dvImgInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    dvDecor = r.result;
+    document.getElementById("dvBiblio").querySelectorAll(".vign").forEach(x => x.classList.remove("on"));
+    const pv = document.getElementById("dvImgPreview"); pv.src = dvDecor; pv.classList.remove("hidden");
+    document.getElementById("dvInfo").innerHTML = '<span style="color:var(--ok)">✓ Ton image de décor est choisie.</span>';
+    dvRefresh();
+  };
+  r.readAsDataURL(f);
+};
+
+// ② B · créer le décor par description (nano-banana, comme Studio Images)
+document.getElementById("dvCreerBtn").onclick = async () => {
+  const btn = document.getElementById("dvCreerBtn"), info = document.getElementById("dvInfo");
+  const desc = (document.getElementById("dvPrompt").value || "").trim();
+  if (!desc) { info.innerHTML = '<span class="err">Décris d\'abord le décor que tu veux.</span>'; return; }
+  btn.disabled = true;
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    info.textContent = "🎨 Création de ton décor… (10–30 s)";
+    const job = await apiSubmit("fal-ai/nano-banana/edit", {
+      prompt: "A photorealistic wide establishing shot of " + desc
+        + ". Empty scene with NO people in the foreground, camera at eye level, deep perspective, cinematic natural lighting, high detail. No text, no watermark, no brand logos.",
+      image_urls: [],
+      num_images: 1,
+      output_format: "png",
+    });
+    const st = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(st);
+      info.textContent = "🎨 Création de ton décor… (" + ((i + 1) * 3) + " s)";
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Création du décor refusée" + (pxlDetailErreur(sj) ? " : " + pxlDetailErreur(sj) : "."));
+    }
+    const data = await apiPoll(rp);
+    const url = data.images?.[0]?.url || data.image?.url || data.response?.images?.[0]?.url;
+    if (!url) throw new Error("Décor introuvable — réessaie.");
+    dvDecor = url;
+    document.getElementById("dvBiblio").querySelectorAll(".vign").forEach(x => x.classList.remove("on"));
+    const pv = document.getElementById("dvImgPreview"); pv.src = url; pv.classList.remove("hidden");
+    info.innerHTML = '<span style="color:var(--ok)">✓ Ton décor est prêt — lance le changement ci-dessous.</span>';
+    dvRefresh();
+  } catch (e) { info.innerHTML = '<span class="err">✗ ' + e.message + "</span>"; }
+  finally { btn.disabled = false; }
+};
+
+// ③ le swap
+document.getElementById("dvGo").onclick = async () => {
+  const b = document.getElementById("dvGo"), info = document.getElementById("dvInfo");
+  b.disabled = true;
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    if (!dvVideo || !dvDecor) throw new Error("Choisis une vidéo et un décor.");
+    info.textContent = "📤 Envoi de ta vidéo…";
+    const videoUrl = dvVideo.file ? await hebergerFichier(dvVideo.file, "video-decor.mp4") : dvVideo.url;
+    let imageUrl = dvDecor;
+    if (typeof imageUrl === "string" && imageUrl.startsWith("data:")) {
+      info.textContent = "📤 Envoi de ton décor…";
+      imageUrl = await hebergerFichier(imageUrl, "decor.png");
+    }
+    info.textContent = "🏙️ Changement du décor… (1 à 4 min, laisse l'app ouverte)";
+    const job = await apiSubmit(DV_MOTEUR, {
+      video_url: videoUrl,
+      image_url: imageUrl,
+      mode: "background",          // EN DUR : "person" (défaut de l'API) remplacerait la personne !
+      keyframe_id: 1,
+      resolution: "720p",
+      original_sound_switch: true, // le son de la vidéo est conservé
+    }, { dance_seconds: Math.round(dvDuree * 10) / 10 });
+    const st = job.status_url || `https://queue.fal.run/fal-ai/pixverse/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/fal-ai/pixverse/requests/${job.request_id}`;
+    let statut = "";
+    for (let i = 0; i < 120; i++) {   // 6 minutes de patience
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(st);
+      statut = sj.status || statut;
+      info.textContent = "🏙️ Changement du décor — " + (statut === "IN_QUEUE" ? "en file d'attente" : "en cours") + "… (" + ((i + 1) * 3) + " s)";
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") {
+        const det = pxlDetailErreur(sj);
+        throw new Error("Le changement de décor a échoué" + (det ? " : " + det : ". Réessaie."));
+      }
+    }
+    const data = await apiPoll(rp);
+    const url = data.video?.url || data.response?.video?.url || data.output?.video?.url;
+    if (!url) throw new Error("Vidéo introuvable" + (statut ? " (dernier statut : " + statut + ")" : "."));
+    info.innerHTML = '<span style="color:var(--ok)">✓ Nouveau décor appliqué ! Télécharge la vidéo.</span>';
+    document.getElementById("dvResult").innerHTML = `
+      <video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a class="btn small" href="${url}" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger</a>
+      </div>`;
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { b.disabled = false; dvRefresh(); }
+};
+dvRefresh();
 
 // ——— PWA : service worker ———
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
@@ -4917,6 +5174,19 @@ fxRefresh();
     border-radius:999px; background:var(--gold); color:#1A1204;
     font-size:14px; font-weight:800; flex-shrink:0;
   }
+/* v41.31 : atelier 2 colonnes — entrées à gauche, résultat à droite (comme un vrai studio).
+   Sur mobile (< 900 px) tout s'empile : la majorité des clients sont au téléphone. */
+.atelier { display:grid; grid-template-columns: 1fr; gap:14px; }
+@media (min-width: 900px) { .atelier { grid-template-columns: 1fr 1fr; align-items:start; } }
+.atelier-sortie { background:var(--up); border:1px solid var(--line); border-radius:12px; padding:12px; min-height:120px; position:sticky; top:64px; }
+.atelier-sortie h3 { margin:0 0 8px; font-size:13px; letter-spacing:.5px; text-transform:uppercase; opacity:.75; }
+/* Vignettes carrées de la bibliothèque */
+.vignettes { display:grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap:8px; margin:6px 0 2px; }
+.vign { position:relative; aspect-ratio:1/1; border-radius:10px; overflow:hidden; border:2px solid var(--line); cursor:pointer; background:#000; padding:0; }
+.vign img, .vign video { width:100%; height:100%; object-fit:cover; display:block; }
+.vign span { position:absolute; left:0; right:0; bottom:0; padding:4px 6px; font-size:11px; font-weight:700; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.85)); text-align:left; }
+.vign.on { border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset; }
+
 </style>
 <script>
 (function(){
@@ -4925,7 +5195,7 @@ fxRefresh();
     'sec-auto1':'accueil', 'sec-auto2':'accueil',
     'nav-photo':'photo', 'sec-auto3':'photo', 'sec-auto4':'photo', 'sec-auto5':'photo',
     'nav-tenue':'look', 'nav-decor':'look', 'sec-auto6':'look',
-    'sec-danses':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
+    'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
     'sec-auto9':'commander', 'sec-auto10':'commander'
   };
