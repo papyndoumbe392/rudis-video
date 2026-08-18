@@ -3665,8 +3665,8 @@ document.getElementById("danseGo").onclick = async () => {
       video_url: videoUrl,
       character_orientation: "video",   // suit la vidéo — le bon réglage pour la danse (test validé)
     }, { dance_seconds: Math.round((danseChoisie.duree || 5) * 10) / 10 });   // v41.28 : paliers Worker v5.13
-    const st = job.status_url || `https://queue.fal.run/${DANSE_MOTEUR}/requests/${job.request_id}/status`;
-    const rp = job.response_url || `https://queue.fal.run/${DANSE_MOTEUR}/requests/${job.request_id}`;
+    const st = job.status_url || `https://queue.fal.run/fal-ai/kling-video/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/fal-ai/kling-video/requests/${job.request_id}`;
     let statut = "";
     for (let i = 0; i < 160; i++) {   // 160 × 3 s = 8 minutes de patience
       await new Promise(rs => setTimeout(rs, 3000));
@@ -3898,8 +3898,11 @@ document.getElementById("dvGo").onclick = async () => {
       resolution: "720p",
       original_sound_switch: true, // le son de la vidéo est conservé
     }, { dance_seconds: Math.round(dvDuree * 10) / 10 });
-    const st = job.status_url || `https://queue.fal.run/fal-ai/pixverse/swap/requests/${job.request_id}/status`;
-    const rp = job.response_url || `https://queue.fal.run/fal-ai/pixverse/swap/requests/${job.request_id}`;
+    // v41.32b : repli conforme à la doc fal — l'adresse de suivi utilise la RACINE
+    // du modèle (fal-ai/pixverse), le sous-chemin /swap disparaît. Vérifié dans la
+    // documentation REST officielle (exemple flux/dev → flux/requests).
+    const st = job.status_url || `https://queue.fal.run/fal-ai/pixverse/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/fal-ai/pixverse/requests/${job.request_id}`;
     let statut = "";
     for (let i = 0; i < 120; i++) {   // 6 minutes de patience
       await new Promise(r => setTimeout(r, 3000));
