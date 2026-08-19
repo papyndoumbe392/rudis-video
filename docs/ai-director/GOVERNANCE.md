@@ -31,6 +31,16 @@ Une approbation explicite de Papy Ndoumbe est requise avant :
 - tout ajout, retrait ou remplacement opérationnel d'un moteur ou fournisseur ;
 - toute suppression ou modification irréversible.
 
+## RÈGLE STRICTE — discipline de livraison et vérité du runtime
+
+Toute livraison d'une nouvelle version StarClip doit inclure une vérification de `docs/ai-director/RUNTIME_STATE.md` et sa mise à jour si l'état opérationnel a changé.
+
+Cette vérification fait partie intégrante de la livraison : une nouvelle version ne doit pas être considérée documentairement complète si le runtime n'a pas été synchronisé.
+
+Papy Ndoumbe, en tant que relais et autorité finale, exige cette discipline à chaque livraison. Claude, OpenAI/ChatGPT et tout futur agent doivent signaler une livraison qui omet cette vérification.
+
+Si l'état réel et `RUNTIME_STATE.md` divergent, l'état réel vérifié prévaut et le document doit être corrigé. Aucun agent ne doit présenter une information périmée comme actuelle.
+
 ## Règles
 
 1. Préserver le StarClip fonctionnel existant.
@@ -41,11 +51,13 @@ Une approbation explicite de Papy Ndoumbe est requise avant :
 6. GitHub sert de source commune pour le code non secret, la documentation, les décisions approuvées et la mémoire technique partagée entre agents.
 7. Une proposition d'un agent n'est pas une décision approuvée.
 8. L'autorisation de maintenir la documentation ne doit jamais être interprétée comme une autorisation de modifier automatiquement le produit.
+9. Ne jamais modifier le code fonctionnel maintenu avec Claude ni `index.html` / l'index de StarClip dans le cadre du travail documentaire AI Director sans approbation explicite de Papy Ndoumbe.
+10. La synchronisation de `RUNTIME_STATE.md` est une obligation de livraison, pas une tâche facultative ultérieure.
 
 ## Workflow de décision
 
-PROPOSITION -> ANALYSE/CRITIQUE -> PRÉSENTATION À PAPY NDOUMBE -> APPROBATION EXPLICITE -> IMPLÉMENTATION -> TEST -> VALIDATION FINALE
+PROPOSITION -> ANALYSE/CRITIQUE -> PRÉSENTATION À PAPY NDOUMBE -> APPROBATION EXPLICITE -> IMPLÉMENTATION -> TEST -> MISE À JOUR/VÉRIFICATION RUNTIME_STATE -> VALIDATION FINALE
 
 ## Statut
 
-La gouvernance initiale et l'autorisation permanente limitée à la documentation/analyse ont été explicitement validées par Papy Ndoumbe.
+La gouvernance initiale, l'autorisation permanente limitée à la documentation/analyse et la règle stricte de synchronisation du runtime à chaque livraison ont été explicitement validées par Papy Ndoumbe.
