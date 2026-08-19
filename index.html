@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.35 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.36 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -562,6 +562,15 @@
       <h3>🎬 RÉSULTAT</h3>
       <div class="estimate" id="dvInfo">Ta vidéo avec son nouveau décor s'affichera ici, avec le son. · <i>Your video with its new background will appear here.</i></div>
       <div id="dvResult"></div>
+      <!-- v41.36 : journal de diagnostic du volet Décor. Trace chaque étape (fichier,
+           hébergement, payload, job, statuts, réponse brute) pour PROUVER quelle image
+           et quelle vidéo le moteur a réellement reçues. Copiable d'un bouton pour
+           l'envoyer à Claude/ChatGPT. Aucun effet sur le comportement. -->
+      <details id="dvJournalBoite" style="margin-top:10px;">
+        <summary style="cursor:pointer; opacity:.75;">🔎 Journal technique du dernier changement de décor</summary>
+        <pre id="dvJournal" style="white-space:pre-wrap; word-break:break-all; font-size:11px; background:var(--up); border-radius:8px; padding:10px; max-height:300px; overflow:auto;"></pre>
+        <button class="chip" id="dvJournalCopier">📋 Copier le journal</button>
+      </details>
     </div></div>
   </section>
 
@@ -812,7 +821,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.35</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.36</span>
   </footer>
 </div>
 
@@ -3765,6 +3774,29 @@ const DV_DECORS = [
 
 let dvVideo = null;    // { file } ou { url }
 let dvFormatOk = true; // v41.35 : false si la vidéo importée n'est pas en 16:9
+
+// ── v41.36 : journal de diagnostic (aucun effet sur le comportement) ──
+// Chaque étape du changement de décor y est tracée : quelle image, quelle vidéo,
+// quel payload, quel job, quels statuts, quelle réponse brute. Objectif : PROUVER
+// ce que le moteur a reçu, au lieu de le supposer. S'affiche sous le résultat
+// et se copie d'un bouton. Doublé en console (console.log) pour le debug Mac.
+let dvJournalLignes = [];
+function dvLog(etape, donnees) {
+  const h = new Date().toISOString().slice(11, 19);
+  let txt;
+  try { txt = typeof donnees === "string" ? donnees : JSON.stringify(donnees); }
+  catch (e) { txt = String(donnees); }
+  if (txt && txt.length > 4000) txt = txt.slice(0, 4000) + " …(tronqué)";
+  dvJournalLignes.push("[" + h + "] " + etape + (txt ? " → " + txt : ""));
+  const z = document.getElementById("dvJournal");
+  if (z) z.textContent = dvJournalLignes.join("\n\n");
+  console.log("[DÉCOR " + h + "] " + etape, donnees);
+}
+function dvLogReset() {
+  dvJournalLignes = [];
+  const z = document.getElementById("dvJournal");
+  if (z) z.textContent = "";
+}
 let dvDuree = 5;
 let dvDecor = null;    // data URL ou URL
 
@@ -3775,6 +3807,13 @@ function dvRefresh() {
     : (!dvDecor ? "⬆️ Étape ② : choisis un décor (A, B ou C)"
     : "🏙️ Changer le décor (" + dvCredits(dvDuree) + " crédit" + (dvCredits(dvDuree) > 1 ? "s" : "") + " vidéo — " + Math.round(dvDuree) + " s)");
 }
+
+document.getElementById("dvJournalCopier").onclick = async () => {
+  const t = dvJournalLignes.join("\n\n") || "(journal vide — lance d'abord un changement de décor)";
+  try { await navigator.clipboard.writeText(t); document.getElementById("dvJournalCopier").textContent = "✓ Copié !"; }
+  catch (e) { prompt("Copie manuellement :", t.slice(0, 1500)); }
+  setTimeout(() => document.getElementById("dvJournalCopier").textContent = "📋 Copier le journal", 2500);
+};
 
 (function dvBiblioInit() {
   const zone = document.getElementById("dvBiblio");
@@ -3994,15 +4033,25 @@ document.getElementById("dvGo").onclick = async () => {
   try {
     if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
     if (!dvVideo || !dvDecor) throw new Error("Choisis une vidéo et un décor.");
+    dvLogReset();
+    dvLog("DÉMARRAGE", { version: "v41.36", duree_s: Math.round(dvDuree * 10) / 10 });
+    if (dvVideo.file) dvLog("VIDÉO SOURCE (fichier importé)", { nom: dvVideo.file.name, taille_Mo: Math.round(dvVideo.file.size / 1024 / 102.4) / 10, type_mime: dvVideo.file.type });
+    else dvLog("VIDÉO SOURCE (URL)", dvVideo.url);
+    if (typeof dvDecor === "string" && dvDecor.startsWith("data:")) {
+      const tete = dvDecor.slice(0, 60);
+      dvLog("DÉCOR (image importée — option C)", { apercu: tete, taille_Ko: Math.round(dvDecor.length * 3 / 4 / 1024) });
+    } else dvLog("DÉCOR (URL — option A bibliothèque ou B créé)", dvDecor);
     info.textContent = "📤 Envoi de ta vidéo…";
     const videoUrl = dvVideo.file ? await hebergerFichier(dvVideo.file, "video-decor.mp4") : dvVideo.url;
+    dvLog("VIDÉO HÉBERGÉE — URL réellement transmise au moteur", videoUrl);
     let imageUrl = dvDecor;
     if (typeof imageUrl === "string" && imageUrl.startsWith("data:")) {
       info.textContent = "📤 Envoi de ton décor…";
       imageUrl = await hebergerFichier(imageUrl, "decor.png");
     }
+    dvLog("DÉCOR HÉBERGÉ — URL réellement transmise au moteur", imageUrl);
     info.textContent = "🏙️ Changement du décor… (1 à 4 min, laisse l'app ouverte)";
-    const job = await apiSubmit(DV_MOTEUR, {
+    const payload = {
       video_url: videoUrl,
       image_url: imageUrl,
       // v41.33 : clause d'ancrage EN DUR — pixverse remplace le fond mais ne recrée pas
@@ -4017,7 +4066,11 @@ document.getElementById("dvGo").onclick = async () => {
       keyframe_id: 1,
       resolution: "720p",
       original_sound_switch: true, // le son de la vidéo est conservé
-    }, { dance_seconds: Math.round(dvDuree * 10) / 10 });
+    };
+    dvLog("MOTEUR", DV_MOTEUR);
+    dvLog("PAYLOAD COMPLET ENVOYÉ", payload);
+    const job = await apiSubmit(DV_MOTEUR, payload, { dance_seconds: Math.round(dvDuree * 10) / 10 });
+    dvLog("JOB ACCEPTÉ PAR LE SERVEUR", { request_id: job.request_id, status_url: job.status_url, response_url: job.response_url });
     // v41.32b : repli conforme à la doc fal — l'adresse de suivi utilise la RACINE
     // du modèle (fal-ai/pixverse), le sous-chemin /swap disparaît. Vérifié dans la
     // documentation REST officielle (exemple flux/dev → flux/requests).
@@ -4027,18 +4080,39 @@ document.getElementById("dvGo").onclick = async () => {
     for (let i = 0; i < 120; i++) {   // 6 minutes de patience
       await new Promise(r => setTimeout(r, 3000));
       const sj = await apiPoll(st);
+      if (sj.status !== statut) dvLog("STATUT", sj.status + (sj.queue_position != null ? " (position " + sj.queue_position + ")" : ""));
       statut = sj.status || statut;
       info.textContent = "🏙️ Changement du décor — " + (statut === "IN_QUEUE" ? "en file d'attente" : "en cours") + "… (" + ((i + 1) * 3) + " s)";
       if (sj.status === "COMPLETED") break;
       if (sj.status === "FAILED" || sj.status === "ERROR") {
         const det = pxlDetailErreur(sj);
+        dvLog("ÉCHEC SERVEUR", sj);
         throw new Error("Le changement de décor a échoué" + (det ? " : " + det : ". Réessaie."));
       }
     }
+    // v41.36 : si les 6 minutes s'écoulent sans COMPLETED, on le dit — on ne lit pas
+    // la réponse d'un job encore en cours comme si c'était un résultat.
+    if (statut !== "COMPLETED") {
+      dvLog("DÉLAI DÉPASSÉ — dernier statut", statut || "(aucun statut reçu)");
+      throw new Error("Le moteur n'a pas terminé en 6 minutes (dernier statut : " + (statut || "inconnu")
+        + "). Le travail continue peut-être côté serveur — retrouve-le dans fal → Recent History avant de relancer.");
+    }
     const data = await apiPoll(rp);
+    dvLog("RÉPONSE BRUTE COMPLÈTE (avant extraction de l'URL)", data);
     const url = trouverUrlVideo(data);   // v41.32 : exploration complète de la réponse
+    dvLog("URL EXTRAITE DE LA RÉPONSE", url || "(aucune)");
     if (!url) throw new Error("Vidéo introuvable" + (statut ? " (dernier statut : " + statut + ")" : "")
       + " — réponse du serveur : " + apercuReponse(data));
+    // v41.36 : GARDE-FOU anti-écho. Si l'URL « trouvée » est en réalité la vidéo
+    // D'ENTRÉE (le serveur peut renvoyer ses paramètres en écho), l'afficher comme
+    // résultat serait un échec silencieux : le client verrait sa propre vidéo,
+    // décor inchangé, avec un message de succès. On refuse et on le dit.
+    if (url === videoUrl) {
+      dvLog("⛔ ÉCHO DÉTECTÉ — l'URL extraite est la vidéo d'entrée, pas un résultat", { entree: videoUrl, extraite: url });
+      throw new Error("Le serveur a renvoyé ta vidéo d'origine au lieu d'un résultat — le décor n'a PAS été appliqué. "
+        + "Copie le journal technique (🔎 sous le résultat) et envoie-le à Papy/Claude.");
+    }
+    dvLog("✓ RÉSULTAT VALIDE — URL différente de l'entrée", url);
     info.innerHTML = '<span style="color:var(--ok)">✓ Nouveau décor appliqué ! Télécharge la vidéo.</span>';
     document.getElementById("dvResult").innerHTML = `
       <video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
