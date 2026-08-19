@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.34 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.35 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -524,6 +524,18 @@
     </div>
     <input type="file" id="dvInput" accept="video/*,.mp4,.mov,.m4v,.MOV,.MP4" style="display:none;">
     <div class="estimate" id="dvNom"></div>
+    <!-- v41.35 : alerte de format. Le moteur de décor (pixverse) rend TOUJOURS en 16:9 :
+         une vidéo d'un autre format est recadrée. Constat du 18 août : les vidéos découpées
+         depuis l'app Photos de l'iPhone ressortent en ~4:3 (ex. 1290×948), d'où des décors
+         mal appliqués. On informe, on ne facture rien d'office : le client décide. -->
+    <div id="dvFormatAlerte" class="estimate hidden" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px; margin-top:8px;">
+      <div id="dvFormatTexte"></div>
+      <div class="chips" style="margin-top:8px;">
+        <button class="chip" id="dvGarderFormat">👉 Continuer tel quel</button>
+        <button class="chip" id="dvConvertirBtn">👉 🔄 Convertir en 16:9 (2 crédits)</button>
+      </div>
+      <div class="status" id="dvCvStatus" style="margin-top:10px;"><div id="dvCvStatusText"></div><div class="bar"><div class="fill" id="dvCvFill"></div></div></div>
+    </div>
 
     <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:16px;">② QUEL DÉCOR ? — choisis <u>UNE</u> des trois façons</div>
     <div class="estimate" style="margin:0 0 8px;">⭐ <b style="color:var(--gold);">Une seule</b> : le dernier choix remplace les autres.</div>
@@ -800,7 +812,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.34</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.35</span>
   </footer>
 </div>
 
@@ -3752,6 +3764,7 @@ const DV_DECORS = [
 ];
 
 let dvVideo = null;    // { file } ou { url }
+let dvFormatOk = true; // v41.35 : false si la vidéo importée n'est pas en 16:9
 let dvDuree = 5;
 let dvDecor = null;    // data URL ou URL
 
@@ -3801,10 +3814,34 @@ function dvLireVideo(src, nom, fichier) {
     dvDuree = v.duration;
     dvVideo = fichier ? { file: fichier } : { url: src };
     document.getElementById("dvNom").innerHTML = '<span style="color:var(--ok)">✓ ' + nom + " (" + v.duration.toFixed(1) + " s)</span>";
+    dvVerifierFormat(v.videoWidth, v.videoHeight);
     dvRefresh();
   };
   v.onerror = () => { document.getElementById("dvInfo").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
   v.src = src;
+}
+
+// v41.35 : le moteur de décor rend toujours en 16:9. On prévient AVANT de lancer
+// si la vidéo importée n'est pas déjà à ce format (tolérance : 1,70–1,85).
+function dvNomFormat(r) {
+  if (r < 0.62) return "9:16 (vertical)";
+  if (r < 0.85) return "3:4 (vertical)";
+  if (r < 1.12) return "1:1 (carré)";
+  if (r < 1.50) return "4:3";
+  return "format large";
+}
+function dvVerifierFormat(w, h) {
+  const boite = document.getElementById("dvFormatAlerte");
+  dvFormatOk = true;
+  if (!w || !h) { boite.classList.add("hidden"); return; }
+  const r = w / h;
+  if (r >= 1.70 && r <= 1.85) { boite.classList.add("hidden"); return; }  // déjà 16:9
+  dvFormatOk = false;
+  document.getElementById("dvFormatTexte").innerHTML =
+    "⚠️ <b>Ta vidéo est en " + dvNomFormat(r) + "</b> (" + w + " × " + h + "). Le décor sort toujours en 16:9 : une partie de l'image sera coupée."
+    + "<br>Réseaux sociaux → aucun souci. YouTube pro → mieux vaut convertir.";
+  document.getElementById("dvCvStatus").classList.remove("on");
+  boite.classList.remove("hidden");
 }
 document.getElementById("dvUseDanse").onclick = () => {
   if (!window.derniereDanseUrl) {
@@ -3821,6 +3858,75 @@ document.getElementById("dvInput").onchange = (e) => {
   document.getElementById("dvImportBtn").classList.add("on");
   document.getElementById("dvUseDanse").classList.remove("on");
   dvLireVideo(URL.createObjectURL(f), f.name, f);
+};
+
+// v41.35 : le client garde son format — on masque simplement l'alerte, rien n'est facturé.
+document.getElementById("dvGarderFormat").onclick = () => {
+  document.getElementById("dvFormatAlerte").classList.add("hidden");
+};
+
+// v41.35 : conversion SUR PLACE en 16:9 via le même moteur que le volet 🔄 Format
+// (fal-ai/luma-dream-machine/ray-2-flash/reframe, qui reconstruit les bords au lieu de couper).
+// La vidéo convertie remplace la vidéo source du volet Décor : le client enchaîne sans rien refaire.
+document.getElementById("dvConvertirBtn").onclick = async () => {
+  const btn = document.getElementById("dvConvertirBtn");
+  const garder = document.getElementById("dvGarderFormat");
+  const setSt = (txt, pct) => {
+    document.getElementById("dvCvStatus").classList.add("on");
+    document.getElementById("dvCvStatusText").innerHTML = txt;
+    document.getElementById("dvCvFill").style.width = (pct || 0) + "%";
+  };
+  btn.disabled = true; garder.disabled = true;
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    if (!dvVideo) throw new Error("Choisis d'abord une vidéo à l'étape ①.");
+
+    let url = dvVideo.url;
+    if (dvVideo.file) {
+      setSt("Hébergement de la vidéo… sur réseau mobile, patiente.", 5);
+      url = await hebergerFichier(dvVideo.file, "aconvertir.mp4");
+    }
+    setSt("Envoi au studio…", 10);
+    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: "16:9" });
+    const statusUrl = job.status_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}/status`;
+    const responseUrl = job.response_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}`;
+
+    let pct = 12;
+    for (let i = 0; i < 200; i++) {
+      await new Promise(rs => setTimeout(rs, 4000));
+      const sj = await apiPoll(statusUrl);
+      pct = Math.min(pct + 2, 92);
+      if (sj.status === "IN_QUEUE") setSt("En file d'attente…", pct);
+      else if (sj.status === "IN_PROGRESS") setSt("L'IA reconstruit les bords… (2 à 6 min)", pct);
+      else if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") {
+        let motif = "";
+        try {
+          const rep = await apiPoll(responseUrl);
+          motif = rep.detail
+            ? (Array.isArray(rep.detail) ? rep.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(rep.detail))
+            : (rep.error || rep.message || "");
+        } catch (_) {}
+        throw new Error("La conversion a échoué côté serveur" + (motif ? " : « " + motif + " »" : "."));
+      }
+    }
+    const data = await apiPoll(responseUrl);
+    const out = trouverUrlVideo(data);
+    if (!out) throw new Error("Vidéo convertie introuvable. Détail serveur : « " + apercuReponse(data) + " »");
+
+    // La vidéo convertie devient la source du volet Décor — plus rien à réimporter.
+    dvVideo = { url: out };
+    dvFormatOk = true;
+    document.getElementById("dvNom").innerHTML =
+      '<span style="color:var(--ok)">✓ Vidéo convertie en 16:9 (' + dvDuree.toFixed(1) + ' s) — prête pour le décor</span>';
+    setSt("<span class='okc'>✓ Converti en 16:9 ! Choisis ton décor à l'étape ②.</span>", 100);
+    setTimeout(() => document.getElementById("dvFormatAlerte").classList.add("hidden"), 2500);
+    dvRefresh();
+  } catch (err) {
+    setSt(`<span class="err">✗ ${err.message}</span>`, 0);
+  } finally {
+    btn.disabled = false; garder.disabled = false;
+  }
 };
 
 // ② C · importer une image de décor
