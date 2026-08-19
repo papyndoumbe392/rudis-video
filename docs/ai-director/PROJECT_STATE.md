@@ -7,15 +7,23 @@ Ce document est une mémoire technique partagée entre Papy Ndoumbe, OpenAI/Chat
 - Dépôt principal public : papyndoumbe392/rudis-video.
 - Branche de production observée : main.
 - La partie publique/PWA StarClip est présente dans ce dépôt.
-- config.js pointe vers un Cloudflare Worker externe : https://starclip.epoupapierrendoumbe.workers.dev.
+- `config.js` pointe vers un Cloudflare Worker public ; l'URL n'est pas dupliquée ici.
 - Le Worker Cloudflare contient la logique sensible et l'administration selon le propriétaire du projet.
-- FAL est utilisé par StarClip pour la génération vidéo ; les secrets ne doivent pas être copiés dans GitHub.
+- FAL est utilisé par StarClip pour la génération ; les secrets ne doivent pas être copiés dans GitHub.
 - GitHub Pages est utilisé pour la partie publique du projet.
+- Pour l'état opérationnel testé, les versions, moteurs actifs et paramètres critiques, lire `RUNTIME_STATE.md`.
+
+## Protection du produit existant
+- STARCLIP AI DIRECTOR est une évolution de StarClip, pas une reconstruction depuis zéro.
+- Ne jamais modifier le code fonctionnel existant maintenu avec Claude sans approbation explicite de Papy Ndoumbe.
+- Ne jamais toucher à `index.html` / l'index dans le cadre du travail documentaire AI Director.
 
 ## Composants connus hors de ce dépôt
 - Cloudflare Worker : logique serveur sensible, authentification/administration et secrets.
 - FAL : fournisseur/API de génération utilisé par StarClip.
-- StarClip Dance Transfer : travail distinct autour de Wan Animate / Wan 2.2 et GPU distant ; son rattachement exact au dépôt principal doit être audité avant intégration.
+
+## Approches historiques retirées
+L'exploration Wan Animate / Wan 2.2 / RunPod pour le transfert de mouvement n'est plus une piste active du workflow actuel. Elle a été remplacée opérationnellement par Kling Motion Control après tests rapportés. Lire `RETIRED_APPROACHES.md` avant de proposer de relancer cette piste.
 
 ## Vision AI Director
 Faire évoluer StarClip sans le reconstruire depuis zéro. AI Director doit devenir une couche d'orchestration capable de :
@@ -41,12 +49,11 @@ Faire évoluer StarClip sans le reconstruire depuis zéro. AI Director doit deve
 Cette architecture est une direction de travail documentaire. Elle ne constitue pas une autorisation d'implémentation.
 
 ## Gouvernance
-Lire GOVERNANCE.md avant toute intervention. Papy Ndoumbe reste l'autorité de décision finale.
+Lire `GOVERNANCE.md` avant toute intervention. Papy Ndoumbe reste l'autorité de décision finale.
 
 ## À vérifier
-- Inventaire complet des fichiers et fonctions du StarClip actuel.
-- Architecture exacte du Worker Cloudflare.
-- Endpoints FAL actuellement utilisés et modèles correspondants.
-- Localisation et état actuel de StarClip Dance Transfer.
+- Inventaire complet des fichiers et fonctions du StarClip actuel sans modification.
+- Architecture exacte du Worker Cloudflare lorsque Papy autorisera son audit.
 - APIs vidéo candidates et conditions commerciales.
 - Format SceneSpec et critères du Model Router.
+- Open issue talons relevés décrit dans `RUNTIME_STATE.md`.
