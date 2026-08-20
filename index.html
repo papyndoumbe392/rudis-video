@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.36 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.37 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -821,7 +821,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.36</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.37</span>
   </footer>
 </div>
 
@@ -3781,6 +3781,65 @@ let dvFormatOk = true; // v41.35 : false si la vidéo importée n'est pas en 16:
 // ce que le moteur a reçu, au lieu de le supposer. S'affiche sous le résultat
 // et se copie d'un bouton. Doublé en console (console.log) pour le debug Mac.
 let dvJournalLignes = [];
+let dvJobEnCours = null;   // v41.37 : request_id, pour le remboursement automatique
+
+// ── v41.37 : détection d'un changement de décor NON APPLIQUÉ ──
+// Constat des 18-19 août (4 échecs consécutifs, journal v41.36 à l'appui) :
+// pixverse peut renvoyer COMPLETED, avec une VRAIE nouvelle vidéo (URL et taille
+// différentes), mais SANS avoir remplacé le fond — il échoue silencieusement à
+// détecter le sujet et rend la vidéo quasi inchangée. L'app croyait à un succès
+// et facturait 2 crédits pour rien.
+// Méthode : on extrait une image de la source et de la sortie au même instant,
+// on les réduit en petites vignettes en niveaux de gris et on compare pixel à
+// pixel. Un vrai changement de décor modifie massivement l'image (>18 % d'écart
+// moyen) ; une vidéo inchangée reste sous ce seuil malgré le réencodage.
+// Tout se fait dans le navigateur : aucun coût, aucun appel moteur.
+function dvImageDeVideo(src, instant) {
+  return new Promise((resolve) => {
+    const v = document.createElement("video");
+    v.crossOrigin = "anonymous";
+    v.muted = true; v.preload = "auto";
+    let fini = false;
+    const abandon = setTimeout(() => { if (!fini) { fini = true; resolve(null); } }, 15000);
+    v.onloadeddata = () => { try { v.currentTime = Math.min(instant, (v.duration || 1) * 0.5); } catch (e) { clearTimeout(abandon); resolve(null); } };
+    v.onseeked = () => {
+      if (fini) return;
+      fini = true; clearTimeout(abandon);
+      try {
+        const c = document.createElement("canvas");
+        c.width = 32; c.height = 32;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(v, 0, 0, 32, 32);
+        const d = ctx.getImageData(0, 0, 32, 32).data;
+        const gris = new Uint8Array(1024);
+        for (let i = 0; i < 1024; i++) gris[i] = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000;
+        resolve(gris);
+      } catch (e) { resolve(null); }   // canvas bloqué (CORS) → on n'affirme rien
+    };
+    v.onerror = () => { if (!fini) { fini = true; clearTimeout(abandon); resolve(null); } };
+    v.src = src;
+  });
+}
+async function dvDecorVraimentChange(urlSource, urlSortie, instant) {
+  const [a, b] = await Promise.all([dvImageDeVideo(urlSource, instant), dvImageDeVideo(urlSortie, instant)]);
+  if (!a || !b) return { verdict: "inconnu", ecart: null };   // en cas de doute : ne rien affirmer
+  let somme = 0;
+  for (let i = 0; i < 1024; i++) somme += Math.abs(a[i] - b[i]);
+  const ecart = somme / 1024 / 255;   // 0 = identique, 1 = tout opposé
+  return { verdict: ecart >= 0.18 ? "change" : "inchange", ecart: Math.round(ecart * 1000) / 10 };
+}
+async function dvRembourserSiEchec() {
+  if (!dvJobEnCours) return "";
+  try {
+    const r = await fetch(WORKER_URL + "/refund", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: getCode(), request_id: dvJobEnCours }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok && !d.deja) return " Tes crédits t'ont été rendus automatiquement.";
+  } catch (_) {}
+  return "";
+}
 function dvLog(etape, donnees) {
   const h = new Date().toISOString().slice(11, 19);
   let txt;
@@ -4034,7 +4093,8 @@ document.getElementById("dvGo").onclick = async () => {
     if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
     if (!dvVideo || !dvDecor) throw new Error("Choisis une vidéo et un décor.");
     dvLogReset();
-    dvLog("DÉMARRAGE", { version: "v41.36", duree_s: Math.round(dvDuree * 10) / 10 });
+    dvJobEnCours = null;   // v41.37 : nouveau job, pas de remboursement hérité
+    dvLog("DÉMARRAGE", { version: "v41.37", duree_s: Math.round(dvDuree * 10) / 10 });
     if (dvVideo.file) dvLog("VIDÉO SOURCE (fichier importé)", { nom: dvVideo.file.name, taille_Mo: Math.round(dvVideo.file.size / 1024 / 102.4) / 10, type_mime: dvVideo.file.type });
     else dvLog("VIDÉO SOURCE (URL)", dvVideo.url);
     if (typeof dvDecor === "string" && dvDecor.startsWith("data:")) {
@@ -4070,6 +4130,7 @@ document.getElementById("dvGo").onclick = async () => {
     dvLog("MOTEUR", DV_MOTEUR);
     dvLog("PAYLOAD COMPLET ENVOYÉ", payload);
     const job = await apiSubmit(DV_MOTEUR, payload, { dance_seconds: Math.round(dvDuree * 10) / 10 });
+    dvJobEnCours = job.request_id || null;
     dvLog("JOB ACCEPTÉ PAR LE SERVEUR", { request_id: job.request_id, status_url: job.status_url, response_url: job.response_url });
     // v41.32b : repli conforme à la doc fal — l'adresse de suivi utilise la RACINE
     // du modèle (fal-ai/pixverse), le sous-chemin /swap disparaît. Vérifié dans la
@@ -4113,6 +4174,23 @@ document.getElementById("dvGo").onclick = async () => {
         + "Copie le journal technique (🔎 sous le résultat) et envoie-le à Papy/Claude.");
     }
     dvLog("✓ RÉSULTAT VALIDE — URL différente de l'entrée", url);
+    // v41.37 : le moteur peut rendre une vraie nouvelle vidéo SANS avoir remplacé
+    // le fond (4 cas constatés). On compare une image de la source et de la sortie
+    // avant de déclarer le succès — et on rembourse si rien n'a changé.
+    info.textContent = "🔎 Vérification du résultat…";
+    const ctrl = await dvDecorVraimentChange(videoUrl, url, Math.min(1.5, dvDuree / 2));
+    dvLog("CONTRÔLE DU CHANGEMENT DE DÉCOR", ctrl);
+    if (ctrl.verdict === "inchange") {
+      const rembourse = await dvRembourserSiEchec();
+      dvLog("⛔ DÉCOR NON APPLIQUÉ — remboursement", rembourse || "(non confirmé)");
+      document.getElementById("dvResult").innerHTML =
+        `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px; opacity:.65;"></video>
+         <div class="estimate" style="margin-top:8px;">Vidéo rendue par le moteur, décor inchangé — tu peux quand même la télécharger si tu veux la voir.</div>`;
+      throw new Error("Le moteur a rendu ta vidéo SANS appliquer le décor (écart mesuré : " + ctrl.ecart + " %)."
+        + rembourse
+        + " Ce moteur échoue parfois à détecter la personne. Essaie une vidéo où elle est debout, entière et bien détachée du fond.");
+    }
+    if (ctrl.verdict === "inconnu") dvLog("CONTRÔLE IMPOSSIBLE (lecture des images bloquée) — aucun verdict rendu", "");
     info.innerHTML = '<span style="color:var(--ok)">✓ Nouveau décor appliqué ! Télécharge la vidéo.</span>';
     document.getElementById("dvResult").innerHTML = `
       <video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
