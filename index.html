@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.37 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.38 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -800,6 +800,105 @@
       💬 Demander mon Clip Signature
     </a>
   </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       v41.38 · ESPACE ADMIN PRIVÉ — MOTEURS RUNWAY
+       Réservé à Papy. Masqué par défaut, révélé par le bouton discret en
+       bas de page. La vraie sécurité est côté Worker : les routes /runway/*
+       n'acceptent QUE le code admin. Le masquage ici n'est qu'un confort.
+       Une page par moteur, comme Runway et fal — jamais les deux mélangés.
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section id="adminZone" class="hidden">
+    <div style="border:1px solid var(--gold); border-radius:12px; padding:10px 12px; margin-bottom:14px;">
+      <b style="color:var(--gold)">🔐 ESPACE ADMIN — STUDIO RUDIS</b>
+      <div class="hint">Moteurs Runway facturés en crédits Runway (0,01 $ le crédit), séparés des crédits StarClip des clients. Ces pages ne sont pas visibles par les clients.</div>
+      <div class="chips" style="margin-top:8px;">
+        <button class="chip on" id="admOngletAleph">🎞️ Aleph 2.0 — Éditer</button>
+        <button class="chip" id="admOngletSeed">✨ Seedance 2.5 — Créer</button>
+      </div>
+    </div>
+
+    <!-- ─────────── PAGE ADMIN 1 · ALEPH 2.0 ─────────── -->
+    <div id="admPageAleph">
+      <h2>🎞️ ALEPH 2.0 — ÉDITER / CONSERVER</h2>
+      <p class="sub">Garde ta vidéo telle qu'elle est — sa danse, son cadrage, son montage — et change son environnement. C'est le moteur du « je garde cette vidéo, je change le décor ».</p>
+
+      <div class="card">
+        <div class="step">① LA VIDÉO À ÉDITER</div>
+        <div class="hint">30 secondes maximum. La résolution d'entrée est conservée jusqu'en 1080p — il n'y a donc pas de format à choisir.</div>
+        <button class="chip" id="alImportBtn">📂 Importer une vidéo</button>
+        <input type="file" id="alInput" accept="video/*,.mp4,.mov,.m4v,.MOV,.MP4" style="display:none;">
+        <div class="estimate" id="alNom"></div>
+      </div>
+
+      <div class="card">
+        <div class="step">② CE QU'IL FAUT CHANGER</div>
+        <div class="hint">Décris le changement, en français ou en anglais. 1000 caractères maximum.</div>
+        <textarea id="alPrompt" rows="3" placeholder="Ex : remplace l'arrière-plan par une grande scène de concert avec public, garde les personnes et leurs mouvements identiques"></textarea>
+        <div class="hint" style="margin-top:10px;">Images de guidage (optionnel, 5 maximum) — par exemple la photo du décor voulu. Runway s'en sert comme cible visuelle.</div>
+        <button class="chip" id="alRefBtn">🖼️ Ajouter une image de référence</button>
+        <input type="file" id="alRefInput" accept="image/*" style="display:none;">
+        <div id="alRefListe" class="estimate"></div>
+      </div>
+
+      <div class="card">
+        <div class="step">③ C'EST PARTI</div>
+        <div class="estimate" id="alCout">Importe une vidéo pour connaître le coût.</div>
+        <button class="master" id="alGo" disabled>Choisis d'abord une vidéo</button>
+        <div class="status" id="alStatus"><div id="alStatusText"></div><div class="bar"><div class="fill" id="alFill"></div></div></div>
+        <div id="alResult"></div>
+        <details style="margin-top:10px;"><summary style="cursor:pointer; opacity:.75;">🔎 Journal technique</summary>
+          <pre id="alJournal" style="white-space:pre-wrap; word-break:break-all; font-size:11px; background:var(--up); border-radius:8px; padding:10px; max-height:280px; overflow:auto;"></pre>
+        </details>
+      </div>
+    </div>
+
+    <!-- ─────────── PAGE ADMIN 2 · SEEDANCE 2.5 ─────────── -->
+    <div id="admPageSeed" class="hidden">
+      <h2>✨ SEEDANCE 2.5 — CRÉER / RECRÉER</h2>
+      <p class="sub">Recrée une performance à partir de tes références : l'artiste, la tenue, le décor. Chant et lip-sync possibles. C'est le moteur du « je refais la scène autrement ».</p>
+
+      <div class="card">
+        <div class="step">① TES RÉFÉRENCES</div>
+        <div class="hint">Jusqu'à 10 images : l'artiste, sa tenue, le décor voulu. Les images de référence sont GRATUITES chez Runway. 5 Mo maximum par image.</div>
+        <button class="chip" id="sdRefBtn">🖼️ Ajouter une image de référence</button>
+        <input type="file" id="sdRefInput" accept="image/*" style="display:none;">
+        <div id="sdRefListe" class="estimate"></div>
+      </div>
+
+      <div class="card">
+        <div class="step">② LA SCÈNE À CRÉER</div>
+        <div class="hint">Décris la scène. Tu peux renvoyer aux images (« la chanteuse de l'image 1, la tenue de l'image 2 »). 1000 caractères maximum.</div>
+        <textarea id="sdPrompt" rows="4" placeholder="Ex : la chanteuse de l'image 1 chante sur la scène de l'image 3, entourée de danseurs, plan large cinématographique"></textarea>
+      </div>
+
+      <div class="card">
+        <div class="step">③ FORMAT ET DURÉE</div>
+        <div class="hint">Qualité — le prix change fortement d'un palier à l'autre.</div>
+        <div class="chips" id="sdResChips">
+          <button class="chip" data-res="480p">480p — 20 cr/s</button>
+          <button class="chip on" data-res="720p">720p — 30 cr/s</button>
+          <button class="chip" data-res="1080p">1080p — 68 cr/s</button>
+        </div>
+        <div class="hint" style="margin-top:10px;">Format d'image</div>
+        <select id="sdRatio"></select>
+        <div class="hint" style="margin-top:10px;">Durée — de 4 à 30 secondes</div>
+        <select id="sdDuree"></select>
+        <label style="display:block; margin-top:10px;"><input type="checkbox" id="sdAudio" checked> 🎤 Générer l'audio (chant et lip-sync)</label>
+      </div>
+
+      <div class="card">
+        <div class="step">④ C'EST PARTI</div>
+        <div class="estimate" id="sdCout"></div>
+        <button class="master" id="sdGo" disabled>Écris d'abord ta scène à l'étape ②</button>
+        <div class="status" id="sdStatus"><div id="sdStatusText"></div><div class="bar"><div class="fill" id="sdFill"></div></div></div>
+        <div id="sdResult"></div>
+        <details style="margin-top:10px;"><summary style="cursor:pointer; opacity:.75;">🔎 Journal technique</summary>
+          <pre id="sdJournal" style="white-space:pre-wrap; word-break:break-all; font-size:11px; background:var(--up); border-radius:8px; padding:10px; max-height:280px; overflow:auto;"></pre>
+        </details>
+      </div>
+    </div>
+  </section>
   </div>
 
   <footer>
@@ -821,7 +920,9 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.37</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.38</span>
+    <!-- v41.38 : ouverture de l'espace admin. Discret, sans mention visible pour un client. -->
+    <span id="admOuvre" style="opacity:.25; font-size:11.5px; cursor:pointer; user-select:none;" title="Studio"> · ◆</span>
   </footer>
 </div>
 
@@ -5574,6 +5675,270 @@ fxRefresh();
   try { var saved = localStorage.getItem('starclip_tab'); if (saved) start = saved; } catch(e){}
   show(start);
 })();
+
+// ═══════════════════════════════════════════════════════════════════════
+//  v41.38 · ESPACE ADMIN PRIVÉ — MOTEURS RUNWAY (Aleph 2.0 · Seedance 2.5)
+//  Réservé à Papy. Ces moteurs sont facturés en CRÉDITS RUNWAY (0,01 $ le
+//  crédit), un porte-monnaie totalement distinct des crédits StarClip des
+//  clients. Aucune règle de crédits client n'est touchée.
+//  Sécurité : la clé Runway ne transite JAMAIS par le navigateur. L'app
+//  passe par les routes /runway/submit et /runway/status du Worker, qui
+//  détiennent seuls la clé et vérifient que le code est bien celui de
+//  l'admin. Le masquage ci-dessous n'est qu'un confort d'interface.
+// ═══════════════════════════════════════════════════════════════════════
+
+// ——— Ouverture de l'espace admin ———
+// v41.38 : localStorage LÈVE UNE ERREUR quand la page est ouverte en local
+// (fichier file://, origine opaque) — et c'est justement ainsi que Papy teste
+// avant de déployer. Sans ces gardes, tout le script admin s'arrêtait net et
+// les menus Seedance restaient vides. Lecture et écriture protégées.
+function admLire(k)    { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function admEcrire(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function admEffacer(k)  { try { localStorage.removeItem(k); } catch (e) {} }
+(function admInit() {
+  const zone = document.getElementById("adminZone");
+  const ouvre = document.getElementById("admOuvre");
+  if (!zone || !ouvre) return;
+  if (admLire("starAdmin") === "1") zone.classList.remove("hidden");
+  ouvre.onclick = () => {
+    if (admLire("starAdmin") === "1") {
+      admEffacer("starAdmin"); zone.classList.add("hidden"); return;
+    }
+    const c = prompt("Code studio :");
+    if (!c) return;
+    admEcrire("starAdmin", "1");
+    zone.classList.remove("hidden");
+    zone.scrollIntoView({ behavior: "smooth" });
+  };
+  document.getElementById("admOngletAleph").onclick = () => admOnglet("aleph");
+  document.getElementById("admOngletSeed").onclick  = () => admOnglet("seed");
+})();
+function admOnglet(quoi) {
+  const a = quoi === "aleph";
+  document.getElementById("admPageAleph").classList.toggle("hidden", !a);
+  document.getElementById("admPageSeed").classList.toggle("hidden", a);
+  document.getElementById("admOngletAleph").classList.toggle("on", a);
+  document.getElementById("admOngletSeed").classList.toggle("on", !a);
+}
+
+// ——— Liaison Worker pour Runway (clé côté serveur uniquement) ———
+async function rwSubmit(endpoint, payload) {
+  if (WORKER_URL.includes("COLLE_ICI")) throw new Error("Serveur non configuré (fichier config.js).");
+  const r = await fetch(WORKER_URL + "/runway/submit", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: getCode(), endpoint, payload }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || ("Envoi refusé (" + r.status + ")"));
+  return d;
+}
+async function rwStatus(id) {
+  const r = await fetch(WORKER_URL + "/runway/status", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: getCode(), task_id: id }),
+  });
+  const t = await r.text();
+  try { return JSON.parse(t); } catch (_) { throw new Error("réponse illisible du serveur (" + r.status + ")"); }
+}
+// Runway accepte les data URI : images jusqu'à 5 Mo, vidéos jusqu'à 16 Mo.
+function rwFichierEnDataUri(f, maxMo) {
+  return new Promise((res, rej) => {
+    if (f.size > maxMo * 1024 * 1024)
+      return rej(new Error(f.name + " fait " + Math.round(f.size / 104857.6) / 10 + " Mo — le maximum est " + maxMo + " Mo pour ce type de fichier."));
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error("Lecture du fichier impossible."));
+    r.readAsDataURL(f);
+  });
+}
+function rwLog(zone, etape, donnees) {
+  const h = new Date().toISOString().slice(11, 19);
+  let t; try { t = typeof donnees === "string" ? donnees : JSON.stringify(donnees); } catch (e) { t = String(donnees); }
+  if (t && t.length > 1200) t = t.slice(0, 1200) + " …(tronqué)";
+  const z = document.getElementById(zone);
+  if (z) z.textContent += "[" + h + "] " + etape + (t ? " → " + t : "") + "\n\n";
+  console.log("[RUNWAY " + h + "] " + etape, donnees);
+}
+// Suivi commun : SUBMIT → id → POLL → résultat. Aucun échec silencieux.
+async function rwAttendre(id, zoneJournal, setSt, minutes) {
+  let statut = "";
+  const tours = Math.round((minutes || 10) * 60 / 4);
+  for (let i = 0; i < tours; i++) {
+    await new Promise(r => setTimeout(r, 4000));
+    const t = await rwStatus(id);
+    if (t.status !== statut) { statut = t.status; rwLog(zoneJournal, "STATUT", statut); }
+    setSt("Génération en cours — " + (statut || "…") + " (" + ((i + 1) * 4) + " s)", Math.min(12 + i * 1.5, 92));
+    if (t.status === "SUCCEEDED") { rwLog(zoneJournal, "RÉPONSE COMPLÈTE", t); return t; }
+    if (t.status === "FAILED" || t.status === "CANCELLED") {
+      rwLog(zoneJournal, "ÉCHEC", t);
+      throw new Error("Runway a refusé la génération" + (t.failure || t.failureCode ? " : " + (t.failure || t.failureCode) : "."));
+    }
+  }
+  throw new Error("Runway n'a pas terminé en " + (minutes || 10) + " minutes (dernier statut : " + (statut || "inconnu") + "). Retrouve la tâche dans ton portail Runway avant de relancer.");
+}
+
+// ═══════════ PAGE ADMIN 1 · ALEPH 2.0 ═══════════
+const AL_CR_S = 28, AL_CR_MIN = 56;   // 28 crédits/s, minimum 56 (portail Runway, 21 août 2026)
+let alVideo = null, alDuree = 0, alRefs = [];
+function alRefresh() {
+  const b = document.getElementById("alGo");
+  b.disabled = !alVideo;
+  b.textContent = !alVideo ? "Choisis d'abord une vidéo"
+    : "🎞️ Éditer avec Aleph 2.0 — " + alCredits() + " crédits (≈ " + (alCredits() / 100).toFixed(2) + " $)";
+  document.getElementById("alCout").innerHTML = !alVideo ? "Importe une vidéo pour connaître le coût."
+    : "Durée " + alDuree.toFixed(1) + " s · <b style='color:var(--gold)'>" + alCredits() + " crédits Runway ≈ " + (alCredits() / 100).toFixed(2) + " $</b> · " + alRefs.length + " image(s) de référence.";
+}
+function alCredits() { return Math.max(AL_CR_MIN, Math.ceil(alDuree * AL_CR_S)); }
+document.getElementById("alImportBtn").onclick = () => document.getElementById("alInput").click();
+document.getElementById("alInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const v = document.createElement("video"); v.preload = "metadata";
+  v.onloadedmetadata = () => {
+    if (v.duration > 30.5) {
+      document.getElementById("alNom").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — Aleph accepte 30 s maximum.</span>';
+      alVideo = null; alRefresh(); return;
+    }
+    alDuree = v.duration; alVideo = f;
+    document.getElementById("alNom").innerHTML = '<span style="color:var(--ok)">✓ ' + f.name + " (" + v.duration.toFixed(1) + " s · " + v.videoWidth + "×" + v.videoHeight + ")</span>";
+    alRefresh();
+  };
+  v.onerror = () => { document.getElementById("alNom").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
+  v.src = URL.createObjectURL(f);
+};
+document.getElementById("alRefBtn").onclick = () => document.getElementById("alRefInput").click();
+document.getElementById("alRefInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (alRefs.length >= 5) { alert("Aleph accepte 5 images de guidage au maximum."); return; }
+  alRefs.push(f);
+  document.getElementById("alRefListe").innerHTML = alRefs.map((x, i) => "🖼️ " + (i + 1) + " · " + x.name).join("<br>");
+  alRefresh();
+};
+document.getElementById("alGo").onclick = async () => {
+  const go = document.getElementById("alGo"); go.disabled = true;
+  const setSt = (t, p) => { document.getElementById("alStatus").classList.add("on"); document.getElementById("alStatusText").innerHTML = t; document.getElementById("alFill").style.width = (p || 0) + "%"; };
+  document.getElementById("alJournal").textContent = ""; document.getElementById("alResult").innerHTML = "";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    rwLog("alJournal", "DÉMARRAGE", { moteur: "aleph2", duree_s: Math.round(alDuree * 10) / 10, credits: alCredits() });
+    setSt("Préparation de la vidéo…", 5);
+    const videoUri = await rwFichierEnDataUri(alVideo, 16);
+    rwLog("alJournal", "VIDÉO PRÊTE", { nom: alVideo.name, taille_Mo: Math.round(alVideo.size / 104857.6) / 10, type: alVideo.type });
+    const payload = { model: "aleph2", videoUri: videoUri };
+    const pr = document.getElementById("alPrompt").value.trim();
+    if (pr) payload.promptText = pr.slice(0, 1000);
+    if (alRefs.length) {
+      payload.keyframes = [];
+      for (const f of alRefs) payload.keyframes.push({ uri: await rwFichierEnDataUri(f, 5), at: 0 });
+      rwLog("alJournal", "IMAGES DE GUIDAGE", alRefs.length + " image(s), placées à 0 s");
+    }
+    rwLog("alJournal", "PAYLOAD (médias masqués)", Object.assign({}, payload, { videoUri: "[data URI vidéo]", keyframes: payload.keyframes ? "[" + payload.keyframes.length + " image(s)]" : undefined }));
+    setSt("Envoi à Runway…", 10);
+    const t = await rwSubmit("video_to_video", payload);
+    rwLog("alJournal", "TÂCHE ACCEPTÉE", { id: t.id, estimatedCost: t.estimatedCost });
+    const fin = await rwAttendre(t.id, "alJournal", setSt, 12);
+    const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
+    if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    document.getElementById("alResult").innerHTML =
+      `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
+       <a class="chip" href="${url}" download style="margin-top:8px; display:inline-block;">⬇️ Télécharger (MP4 H.264)</a>`;
+    setSt("<span class='okc'>✓ Terminé ! " + alCredits() + " crédits Runway utilisés.</span>", 100);
+  } catch (e) {
+    setSt(`<span class="err">✗ ${e.message}</span>`, 0);
+    rwLog("alJournal", "ERREUR", e.message);
+  } finally { go.disabled = false; alRefresh(); }
+};
+
+// ═══════════ PAGE ADMIN 2 · SEEDANCE 2.5 ═══════════
+// Valeurs relevées le 21 août 2026 dans le playground Runway (dev.runwayml.com),
+// modèle Seedance 2.5 — le playground fait foi, pas la page générique de l'API.
+const SD_RATIOS = {
+  "480p":  { "21:9": "992:432",   "16:9": "854:480",   "4:3": "752:560",   "1:1": "640:640",   "3:4": "560:752",   "9:16": "480:854"  },
+  "720p":  { "21:9": "1470:630",  "16:9": "1280:720",  "4:3": "1112:834",  "1:1": "960:960",   "3:4": "834:1112",  "9:16": "720:1280" },
+  "1080p": { "21:9": "2208:946",  "16:9": "1920:1080", "4:3": "1664:1248", "1:1": "1440:1440", "3:4": "1248:1664", "9:16": "1080:1920" },
+};
+const SD_CR_S = { "480p": 20, "720p": 30, "1080p": 68 };   // crédits par seconde de sortie
+const SD_CR_MIN = 80;                                       // minimum par génération
+let sdRes = "720p", sdRefs = [];
+(function sdInit() {
+  const d = document.getElementById("sdDuree");
+  for (let i = 4; i <= 30; i++) d.innerHTML += '<option value="' + i + '"' + (i === 5 ? " selected" : "") + ">" + i + " secondes</option>";
+  sdMajRatios();
+  document.querySelectorAll("#sdResChips .chip").forEach(c => c.onclick = () => {
+    document.querySelectorAll("#sdResChips .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on"); sdRes = c.dataset.res; sdMajRatios(); sdRefresh();
+  });
+  d.onchange = sdRefresh;
+  document.getElementById("sdRatio").onchange = sdRefresh;
+  document.getElementById("sdPrompt").addEventListener("input", sdRefresh);
+  sdRefresh();
+})();
+function sdMajRatios() {
+  const sel = document.getElementById("sdRatio"), avant = sel.value;
+  sel.innerHTML = "";
+  for (const [nom, val] of Object.entries(SD_RATIOS[sdRes]))
+    sel.innerHTML += '<option value="' + val + '">' + nom + "  (" + val.replace(":", " × ") + ")</option>";
+  const memeNom = Object.entries(SD_RATIOS).some(() => false);
+  if (avant) { const i = Array.from(sel.options).findIndex(o => o.text.startsWith(avant.split(" ")[0])); if (i >= 0) sel.selectedIndex = i; }
+  else sel.selectedIndex = 1;   // 16:9 par défaut
+}
+function sdCredits() { return Math.max(SD_CR_MIN, Number(document.getElementById("sdDuree").value) * SD_CR_S[sdRes]); }
+function sdRefresh() {
+  const pr = document.getElementById("sdPrompt").value.trim();
+  const b = document.getElementById("sdGo");
+  b.disabled = !pr;
+  b.textContent = !pr ? "Écris d'abord ta scène à l'étape ②"
+    : "✨ Créer avec Seedance 2.5 — " + sdCredits() + " crédits (≈ " + (sdCredits() / 100).toFixed(2) + " $)";
+  document.getElementById("sdCout").innerHTML =
+    sdRes + " · " + document.getElementById("sdDuree").value + " s · " + sdRefs.length + " image(s) de référence (gratuites) · <b style='color:var(--gold)'>"
+    + sdCredits() + " crédits Runway ≈ " + (sdCredits() / 100).toFixed(2) + " $</b>";
+}
+document.getElementById("sdRefBtn").onclick = () => document.getElementById("sdRefInput").click();
+document.getElementById("sdRefInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (sdRefs.length >= 10) { alert("10 images de référence au maximum."); return; }
+  sdRefs.push(f);
+  document.getElementById("sdRefListe").innerHTML = sdRefs.map((x, i) => "🖼️ image " + (i + 1) + " · " + x.name).join("<br>");
+  sdRefresh();
+};
+document.getElementById("sdGo").onclick = async () => {
+  const go = document.getElementById("sdGo"); go.disabled = true;
+  const setSt = (t, p) => { document.getElementById("sdStatus").classList.add("on"); document.getElementById("sdStatusText").innerHTML = t; document.getElementById("sdFill").style.width = (p || 0) + "%"; };
+  document.getElementById("sdJournal").textContent = ""; document.getElementById("sdResult").innerHTML = "";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    if (!sdRefs.length) throw new Error("Seedance a besoin d'au moins une image de référence à l'étape ① (l'artiste, par exemple).");
+    const duree = Number(document.getElementById("sdDuree").value);
+    rwLog("sdJournal", "DÉMARRAGE", { moteur: "seedance2_5", resolution: sdRes, ratio: document.getElementById("sdRatio").value, duree_s: duree, credits: sdCredits() });
+    setSt("Préparation des références…", 5);
+    const images = [];
+    for (const f of sdRefs) images.push({ uri: await rwFichierEnDataUri(f, 5) });
+    images[0].position = "first";   // la 1re image sert de première image de la vidéo
+    rwLog("sdJournal", "RÉFÉRENCES PRÊTES", sdRefs.map(f => f.name).join(" · "));
+    const payload = {
+      model: "seedance2_5",
+      promptText: document.getElementById("sdPrompt").value.trim().slice(0, 1000),
+      promptImage: images,
+      ratio: document.getElementById("sdRatio").value,
+      duration: duree,
+      audio: document.getElementById("sdAudio").checked,
+    };
+    rwLog("sdJournal", "PAYLOAD (images masquées)", Object.assign({}, payload, { promptImage: "[" + images.length + " image(s)]" }));
+    setSt("Envoi à Runway…", 10);
+    const t = await rwSubmit("image_to_video", payload);
+    rwLog("sdJournal", "TÂCHE ACCEPTÉE", { id: t.id, estimatedCost: t.estimatedCost });
+    const fin = await rwAttendre(t.id, "sdJournal", setSt, 15);
+    const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
+    if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    document.getElementById("sdResult").innerHTML =
+      `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
+       <a class="chip" href="${url}" download style="margin-top:8px; display:inline-block;">⬇️ Télécharger (MP4 H.264)</a>`;
+    setSt("<span class='okc'>✓ Terminé ! " + sdCredits() + " crédits Runway utilisés.</span>", 100);
+  } catch (e) {
+    setSt(`<span class="err">✗ ${e.message}</span>`, 0);
+    rwLog("sdJournal", "ERREUR", e.message);
+  } finally { go.disabled = false; sdRefresh(); }
+};
+
 </script>
 </body>
 </html>
