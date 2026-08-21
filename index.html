@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.39 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.40 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -825,7 +825,7 @@
 
       <div class="card">
         <div class="step">① LA VIDÉO À ÉDITER</div>
-        <div class="hint">30 secondes maximum. La résolution d'entrée est conservée jusqu'en 1080p — il n'y a donc pas de format à choisir.</div>
+        <div class="hint">30 secondes maximum, 200 Mo maximum — aucune compression à faire toi-même. La résolution d'entrée est conservée jusqu'en 1080p, il n'y a donc pas de format à choisir.</div>
         <button class="chip" id="alImportBtn">📂 Importer une vidéo</button>
         <input type="file" id="alInput" accept="video/*,.mp4,.mov,.m4v,.MOV,.MP4" style="display:none;">
         <div class="estimate" id="alNom"></div>
@@ -860,7 +860,7 @@
 
       <div class="card">
         <div class="step">① TES RÉFÉRENCES</div>
-        <div class="hint">Jusqu'à 10 images : l'artiste, sa tenue, le décor voulu. Les images de référence sont GRATUITES chez Runway. 5 Mo maximum par image.</div>
+        <div class="hint">Jusqu'à 10 images : l'artiste, sa tenue, le décor voulu. Les images de référence sont GRATUITES chez Runway. 200 Mo maximum par fichier.</div>
         <button class="chip" id="sdRefBtn">🖼️ Ajouter une image de référence</button>
         <input type="file" id="sdRefInput" accept="image/*" style="display:none;">
         <div id="sdRefListe" class="estimate"></div>
@@ -920,7 +920,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.39</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.40</span>
     <!-- v41.38 : ouverture de l'espace admin. Discret, sans mention visible pour un client. -->
     <span id="admOuvre" style="opacity:.25; font-size:11.5px; cursor:pointer; user-select:none;" title="Studio"> · ◆</span>
   </footer>
@@ -5746,16 +5746,68 @@ async function rwStatus(id) {
   try { return JSON.parse(t); } catch (_) { throw new Error("réponse illisible du serveur (" + r.status + ")"); }
 }
 // Runway accepte les data URI : images jusqu'à 5 Mo, vidéos jusqu'à 16 Mo.
-function rwFichierEnDataUri(f, maxMo) {
-  return new Promise((res, rej) => {
-    if (f.size > maxMo * 1024 * 1024)
-      return rej(new Error(f.name + " fait " + Math.round(f.size / 104857.6) / 10 + " Mo — le maximum est " + maxMo + " Mo pour ce type de fichier."));
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = () => rej(new Error("Lecture du fichier impossible."));
-    r.readAsDataURL(f);
+// v41.40 : rwFichierEnDataUri() a été RETIRÉE. Le data URI plafonnait à 16 Mo
+// côté images et vidéos ; tout passe désormais par le dépôt éphémère (200 Mo).
+// ——— v41.40 : dépôt éphémère Runway (jusqu'à 200 Mo) ———
+// Avant : la vidéo partait en data URI, plafonné à 16 Mo par Runway — la vidéo
+// de Beko (17,6 Mo pour 4 secondes) était refusée AVANT même de partir, et il
+// fallait la compresser à la main. Un client ne fera jamais ça.
+// Maintenant : le Worker demande une adresse de dépôt, et le navigateur envoie
+// le fichier DIRECTEMENT chez Runway. Les octets ne passent pas par Cloudflare,
+// la clé ne quitte pas le Worker, et la progression est RÉELLE (0-100 %).
+// La doc Runway est formelle : en cas d'échec, on ne réessaie PAS sur la même
+// adresse — on en redemande une neuve. C'est fait ici.
+const RW_TAILLE_MAX_MO = 200;   // limite Runway pour un dépôt éphémère
+function rwEnvoyerFichier(f, zoneJournal, onProgres) {
+  return new Promise(async (resolve, reject) => {
+    if (f.size > RW_TAILLE_MAX_MO * 1024 * 1024)
+      return reject(new Error(f.name + " fait " + Math.round(f.size / 104857.6) / 10 + " Mo — le maximum est " + RW_TAILLE_MAX_MO + " Mo."));
+    let dep;
+    try {
+      const r = await fetch(WORKER_URL + "/runway/upload-init", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: admPin(), filename: f.name }),
+      });
+      dep = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(dep.error || ("Dépôt refusé (" + r.status + ")"));
+    } catch (e) { return reject(e); }
+    rwLog(zoneJournal, "DÉPÔT OUVERT CHEZ RUNWAY", { runwayUri: String(dep.runwayUri).slice(0, 28) + "…", champs: Object.keys(dep.fields || {}).length });
+    // Envoi multipart : les champs fournis par Runway, PUIS le fichier en dernier.
+    const form = new FormData();
+    for (const [k, v] of Object.entries(dep.fields || {})) form.append(k, v);
+    form.append("file", f);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", dep.uploadUrl, true);
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable && onProgres) onProgres(Math.round(e.loaded / e.total * 100)); };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        rwLog(zoneJournal, "DÉPÔT TERMINÉ", { statut: xhr.status, uri: String(dep.runwayUri).slice(0, 28) + "…" });
+        resolve(dep.runwayUri);
+      } else {
+        // Doc Runway : ne PAS réessayer sur la même adresse — il faut tout reprendre.
+        rwLog(zoneJournal, "ÉCHEC DU DÉPÔT", { statut: xhr.status, reponse: String(xhr.responseText || "").slice(0, 200) });
+        reject(new Error("L'envoi du fichier a échoué (" + xhr.status + "). Relance : une nouvelle adresse de dépôt sera demandée."));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Connexion interrompue pendant l'envoi. Garde l'écran de l'iPhone allumé et relance."));
+    xhr.ontimeout = () => reject(new Error("L'envoi a expiré. Relance."));
+    xhr.send(form);
   });
 }
+// v41.40 : chronomètre pendant le traitement Runway. Runway ne fournit AUCUN
+// pourcentage de génération — on n'en invente donc pas : statut réel + temps
+// écoulé, et une barre animée qui montre seulement que ça travaille.
+function rwChrono(setSt, libelle) {
+  const t0 = Date.now();
+  let statut = "…";
+  const id = setInterval(() => {
+    const s = Math.round((Date.now() - t0) / 1000);
+    const mm = String(Math.floor(s / 60)).padStart(2, "0"), ss = String(s % 60).padStart(2, "0");
+    setSt(libelle + " · " + statut + " · " + mm + ":" + ss, -1);
+  }, 1000);
+  return { maj: (s) => { statut = s; }, stop: () => clearInterval(id), duree: () => Math.round((Date.now() - t0) / 1000) };
+}
+
 function rwLog(zone, etape, donnees) {
   const h = new Date().toISOString().slice(11, 19);
   let t; try { t = typeof donnees === "string" ? donnees : JSON.stringify(donnees); } catch (e) { t = String(donnees); }
@@ -5766,20 +5818,25 @@ function rwLog(zone, etape, donnees) {
 }
 // Suivi commun : SUBMIT → id → POLL → résultat. Aucun échec silencieux.
 async function rwAttendre(id, zoneJournal, setSt, minutes) {
+  // v41.40 : sondage toutes les 5 s — c'est la cadence recommandée par Runway.
+  // Aucun pourcentage inventé : on affiche le statut RÉEL et le temps écoulé.
+  const ch = rwChrono(setSt, "Traitement Runway");
   let statut = "";
-  const tours = Math.round((minutes || 10) * 60 / 4);
-  for (let i = 0; i < tours; i++) {
-    await new Promise(r => setTimeout(r, 4000));
-    const t = await rwStatus(id);
-    if (t.status !== statut) { statut = t.status; rwLog(zoneJournal, "STATUT", statut); }
-    setSt("Génération en cours — " + (statut || "…") + " (" + ((i + 1) * 4) + " s)", Math.min(12 + i * 1.5, 92));
-    if (t.status === "SUCCEEDED") { rwLog(zoneJournal, "RÉPONSE COMPLÈTE", t); return t; }
-    if (t.status === "FAILED" || t.status === "CANCELLED") {
-      rwLog(zoneJournal, "ÉCHEC", t);
-      throw new Error("Runway a refusé la génération" + (t.failure || t.failureCode ? " : " + (t.failure || t.failureCode) : "."));
+  const tours = Math.round((minutes || 12) * 60 / 5);
+  try {
+    for (let i = 0; i < tours; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const t = await rwStatus(id);
+      if (t.status !== statut) { statut = t.status; ch.maj(statut); rwLog(zoneJournal, "STATUT", statut); }
+      if (t.status === "SUCCEEDED") { rwLog(zoneJournal, "RÉPONSE COMPLÈTE", t); rwLog(zoneJournal, "TEMPS TOTAL", ch.duree() + " s"); return t; }
+      if (t.status === "FAILED" || t.status === "CANCELLED") {
+        rwLog(zoneJournal, "ÉCHEC", t);
+        const motif = t.failure || t.failureCode || "";
+        throw new Error("Runway a refusé la génération" + (motif ? " : " + motif : "."));
+      }
     }
-  }
-  throw new Error("Runway n'a pas terminé en " + (minutes || 10) + " minutes (dernier statut : " + (statut || "inconnu") + "). Retrouve la tâche dans ton portail Runway avant de relancer.");
+    throw new Error("Runway n'a pas terminé en " + (minutes || 12) + " minutes (dernier statut : " + (statut || "inconnu") + "). Retrouve la tâche dans ton portail Runway avant de relancer.");
+  } finally { ch.stop(); }
 }
 
 // ═══════════ PAGE ADMIN 1 · ALEPH 2.0 ═══════════
@@ -5820,26 +5877,37 @@ document.getElementById("alRefInput").onchange = (e) => {
 };
 document.getElementById("alGo").onclick = async () => {
   const go = document.getElementById("alGo"); go.disabled = true;
-  const setSt = (t, p) => { document.getElementById("alStatus").classList.add("on"); document.getElementById("alStatusText").innerHTML = t; document.getElementById("alFill").style.width = (p || 0) + "%"; };
+  const setSt = (t, p) => {
+    document.getElementById("alStatus").classList.add("on");
+    document.getElementById("alStatusText").innerHTML = t;
+    const f = document.getElementById("alFill");
+    // p === -1 : Runway ne donne aucun pourcentage → barre animée, pas de faux chiffre.
+    if (p === -1) { f.style.width = "100%"; f.style.opacity = "0.45"; }
+    else { f.style.width = (p || 0) + "%"; f.style.opacity = "1"; }
+  };
   document.getElementById("alJournal").textContent = ""; document.getElementById("alResult").innerHTML = "";
   try {
     if (!admPin()) throw new Error("PIN administrateur absent — rouvre l'espace admin (◆ en bas de page).");
     rwLog("alJournal", "DÉMARRAGE", { moteur: "aleph2", duree_s: Math.round(alDuree * 10) / 10, credits: alCredits() });
-    setSt("Préparation de la vidéo…", 5);
-    const videoUri = await rwFichierEnDataUri(alVideo, 16);
-    rwLog("alJournal", "VIDÉO PRÊTE", { nom: alVideo.name, taille_Mo: Math.round(alVideo.size / 104857.6) / 10, type: alVideo.type });
+    // ÉTAPE 1 — envoi du fichier chez Runway, progression RÉELLE
+    rwLog("alJournal", "FICHIER", { nom: alVideo.name, taille_Mo: Math.round(alVideo.size / 104857.6) / 10, duree_s: Math.round(alDuree * 10) / 10, type: alVideo.type });
+    setSt("Étape 1/4 · Envoi de la vidéo vers Runway… 0 %", 0);
+    const videoUri = await rwEnvoyerFichier(alVideo, "alJournal",
+      (pct) => setSt("Étape 1/4 · Envoi de la vidéo vers Runway… " + pct + " %", pct));
     const payload = { model: "aleph2", videoUri: videoUri };
     const pr = document.getElementById("alPrompt").value.trim();
     if (pr) payload.promptText = pr.slice(0, 1000);
     if (alRefs.length) {
       payload.keyframes = [];
-      for (const f of alRefs) payload.keyframes.push({ uri: await rwFichierEnDataUri(f, 5), at: 0 });
+      setSt("Étape 2/4 · Envoi des images de guidage…", -1);
+      for (const f of alRefs) payload.keyframes.push({ uri: await rwEnvoyerFichier(f, "alJournal"), at: 0 });
       rwLog("alJournal", "IMAGES DE GUIDAGE", alRefs.length + " image(s), placées à 0 s");
     }
     rwLog("alJournal", "PAYLOAD (médias masqués)", Object.assign({}, payload, { videoUri: "[data URI vidéo]", keyframes: payload.keyframes ? "[" + payload.keyframes.length + " image(s)]" : undefined }));
-    setSt("Envoi à Runway…", 10);
+    setSt("Étape 3/4 · Création de la tâche…", -1);
     const t = await rwSubmit("video_to_video", payload);
-    rwLog("alJournal", "TÂCHE ACCEPTÉE", { id: t.id, estimatedCost: t.estimatedCost });
+    rwLog("alJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
+    setSt("Étape 4/4 · Traitement Runway…", -1);
     const fin = await rwAttendre(t.id, "alJournal", setSt, 12);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
     if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
@@ -5907,16 +5975,27 @@ document.getElementById("sdRefInput").onchange = (e) => {
 };
 document.getElementById("sdGo").onclick = async () => {
   const go = document.getElementById("sdGo"); go.disabled = true;
-  const setSt = (t, p) => { document.getElementById("sdStatus").classList.add("on"); document.getElementById("sdStatusText").innerHTML = t; document.getElementById("sdFill").style.width = (p || 0) + "%"; };
+  const setSt = (t, p) => {
+    document.getElementById("sdStatus").classList.add("on");
+    document.getElementById("sdStatusText").innerHTML = t;
+    const f = document.getElementById("sdFill");
+    if (p === -1) { f.style.width = "100%"; f.style.opacity = "0.45"; }
+    else { f.style.width = (p || 0) + "%"; f.style.opacity = "1"; }
+  };
   document.getElementById("sdJournal").textContent = ""; document.getElementById("sdResult").innerHTML = "";
   try {
     if (!admPin()) throw new Error("PIN administrateur absent — rouvre l'espace admin (◆ en bas de page).");
     if (!sdRefs.length) throw new Error("Seedance a besoin d'au moins une image de référence à l'étape ① (l'artiste, par exemple).");
     const duree = Number(document.getElementById("sdDuree").value);
     rwLog("sdJournal", "DÉMARRAGE", { moteur: "seedance2_5", resolution: sdRes, ratio: document.getElementById("sdRatio").value, duree_s: duree, credits: sdCredits() });
-    setSt("Préparation des références…", 5);
+    setSt("Étape 1/3 · Envoi des références vers Runway… 0 %", 0);
     const images = [];
-    for (const f of sdRefs) images.push({ uri: await rwFichierEnDataUri(f, 5) });
+    let n = 0;
+    for (const f of sdRefs) {
+      n++;
+      images.push({ uri: await rwEnvoyerFichier(f, "sdJournal",
+        (pct) => setSt("Étape 1/3 · Envoi de l'image " + n + "/" + sdRefs.length + "… " + pct + " %", pct)) });
+    }
     images[0].position = "first";   // la 1re image sert de première image de la vidéo
     rwLog("sdJournal", "RÉFÉRENCES PRÊTES", sdRefs.map(f => f.name).join(" · "));
     const payload = {
@@ -5928,9 +6007,10 @@ document.getElementById("sdGo").onclick = async () => {
       audio: document.getElementById("sdAudio").checked,
     };
     rwLog("sdJournal", "PAYLOAD (images masquées)", Object.assign({}, payload, { promptImage: "[" + images.length + " image(s)]" }));
-    setSt("Envoi à Runway…", 10);
+    setSt("Étape 2/3 · Création de la tâche…", -1);
     const t = await rwSubmit("image_to_video", payload);
-    rwLog("sdJournal", "TÂCHE ACCEPTÉE", { id: t.id, estimatedCost: t.estimatedCost });
+    rwLog("sdJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
+    setSt("Étape 3/3 · Traitement Runway…", -1);
     const fin = await rwAttendre(t.id, "sdJournal", setSt, 15);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
     if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
