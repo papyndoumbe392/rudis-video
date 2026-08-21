@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.38 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.39 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -920,7 +920,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.38</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.39</span>
     <!-- v41.38 : ouverture de l'espace admin. Discret, sans mention visible pour un client. -->
     <span id="admOuvre" style="opacity:.25; font-size:11.5px; cursor:pointer; user-select:none;" title="Studio"> · ◆</span>
   </footer>
@@ -5695,18 +5695,23 @@ fxRefresh();
 function admLire(k)    { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function admEcrire(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 function admEffacer(k)  { try { localStorage.removeItem(k); } catch (e) {} }
+// v41.39 : le PIN admin, mémorisé sur CET appareil uniquement. Jamais envoyé
+// ailleurs qu'au Worker du studio, jamais inscrit dans GitHub.
+function admPin() { return (admLire("starPin") || "").trim(); }
 (function admInit() {
   const zone = document.getElementById("adminZone");
   const ouvre = document.getElementById("admOuvre");
   if (!zone || !ouvre) return;
-  if (admLire("starAdmin") === "1") zone.classList.remove("hidden");
+  if (admPin()) zone.classList.remove("hidden");
   ouvre.onclick = () => {
-    if (admLire("starAdmin") === "1") {
-      admEffacer("starAdmin"); zone.classList.add("hidden"); return;
-    }
-    const c = prompt("Code studio :");
+    if (admPin()) { admEffacer("starPin"); zone.classList.add("hidden"); return; }
+    // v41.39 : ce code EST le PIN d'administrateur du Worker (le même que pour
+    // créer des codes clients). Il n'est pas vérifié ici — c'est le Worker qui
+    // tranche à chaque appel. Le masquage n'est qu'un confort ; la sécurité
+    // réelle est côté serveur, où se trouve la clé Runway.
+    const c = prompt("PIN administrateur du studio :");
     if (!c) return;
-    admEcrire("starAdmin", "1");
+    admEcrire("starPin", c.trim());
     zone.classList.remove("hidden");
     zone.scrollIntoView({ behavior: "smooth" });
   };
@@ -5726,7 +5731,7 @@ async function rwSubmit(endpoint, payload) {
   if (WORKER_URL.includes("COLLE_ICI")) throw new Error("Serveur non configuré (fichier config.js).");
   const r = await fetch(WORKER_URL + "/runway/submit", {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code: getCode(), endpoint, payload }),
+    body: JSON.stringify({ pin: admPin(), endpoint, payload }),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.error || ("Envoi refusé (" + r.status + ")"));
@@ -5735,7 +5740,7 @@ async function rwSubmit(endpoint, payload) {
 async function rwStatus(id) {
   const r = await fetch(WORKER_URL + "/runway/status", {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code: getCode(), task_id: id }),
+    body: JSON.stringify({ pin: admPin(), task_id: id }),
   });
   const t = await r.text();
   try { return JSON.parse(t); } catch (_) { throw new Error("réponse illisible du serveur (" + r.status + ")"); }
@@ -5818,7 +5823,7 @@ document.getElementById("alGo").onclick = async () => {
   const setSt = (t, p) => { document.getElementById("alStatus").classList.add("on"); document.getElementById("alStatusText").innerHTML = t; document.getElementById("alFill").style.width = (p || 0) + "%"; };
   document.getElementById("alJournal").textContent = ""; document.getElementById("alResult").innerHTML = "";
   try {
-    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    if (!admPin()) throw new Error("PIN administrateur absent — rouvre l'espace admin (◆ en bas de page).");
     rwLog("alJournal", "DÉMARRAGE", { moteur: "aleph2", duree_s: Math.round(alDuree * 10) / 10, credits: alCredits() });
     setSt("Préparation de la vidéo…", 5);
     const videoUri = await rwFichierEnDataUri(alVideo, 16);
@@ -5905,7 +5910,7 @@ document.getElementById("sdGo").onclick = async () => {
   const setSt = (t, p) => { document.getElementById("sdStatus").classList.add("on"); document.getElementById("sdStatusText").innerHTML = t; document.getElementById("sdFill").style.width = (p || 0) + "%"; };
   document.getElementById("sdJournal").textContent = ""; document.getElementById("sdResult").innerHTML = "";
   try {
-    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    if (!admPin()) throw new Error("PIN administrateur absent — rouvre l'espace admin (◆ en bas de page).");
     if (!sdRefs.length) throw new Error("Seedance a besoin d'au moins une image de référence à l'étape ① (l'artiste, par exemple).");
     const duree = Number(document.getElementById("sdDuree").value);
     rwLog("sdJournal", "DÉMARRAGE", { moteur: "seedance2_5", resolution: sdRes, ratio: document.getElementById("sdRatio").value, duree_s: duree, credits: sdCredits() });
