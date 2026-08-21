@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.40 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.43 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -178,6 +178,9 @@
     <p class="sub">Ta photo + ta chanson → ton clip vidéo professionnel, créé par l'intelligence artificielle du studio. <span style="color:var(--gold); font-size:17px; font-weight:700; display:block; margin-top:6px;">Chante, danse, change de tenue — deviens la star de ton clip. ✨</span></p>
     <a href="guide.html" style="display:inline-block; margin-top:12px; padding:8px 16px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); text-decoration:none; font-size:13px; font-weight:600;">📖 Guide en BD — pour petits et grands</a>
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
+    <!-- v41.42 : l'accès admin remonte EN HAUT. Papy est seul à connaître le PIN,
+         il n'y a donc plus de raison de le cacher tout en bas de page. -->
+    <div><span id="admOuvre" style="display:inline-block; margin-top:12px; opacity:.35; font-size:12px; cursor:pointer; user-select:none;" title="Studio">◆ Studio</span></div>
   </header>
 
   <!-- v39.2 : NIVEAU 3 — navigation par onglets. Un seul groupe visible à la fois. -->
@@ -198,6 +201,26 @@
       letter-spacing:.01em; margin-top:1px; }
     #tabbar .qnav.active small { opacity:.75; }
     #tabbar .qnav.active { background:var(--gold); color:#1a1726; border-color:var(--gold); }
+
+    /* v41.43 — CERCLE DE PROGRESSION (façon Runway / Kling).
+       Un anneau doré autour du pourcentage : rempli et précis pendant l'envoi
+       (on connaît le nombre d'octets), puis en rotation continue pendant la
+       génération, car Runway ne fournit AUCUN pourcentage à ce moment-là. */
+    .rwRond { display:flex; flex-direction:column; align-items:center; gap:10px; margin:18px 0; }
+    .rwRond svg { transform:rotate(-90deg); }
+    .rwRond .piste { fill:none; stroke:var(--line); stroke-width:9; }
+    .rwRond .arc   { fill:none; stroke:var(--gold); stroke-width:9; stroke-linecap:round;
+                     transition:stroke-dashoffset .35s ease; }
+    .rwRond.tourne svg { animation:rwTourne 1.15s linear infinite; }
+    .rwRond.tourne .arc { transition:none; }
+    @keyframes rwTourne { to { transform:rotate(270deg); } }
+    .rwRondTexte { position:absolute; inset:0; display:flex; flex-direction:column;
+                   align-items:center; justify-content:center; text-align:center; }
+    .rwRondPct   { font-size:26px; font-weight:800; color:var(--gold); line-height:1; }
+    .rwRondChrono{ font-size:13px; opacity:.75; margin-top:4px; font-variant-numeric:tabular-nums; }
+    .rwRondEtape { font-size:13.5px; text-align:center; max-width:340px; line-height:1.4; }
+    .rwRondFini .arc { stroke:var(--ok); }
+    .rwRondFini .rwRondPct { color:var(--ok); }
   </style>
 
   <!-- v34.7 — GALERIE DES CLIPS D'EXEMPLE (vitrine qualité) -->
@@ -808,18 +831,57 @@
        n'acceptent QUE le code admin. Le masquage ici n'est qu'un confort.
        Une page par moteur, comme Runway et fal — jamais les deux mélangés.
        ═══════════════════════════════════════════════════════════════════ -->
-  <section id="adminZone" class="hidden">
-    <div style="border:1px solid var(--gold); border-radius:12px; padding:10px 12px; margin-bottom:14px;">
+  <!-- v41.42 : l'espace admin s'affiche PLEIN ÉCRAN, comme Runway ou Kling —
+       un moteur, un espace de travail, rien d'autre. Le reste de StarClip est
+       masqué pendant ce temps (volets clients, galerie, onglets, pied de page). -->
+  <section id="adminZone" class="hidden" style="position:fixed; inset:0; z-index:9000; background:var(--bg,#0f0d17); overflow-y:auto; padding:16px; -webkit-overflow-scrolling:touch;">
+  <div style="max-width:760px; margin:0 auto;">
+    <!-- v41.41 : saisie du PIN masquée. Il y a souvent des artistes dans le studio :
+         la boîte prompt() du navigateur affichait le PIN en clair, lisible par-dessus
+         l'épaule. Champ de type password + œil pour vérifier une faute de frappe. -->
+    <div id="admLogin" style="border:1px solid var(--gold); border-radius:12px; padding:12px; margin-bottom:14px;">
       <b style="color:var(--gold)">🔐 ESPACE ADMIN — STUDIO RUDIS</b>
+      <div class="hint">PIN administrateur. Il n'est jamais enregistré sur cet appareil et la session se ferme seule après 25 minutes sans activité.</div>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+        <input type="password" id="admPinInput" inputmode="numeric" autocomplete="off" placeholder="••••••" style="flex:1; letter-spacing:3px;">
+        <button class="chip" id="admVoir" title="Afficher le PIN">👁️</button>
+        <button class="chip" id="admEffacerBtn" title="Effacer">✕</button>
+      </div>
+      <button class="master" id="admValider" style="margin-top:10px;">Ouvrir l'espace admin</button>
+      <div class="estimate" id="admLoginInfo"></div>
+    </div>
+
+    <div id="admBarre" class="hidden" style="border:1px solid var(--gold); border-radius:12px; padding:10px 12px; margin-bottom:14px;">
+      <b style="color:var(--gold)">🔐 ESPACE ADMIN — STUDIO RUDIS</b>
+      <span id="admMinuteur" style="float:right; opacity:.6; font-size:12px;"></span>
       <div class="hint">Moteurs Runway facturés en crédits Runway (0,01 $ le crédit), séparés des crédits StarClip des clients. Ces pages ne sont pas visibles par les clients.</div>
       <div class="chips" style="margin-top:8px;">
-        <button class="chip on" id="admOngletAleph">🎞️ Aleph 2.0 — Éditer</button>
-        <button class="chip" id="admOngletSeed">✨ Seedance 2.5 — Créer</button>
+        <button class="chip" id="admRetour">← Retour aux moteurs</button>
+        <button class="chip" id="admFermer">🔒 Fermer la session</button>
+      </div>
+    </div>
+    <div id="admCorps" class="hidden">
+
+    <!-- v41.42 : écran de CHOIX DU MOTEUR. On clique sur celui avec lequel on veut
+         travailler, et cet écran laisse la place à l'espace de travail seul. -->
+    <div id="admChoix">
+      <h2 style="margin-top:4px;">Avec quel moteur veux-tu travailler ?</h2>
+      <p class="sub">Un moteur, un espace de travail. Tu reviens ici quand tu veux avec ← Retour.</p>
+      <div class="card" id="admCarteAleph" style="cursor:pointer; border-color:var(--gold);">
+        <h2 style="margin:0;">🎞️ ALEPH 2.0 — ÉDITER</h2>
+        <p class="sub" style="margin:6px 0 0;">« Je garde cette vidéo, je change son environnement. »<br>
+        Ta vidéo, sa danse, son cadrage — seul le décor change. 30 s max · 28 crédits/s.</p>
+      </div>
+      <div class="card" id="admCarteSeed" style="cursor:pointer; border-color:var(--gold);">
+        <h2 style="margin:0;">✨ SEEDANCE 2.5 — CRÉER</h2>
+        <p class="sub" style="margin:6px 0 0;">« Je recrée une performance à partir de mes références. »<br>
+        Photos de l'artiste, tenue, décor · chant et lip-sync · 4 à 30 s · dès 20 crédits/s.</p>
       </div>
     </div>
 
+
     <!-- ─────────── PAGE ADMIN 1 · ALEPH 2.0 ─────────── -->
-    <div id="admPageAleph">
+    <div id="admPageAleph" class="hidden">
       <h2>🎞️ ALEPH 2.0 — ÉDITER / CONSERVER</h2>
       <p class="sub">Garde ta vidéo telle qu'elle est — sa danse, son cadrage, son montage — et change son environnement. C'est le moteur du « je garde cette vidéo, je change le décor ».</p>
 
@@ -845,6 +907,20 @@
         <div class="step">③ C'EST PARTI</div>
         <div class="estimate" id="alCout">Importe une vidéo pour connaître le coût.</div>
         <button class="master" id="alGo" disabled>Choisis d'abord une vidéo</button>
+      <div class="rwRond hidden" id="alRond">
+        <div style="position:relative; width:132px; height:132px;">
+          <svg width="132" height="132" viewBox="0 0 132 132">
+            <circle class="piste" cx="66" cy="66" r="58"></circle>
+            <circle class="arc" id="alArc" cx="66" cy="66" r="58"
+                    stroke-dasharray="364.4" stroke-dashoffset="364.4"></circle>
+          </svg>
+          <div class="rwRondTexte">
+            <div class="rwRondPct" id="alPct">0%</div>
+            <div class="rwRondChrono" id="alChrono">00:00</div>
+          </div>
+        </div>
+        <div class="rwRondEtape" id="alEtape">Préparation…</div>
+      </div>
         <div class="status" id="alStatus"><div id="alStatusText"></div><div class="bar"><div class="fill" id="alFill"></div></div></div>
         <div id="alResult"></div>
         <details style="margin-top:10px;"><summary style="cursor:pointer; opacity:.75;">🔎 Journal technique</summary>
@@ -891,6 +967,20 @@
         <div class="step">④ C'EST PARTI</div>
         <div class="estimate" id="sdCout"></div>
         <button class="master" id="sdGo" disabled>Écris d'abord ta scène à l'étape ②</button>
+      <div class="rwRond hidden" id="sdRond">
+        <div style="position:relative; width:132px; height:132px;">
+          <svg width="132" height="132" viewBox="0 0 132 132">
+            <circle class="piste" cx="66" cy="66" r="58"></circle>
+            <circle class="arc" id="sdArc" cx="66" cy="66" r="58"
+                    stroke-dasharray="364.4" stroke-dashoffset="364.4"></circle>
+          </svg>
+          <div class="rwRondTexte">
+            <div class="rwRondPct" id="sdPct">0%</div>
+            <div class="rwRondChrono" id="sdChrono">00:00</div>
+          </div>
+        </div>
+        <div class="rwRondEtape" id="sdEtape">Préparation…</div>
+      </div>
         <div class="status" id="sdStatus"><div id="sdStatusText"></div><div class="bar"><div class="fill" id="sdFill"></div></div></div>
         <div id="sdResult"></div>
         <details style="margin-top:10px;"><summary style="cursor:pointer; opacity:.75;">🔎 Journal technique</summary>
@@ -898,6 +988,8 @@
         </details>
       </div>
     </div>
+    </div><!-- /admCorps -->
+  </div>
   </section>
   </div>
 
@@ -920,9 +1012,8 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.40</span>
-    <!-- v41.38 : ouverture de l'espace admin. Discret, sans mention visible pour un client. -->
-    <span id="admOuvre" style="opacity:.25; font-size:11.5px; cursor:pointer; user-select:none;" title="Studio"> · ◆</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.43</span>
+
   </footer>
 </div>
 
@@ -5688,42 +5779,122 @@ fxRefresh();
 // ═══════════════════════════════════════════════════════════════════════
 
 // ——— Ouverture de l'espace admin ———
-// v41.38 : localStorage LÈVE UNE ERREUR quand la page est ouverte en local
-// (fichier file://, origine opaque) — et c'est justement ainsi que Papy teste
-// avant de déployer. Sans ces gardes, tout le script admin s'arrêtait net et
-// les menus Seedance restaient vides. Lecture et écriture protégées.
-function admLire(k)    { try { return localStorage.getItem(k); } catch (e) { return null; } }
-function admEcrire(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-function admEffacer(k)  { try { localStorage.removeItem(k); } catch (e) {} }
-// v41.39 : le PIN admin, mémorisé sur CET appareil uniquement. Jamais envoyé
-// ailleurs qu'au Worker du studio, jamais inscrit dans GitHub.
-function admPin() { return (admLire("starPin") || "").trim(); }
+// ═══ v41.41 : SESSION ADMIN — PIN EN MÉMOIRE VIVE UNIQUEMENT ═══
+// Trois exigences de Papy, nées de l'usage réel du studio :
+//  1. le PIN ne doit JAMAIS rester sur le Mac (des artistes passent, l'appareil
+//     est parfois prêté) → il vit dans une simple variable JavaScript, effacée
+//     dès que l'onglet est fermé ou rechargé. Rien dans localStorage.
+//  2. la saisie doit être masquée (champ password), avec un œil pour vérifier
+//     une faute de frappe — la boîte prompt() du navigateur l'affichait en clair.
+//  3. fermeture automatique après 25 minutes sans activité.
+let admSession = "";            // le PIN, en mémoire vive et nulle part ailleurs
+let admDernierGeste = 0;        // horodatage de la dernière action
+let admHorloge = null;
+const ADM_INACTIVITE_MS = 25 * 60 * 1000;   // 25 minutes
+
+function admPin() { return admSession; }
+
+function admOuvrirSession(pin) {
+  admSession = pin;
+  admDernierGeste = Date.now();
+  document.getElementById("admLogin").classList.add("hidden");
+  document.getElementById("admBarre").classList.remove("hidden");
+  document.getElementById("admCorps").classList.remove("hidden");
+  document.getElementById("admPinInput").value = "";   // le champ ne garde rien
+  admVue("choix");
+  // v41.42 : plein écran — le reste de StarClip disparaît complètement.
+  document.body.style.overflow = "hidden";
+  if (admHorloge) clearInterval(admHorloge);
+  admHorloge = setInterval(admVeille, 1000);
+  admVeille();
+}
+
+// Ferme la session : le PIN est effacé de la mémoire, l'espace se replie.
+function admFermerSession(raison) {
+  admSession = "";
+  document.body.style.overflow = "";   // v41.42 : on rend la page au client
+  if (admHorloge) { clearInterval(admHorloge); admHorloge = null; }
+  const c = document.getElementById("admCorps"), b = document.getElementById("admBarre"), l = document.getElementById("admLogin");
+  if (c) c.classList.add("hidden");
+  if (b) b.classList.add("hidden");
+  if (l) l.classList.remove("hidden");
+  const i = document.getElementById("admLoginInfo");
+  if (i) i.innerHTML = raison ? '<span style="color:var(--gold)">' + raison + "</span>" : "";
+  const z = document.getElementById("adminZone");
+  if (z) z.classList.add("hidden");
+}
+
+// Minuteur : affiche le temps restant et referme tout seul à 0.
+function admVeille() {
+  const reste = ADM_INACTIVITE_MS - (Date.now() - admDernierGeste);
+  const m = document.getElementById("admMinuteur");
+  if (reste <= 0) { admFermerSession("Session fermée après 25 minutes sans activité. Ressaisis ton PIN."); return; }
+  if (m) {
+    const s = Math.round(reste / 1000);
+    m.textContent = "🔒 " + String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+    m.style.color = reste < 120000 ? "var(--gold)" : "";   // dernières 2 minutes en doré
+  }
+}
+// Toute action dans l'espace admin relance le compte à rebours.
+function admGeste() { if (admSession) admDernierGeste = Date.now(); }
+
 (function admInit() {
   const zone = document.getElementById("adminZone");
   const ouvre = document.getElementById("admOuvre");
   if (!zone || !ouvre) return;
-  if (admPin()) zone.classList.remove("hidden");
+
+  // ◆ en pied de page : ouvre l'écran de saisie (jamais l'espace directement).
   ouvre.onclick = () => {
-    if (admPin()) { admEffacer("starPin"); zone.classList.add("hidden"); return; }
-    // v41.39 : ce code EST le PIN d'administrateur du Worker (le même que pour
-    // créer des codes clients). Il n'est pas vérifié ici — c'est le Worker qui
-    // tranche à chaque appel. Le masquage n'est qu'un confort ; la sécurité
-    // réelle est côté serveur, où se trouve la clé Runway.
-    const c = prompt("PIN administrateur du studio :");
-    if (!c) return;
-    admEcrire("starPin", c.trim());
+    if (admSession) { admFermerSession(""); return; }
     zone.classList.remove("hidden");
+    document.getElementById("admLogin").classList.remove("hidden");
     zone.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => document.getElementById("admPinInput").focus(), 300);
   };
-  document.getElementById("admOngletAleph").onclick = () => admOnglet("aleph");
-  document.getElementById("admOngletSeed").onclick  = () => admOnglet("seed");
+
+  const champ = document.getElementById("admPinInput");
+  const valider = () => {
+    const v = (champ.value || "").trim();
+    if (!v) { document.getElementById("admLoginInfo").innerHTML = '<span class="err">Saisis ton PIN.</span>'; return; }
+    // Le PIN n'est pas vérifié ici : c'est le Worker qui tranche à chaque appel.
+    // Un PIN faux donnera « Espace réservé au studio » au premier bouton utilisé.
+    admOuvrirSession(v);
+  };
+  document.getElementById("admValider").onclick = valider;
+  champ.addEventListener("keydown", (e) => { if (e.key === "Enter") valider(); });
+
+  // 👁️ : révèle le PIN le temps de vérifier une faute de frappe.
+  document.getElementById("admVoir").onclick = () => {
+    champ.type = champ.type === "password" ? "text" : "password";
+    document.getElementById("admVoir").textContent = champ.type === "text" ? "🙈" : "👁️";
+  };
+  document.getElementById("admEffacerBtn").onclick = () => { champ.value = ""; champ.focus(); };
+  document.getElementById("admFermer").onclick = () => admFermerSession("Session fermée.");
+
+  document.getElementById("admCarteAleph").onclick = () => admVue("aleph");
+  document.getElementById("admCarteSeed").onclick  = () => admVue("seed");
+  document.getElementById("admRetour").onclick     = () => admVue("choix");
+  // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
+  zone.addEventListener("click", admGeste);
+  zone.addEventListener("input", admGeste);
 })();
-function admOnglet(quoi) {
-  const a = quoi === "aleph";
-  document.getElementById("admPageAleph").classList.toggle("hidden", !a);
-  document.getElementById("admPageSeed").classList.toggle("hidden", a);
-  document.getElementById("admOngletAleph").classList.toggle("on", a);
-  document.getElementById("admOngletSeed").classList.toggle("on", !a);
+
+// v41.42 : navigation « un moteur, un espace de travail », comme Runway.
+// admVue("choix")  → l'écran de sélection des moteurs
+// admVue("aleph")  → Aleph 2.0 SEUL à l'écran
+// admVue("seed")   → Seedance 2.5 SEUL à l'écran
+function admVue(quoi) {
+  admGeste();
+  const ch = document.getElementById("admChoix");
+  const pa = document.getElementById("admPageAleph");
+  const ps = document.getElementById("admPageSeed");
+  const ret = document.getElementById("admRetour");
+  ch.classList.toggle("hidden", quoi !== "choix");
+  pa.classList.toggle("hidden", quoi !== "aleph");
+  ps.classList.toggle("hidden", quoi !== "seed");
+  // Le bouton Retour n'a de sens que dans un espace de travail.
+  ret.classList.toggle("hidden", quoi === "choix");
+  document.getElementById("adminZone").scrollTop = 0;
 }
 
 // ——— Liaison Worker pour Runway (clé côté serveur uniquement) ———
@@ -5794,6 +5965,71 @@ function rwEnvoyerFichier(f, zoneJournal, onProgres) {
     xhr.send(form);
   });
 }
+// ═══ v41.43 : CERCLE DE PROGRESSION (façon Runway / Kling) ═══
+// Deux régimes, et c'est toute la nuance :
+//  · ENVOI du fichier → on connaît les octets transférés : anneau REMPLI,
+//    pourcentage exact, de 0 à 100 %.
+//  · GÉNÉRATION → Runway ne donne AUCUN pourcentage. On ne l'invente pas :
+//    l'anneau TOURNE en continu et le chronomètre défile. Le mouvement dit
+//    « ça travaille », le chiffre ne ment pas.
+const RW_CIRCONFERENCE = 2 * Math.PI * 58;   // rayon 58 px
+function rwRondMontrer(pfx, oui) {
+  const r = document.getElementById(pfx + "Rond");
+  if (r) r.classList.toggle("hidden", !oui);
+}
+// pct : 0-100 pour une progression réelle · -1 pour « en cours, sans chiffre »
+function rwRondMaj(pfx, pct, etape) {
+  const rond = document.getElementById(pfx + "Rond");
+  const arc  = document.getElementById(pfx + "Arc");
+  const zp   = document.getElementById(pfx + "Pct");
+  const ze   = document.getElementById(pfx + "Etape");
+  if (!rond || !arc) return;
+  rond.classList.remove("hidden");
+  if (etape && ze) ze.innerHTML = etape;
+  if (pct === -1) {
+    rond.classList.add("tourne");
+    arc.setAttribute("stroke-dashoffset", RW_CIRCONFERENCE * 0.72);   // arc partiel qui tourne
+    if (zp) zp.textContent = "…";
+  } else {
+    rond.classList.remove("tourne");
+    const p = Math.max(0, Math.min(100, pct));
+    arc.setAttribute("stroke-dashoffset", RW_CIRCONFERENCE * (1 - p / 100));
+    if (zp) zp.textContent = p + "%";
+  }
+  rond.classList.remove("rwRondFini");
+}
+function rwRondFini(pfx, texte) {
+  const rond = document.getElementById(pfx + "Rond");
+  const arc  = document.getElementById(pfx + "Arc");
+  if (!rond || !arc) return;
+  rond.classList.remove("tourne");
+  rond.classList.add("rwRondFini");
+  arc.setAttribute("stroke-dashoffset", 0);
+  const zp = document.getElementById(pfx + "Pct"); if (zp) zp.textContent = "✓";
+  const ze = document.getElementById(pfx + "Etape"); if (ze) ze.innerHTML = texte || "Terminé";
+}
+function rwRondEchec(pfx, texte) {
+  const rond = document.getElementById(pfx + "Rond");
+  if (rond) rond.classList.remove("tourne");
+  const zp = document.getElementById(pfx + "Pct"); if (zp) { zp.textContent = "✗"; zp.style.color = "var(--err,#ff6b6b)"; }
+  const ze = document.getElementById(pfx + "Etape"); if (ze) ze.innerHTML = texte || "Échec";
+}
+function rwRondChrono(pfx) {
+  const z = document.getElementById(pfx + "Chrono");
+  if (!z || !rwDepart) return;
+  const s = Math.round((Date.now() - rwDepart) / 1000);
+  z.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+}
+
+// v41.42 : chronomètre GLOBAL — il part au clic sur le bouton et tourne jusqu'à
+// la fin. Demande de Papy : « un minuteur qui montre que c'est parti ». Dès la
+// première seconde on voit le temps courir, pas seulement pendant le traitement.
+let rwDepart = 0;
+function rwTempsTotal() {
+  if (!rwDepart) return "";
+  const s = Math.round((Date.now() - rwDepart) / 1000);
+  return "⏱ " + String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0") + " · ";
+}
 // v41.40 : chronomètre pendant le traitement Runway. Runway ne fournit AUCUN
 // pourcentage de génération — on n'en invente donc pas : statut réel + temps
 // écoulé, et une barre animée qui montre seulement que ça travaille.
@@ -5803,7 +6039,7 @@ function rwChrono(setSt, libelle) {
   const id = setInterval(() => {
     const s = Math.round((Date.now() - t0) / 1000);
     const mm = String(Math.floor(s / 60)).padStart(2, "0"), ss = String(s % 60).padStart(2, "0");
-    setSt(libelle + " · " + statut + " · " + mm + ":" + ss, -1);
+    setSt(rwTempsTotal() + libelle + " · " + statut, -1);
   }, 1000);
   return { maj: (s) => { statut = s; }, stop: () => clearInterval(id), duree: () => Math.round((Date.now() - t0) / 1000) };
 }
@@ -5879,13 +6115,24 @@ document.getElementById("alGo").onclick = async () => {
   const go = document.getElementById("alGo"); go.disabled = true;
   const setSt = (t, p) => {
     document.getElementById("alStatus").classList.add("on");
-    document.getElementById("alStatusText").innerHTML = t;
+    const zt = document.getElementById("alStatusText");
+    zt.dataset.brut = String(t).startsWith("<") ? "" : t;
+    zt.innerHTML = (String(t).startsWith("<") ? "" : rwTempsTotal()) + t;
+    // v41.43 : le grand cercle reprend la même information, en gros.
+    if (!String(t).startsWith("<")) rwRondMaj("al", (p === undefined ? -1 : p), String(t).replace(/^⏱[^·]*·\s*/, ""));
     const f = document.getElementById("alFill");
     // p === -1 : Runway ne donne aucun pourcentage → barre animée, pas de faux chiffre.
     if (p === -1) { f.style.width = "100%"; f.style.opacity = "0.45"; }
     else { f.style.width = (p || 0) + "%"; f.style.opacity = "1"; }
   };
   document.getElementById("alJournal").textContent = ""; document.getElementById("alResult").innerHTML = "";
+  rwDepart = Date.now();   // v41.42 : le minuteur part MAINTENANT
+  rwRondMontrer("al", true); rwRondMaj("al", 0, "Préparation…");
+  const alTic = setInterval(() => {
+    const e = document.getElementById("alStatusText");
+    if (e && e.dataset.brut) e.innerHTML = rwTempsTotal() + e.dataset.brut;
+    rwRondChrono("al");
+  }, 1000);
   try {
     if (!admPin()) throw new Error("PIN administrateur absent — rouvre l'espace admin (◆ en bas de page).");
     rwLog("alJournal", "DÉMARRAGE", { moteur: "aleph2", duree_s: Math.round(alDuree * 10) / 10, credits: alCredits() });
@@ -5914,11 +6161,13 @@ document.getElementById("alGo").onclick = async () => {
     document.getElementById("alResult").innerHTML =
       `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
        <a class="chip" href="${url}" download style="margin-top:8px; display:inline-block;">⬇️ Télécharger (MP4 H.264)</a>`;
+    rwRondFini("al", "Terminé · " + alCredits() + " crédits Runway");
     setSt("<span class='okc'>✓ Terminé ! " + alCredits() + " crédits Runway utilisés.</span>", 100);
   } catch (e) {
+    rwRondEchec("al", e.message);
     setSt(`<span class="err">✗ ${e.message}</span>`, 0);
     rwLog("alJournal", "ERREUR", e.message);
-  } finally { go.disabled = false; alRefresh(); }
+  } finally { clearInterval(alTic); rwDepart = 0; go.disabled = false; alRefresh(); }
 };
 
 // ═══════════ PAGE ADMIN 2 · SEEDANCE 2.5 ═══════════
@@ -5977,12 +6226,23 @@ document.getElementById("sdGo").onclick = async () => {
   const go = document.getElementById("sdGo"); go.disabled = true;
   const setSt = (t, p) => {
     document.getElementById("sdStatus").classList.add("on");
-    document.getElementById("sdStatusText").innerHTML = t;
+    const zt = document.getElementById("sdStatusText");
+    zt.dataset.brut = String(t).startsWith("<") ? "" : t;
+    zt.innerHTML = (String(t).startsWith("<") ? "" : rwTempsTotal()) + t;
+    // v41.43 : le grand cercle reprend la même information, en gros.
+    if (!String(t).startsWith("<")) rwRondMaj("sd", (p === undefined ? -1 : p), String(t).replace(/^⏱[^·]*·\s*/, ""));
     const f = document.getElementById("sdFill");
     if (p === -1) { f.style.width = "100%"; f.style.opacity = "0.45"; }
     else { f.style.width = (p || 0) + "%"; f.style.opacity = "1"; }
   };
   document.getElementById("sdJournal").textContent = ""; document.getElementById("sdResult").innerHTML = "";
+  rwDepart = Date.now();   // v41.42 : le minuteur part MAINTENANT
+  rwRondMontrer("sd", true); rwRondMaj("sd", 0, "Préparation…");
+  const sdTic = setInterval(() => {
+    const e = document.getElementById("sdStatusText");
+    if (e && e.dataset.brut) e.innerHTML = rwTempsTotal() + e.dataset.brut;
+    rwRondChrono("sd");
+  }, 1000);
   try {
     if (!admPin()) throw new Error("PIN administrateur absent — rouvre l'espace admin (◆ en bas de page).");
     if (!sdRefs.length) throw new Error("Seedance a besoin d'au moins une image de référence à l'étape ① (l'artiste, par exemple).");
@@ -6017,11 +6277,13 @@ document.getElementById("sdGo").onclick = async () => {
     document.getElementById("sdResult").innerHTML =
       `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
        <a class="chip" href="${url}" download style="margin-top:8px; display:inline-block;">⬇️ Télécharger (MP4 H.264)</a>`;
+    rwRondFini("sd", "Terminé · " + sdCredits() + " crédits Runway");
     setSt("<span class='okc'>✓ Terminé ! " + sdCredits() + " crédits Runway utilisés.</span>", 100);
   } catch (e) {
+    rwRondEchec("sd", e.message);
     setSt(`<span class="err">✗ ${e.message}</span>`, 0);
     rwLog("sdJournal", "ERREUR", e.message);
-  } finally { go.disabled = false; sdRefresh(); }
+  } finally { clearInterval(sdTic); rwDepart = 0; go.disabled = false; sdRefresh(); }
 };
 
 </script>
