@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.47 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.49 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -981,19 +981,60 @@
     <!-- ─────────── PAGE ADMIN 2 · SEEDANCE 2.5 ─────────── -->
     <div id="admPageSeed" class="hidden">
       <h2>✨ SEEDANCE 2.5 — CRÉER / RECRÉER</h2>
-      <p class="sub">Recrée une performance à partir de tes références : l'artiste, la tenue, le décor. Chant et lip-sync possibles. C'est le moteur du « je refais la scène autrement ».</p>
+      <p class="sub">Recrée une performance à partir de tes références : l'artiste, la tenue, le décor. Chant et lip-sync possibles. C'est le moteur du « je refais la scène autrement ». Deux modes : à partir de photos, ou à partir d'une vidéo existante.</p>
+
+      <!-- v41.49 : DEUX MODES SEEDANCE, une seule page. Aleph garde la sienne. -->
+      <div class="card">
+        <div class="step">⓪ QUE VEUX-TU FAIRE ?</div>
+        <div class="chips" id="sdModeChips">
+          <button class="chip on" data-mode="photo">📸 PHOTO → VIDÉO</button>
+          <button class="chip" data-mode="video">🎬 VIDÉO + RÉFÉRENCES → VIDÉO</button>
+        </div>
+        <div class="hint" id="sdModeAide"></div>
+      </div>
 
       <div class="card">
         <div class="step">① TES RÉFÉRENCES</div>
-        <div class="hint">Jusqu'à 10 images : l'artiste, sa tenue, le décor voulu. Les images de référence sont GRATUITES chez Runway. 200 Mo maximum par fichier.</div>
-        <button class="chip" id="sdRefBtn">🖼️ Ajouter une image de référence</button>
-        <input type="file" id="sdRefInput" accept="image/*" style="display:none;">
-        <div id="sdRefListe" class="estimate"></div>
+
+        <!-- ——— MODE PHOTO ——— -->
+        <div id="sdBlocPhoto">
+          <div class="hint">Jusqu'à 30 images : l'artiste, sa tenue, le décor voulu. Les images de référence sont GRATUITES chez Runway. 200 Mo maximum par fichier.</div>
+          <button class="chip" id="sdRefBtn">🖼️ Ajouter une image de référence</button>
+          <input type="file" id="sdRefInput" accept="image/*" style="display:none;">
+          <div id="sdRefListe" class="estimate"></div>
+        </div>
+
+        <!-- ——— MODE VIDÉO ——— -->
+        <div id="sdBlocVideo" class="hidden">
+          <div class="hint"><b style="color:var(--gold)">La vidéo de départ</b> — 30 secondes maximum. C'est elle qui est recréée. Elle est FACTURÉE à la seconde (voir l'estimation en bas).</div>
+          <button class="chip" id="sdVidBtn">📂 Importer la vidéo de départ</button>
+          <input type="file" id="sdVidInput" accept="video/*" style="display:none;">
+          <div id="sdVidNom" class="estimate"></div>
+
+          <div class="hint" style="margin-top:12px;">Images de référence — l'artiste, la tenue, le décor. Jusqu'à 30, GRATUITES.</div>
+          <button class="chip" id="sdVRefBtn">🖼️ Ajouter une image de référence</button>
+          <input type="file" id="sdVRefInput" accept="image/*" style="display:none;">
+          <div id="sdVRefListe" class="estimate"></div>
+
+          <div class="hint" style="margin-top:12px;">Vidéos de référence supplémentaires — jusqu'à 9, mais <b>elles aussi sont facturées</b> à la seconde. Durée cumulée de TOUTES les vidéos : 30 s maximum.</div>
+          <button class="chip" id="sdVPlusBtn">🎬 Ajouter une vidéo de référence</button>
+          <input type="file" id="sdVPlusInput" accept="video/*" style="display:none;">
+          <div id="sdVPlusListe" class="estimate"></div>
+        </div>
+
+        <!-- ——— AUDIO DE RÉFÉRENCE : les deux modes ——— -->
+        <div style="margin-top:14px; border-top:1px solid rgba(255,255,255,.12); padding-top:12px;">
+          <div class="hint"><b style="color:var(--gold)">🎵 Audio de référence</b> (facultatif) — la chanson ou la voix à suivre. Jusqu'à 10 fichiers, 30 secondes cumulées maximum. GRATUIT.
+          <br>À ne pas confondre avec « Générer l'audio » à l'étape ③ : ici tu <i>donnes</i> un son au moteur, là tu lui demandes d'en <i>créer</i> un.</div>
+          <button class="chip" id="sdAudBtn">🎵 Ajouter un audio de référence</button>
+          <input type="file" id="sdAudInput" accept="audio/*" style="display:none;">
+          <div id="sdAudListe" class="estimate"></div>
+        </div>
       </div>
 
       <div class="card">
         <div class="step">② LA SCÈNE À CRÉER</div>
-        <div class="hint">Décris la scène. Tu peux renvoyer aux images (« la chanteuse de l'image 1, la tenue de l'image 2 »). 1000 caractères maximum.</div>
+        <div class="hint">Décris la scène. Tu peux renvoyer aux images (« la chanteuse de l'image 1, la tenue de l'image 2 »). Seedance 2.5 accepte <b style="color:var(--gold)">15 000 caractères</b> : ton texte part tel quel, sans condensation.</div>
         <textarea id="sdPrompt" rows="4" placeholder="Ex : la chanteuse de l'image 1 chante sur la scène de l'image 3, entourée de danseurs, plan large cinématographique"></textarea>
         <div class="estimate" id="sdPromptCpt"></div>
         <div id="sdOpt" class="hidden" style="margin-top:12px; border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px;">
@@ -1080,7 +1121,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.47</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.49</span>
 
   </footer>
 </div>
@@ -6057,9 +6098,17 @@ function rwNouvelleGeneration(pfx) {
     document.getElementById("alImportBtn").classList.remove("on");
     alRefresh();
   } else {
-    sdRefs = [];
+    // v41.49 : les deux modes ont chacun leurs fichiers. On efface tout —
+    // c'est bien le rôle de ce bouton — mais on GARDE le mode choisi.
+    sdRefs = []; sdVideosPlus = []; sdAudios = [];
+    sdVideo = null; sdVideoDuree = 0;
     document.getElementById("sdRefListe").innerHTML = "";
-    document.getElementById("sdRefInput").value = "";
+    document.getElementById("sdVRefListe").innerHTML = "";
+    document.getElementById("sdVPlusListe").innerHTML = "";
+    document.getElementById("sdAudListe").innerHTML = "";
+    document.getElementById("sdVidNom").innerHTML = "";
+    for (const id of ["sdRefInput", "sdVRefInput", "sdVidInput", "sdVPlusInput", "sdAudInput"])
+      document.getElementById(id).value = "";
     sdRefresh();
   }
   // Remonter en haut du moteur. Protégé : scrollIntoView n'existe pas partout.
@@ -6076,8 +6125,13 @@ function rwNouvelleGeneration(pfx) {
 // studio (fal-ai/any-llm, déjà autorisé côté Worker) CONDENSE le texte en
 // gardant toutes les contraintes, et Papy RELIT et MODIFIE avant de lancer.
 // Aucune génération Runway tant que le texte condensé n'est pas validé.
-const RW_PROMPT_MAX = 1000;    // limite imposée par Runway
+const RW_PROMPT_MAX = 1000;    // limite d'Aleph 2.0
 const RW_PROMPT_CIBLE = 930;   // marge de sécurité pour la version condensée
+// v41.49 : la limite n'est PAS la même selon le moteur. Le spec OpenAPI officiel
+// donne 15000 caractères à seedance2_5 sur les deux endpoints, contre 1000 pour
+// aleph2. On condensait donc inutilement les prompts Seedance — en perdant du
+// détail, et en dépensant un appel à l'assistant, pour rien.
+function rwLimite(pfx) { return pfx === "sd" ? SD_PROMPT_MAX : RW_PROMPT_MAX; }
 
 // Ce que l'assistant n'a JAMAIS le droit de sacrifier en condensant.
 const RW_CLAUSES_VITALES =
@@ -6127,8 +6181,9 @@ function rwMajCompteur(pfx) {
   const z = document.getElementById(pfx + "PromptCpt");
   if (!z) return;
   if (!t.length) { z.innerHTML = ""; return; }
-  const trop = t.length > RW_PROMPT_MAX;
-  z.innerHTML = t.length + " / " + RW_PROMPT_MAX + " caractères"
+  const max = rwLimite(pfx);
+  const trop = t.length > max;
+  z.innerHTML = t.length + " / " + max + " caractères"
     + (trop ? ' — <b style="color:var(--gold)">au-dessus de la limite Runway : ton texte sera condensé au lancement, et tu pourras le relire avant envoi.</b>' : "");
 }
 function rwMajOptInfo(pfx) {
@@ -6146,7 +6201,9 @@ async function rwPreparerPrompt(pfx, zoneJournal, setSt) {
   const boite = document.getElementById(pfx + "Opt");
   const champOpt = document.getElementById(pfx + "OptTexte");
   // Cas 1 : déjà court — envoi direct, aucune modification.
-  if (brut.length <= RW_PROMPT_MAX) { boite.classList.add("hidden"); return brut; }
+  // Pour Seedance la limite est de 15000 caractères : en pratique on passe
+  // toujours ici, et le texte de Papy part intact.
+  if (brut.length <= rwLimite(pfx)) { boite.classList.add("hidden"); return brut; }
   // Cas 2 : une version condensée existe déjà et a été relue → on l'utilise.
   if (!boite.classList.contains("hidden")) {
     const v = (champOpt.value || "").trim();
@@ -6472,14 +6529,31 @@ document.getElementById("alGo").onclick = async () => {
 // ═══════════ PAGE ADMIN 2 · SEEDANCE 2.5 ═══════════
 // Valeurs relevées le 21 août 2026 dans le playground Runway (dev.runwayml.com),
 // modèle Seedance 2.5 — le playground fait foi, pas la page générique de l'API.
+// v41.49 : ratios repris du spec OpenAPI officiel de Runway (runwayml/openapi,
+// variante seedance2_5). Les 18 valeurs sont IDENTIQUES sur image_to_video et
+// video_to_video — 1080p est donc disponible dans les DEUX modes.
+// ⚠️ Correction : le 21:9 en 1080p était écrit 2208:946 depuis la v41.38. La
+// vraie valeur est 2206:946. Deux pixels d'écart, et Runway refusait la requête.
 const SD_RATIOS = {
   "480p":  { "21:9": "992:432",   "16:9": "854:480",   "4:3": "752:560",   "1:1": "640:640",   "3:4": "560:752",   "9:16": "480:854"  },
   "720p":  { "21:9": "1470:630",  "16:9": "1280:720",  "4:3": "1112:834",  "1:1": "960:960",   "3:4": "834:1112",  "9:16": "720:1280" },
-  "1080p": { "21:9": "2208:946",  "16:9": "1920:1080", "4:3": "1664:1248", "1:1": "1440:1440", "3:4": "1248:1664", "9:16": "1080:1920" },
+  "1080p": { "21:9": "2206:946",  "16:9": "1920:1080", "4:3": "1664:1248", "1:1": "1440:1440", "3:4": "1248:1664", "9:16": "1080:1920" },
 };
-const SD_CR_S = { "480p": 20, "720p": 30, "1080p": 68 };   // crédits par seconde de sortie
-const SD_CR_MIN = 80;                                       // minimum par génération
-let sdRes = "720p", sdRefs = [];
+const SD_CR_S   = { "480p": 20, "720p": 30, "1080p": 68 };   // crédits / seconde de SORTIE
+const SD_CR_REF = { "480p": 10, "720p": 15, "1080p": 34 };   // crédits / seconde de VIDÉO DE RÉFÉRENCE
+const SD_CR_MIN = 80;                                        // minimum par génération
+const SD_PROMPT_MAX = 15000;   // limite officielle de promptText pour seedance2_5
+const SD_VIDEO_MAX_S = 30;     // durée cumulée maximale de toutes les vidéos
+// État. sdRefs sert aux DEUX modes (images de référence).
+let sdRes = "720p", sdRefs = [], sdMode = "photo";
+let sdVideo = null, sdVideoDuree = 0;   // vidéo de départ (mode vidéo)
+let sdVideosPlus = [];                  // { fichier, duree } — vidéos de référence en plus
+let sdAudios = [];                      // audios de référence (les deux modes)
+// Somme des secondes de vidéo facturées comme référence (mode vidéo uniquement).
+function sdSecondesVideo() {
+  if (sdMode !== "video") return 0;
+  return (sdVideoDuree || 0) + sdVideosPlus.reduce((t, v) => t + v.duree, 0);
+}
 (function sdInit() {
   const d = document.getElementById("sdDuree");
   for (let i = 4; i <= 30; i++) d.innerHTML += '<option value="' + i + '"' + (i === 5 ? " selected" : "") + ">" + i + " secondes</option>";
@@ -6491,7 +6565,7 @@ let sdRes = "720p", sdRefs = [];
   d.onchange = sdRefresh;
   document.getElementById("sdRatio").onchange = sdRefresh;
   document.getElementById("sdPrompt").addEventListener("input", sdRefresh);
-  sdRefresh();
+  sdMajMode();   // v41.49 : affiche le mode Photo par défaut
 })();
 function sdMajRatios() {
   const sel = document.getElementById("sdRatio"), avant = sel.value;
@@ -6502,25 +6576,204 @@ function sdMajRatios() {
   if (avant) { const i = Array.from(sel.options).findIndex(o => o.text.startsWith(avant.split(" ")[0])); if (i >= 0) sel.selectedIndex = i; }
   else sel.selectedIndex = 1;   // 16:9 par défaut
 }
-function sdCredits() { return Math.max(SD_CR_MIN, Number(document.getElementById("sdDuree").value) * SD_CR_S[sdRes]); }
-function sdRefresh() {
-  const pr = document.getElementById("sdPrompt").value.trim();
-  const b = document.getElementById("sdGo");
-  b.disabled = !pr;
-  b.textContent = !pr ? "Écris d'abord ta scène à l'étape ②"
-    : "✨ Créer avec Seedance 2.5 — " + sdCredits() + " crédits (≈ " + (sdCredits() / 100).toFixed(2) + " $)";
-  document.getElementById("sdCout").innerHTML =
-    sdRes + " · " + document.getElementById("sdDuree").value + " s · " + sdRefs.length + " image(s) de référence (gratuites) · <b style='color:var(--gold)'>"
-    + sdCredits() + " crédits Runway ≈ " + (sdCredits() / 100).toFixed(2) + " $</b>";
+// v41.49 : le mode vidéo ajoute une surtaxe par seconde de vidéo de référence
+// (10 / 15 / 34 selon la résolution), en plus des secondes de sortie.
+function sdCredits() {
+  const sortie = Number(document.getElementById("sdDuree").value) * SD_CR_S[sdRes];
+  const refs = Math.ceil(sdSecondesVideo() * SD_CR_REF[sdRes]);
+  return Math.max(SD_CR_MIN, sortie + refs);
 }
-document.getElementById("sdRefBtn").onclick = () => document.getElementById("sdRefInput").click();
-document.getElementById("sdRefInput").onchange = (e) => {
-  const f = e.target.files[0]; if (!f) return;
-  if (sdRefs.length >= 10) { alert("10 images de référence au maximum."); return; }
-  sdRefs.push(f);
-  document.getElementById("sdRefListe").innerHTML = sdRefs.map((x, i) => "🖼️ image " + (i + 1) + " · " + x.name).join("<br>");
+// Ce qui manque pour pouvoir lancer. Chaîne vide = tout est prêt.
+function sdManque() {
+  if (!document.getElementById("sdPrompt").value.trim()) return "Écris d'abord ta scène à l'étape ②";
+  if (sdMode === "photo" && !sdRefs.length) return "Ajoute au moins une image à l'étape ①";
+  if (sdMode === "video" && !sdVideo) return "Importe la vidéo de départ à l'étape ①";
+  if (sdMode === "video" && sdSecondesVideo() > SD_VIDEO_MAX_S + 0.5)
+    return "Tes vidéos font " + sdSecondesVideo().toFixed(1) + " s en tout — 30 s maximum";
+  return "";
+}
+function sdRefresh() {
+  const manque = sdManque();
+  const b = document.getElementById("sdGo");
+  b.disabled = !!manque;
+  b.textContent = manque ? manque
+    : "✨ Créer avec Seedance 2.5 — " + sdCredits() + " crédits (≈ " + (sdCredits() / 100).toFixed(2) + " $)";
+  const secV = sdSecondesVideo();
+  const detail = [
+    sdRes,
+    document.getElementById("sdDuree").value + " s de sortie",
+    sdRefs.length + " image(s) de référence (gratuites)",
+  ];
+  if (sdAudios.length) detail.push(sdAudios.length + " audio(s) de référence (gratuits)");
+  if (secV > 0) detail.push("<b style='color:var(--gold)'>" + secV.toFixed(1) + " s de vidéo de référence facturée à " + SD_CR_REF[sdRes] + " cr/s</b>");
+  document.getElementById("sdCout").innerHTML = detail.join(" · ")
+    + " · <b style='color:var(--gold)'>" + sdCredits() + " crédits Runway ≈ " + (sdCredits() / 100).toFixed(2) + " $</b>";
+}
+// ——— Bascule entre les deux modes ———
+function sdMajMode() {
+  document.getElementById("sdBlocPhoto").classList.toggle("hidden", sdMode !== "photo");
+  document.getElementById("sdBlocVideo").classList.toggle("hidden", sdMode !== "video");
+  document.querySelectorAll("#sdModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.mode === sdMode));
+  document.getElementById("sdModeAide").innerHTML = sdMode === "photo"
+    ? "Tu pars de <b>photos</b> : le moteur crée une vidéo neuve à partir d'elles. Seules les secondes de sortie sont facturées."
+    : "Tu pars d'une <b>vidéo existante</b> que le moteur recrée. Attention : la vidéo de départ est facturée EN PLUS des secondes de sortie.";
   sdRefresh();
+}
+// ——— Choix du mode ———
+document.querySelectorAll("#sdModeChips .chip").forEach(c => {
+  c.onclick = () => { sdMode = c.dataset.mode; sdMajMode(); };
+});
+
+// ——— Images de référence (partagées par les deux modes) ———
+// Le spec autorise 30 images. Les deux boutons remplissent la MÊME liste :
+// changer de mode ne fait pas perdre les images déjà choisies.
+function sdMajListeImages() {
+  const html = sdRefs.map((x, i) => "🖼️ image " + (i + 1) + " · " + x.name).join("<br>");
+  document.getElementById("sdRefListe").innerHTML = html;
+  document.getElementById("sdVRefListe").innerHTML = html;
+}
+function sdAjouterImage(e) {
+  const f = e.target.files[0]; if (!f) return;
+  if (sdRefs.length >= 30) { alert("30 images de référence au maximum (limite Runway)."); return; }
+  sdRefs.push(f); sdMajListeImages(); sdRefresh();
+  e.target.value = "";
+}
+document.getElementById("sdRefBtn").onclick  = () => document.getElementById("sdRefInput").click();
+document.getElementById("sdVRefBtn").onclick = () => document.getElementById("sdVRefInput").click();
+document.getElementById("sdRefInput").onchange  = sdAjouterImage;
+document.getElementById("sdVRefInput").onchange = sdAjouterImage;
+
+// ——— Vidéo de départ (mode vidéo) ———
+// On mesure la durée AVANT tout envoi : c'est elle qui détermine la surtaxe,
+// et Papy doit voir le prix réel avant de cliquer.
+document.getElementById("sdVidBtn").onclick = () => document.getElementById("sdVidInput").click();
+document.getElementById("sdVidInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const v = document.createElement("video"); v.preload = "metadata";
+  v.onloadedmetadata = () => {
+    if (v.duration > SD_VIDEO_MAX_S + 0.5) {
+      document.getElementById("sdVidNom").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — Seedance accepte 30 s maximum.</span>';
+      sdVideo = null; sdVideoDuree = 0; sdRefresh(); return;
+    }
+    sdVideo = f; sdVideoDuree = v.duration;
+    document.getElementById("sdVidNom").innerHTML = '<span style="color:var(--ok)">✓ ' + f.name + " (" + v.duration.toFixed(1) + " s · " + v.videoWidth + "×" + v.videoHeight + ")</span>";
+    sdRefresh();
+  };
+  v.onerror = () => { document.getElementById("sdVidNom").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
+  v.src = URL.createObjectURL(f);
 };
+
+// ——— Vidéos de référence supplémentaires (mode vidéo) ———
+document.getElementById("sdVPlusBtn").onclick = () => document.getElementById("sdVPlusInput").click();
+document.getElementById("sdVPlusInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (sdVideosPlus.length >= 9) { alert("9 vidéos de référence au maximum (limite Runway)."); return; }
+  const v = document.createElement("video"); v.preload = "metadata";
+  v.onloadedmetadata = () => {
+    sdVideosPlus.push({ fichier: f, duree: v.duration });
+    document.getElementById("sdVPlusListe").innerHTML = sdVideosPlus
+      .map((x, i) => "🎬 vidéo " + (i + 1) + " · " + x.fichier.name + " (" + x.duree.toFixed(1) + " s)").join("<br>");
+    sdRefresh();
+  };
+  v.onerror = () => alert("Vidéo illisible — formats acceptés : mp4, mov.");
+  v.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+
+// ——— Audio de référence (les deux modes) ———
+// Champ officiel referenceAudio : jusqu'à 10 fichiers, 30 s cumulées, gratuits.
+document.getElementById("sdAudBtn").onclick = () => document.getElementById("sdAudInput").click();
+document.getElementById("sdAudInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (sdAudios.length >= 10) { alert("10 audios de référence au maximum (limite Runway)."); return; }
+  const a = document.createElement("audio"); a.preload = "metadata";
+  const ajouter = (duree) => {
+    const total = sdAudios.reduce((t, x) => t + (x.duree || 0), 0) + (duree || 0);
+    if (duree && total > 30.5) {
+      alert("Tes audios feraient " + total.toFixed(1) + " s en tout — Runway accepte 30 s cumulées au maximum.");
+      return;
+    }
+    sdAudios.push({ fichier: f, duree: duree || 0 });
+    document.getElementById("sdAudListe").innerHTML = sdAudios
+      .map((x, i) => "🎵 audio " + (i + 1) + " · " + x.fichier.name + (x.duree ? " (" + x.duree.toFixed(1) + " s)" : "")).join("<br>");
+    sdRefresh();
+  };
+  a.onloadedmetadata = () => ajouter(a.duration);
+  // Les exports du studio ont parfois des métadonnées non standard : si la durée
+  // est illisible, on accepte le fichier plutôt que de bloquer, et Runway tranchera.
+  a.onerror = () => ajouter(0);
+  a.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+// ═══════════════════════════════════════════════════════════════════
+//  v41.49 · CONSTRUCTION DES PAYLOADS SEEDANCE 2.5
+// ═══════════════════════════════════════════════════════════════════
+// Chaque champ ci-dessous vient du spec OpenAPI officiel de Runway
+// (github.com/runwayml/openapi, variante model = "seedance2_5"), celui qui
+// engendre les SDK Node et Python de Runway. Rien n'est déduit.
+//
+// Le spec déclare "additionalProperties": false sur les deux variantes : TOUT
+// champ non listé fait rejeter la requête. C'est ce qui bloquait Seedance
+// depuis le début — v41.47 envoyait contentModeration, qui n'existe pas ici.
+//
+// ⚠️ contentModeration N'EST PAS ACCEPTÉ par seedance2_5 (il l'est par aleph2).
+// On ne peut donc PAS assouplir la modération des personnes reconnaissables
+// côté Runway pour ce moteur : le garde-fou rwVerifierPrompt(), qui vérifie le
+// texte AVANT l'envoi, devient notre seule protection contre les 280 crédits
+// perdus le 21 août. Il est appelé plus haut, avant toute dépense.
+//
+// PHOTO → VIDÉO · POST /v1/image_to_video
+//   champs autorisés : model, promptImage, promptText, audio, duration,
+//                      ratio, referenceAudio — et rien d'autre.
+// ⚠️ promptImage : "position" first/last = mode image-clé, sans position =
+//    mode références, et LES DEUX NE SE MÉLANGENT PAS. v41.47 posait
+//    position:"first" sur la première image seulement : mélange, donc rejet.
+//    Notre usage est le mode références → aucune position, nulle part.
+function sdPayloadPhoto(o) {
+  const p = {
+    model: "seedance2_5",
+    promptImage: (o.images || []).map(uri => ({ uri: uri })),
+    ratio: o.ratio,
+    duration: Number(o.duration),
+    audio: !!o.audio,
+  };
+  if (o.promptText) p.promptText = o.promptText;
+  if (o.audios && o.audios.length) p.referenceAudio = o.audios.map(uri => ({ type: "audio", uri: uri }));
+  return p;
+}
+// VIDÉO + RÉFÉRENCES → VIDÉO · POST /v1/video_to_video
+//   champs autorisés : model, promptVideo, promptText, audio, mode, duration,
+//                      ratio, references, referenceVideos, referenceAudio.
+// ⚠️ La vidéo source est promptVideo, PAS videoUri (videoUri appartient à
+//    aleph2 — l'envoyer ici ferait rejeter la requête).
+// ⚠️ references contient UNIQUEMENT { uri } : pas de type:"image". Seuls
+//    referenceVideos et referenceAudio portent un champ "type".
+function sdPayloadVideo(o) {
+  const p = {
+    model: "seedance2_5",
+    promptVideo: o.videoUri,
+    mode: "reference",
+    ratio: o.ratio,
+    duration: Number(o.duration),
+    audio: !!o.audio,
+  };
+  if (o.promptText) p.promptText = o.promptText;
+  if (o.images && o.images.length) p.references = o.images.map(uri => ({ uri: uri }));
+  if (o.videos && o.videos.length) p.referenceVideos = o.videos.map(uri => ({ type: "video", uri: uri }));
+  if (o.audios && o.audios.length) p.referenceAudio = o.audios.map(uri => ({ type: "audio", uri: uri }));
+  return p;
+}
+// Version courte pour le journal : les URI sont longues et illisibles.
+function sdPayloadLisible(p) {
+  const v = Object.assign({}, p);
+  if (v.promptVideo) v.promptVideo = "[vidéo de départ]";
+  if (v.promptImage) v.promptImage = "[" + v.promptImage.length + " image(s)]";
+  if (v.references) v.references = "[" + v.references.length + " image(s)]";
+  if (v.referenceVideos) v.referenceVideos = "[" + v.referenceVideos.length + " vidéo(s)]";
+  if (v.referenceAudio) v.referenceAudio = "[" + v.referenceAudio.length + " audio(s)]";
+  return v;
+}
+
 document.getElementById("sdGo").onclick = async () => {
   const go = document.getElementById("sdGo"); go.disabled = true;
   const setSt = (t, p) => {
@@ -6552,32 +6805,48 @@ document.getElementById("sdGo").onclick = async () => {
       rwRondMontrer("sd", false);
       return;
     }
-    if (!sdRefs.length) throw new Error("Seedance a besoin d'au moins une image de référence à l'étape ① (l'artiste, par exemple).");
+    const manque = sdManque();
+    if (manque) throw new Error(manque);
     const duree = Number(document.getElementById("sdDuree").value);
-    rwLog("sdJournal", "DÉMARRAGE", { moteur: "seedance2_5", resolution: sdRes, ratio: document.getElementById("sdRatio").value, duree_s: duree, credits: sdCredits() });
-    setSt("Étape 1/3 · Envoi des références vers Runway… 0 %", 0);
-    const images = [];
-    let n = 0;
-    for (const f of sdRefs) {
-      n++;
-      images.push({ uri: await rwEnvoyerFichier(f, "sdJournal",
-        (pct) => setSt("Étape 1/3 · Envoi de l'image " + n + "/" + sdRefs.length + "… " + pct + " %", pct),
-        "IMAGE DE RÉFÉRENCE " + n + "/" + sdRefs.length) });
+    const ratio = document.getElementById("sdRatio").value;
+    rwLog("sdJournal", "DÉMARRAGE", { moteur: "seedance2_5", mode: sdMode, resolution: sdRes, ratio: ratio, duree_s: duree, credits: sdCredits() });
+
+    // ——— ÉTAPE 1 : envoi de tous les médias, un par un ———
+    const total = sdRefs.length + sdAudios.length + (sdMode === "video" ? 1 + sdVideosPlus.length : 0);
+    let fait = 0;
+    const avance = (quoi) => (pct) => setSt("Étape 1/3 · " + quoi + " (" + (fait + 1) + "/" + total + ")… " + pct + " %", pct);
+
+    let videoUri = null;
+    if (sdMode === "video") {
+      videoUri = await rwEnvoyerFichier(sdVideo, "sdJournal", avance("Envoi de la vidéo de départ"), "VIDÉO DE DÉPART");
+      fait++;
     }
-    images[0].position = "first";   // la 1re image sert de première image de la vidéo
-    rwLog("sdJournal", "RÉFÉRENCES PRÊTES", sdRefs.map(f => f.name).join(" · "));
-    const payload = {
-      model: "seedance2_5",
-      promptText: sdPromptPret,   // v41.46 : préparé et validé avant envoi
-      promptImage: images,
-      ratio: document.getElementById("sdRatio").value,
-      duration: duree,
-      audio: document.getElementById("sdAudio").checked,
-      contentModeration: { publicFigureThreshold: "low" },   // v41.45 : voir Aleph
-    };
-    rwLog("sdJournal", "PAYLOAD (images masquées)", Object.assign({}, payload, { promptImage: "[" + images.length + " image(s)]" }));
+    const imagesUri = [];
+    for (const f of sdRefs) {
+      imagesUri.push(await rwEnvoyerFichier(f, "sdJournal", avance("Envoi de l'image « " + f.name + " »"), "IMAGE DE RÉFÉRENCE"));
+      fait++;
+    }
+    const videosUri = [];
+    for (const v of sdVideosPlus) {
+      videosUri.push(await rwEnvoyerFichier(v.fichier, "sdJournal", avance("Envoi de la vidéo « " + v.fichier.name + " »"), "VIDÉO DE RÉFÉRENCE"));
+      fait++;
+    }
+    const audiosUri = [];
+    for (const a of sdAudios) {
+      audiosUri.push(await rwEnvoyerFichier(a.fichier, "sdJournal", avance("Envoi de l'audio « " + a.fichier.name + " »"), "AUDIO DE RÉFÉRENCE"));
+      fait++;
+    }
+    rwLog("sdJournal", "MÉDIAS PRÊTS", {
+      video_depart: videoUri ? 1 : 0, images: imagesUri.length,
+      videos_reference: videosUri.length, audios_reference: audiosUri.length,
+    });
+
+    const payload = sdMode === "video"
+      ? sdPayloadVideo({ promptText: sdPromptPret, videoUri: videoUri, images: imagesUri, videos: videosUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked })
+      : sdPayloadPhoto({ promptText: sdPromptPret, images: imagesUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked });
+    rwLog("sdJournal", "PAYLOAD (médias masqués)", sdPayloadLisible(payload));
     setSt("Étape 2/3 · Création de la tâche…", -1);
-    const t = await rwSubmit("image_to_video", payload);
+    const t = await rwSubmit(sdMode === "video" ? "video_to_video" : "image_to_video", payload);
     rwLog("sdJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
     setSt("Étape 3/3 · Traitement Runway…", -1);
     const fin = await rwAttendre(t.id, "sdJournal", setSt, 15);
