@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.45 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.46 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -930,6 +930,22 @@
         <div class="step">② CE QU'IL FAUT CHANGER</div>
         <div class="hint">Décris le changement, en français ou en anglais. 1000 caractères maximum.</div>
         <textarea id="alPrompt" rows="3" placeholder="Ex : remplace l'arrière-plan par une grande scène de concert avec public, garde les personnes et leurs mouvements identiques"></textarea>
+        <div class="estimate" id="alPromptCpt"></div>
+        <div id="alOpt" class="hidden" style="margin-top:12px; border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px;">
+          <div style="font-weight:700; color:var(--gold);">✍️ Prompt optimisé pour Runway</div>
+          <div class="hint">Ton texte dépassait la limite de 1000 caractères imposée par Runway. Il a été condensé sans perdre aucune contrainte. Relis-le, modifie-le si tu veux, puis lance.</div>
+          <textarea id="alOptTexte" rows="7" style="margin-top:8px;"></textarea>
+          <div class="estimate" id="alOptInfo"></div>
+          <div class="chips" style="margin-top:8px;">
+            <button class="chip" id="alOptRefaire">🔄 Refaire l'optimisation</button>
+            <button class="chip" id="alOptVoir">📄 Voir mon texte d'origine</button>
+          </div>
+          <details style="margin-top:8px;" id="alOptOrigBoite">
+            <summary style="cursor:pointer; opacity:.7;">Texte d'origine</summary>
+            <pre id="alOptOrig" style="white-space:pre-wrap; font-size:11.5px; opacity:.8;"></pre>
+          </details>
+        </div>
+
         <div class="hint" style="margin-top:10px;">Images de guidage (optionnel, 5 maximum) — par exemple la photo du décor voulu. Runway s'en sert comme cible visuelle.</div>
         <button class="chip" id="alRefBtn">🖼️ Ajouter une image de référence</button>
         <input type="file" id="alRefInput" accept="image/*" style="display:none;">
@@ -979,6 +995,22 @@
         <div class="step">② LA SCÈNE À CRÉER</div>
         <div class="hint">Décris la scène. Tu peux renvoyer aux images (« la chanteuse de l'image 1, la tenue de l'image 2 »). 1000 caractères maximum.</div>
         <textarea id="sdPrompt" rows="4" placeholder="Ex : la chanteuse de l'image 1 chante sur la scène de l'image 3, entourée de danseurs, plan large cinématographique"></textarea>
+        <div class="estimate" id="sdPromptCpt"></div>
+        <div id="sdOpt" class="hidden" style="margin-top:12px; border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px;">
+          <div style="font-weight:700; color:var(--gold);">✍️ Prompt optimisé pour Runway</div>
+          <div class="hint">Ton texte dépassait la limite de 1000 caractères imposée par Runway. Il a été condensé sans perdre aucune contrainte. Relis-le, modifie-le si tu veux, puis lance.</div>
+          <textarea id="sdOptTexte" rows="7" style="margin-top:8px;"></textarea>
+          <div class="estimate" id="sdOptInfo"></div>
+          <div class="chips" style="margin-top:8px;">
+            <button class="chip" id="sdOptRefaire">🔄 Refaire l'optimisation</button>
+            <button class="chip" id="sdOptVoir">📄 Voir mon texte d'origine</button>
+          </div>
+          <details style="margin-top:8px;" id="sdOptOrigBoite">
+            <summary style="cursor:pointer; opacity:.7;">Texte d'origine</summary>
+            <pre id="sdOptOrig" style="white-space:pre-wrap; font-size:11.5px; opacity:.8;"></pre>
+          </details>
+        </div>
+
       </div>
 
       <div class="card">
@@ -1045,7 +1077,7 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.45</span>
+    <span style="opacity:.5; font-size:11.5px;"> · v41.46</span>
 
   </footer>
 </div>
@@ -5998,6 +6030,135 @@ function rwEnvoyerFichier(f, zoneJournal, onProgres, quoi) {
     xhr.send(form);
   });
 }
+// ═══ v41.46 : PROMPT TROP LONG → CONDENSÉ, JAMAIS TRONQUÉ ═══
+// Leçon du 21 août : le prompt de Papy faisait ~1900 caractères pour une limite
+// Runway de 1000. Il partait COUPÉ EN PLEIN MILIEU — toute la fin (public,
+// interdiction du retour de l'ancien décor, priorité finale) était perdue en
+// silence. Une coupure mécanique sacrifie toujours la fin, c'est-à-dire souvent
+// le plus important.
+// Désormais : sous 1000 caractères, rien ne change. Au-delà, l'assistant du
+// studio (fal-ai/any-llm, déjà autorisé côté Worker) CONDENSE le texte en
+// gardant toutes les contraintes, et Papy RELIT et MODIFIE avant de lancer.
+// Aucune génération Runway tant que le texte condensé n'est pas validé.
+const RW_PROMPT_MAX = 1000;    // limite imposée par Runway
+const RW_PROMPT_CIBLE = 930;   // marge de sécurité pour la version condensée
+
+// Ce que l'assistant n'a JAMAIS le droit de sacrifier en condensant.
+const RW_CLAUSES_VITALES =
+  "identité et visages des personnes, vêtements, mouvements et chorégraphie, "
+  + "placement de tous les artistes SUR le podium, pieds en contact avec le sol, "
+  + "toutes les interdictions, le décor de référence fourni, "
+  + "et l'interdiction que l'ancien décor réapparaisse";
+
+async function rwCondenser(texte, zoneJournal) {
+  rwLog(zoneJournal, "PROMPT TROP LONG", { caracteres: texte.length, limite: RW_PROMPT_MAX });
+  const consigne =
+    "Tu condenses un prompt de réalisation vidéo pour l'API Runway, qui limite à "
+    + RW_PROMPT_MAX + " caractères.\n\n"
+    + "RÈGLES ABSOLUES :\n"
+    + "1. Le résultat doit faire MOINS DE " + RW_PROMPT_CIBLE + " caractères.\n"
+    + "2. Écris en ANGLAIS, en phrases denses.\n"
+    + "3. Ne SUPPRIME AUCUNE de ces contraintes si elles sont présentes : " + RW_CLAUSES_VITALES + ".\n"
+    + "4. N'ajoute rien qui ne soit pas dans le texte d'origine.\n"
+    + "5. N'utilise AUCUN nom de personne réelle (Runway refuse et facture quand même) : "
+    + "remplace-les par « the lead female singer », « all performers ».\n"
+    + "6. Réponds UNIQUEMENT par le prompt condensé, sans introduction ni guillemets.\n\n"
+    + "TEXTE À CONDENSER :\n" + texte;
+  const r = await apiSubmit("fal-ai/any-llm", { model: "google/gemini-2.5-flash", prompt: consigne });
+  const st = r.status_url || ("https://queue.fal.run/fal-ai/any-llm/requests/" + r.request_id + "/status");
+  const rp = r.response_url || ("https://queue.fal.run/fal-ai/any-llm/requests/" + r.request_id);
+  for (let i = 0; i < 45; i++) {
+    await new Promise(x => setTimeout(x, 2000));
+    const sj = await apiPoll(st);
+    if (sj.status === "COMPLETED") break;
+    if (sj.status === "FAILED" || sj.status === "ERROR")
+      throw new Error("L'assistant du studio n'a pas pu condenser ton texte.");
+  }
+  const d = await apiPoll(rp);
+  let sortie = (d.output || d.text || d.response || "").toString().trim().replace(/^["'`]+|["'`]+$/g, "");
+  if (!sortie) throw new Error("L'assistant du studio n'a rien renvoyé — réessaie dans un instant.");
+  // Aucune troncature automatique : si c'est encore trop long, on le DIT.
+  if (sortie.length > RW_PROMPT_MAX)
+    throw new Error("Le texte condensé fait encore " + sortie.length + " caractères (limite " + RW_PROMPT_MAX
+      + "). Raccourcis ton texte d'origine, ou modifie la version proposée à la main.");
+  rwLog(zoneJournal, "PROMPT CONDENSÉ", { avant: texte.length, apres: sortie.length, gain: texte.length - sortie.length });
+  return sortie;
+}
+
+// Compteur de caractères sous chaque champ + gestion du bloc d'optimisation.
+function rwMajCompteur(pfx) {
+  const t = (document.getElementById(pfx + "Prompt").value || "").trim();
+  const z = document.getElementById(pfx + "PromptCpt");
+  if (!z) return;
+  if (!t.length) { z.innerHTML = ""; return; }
+  const trop = t.length > RW_PROMPT_MAX;
+  z.innerHTML = t.length + " / " + RW_PROMPT_MAX + " caractères"
+    + (trop ? ' — <b style="color:var(--gold)">au-dessus de la limite Runway : ton texte sera condensé au lancement, et tu pourras le relire avant envoi.</b>' : "");
+}
+function rwMajOptInfo(pfx) {
+  const t = (document.getElementById(pfx + "OptTexte").value || "").trim();
+  const z = document.getElementById(pfx + "OptInfo");
+  const ok = t.length <= RW_PROMPT_MAX && t.length > 0;
+  z.innerHTML = t.length + " / " + RW_PROMPT_MAX + " caractères · "
+    + (ok ? '<span style="color:var(--ok)">✓ compatible Runway</span>'
+          : '<span class="err">✗ encore trop long — raccourcis avant de lancer</span>');
+  return ok;
+}
+// Prépare le texte à envoyer. Renvoie null si Papy doit d'abord relire.
+async function rwPreparerPrompt(pfx, zoneJournal, setSt) {
+  const brut = (document.getElementById(pfx + "Prompt").value || "").trim();
+  const boite = document.getElementById(pfx + "Opt");
+  const champOpt = document.getElementById(pfx + "OptTexte");
+  // Cas 1 : déjà court — envoi direct, aucune modification.
+  if (brut.length <= RW_PROMPT_MAX) { boite.classList.add("hidden"); return brut; }
+  // Cas 2 : une version condensée existe déjà et a été relue → on l'utilise.
+  if (!boite.classList.contains("hidden")) {
+    const v = (champOpt.value || "").trim();
+    if (!v) throw new Error("La version condensée est vide — refais l'optimisation ou écris-la toi-même.");
+    if (v.length > RW_PROMPT_MAX)
+      throw new Error("La version condensée fait " + v.length + " caractères (limite " + RW_PROMPT_MAX + "). Raccourcis-la avant de lancer.");
+    rwLog(zoneJournal, "PROMPT UTILISÉ", { origine: brut.length + " car.", envoye: v.length + " car.", valide_par: "Papy" });
+    return v;
+  }
+  // Cas 3 : première fois → on condense, on affiche, et on S'ARRÊTE LÀ.
+  if (setSt) setSt("✍️ Ton texte dépasse la limite Runway — condensation en cours…", -1);
+  const condense = await rwCondenser(brut, zoneJournal);
+  champOpt.value = condense;
+  document.getElementById(pfx + "OptOrig").textContent = brut;
+  boite.classList.remove("hidden");
+  rwMajOptInfo(pfx);
+  boite.scrollIntoView({ behavior: "smooth", block: "center" });
+  return null;   // rien n'est envoyé à Runway : Papy doit valider d'abord
+}
+(function rwOptInit() {
+  for (const pfx of ["al", "sd"]) {
+    const champ = document.getElementById(pfx + "Prompt");
+    if (!champ) continue;
+    champ.addEventListener("input", () => {
+      rwMajCompteur(pfx);
+      // Si le texte d'origine change, la version condensée n'est plus à jour.
+      document.getElementById(pfx + "Opt").classList.add("hidden");
+    });
+    rwMajCompteur(pfx);
+    document.getElementById(pfx + "OptTexte").addEventListener("input", () => rwMajOptInfo(pfx));
+    document.getElementById(pfx + "OptRefaire").onclick = async () => {
+      const b = document.getElementById(pfx + "OptRefaire");
+      b.disabled = true; b.textContent = "🔄 Optimisation…";
+      try {
+        const v = await rwCondenser((document.getElementById(pfx + "Prompt").value || "").trim(), pfx + "Journal");
+        document.getElementById(pfx + "OptTexte").value = v;
+        rwMajOptInfo(pfx);
+      } catch (e) {
+        document.getElementById(pfx + "OptInfo").innerHTML = '<span class="err">✗ ' + e.message + "</span>";
+      } finally { b.disabled = false; b.textContent = "🔄 Refaire l'optimisation"; }
+    };
+    document.getElementById(pfx + "OptVoir").onclick = () => {
+      const d = document.getElementById(pfx + "OptOrigBoite");
+      d.open = !d.open;
+    };
+  }
+})();
+
 // ═══ v41.45 : GARDE-FOU « NOM PROPRE » — AVANT de dépenser ═══
 // Leçon du 21 août, payée 280 crédits (2,80 $) en deux essais : Runway a refusé
 // deux fois avec SAFETY.INPUT.PUBLIC_FIGURE parce que le prompt contenait le nom
@@ -6213,6 +6374,14 @@ document.getElementById("alGo").onclick = async () => {
     // où renoncer ne coûte rien.
     if (!rwVerifierPrompt(document.getElementById("alPrompt").value))
       throw new Error("Génération annulée — corrige ton texte, puis relance. Aucun crédit dépensé.");
+    // v41.46 : si le texte dépasse 1000 caractères, il est condensé et SOUMIS À
+    // RELECTURE. Rien ne part chez Runway tant que Papy n'a pas validé.
+    var alPromptPret = await rwPreparerPrompt("al", "alJournal", setSt);
+    if (alPromptPret === null) {
+      setSt("<span style='color:var(--gold)'>✍️ Relis le prompt optimisé ci-dessus, puis relance. Aucun crédit dépensé.</span>", 0);
+      rwRondMontrer("al", false);
+      return;
+    }
     rwLog("alJournal", "DÉMARRAGE", { moteur: "aleph2", duree_s: Math.round(alDuree * 10) / 10, credits: alCredits() });
     // ÉTAPE 1 — envoi du fichier chez Runway, progression RÉELLE
     rwLog("alJournal", "FICHIER", { nom: alVideo.name, taille_Mo: Math.round(alVideo.size / 104857.6) / 10, duree_s: Math.round(alDuree * 10) / 10, type: alVideo.type });
@@ -6226,8 +6395,8 @@ document.getElementById("alGo").onclick = async () => {
       // Runway refuse dès qu'il croit voir une célébrité — et facture le refus.
       contentModeration: { publicFigureThreshold: "low" },
     };
-    const pr = document.getElementById("alPrompt").value.trim();
-    if (pr) payload.promptText = pr.slice(0, 1000);
+    // v41.46 : le prompt a été préparé AVANT tout envoi (voir plus haut).
+    if (alPromptPret) payload.promptText = alPromptPret;
     if (alRefs.length) {
       payload.keyframes = [];
       setSt("Étape 2/4 · Envoi des images de guidage…", -1);
@@ -6331,6 +6500,12 @@ document.getElementById("sdGo").onclick = async () => {
     if (!admPin()) throw new Error("PIN administrateur absent — rouvre l'espace admin (◆ en haut de page).");
     if (!rwVerifierPrompt(document.getElementById("sdPrompt").value))
       throw new Error("Génération annulée — corrige ton texte, puis relance. Aucun crédit dépensé.");
+    var sdPromptPret = await rwPreparerPrompt("sd", "sdJournal", setSt);
+    if (sdPromptPret === null) {
+      setSt("<span style='color:var(--gold)'>✍️ Relis le prompt optimisé ci-dessus, puis relance. Aucun crédit dépensé.</span>", 0);
+      rwRondMontrer("sd", false);
+      return;
+    }
     if (!sdRefs.length) throw new Error("Seedance a besoin d'au moins une image de référence à l'étape ① (l'artiste, par exemple).");
     const duree = Number(document.getElementById("sdDuree").value);
     rwLog("sdJournal", "DÉMARRAGE", { moteur: "seedance2_5", resolution: sdRes, ratio: document.getElementById("sdRatio").value, duree_s: duree, credits: sdCredits() });
@@ -6347,7 +6522,7 @@ document.getElementById("sdGo").onclick = async () => {
     rwLog("sdJournal", "RÉFÉRENCES PRÊTES", sdRefs.map(f => f.name).join(" · "));
     const payload = {
       model: "seedance2_5",
-      promptText: document.getElementById("sdPrompt").value.trim().slice(0, 1000),
+      promptText: sdPromptPret,   // v41.46 : préparé et validé avant envoi
       promptImage: images,
       ratio: document.getElementById("sdRatio").value,
       duration: duree,
