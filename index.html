@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.46 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.47 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1077,7 +1077,10 @@
       <i>Creations remain the client's property. You are responsible for the photos you upload:
       only use images you hold the rights to.</i></span>
     </span>
-    <span style="opacity:.5; font-size:11.5px;"> · v41.46</span>
+    <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
+         l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
+         déploiement, pas se deviner dans un gris pâle. -->
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.47</span>
 
   </footer>
 </div>
@@ -6030,6 +6033,39 @@ function rwEnvoyerFichier(f, zoneJournal, onProgres, quoi) {
     xhr.send(form);
   });
 }
+// ═══ v41.47 : « NOUVELLE GÉNÉRATION » — LE SEUL GESTE QUI EFFACE ═══
+// Demande de Papy : après un téléchargement, les fichiers choisis, le prompt et
+// les réglages doivent RESTER en place. On refait souvent une variante du même
+// plan : tout reperdre à chaque fois ferait perdre un temps fou. Rien n'est donc
+// effacé automatiquement — ni au succès, ni à l'échec. Ce bouton seul remet à zéro.
+function rwNouvelleGeneration(pfx) {
+  if (!confirm("Effacer les fichiers, le texte et les réglages de cette génération pour repartir de zéro ?\n\nTa vidéo déjà téléchargée n'est pas concernée.")) return;
+  document.getElementById(pfx + "Result").innerHTML = "";
+  document.getElementById(pfx + "Journal").textContent = "";
+  document.getElementById(pfx + "Status").classList.remove("on");
+  rwRondMontrer(pfx, false);
+  document.getElementById(pfx + "Prompt").value = "";
+  document.getElementById(pfx + "Opt").classList.add("hidden");
+  document.getElementById(pfx + "OptTexte").value = "";
+  rwMajCompteur(pfx);
+  if (pfx === "al") {
+    alVideo = null; alDuree = 0; alRefs = [];
+    document.getElementById("alNom").innerHTML = "";
+    document.getElementById("alRefListe").innerHTML = "";
+    document.getElementById("alInput").value = "";
+    document.getElementById("alRefInput").value = "";
+    document.getElementById("alImportBtn").classList.remove("on");
+    alRefresh();
+  } else {
+    sdRefs = [];
+    document.getElementById("sdRefListe").innerHTML = "";
+    document.getElementById("sdRefInput").value = "";
+    sdRefresh();
+  }
+  // Remonter en haut du moteur. Protégé : scrollIntoView n'existe pas partout.
+  try { document.getElementById(pfx === "al" ? "admPageAleph" : "admPageSeed").scrollIntoView({ behavior: "smooth" }); } catch (e) {}
+}
+
 // ═══ v41.46 : PROMPT TROP LONG → CONDENSÉ, JAMAIS TRONQUÉ ═══
 // Leçon du 21 août : le prompt de Papy faisait ~1900 caractères pour une limite
 // Runway de 1000. Il partait COUPÉ EN PLEIN MILIEU — toute la fin (public,
@@ -6411,9 +6447,19 @@ document.getElementById("alGo").onclick = async () => {
     const fin = await rwAttendre(t.id, "alJournal", setSt, 12);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
     if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    // v41.47 : la vidéo vient d'un autre domaine — le navigateur l'OUVRE au lieu
+    // de la télécharger, et écrase la page StarClip. target="_blank" + rel garde
+    // ton travail intact : tu prends ta vidéo, tu fermes l'onglet, tu retrouves tout.
     document.getElementById("alResult").innerHTML =
       `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
-       <a class="chip" href="${url}" download style="margin-top:8px; display:inline-block;">⬇️ Télécharger (MP4 H.264)</a>`;
+       <div class="chips" style="margin-top:8px;">
+         <a class="chip" href="${url}" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger — nouvel onglet</a>
+         <button class="chip" id="alNouvelle">✨ Nouvelle génération</button>
+       </div>
+       <div class="hint">Ta vidéo s'ouvre dans un onglet à part : StarClip reste ici, avec tes fichiers, ton prompt et tes réglages. Referme simplement l'onglet pour revenir.</div>`;
+    // v41.47 : « Nouvelle génération » est le SEUL geste qui efface le travail
+    // précédent. Tant qu'on ne clique pas dessus, tout reste en place.
+    document.getElementById("alNouvelle").onclick = () => rwNouvelleGeneration("al");
     rwRondFini("al", "Terminé · " + alCredits() + " crédits Runway");
     setSt("<span class='okc'>✓ Terminé ! " + alCredits() + " crédits Runway utilisés.</span>", 100);
   } catch (e) {
@@ -6537,9 +6583,19 @@ document.getElementById("sdGo").onclick = async () => {
     const fin = await rwAttendre(t.id, "sdJournal", setSt, 15);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
     if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    // v41.47 : la vidéo vient d'un autre domaine — le navigateur l'OUVRE au lieu
+    // de la télécharger, et écrase la page StarClip. target="_blank" + rel garde
+    // ton travail intact : tu prends ta vidéo, tu fermes l'onglet, tu retrouves tout.
     document.getElementById("sdResult").innerHTML =
       `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
-       <a class="chip" href="${url}" download style="margin-top:8px; display:inline-block;">⬇️ Télécharger (MP4 H.264)</a>`;
+       <div class="chips" style="margin-top:8px;">
+         <a class="chip" href="${url}" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger — nouvel onglet</a>
+         <button class="chip" id="sdNouvelle">✨ Nouvelle génération</button>
+       </div>
+       <div class="hint">Ta vidéo s'ouvre dans un onglet à part : StarClip reste ici, avec tes fichiers, ton prompt et tes réglages. Referme simplement l'onglet pour revenir.</div>`;
+    // v41.47 : « Nouvelle génération » est le SEUL geste qui efface le travail
+    // précédent. Tant qu'on ne clique pas dessus, tout reste en place.
+    document.getElementById("sdNouvelle").onclick = () => rwNouvelleGeneration("sd");
     rwRondFini("sd", "Terminé · " + sdCredits() + " crédits Runway");
     setSt("<span class='okc'>✓ Terminé ! " + sdCredits() + " crédits Runway utilisés.</span>", 100);
   } catch (e) {
