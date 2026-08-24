@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.49 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.50 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1121,7 +1121,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.49</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.50</span>
 
   </footer>
 </div>
@@ -6392,11 +6392,25 @@ async function rwAttendre(id, zoneJournal, setSt, minutes) {
         let aide = "";
         if (/PUBLIC_FIGURE/i.test(code))
           aide = " → Ton texte contient un nom de personne. Retire-le et utilise « the lead female singer » ou « all performers ».";
+        else if (/THIRD_PARTY/i.test(code) && /SAFETY|PREPROCESSING/i.test(code))
+          // v41.50 : ce blocage vient du FOURNISSEUR du moteur (ByteDance pour
+          // Seedance), pas de Runway — et il peut viser l'IMAGE ou la VIDÉO
+          // autant que le texte. L'ancien message « Reformule ton texte » a fait
+          // chercher Papy au mauvais endroit le 24 août : quatre essais avec des
+          // prompts différents, tous bloqués, car c'était l'image qui était visée.
+          aide = " → La modération du FOURNISSEUR du moteur a bloqué le contenu. Cela peut venir de l'IMAGE, de la VIDÉO ou du texte — pas forcément du texte. Si le même contenu passe dans le portail Runway, signale-le au support Runway avec l'identifiant de tâche ci-dessus.";
         else if (/SAFETY/i.test(code))
           aide = " → La modération de Runway a bloqué le contenu. Reformule ton texte.";
+        // v41.50 : on affiche le coût RÉEL facturé, lu dans la réponse, au lieu
+        // d'un avertissement générique. Le 24 août, cinq refus ont affiché
+        // « Runway facture une génération refusée » alors que chacun indiquait
+        // cost.credits: 0. Un message d'argent doit dire la vérité.
+        const cr = t.cost && typeof t.cost.credits === "number" ? t.cost.credits : null;
+        const argent = cr === 0 ? " ✓ Ce refus ne t'a RIEN coûté (0 crédit facturé)."
+          : cr > 0 ? " ⚠️ Ce refus t'a été FACTURÉ " + cr + " crédits (≈ " + (cr / 100).toFixed(2) + " $)."
+          : " ⚠️ Coût du refus inconnu — vérifie ton solde Runway avant de relancer.";
         throw new Error("Runway a refusé la génération" + (motif ? " : " + motif : ".")
-          + (code ? " [" + code + "]" : "") + aide
-          + " ⚠️ Runway facture une génération refusée au même prix qu'une réussie — ne relance pas sans avoir corrigé.");
+          + (code ? " [" + code + "]" : "") + aide + argent);
       }
     }
     throw new Error("Runway n'a pas terminé en " + (minutes || 12) + " minutes (dernier statut : " + (statut || "inconnu") + "). Retrouve la tâche dans ton portail Runway avant de relancer.");
