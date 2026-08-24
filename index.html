@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.50 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.51 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -981,7 +981,17 @@
     <!-- ─────────── PAGE ADMIN 2 · SEEDANCE 2.5 ─────────── -->
     <div id="admPageSeed" class="hidden">
       <h2>✨ SEEDANCE 2.5 — CRÉER / RECRÉER</h2>
-      <p class="sub">Recrée une performance à partir de tes références : l'artiste, la tenue, le décor. Chant et lip-sync possibles. C'est le moteur du « je refais la scène autrement ». Deux modes : à partir de photos, ou à partir d'une vidéo existante.</p>
+      <p class="sub">Recrée une performance à partir de tes références : l'artiste, la tenue, le décor. Chant et lip-sync possibles. Deux moteurs (2.5 et 2.0) et deux modes : à partir de photos, ou à partir d'une vidéo existante.</p>
+
+      <!-- v41.51 : CHOIX DU MOTEUR — 2.5 ou 2.0, sur la même page. -->
+      <div class="card">
+        <div class="step">Ⓜ️ QUEL MOTEUR SEEDANCE ?</div>
+        <div class="chips" id="sdModeleChips">
+          <button class="chip on" data-modele="seedance2_5">Seedance 2.5</button>
+          <button class="chip" data-modele="seedance2">Seedance 2.0</button>
+        </div>
+        <div class="hint" id="sdModeleAide"></div>
+      </div>
 
       <!-- v41.49 : DEUX MODES SEEDANCE, une seule page. Aleph garde la sienne. -->
       <div class="card">
@@ -1121,7 +1131,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.50</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.51</span>
 
   </footer>
 </div>
@@ -6131,7 +6141,7 @@ const RW_PROMPT_CIBLE = 930;   // marge de sécurité pour la version condensée
 // donne 15000 caractères à seedance2_5 sur les deux endpoints, contre 1000 pour
 // aleph2. On condensait donc inutilement les prompts Seedance — en perdant du
 // détail, et en dépensant un appel à l'assistant, pour rien.
-function rwLimite(pfx) { return pfx === "sd" ? SD_PROMPT_MAX : RW_PROMPT_MAX; }
+function rwLimite(pfx) { return pfx === "sd" ? sdMoteur().promptMax : RW_PROMPT_MAX; }
 
 // Ce que l'assistant n'a JAMAIS le droit de sacrifier en condensant.
 const RW_CLAUSES_VITALES =
@@ -6548,15 +6558,65 @@ document.getElementById("alGo").onclick = async () => {
 // video_to_video — 1080p est donc disponible dans les DEUX modes.
 // ⚠️ Correction : le 21:9 en 1080p était écrit 2208:946 depuis la v41.38. La
 // vraie valeur est 2206:946. Deux pixels d'écart, et Runway refusait la requête.
-const SD_RATIOS = {
-  "480p":  { "21:9": "992:432",   "16:9": "854:480",   "4:3": "752:560",   "1:1": "640:640",   "3:4": "560:752",   "9:16": "480:854"  },
-  "720p":  { "21:9": "1470:630",  "16:9": "1280:720",  "4:3": "1112:834",  "1:1": "960:960",   "3:4": "834:1112",  "9:16": "720:1280" },
-  "1080p": { "21:9": "2206:946",  "16:9": "1920:1080", "4:3": "1664:1248", "1:1": "1440:1440", "3:4": "1248:1664", "9:16": "1080:1920" },
+// ═══════════════════════════════════════════════════════════════════
+//  v41.51 · DEUX MOTEURS SEEDANCE — 2.5 ET 2.0
+// ═══════════════════════════════════════════════════════════════════
+// Tout ce tableau vient du spec OpenAPI officiel de Runway
+// (github.com/runwayml/openapi). Les deux moteurs se ressemblent mais
+// NE SONT PAS interchangeables. Deux pièges vérifiés le 24 août :
+//
+//  ⚠️ seedance2 n'a AUCUN champ "mode". La 2.5 l'a ("reference"/"extend"),
+//     la 2.0 non. Comme additionalProperties vaut false, envoyer mode à
+//     la 2.0 ferait rejeter toute la requête.
+//
+//  ⚠️ Le 16:9 en 480p DIFFÈRE : 854:480 pour la 2.5, 864:496 pour la 2.0.
+//     Croiser les deux tables produirait un ratio invalide.
+//
+// Le reste diffère aussi : durée, longueur du prompt, nombre de
+// références. L'interface s'adapte au moteur choisi — voir sdMoteur().
+const SD_MOTEURS = {
+  "seedance2_5": {
+    nom: "Seedance 2.5",
+    sousTitre: "Le plus récent. Jusqu'à 30 s, prompt très long, beaucoup de références.",
+    dureeMin: 4, dureeMax: 30,
+    promptMax: 15000,
+    maxImages: 30, maxVideos: 9, maxAudios: 10,
+    aMode: true,                 // envoie mode:"reference"
+    ratios: {
+      "480p":  { "21:9": "992:432",   "16:9": "854:480",   "4:3": "752:560",   "1:1": "640:640",   "3:4": "560:752",   "9:16": "480:854"  },
+      "720p":  { "21:9": "1470:630",  "16:9": "1280:720",  "4:3": "1112:834",  "1:1": "960:960",   "3:4": "834:1112",  "9:16": "720:1280" },
+      "1080p": { "21:9": "2206:946",  "16:9": "1920:1080", "4:3": "1664:1248", "1:1": "1440:1440", "3:4": "1248:1664", "9:16": "1080:1920" },
+    },
+    crS:   { "480p": 20, "720p": 30, "1080p": 68 },
+    crRef: { "480p": 10, "720p": 15, "1080p": 34 },
+    crMin: 80,
+  },
+  "seedance2": {
+    nom: "Seedance 2.0",
+    sousTitre: "La génération précédente. 15 s maximum, prompt plus court.",
+    dureeMin: 4, dureeMax: 15,
+    promptMax: 3500,
+    maxImages: 9, maxVideos: 3, maxAudios: 3,
+    aMode: false,                // ⚠️ PAS de champ mode — interdit ici
+    ratios: {
+      // ⚠️ le 16:9 en 480p vaut 864:496 ici, PAS 854:480 comme en 2.5.
+      "480p":  { "21:9": "992:432",   "16:9": "864:496",   "4:3": "752:560",   "1:1": "640:640",   "3:4": "560:752",   "9:16": "496:864"  },
+      "720p":  { "21:9": "1470:630",  "16:9": "1280:720",  "4:3": "1112:834",  "1:1": "960:960",   "3:4": "834:1112",  "9:16": "720:1280" },
+      "1080p": { "21:9": "2206:946",  "16:9": "1920:1080", "4:3": "1664:1248", "1:1": "1440:1440", "3:4": "1248:1664", "9:16": "1080:1920" },
+    },
+    // Tarifs non publiés séparément pour la 2.0 : on applique ceux de la
+    // 2.5, qui sont les plus élevés. Mieux vaut annoncer trop cher que
+    // pas assez — Papy voit le vrai coût estimé par Runway avant le clic.
+    crS:   { "480p": 20, "720p": 30, "1080p": 68 },
+    crRef: { "480p": 10, "720p": 15, "1080p": 34 },
+    crMin: 80,
+  },
 };
-const SD_CR_S   = { "480p": 20, "720p": 30, "1080p": 68 };   // crédits / seconde de SORTIE
-const SD_CR_REF = { "480p": 10, "720p": 15, "1080p": 34 };   // crédits / seconde de VIDÉO DE RÉFÉRENCE
-const SD_CR_MIN = 80;                                        // minimum par génération
-const SD_PROMPT_MAX = 15000;   // limite officielle de promptText pour seedance2_5
+let sdModele = "seedance2_5";                  // moteur courant
+function sdMoteur() { return SD_MOTEURS[sdModele]; }
+// Table de ratios du moteur courant — remplace l'ancienne constante fixe.
+function sdRatios() { return sdMoteur().ratios; }
+
 const SD_VIDEO_MAX_S = 30;     // durée cumulée maximale de toutes les vidéos
 // État. sdRefs sert aux DEUX modes (images de référence).
 let sdRes = "720p", sdRefs = [], sdMode = "photo";
@@ -6568,9 +6628,38 @@ function sdSecondesVideo() {
   if (sdMode !== "video") return 0;
   return (sdVideoDuree || 0) + sdVideosPlus.reduce((t, v) => t + v.duree, 0);
 }
+// v41.51 : la liste des durées dépend du moteur (30 s pour la 2.5, 15 s
+// pour la 2.0). On la reconstruit à chaque changement, en conservant le
+// choix de Papy s'il reste possible.
+function sdMajDurees() {
+  const d = document.getElementById("sdDuree"), avant = Number(d.value) || 5;
+  const m = sdMoteur();
+  d.innerHTML = "";
+  for (let i = m.dureeMin; i <= m.dureeMax; i++)
+    d.innerHTML += '<option value="' + i + '">' + i + " secondes</option>";
+  d.value = String(Math.min(Math.max(avant, m.dureeMin), m.dureeMax));
+}
+// v41.51 : bascule de moteur. Tout se réaligne — durées, ratios, limites
+// de références, compteur de caractères — puis on recalcule le prix.
+function sdMajMoteur() {
+  document.querySelectorAll("#sdModeleChips .chip").forEach(c =>
+    c.classList.toggle("on", c.dataset.modele === sdModele));
+  const m = sdMoteur();
+  document.getElementById("sdModeleAide").innerHTML =
+    "<b style='color:var(--gold)'>" + m.nom + "</b> — " + m.sousTitre
+    + "<br>Durée " + m.dureeMin + " à " + m.dureeMax + " s · prompt " + m.promptMax.toLocaleString("fr-FR")
+    + " caractères · jusqu'à " + m.maxImages + " images, " + m.maxAudios + " audios de référence.";
+  sdMajDurees();
+  sdMajRatios();
+  rwMajCompteur("sd");
+  sdRefresh();
+}
 (function sdInit() {
+  document.querySelectorAll("#sdModeleChips .chip").forEach(c => {
+    c.onclick = () => { sdModele = c.dataset.modele; sdMajMoteur(); };
+  });
   const d = document.getElementById("sdDuree");
-  for (let i = 4; i <= 30; i++) d.innerHTML += '<option value="' + i + '"' + (i === 5 ? " selected" : "") + ">" + i + " secondes</option>";
+  sdMajDurees(); d.value = "5";
   sdMajRatios();
   document.querySelectorAll("#sdResChips .chip").forEach(c => c.onclick = () => {
     document.querySelectorAll("#sdResChips .chip").forEach(x => x.classList.remove("on"));
@@ -6579,23 +6668,24 @@ function sdSecondesVideo() {
   d.onchange = sdRefresh;
   document.getElementById("sdRatio").onchange = sdRefresh;
   document.getElementById("sdPrompt").addEventListener("input", sdRefresh);
-  sdMajMode();   // v41.49 : affiche le mode Photo par défaut
+  sdMajMode();      // v41.49 : affiche le mode Photo par défaut
+  sdMajMoteur();    // v41.51 : cale durées, ratios et limites sur le moteur
 })();
 function sdMajRatios() {
   const sel = document.getElementById("sdRatio"), avant = sel.value;
   sel.innerHTML = "";
-  for (const [nom, val] of Object.entries(SD_RATIOS[sdRes]))
+  for (const [nom, val] of Object.entries(sdRatios()[sdRes]))
     sel.innerHTML += '<option value="' + val + '">' + nom + "  (" + val.replace(":", " × ") + ")</option>";
-  const memeNom = Object.entries(SD_RATIOS).some(() => false);
   if (avant) { const i = Array.from(sel.options).findIndex(o => o.text.startsWith(avant.split(" ")[0])); if (i >= 0) sel.selectedIndex = i; }
   else sel.selectedIndex = 1;   // 16:9 par défaut
 }
 // v41.49 : le mode vidéo ajoute une surtaxe par seconde de vidéo de référence
 // (10 / 15 / 34 selon la résolution), en plus des secondes de sortie.
 function sdCredits() {
-  const sortie = Number(document.getElementById("sdDuree").value) * SD_CR_S[sdRes];
-  const refs = Math.ceil(sdSecondesVideo() * SD_CR_REF[sdRes]);
-  return Math.max(SD_CR_MIN, sortie + refs);
+  const m = sdMoteur();
+  const sortie = Number(document.getElementById("sdDuree").value) * m.crS[sdRes];
+  const refs = Math.ceil(sdSecondesVideo() * m.crRef[sdRes]);
+  return Math.max(m.crMin, sortie + refs);
 }
 // Ce qui manque pour pouvoir lancer. Chaîne vide = tout est prêt.
 function sdManque() {
@@ -6619,7 +6709,7 @@ function sdRefresh() {
     sdRefs.length + " image(s) de référence (gratuites)",
   ];
   if (sdAudios.length) detail.push(sdAudios.length + " audio(s) de référence (gratuits)");
-  if (secV > 0) detail.push("<b style='color:var(--gold)'>" + secV.toFixed(1) + " s de vidéo de référence facturée à " + SD_CR_REF[sdRes] + " cr/s</b>");
+  if (secV > 0) detail.push("<b style='color:var(--gold)'>" + secV.toFixed(1) + " s de vidéo de référence facturée à " + sdMoteur().crRef[sdRes] + " cr/s</b>");
   document.getElementById("sdCout").innerHTML = detail.join(" · ")
     + " · <b style='color:var(--gold)'>" + sdCredits() + " crédits Runway ≈ " + (sdCredits() / 100).toFixed(2) + " $</b>";
 }
@@ -6648,7 +6738,8 @@ function sdMajListeImages() {
 }
 function sdAjouterImage(e) {
   const f = e.target.files[0]; if (!f) return;
-  if (sdRefs.length >= 30) { alert("30 images de référence au maximum (limite Runway)."); return; }
+  const maxI = sdMoteur().maxImages;
+  if (sdRefs.length >= maxI) { alert(maxI + " images de référence au maximum pour " + sdMoteur().nom + "."); return; }
   sdRefs.push(f); sdMajListeImages(); sdRefresh();
   e.target.value = "";
 }
@@ -6681,7 +6772,8 @@ document.getElementById("sdVidInput").onchange = (e) => {
 document.getElementById("sdVPlusBtn").onclick = () => document.getElementById("sdVPlusInput").click();
 document.getElementById("sdVPlusInput").onchange = (e) => {
   const f = e.target.files[0]; if (!f) return;
-  if (sdVideosPlus.length >= 9) { alert("9 vidéos de référence au maximum (limite Runway)."); return; }
+  const maxV = sdMoteur().maxVideos;
+  if (sdVideosPlus.length >= maxV) { alert(maxV + " vidéos de référence au maximum pour " + sdMoteur().nom + "."); return; }
   const v = document.createElement("video"); v.preload = "metadata";
   v.onloadedmetadata = () => {
     sdVideosPlus.push({ fichier: f, duree: v.duration });
@@ -6699,7 +6791,8 @@ document.getElementById("sdVPlusInput").onchange = (e) => {
 document.getElementById("sdAudBtn").onclick = () => document.getElementById("sdAudInput").click();
 document.getElementById("sdAudInput").onchange = (e) => {
   const f = e.target.files[0]; if (!f) return;
-  if (sdAudios.length >= 10) { alert("10 audios de référence au maximum (limite Runway)."); return; }
+  const maxA = sdMoteur().maxAudios;
+  if (sdAudios.length >= maxA) { alert(maxA + " audios de référence au maximum pour " + sdMoteur().nom + "."); return; }
   const a = document.createElement("audio"); a.preload = "metadata";
   const ajouter = (duree) => {
     const total = sdAudios.reduce((t, x) => t + (x.duree || 0), 0) + (duree || 0);
@@ -6745,7 +6838,7 @@ document.getElementById("sdAudInput").onchange = (e) => {
 //    Notre usage est le mode références → aucune position, nulle part.
 function sdPayloadPhoto(o) {
   const p = {
-    model: "seedance2_5",
+    model: o.model,                       // v41.51 : "seedance2_5" ou "seedance2"
     promptImage: (o.images || []).map(uri => ({ uri: uri })),
     ratio: o.ratio,
     duration: Number(o.duration),
@@ -6764,13 +6857,16 @@ function sdPayloadPhoto(o) {
 //    referenceVideos et referenceAudio portent un champ "type".
 function sdPayloadVideo(o) {
   const p = {
-    model: "seedance2_5",
+    model: o.model,                       // v41.51 : "seedance2_5" ou "seedance2"
     promptVideo: o.videoUri,
-    mode: "reference",
     ratio: o.ratio,
     duration: Number(o.duration),
     audio: !!o.audio,
   };
+  // ⚠️ v41.51 : SEULE la 2.5 possède le champ "mode". La variante seedance2
+  // ne le déclare pas, et additionalProperties vaut false : l'envoyer à la
+  // 2.0 ferait rejeter toute la requête. Vérifié dans le spec officiel.
+  if (SD_MOTEURS[o.model] && SD_MOTEURS[o.model].aMode) p.mode = "reference";
   if (o.promptText) p.promptText = o.promptText;
   if (o.images && o.images.length) p.references = o.images.map(uri => ({ uri: uri }));
   if (o.videos && o.videos.length) p.referenceVideos = o.videos.map(uri => ({ type: "video", uri: uri }));
@@ -6823,7 +6919,7 @@ document.getElementById("sdGo").onclick = async () => {
     if (manque) throw new Error(manque);
     const duree = Number(document.getElementById("sdDuree").value);
     const ratio = document.getElementById("sdRatio").value;
-    rwLog("sdJournal", "DÉMARRAGE", { moteur: "seedance2_5", mode: sdMode, resolution: sdRes, ratio: ratio, duree_s: duree, credits: sdCredits() });
+    rwLog("sdJournal", "DÉMARRAGE", { moteur: sdModele, mode: sdMode, resolution: sdRes, ratio: ratio, duree_s: duree, credits: sdCredits() });
 
     // ——— ÉTAPE 1 : envoi de tous les médias, un par un ———
     const total = sdRefs.length + sdAudios.length + (sdMode === "video" ? 1 + sdVideosPlus.length : 0);
@@ -6856,8 +6952,8 @@ document.getElementById("sdGo").onclick = async () => {
     });
 
     const payload = sdMode === "video"
-      ? sdPayloadVideo({ promptText: sdPromptPret, videoUri: videoUri, images: imagesUri, videos: videosUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked })
-      : sdPayloadPhoto({ promptText: sdPromptPret, images: imagesUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked });
+      ? sdPayloadVideo({ model: sdModele, promptText: sdPromptPret, videoUri: videoUri, images: imagesUri, videos: videosUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked })
+      : sdPayloadPhoto({ model: sdModele, promptText: sdPromptPret, images: imagesUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked });
     rwLog("sdJournal", "PAYLOAD (médias masqués)", sdPayloadLisible(payload));
     setSt("Étape 2/3 · Création de la tâche…", -1);
     const t = await rwSubmit(sdMode === "video" ? "video_to_video" : "image_to_video", payload);
