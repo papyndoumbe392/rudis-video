@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.55 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.56 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -957,9 +957,104 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Photo → vidéo, ou références multiples (9 images, 3 vidéos, 3 audios) désignées dans le texte.</p>
           <div class="admCartePied">4 à 15 s · 480p / 720p · crédits StarClip</div>
         </div>
+        <!-- v41.56 : Multi-Shot Video, /v1/recipes/multi_shot_video du spec
+             officiel. Un seul prompt devient une vidéo à 5 plans, ou toi-même
+             écris 3 à 5 plans avec leur durée. -->
+        <div class="card admCarte" id="admCarteMulti" style="border-color:#60a5fa;">
+          <div class="admCarteIcone">🎬</div>
+          <h2 style="margin:0; color:#60a5fa;">MULTI-SHOT VIDEO</h2>
+          <div class="admCarteSous">UNE HISTOIRE · PLUSIEURS PLANS</div>
+          <p class="sub" style="margin:10px 0 0;">« Un seul texte, et Runway le découpe en scène complète. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Mode auto (5 plans automatiques) ou mode personnalisé (3 à 5 plans écrits par toi). Photo de référence optionnelle.</p>
+          <div class="admCartePied">5, 10 ou 15 s · 6 formats · Runway</div>
+        </div>
       </div>
     </div>
 
+
+    <!-- ─────────── PAGE ADMIN 4 · MULTI-SHOT VIDEO ─────────── -->
+    <div id="admPageMulti" class="hidden">
+      <h2>🎬 MULTI-SHOT VIDEO</h2>
+      <p class="sub">Une histoire en un seul texte devient une vidéo à plusieurs plans — ou construis chaque plan toi-même. Champs et bornes repris du spec officiel Runway (/v1/recipes/multi_shot_video).</p>
+
+      <div class="card">
+        <div class="step">⓪ QUEL MODE ?</div>
+        <div class="chips" id="mvModeChips">
+          <button class="chip on" data-mvmode="auto">Auto — 5 plans automatiques</button>
+          <button class="chip" data-mvmode="custom">Custom — j'écris chaque plan</button>
+        </div>
+        <div class="hint" id="mvModeAide"></div>
+      </div>
+
+      <div class="card">
+        <div class="step">① TON HISTOIRE</div>
+
+        <div id="mvBlocAuto">
+          <div class="hint">Décris toute la scène en un seul texte. Runway la découpe lui-même en 5 plans cohérents. 2500 caractères maximum.</div>
+          <textarea id="mvPrompt" rows="6" placeholder="A lone singer walks into a nightclub at night. He greets the crowd. He starts dancing to makossa music. Dancers join him. The crowd cheers as the song ends."></textarea>
+          <div class="estimate" id="mvCompteur"></div>
+        </div>
+
+        <div id="mvBlocCustom" class="hidden">
+          <div class="hint">Écris <b>3 à 5 plans</b>. Chaque plan a son propre texte (3 à 512 caractères) et sa propre durée. La somme des durées doit être EXACTEMENT égale à la durée totale choisie à l'étape ③.</div>
+          <div id="mvShots"></div>
+          <button class="chip" id="mvAjouterPlan">➕ Ajouter un plan</button>
+        </div>
+
+        <div style="margin-top:14px; border-top:1px solid rgba(255,255,255,.12); padding-top:12px;">
+          <div class="hint"><b style="color:var(--gold)">🖼️ Image de départ</b> (facultatif) — sert de première image de la vidéo, comme sur le portail Runway.</div>
+          <button class="chip" id="mvImgBtn">🖼️ Choisir l'image</button>
+          <input type="file" id="mvImgInput" accept="image/*" style="display:none;">
+          <div id="mvImgNom" class="estimate"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="step">② FORMAT</div>
+        <div class="label">Cadre</div>
+        <select id="mvRatio">
+          <option value="1280:720">16:9 — 1280×720</option>
+          <option value="1920:1080">16:9 — 1920×1080</option>
+          <option value="720:1280">9:16 — 720×1280</option>
+          <option value="1080:1920">9:16 — 1080×1920</option>
+          <option value="960:960">1:1 — 960×960</option>
+          <option value="1440:1440">1:1 — 1440×1440</option>
+        </select>
+        <div class="label" style="margin-top:10px;">Durée totale</div>
+        <div class="chips" id="mvDureeChips">
+          <button class="chip" data-mvduree="5">5 s</button>
+          <button class="chip on" data-mvduree="10">10 s</button>
+          <button class="chip" data-mvduree="15">15 s</button>
+        </div>
+        <label style="display:flex; gap:8px; align-items:center; margin-top:10px;">
+          <input type="checkbox" id="mvAudio" checked>
+          <span>🔊 Générer l'audio</span>
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="step">③ LANCER</div>
+        <button class="master" id="mvGo" disabled>Écris d'abord ton histoire</button>
+        <div class="estimate" id="mvCout" style="margin-top:8px;"></div>
+        <div class="rwRond hidden" id="mvRond">
+          <div style="position:relative; width:132px; height:132px;">
+            <svg width="132" height="132" viewBox="0 0 132 132">
+              <circle class="piste" cx="66" cy="66" r="58"></circle>
+              <circle class="arc" id="mvArc" cx="66" cy="66" r="58"
+                      stroke-dasharray="364.4" stroke-dashoffset="364.4"></circle>
+            </svg>
+            <div class="rwRondTexte">
+              <div class="rwRondPct" id="mvPct">0%</div>
+              <div class="rwRondChrono" id="mvChrono">00:00</div>
+            </div>
+          </div>
+          <div class="rwRondEtape" id="mvEtape">Préparation…</div>
+        </div>
+        <div class="status" id="mvStatus" style="margin-top:12px;"><div id="mvStatusText"></div><div class="bar"><div class="fill" id="mvFill"></div></div></div>
+        <div id="mvResult"></div>
+        <details style="margin-top:12px;"><summary class="hint">🔎 Journal technique</summary><pre id="mvJournal" class="journal"></pre></details>
+      </div>
+    </div>
 
     <!-- ─────────── PAGE ADMIN 3 · SEEDANCE 2.0 VIA FAL ─────────── -->
     <div id="admPageFal" class="hidden">
@@ -1299,7 +1394,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.55</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.56</span>
 
   </footer>
 </div>
@@ -6299,6 +6394,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteAleph").onclick = () => admVue("aleph");
   document.getElementById("admCarteSeed").onclick  = () => admVue("seed");
   document.getElementById("admCarteFal").onclick   = () => admVue("fal");
+  document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -6315,11 +6411,13 @@ function admVue(quoi) {
   const pa = document.getElementById("admPageAleph");
   const ps = document.getElementById("admPageSeed");
   const pf = document.getElementById("admPageFal");
+  const pm = document.getElementById("admPageMulti");
   const ret = document.getElementById("admRetour");
   ch.classList.toggle("hidden", quoi !== "choix");
   pa.classList.toggle("hidden", quoi !== "aleph");
   ps.classList.toggle("hidden", quoi !== "seed");
   if (pf) pf.classList.toggle("hidden", quoi !== "fal");
+  if (pm) pm.classList.toggle("hidden", quoi !== "multi");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
   document.getElementById("adminZone").scrollTop = 0;
@@ -7650,7 +7748,169 @@ function sdPayloadLisible(p) {
   return v;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  v41.56 · MULTI-SHOT VIDEO
+// ═══════════════════════════════════════════════════════════════════
+// Champs et bornes repris MOT POUR MOT du spec OpenAPI officiel Runway,
+// endpoint /v1/recipes/multi_shot_video. Rien n'est déduit.
+//
+//   mode "auto"   : prompt (≤2500) + firstFrame? + ratio + duration + audio
+//   mode "custom" : shots[3..5] { prompt(3..512), duration } + le reste
+//   version : "2026-06" | "unsafe-latest" — FIXÉ à "2026-06" (datée, stable).
+//     « unsafe » ne concerne PAS la modération : c'est un terme classique de
+//     versionnage d'API, équivalent à un tag "latest" qui peut changer sans
+//     préavis. On préfère toujours une version datée qu'on maîtrise.
+//
+// En mode custom, la somme des durées de chaque plan doit être EXACTEMENT
+// égale à la durée totale — sinon rejet Runway. Vérifié avant l'envoi.
+// Suit le même schéma que Aleph/Seedance : rwSubmit + rwAttendre + le
+// même style de résultat (téléchargement en nouvel onglet).
+const MV_RATIOS = ["1280:720", "1920:1080", "720:1280", "1080:1920", "960:960", "1440:1440"];
+const MV_DUREES = [5, 10, 15];
+const MV_VERSION = "2026-06";
+let mvMode = "auto", mvDuree = 10, mvImage = null;
+let mvShots = [{ prompt: "", duree: 4 }, { prompt: "", duree: 3 }, { prompt: "", duree: 3 }];
+
+function mvMajMode() {
+  document.getElementById("mvBlocAuto").classList.toggle("hidden", mvMode !== "auto");
+  document.getElementById("mvBlocCustom").classList.toggle("hidden", mvMode !== "custom");
+  document.querySelectorAll("#mvModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.msmode === mvMode));
+  document.getElementById("mvModeAide").innerHTML = mvMode === "auto"
+    ? "Runway lit ton texte et le découpe en <b>5 plans</b> cohérents tout seul. Le plus rapide."
+    : "Tu écris <b>chaque plan toi-même</b>, 3 à 5. Plus de contrôle, mais la somme des durées doit correspondre exactement à la durée totale.";
+  if (mvMode === "custom") mvRendreShots();
+  mvRefresh();
+}
+function mvRendreShots() {
+  const z = document.getElementById("mvShots");
+  z.innerHTML = mvShots.map((s, i) => `
+    <div class="card" style="margin-bottom:8px; padding:10px;">
+      <div class="hint">Plan ${i + 1}${mvShots.length > 3 ? ' <button class="chip" data-mvdel="' + i + '" style="float:right; padding:2px 8px;">✕ retirer</button>' : ""}</div>
+      <textarea data-mvplan="${i}" rows="2" maxlength="512" placeholder="Ce qui se passe dans ce plan…">${s.prompt}</textarea>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+        <span class="hint" style="margin:0;">Durée (s) :</span>
+        <input type="number" data-mvdur="${i}" value="${s.duree}" min="1" max="15" style="width:70px;">
+      </div>
+    </div>`).join("");
+  z.querySelectorAll("[data-mvplan]").forEach(t => t.oninput = () => { mvShots[+t.dataset.msplan].prompt = t.value; mvRefresh(); });
+  z.querySelectorAll("[data-mvdur]").forEach(t => t.oninput = () => { mvShots[+t.dataset.msdur].duree = Number(t.value) || 0; mvRefresh(); });
+  z.querySelectorAll("[data-mvdel]").forEach(b => b.onclick = () => { mvShots.splice(+b.dataset.msdel, 1); mvRendreShots(); mvRefresh(); });
+  document.getElementById("mvAjouterPlan").classList.toggle("hidden", mvShots.length >= 5);
+}
+function mvSommeShots() { return mvShots.reduce((t, s) => t + (s.duree || 0), 0); }
+function mvManque() {
+  if (mvMode === "auto") {
+    const t = document.getElementById("mvPrompt").value.trim();
+    if (!t) return "Écris d'abord ton histoire à l'étape ①";
+    if (t.length > 2500) return "Ton texte dépasse 2500 caractères (" + t.length + ")";
+  } else {
+    if (mvShots.length < 3) return "3 plans minimum en mode Custom";
+    for (const s of mvShots) {
+      if (!s.prompt.trim() || s.prompt.trim().length < 3) return "Chaque plan a besoin d'un texte (3 caractères minimum)";
+      if (!s.duree || s.duree < 1) return "Chaque plan a besoin d'une durée d'au moins 1 s";
+    }
+    if (mvSommeShots() !== mvDuree)
+      return "Tes plans totalisent " + mvSommeShots() + " s — il en faut exactement " + mvDuree;
+  }
+  return "";
+}
+function mvRefresh() {
+  const manque = mvManque();
+  const b = document.getElementById("mvGo");
+  b.disabled = !!manque;
+  // Tarif non publié séparément pour cette recette : Runway affiche son
+  // estimation réelle dans estimatedCost à la création de la tâche. On ne
+  // devine pas de chiffre ici — seul le récapitulatif des réglages.
+  b.textContent = manque ? manque : "✨ Créer la vidéo multi-plans";
+  document.getElementById("mvCout").innerHTML = manque ? "" :
+    (mvMode === "auto" ? "Mode auto · 5 plans" : "Mode custom · " + mvShots.length + " plans")
+    + " · " + document.getElementById("mvRatio").value + " · " + mvDuree + " s"
+    + " · <b style='color:var(--gold)'>coût affiché par Runway avant confirmation</b>";
+}
+
+document.getElementById("mvImgBtn").onclick = () => document.getElementById("mvImgInput").click();
+document.getElementById("mvImgInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  mvImage = f;
+  document.getElementById("mvImgNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+  e.target.value = "";
+};
+document.querySelectorAll("#mvModeChips .chip").forEach(c => c.onclick = () => { mvMode = c.dataset.msmode; mvMajMode(); });
+document.querySelectorAll("#mvDureeChips .chip").forEach(c => c.onclick = () => {
+  document.querySelectorAll("#mvDureeChips .chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on"); mvDuree = Number(c.dataset.msduree); mvRefresh();
+});
+document.getElementById("mvAjouterPlan").onclick = () => {
+  if (mvShots.length >= 5) return;
+  mvShots.push({ prompt: "", duree: 1 }); mvRendreShots(); mvRefresh();
+};
+document.getElementById("mvPrompt").addEventListener("input", () => {
+  document.getElementById("mvCompteur").textContent = document.getElementById("mvPrompt").value.length + " / 2500 caractères";
+  mvRefresh();
+});
+document.getElementById("mvRatio").onchange = mvRefresh;
+
+document.getElementById("mvGo").onclick = async () => {
+  const go = document.getElementById("mvGo");
+  go.disabled = true;
+  document.getElementById("mvResult").innerHTML = "";
+  const setSt = (txt, pct) => {
+    document.getElementById("mvStatus").classList.add("on");
+    document.getElementById("mvStatusText").innerHTML = txt;
+    document.getElementById("mvFill").style.width = (pct > 0 ? pct : 0) + "%";
+    rwRondMaj("mv", pct, txt);
+  };
+  try {
+    const manque = mvManque(); if (manque) throw new Error(manque);
+    rwRondMontrer("mv", true);
+    rwLog("mvJournal", "DÉMARRAGE", { mode: mvMode, ratio: document.getElementById("mvRatio").value, duree: mvDuree });
+
+    const payload = { mode: mvMode, version: MV_VERSION,
+      ratio: document.getElementById("mvRatio").value, duration: mvDuree,
+      audio: document.getElementById("mvAudio").checked };
+    if (mvMode === "auto") payload.prompt = document.getElementById("mvPrompt").value.trim();
+    else payload.shots = mvShots.map(s => ({ prompt: s.prompt.trim(), duration: Number(s.duree) }));
+    if (mvImage) {
+      setSt("Étape 1/3 · Envoi de l'image de départ…", 5);
+      const uri = await rwEnvoyerFichier(mvImage, "mvJournal", (p) => setSt("Étape 1/3 · Envoi de l'image… " + p + " %", p), "IMAGE DE DÉPART");
+      payload.firstFrame = { uri: uri };
+    }
+    rwLog("mvJournal", "PAYLOAD", Object.assign({}, payload, payload.firstFrame ? { firstFrame: "[image]" } : {}));
+    setSt("Étape 2/3 · Création de la tâche…", -1);
+    const t = await rwSubmit("recipes/multi_shot_video", payload);
+    rwLog("mvJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
+    setSt("Étape 3/3 · Traitement Runway…", -1);
+    const fin = await rwAttendre(t.id, "mvJournal", setSt, 15);
+    const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
+    if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    document.getElementById("mvResult").innerHTML =
+      `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
+       <div class="chips" style="margin-top:8px;">
+         <a class="chip" href="${url}" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger — nouvel onglet</a>
+         <button class="chip" id="mvNouvelle">✨ Nouvelle génération</button>
+       </div>
+       <div class="hint">Ta vidéo s'ouvre dans un onglet à part : StarClip reste ici. Referme simplement l'onglet pour revenir.</div>`;
+    document.getElementById("mvNouvelle").onclick = () => {
+      document.getElementById("mvResult").innerHTML = "";
+      document.getElementById("mvPrompt").value = "";
+      mvShots = [{ prompt: "", duree: 4 }, { prompt: "", duree: 3 }, { prompt: "", duree: 3 }];
+      mvImage = null; document.getElementById("mvImgNom").innerHTML = ""; document.getElementById("mvImgInput").value = "";
+      if (mvMode === "custom") mvRendreShots();
+      mvRefresh();
+    };
+    rwRondFini("mv", "Terminé");
+    setSt("<span class='okc'>✓ Terminé !</span>", 100);
+  } catch (e) {
+    rwRondEchec("mv", e.message);
+    setSt(`<span class="err">✗ ${e.message}</span>`, 0);
+    rwLog("mvJournal", "ERREUR", e.message);
+  } finally { rwDepart = 0; go.disabled = false; mvRefresh(); }
+};
+
+mvMajMode();
+
 document.getElementById("sdGo").onclick = async () => {
+
   const go = document.getElementById("sdGo"); go.disabled = true;
   const setSt = (t, p) => {
     document.getElementById("sdStatus").classList.add("on");
