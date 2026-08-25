@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.61 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.62 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1074,7 +1074,7 @@
                chronomètre — un client pressé peut relancer et payer deux
                fois s'il croit que rien n'avance. -->
           <div class="hint" style="text-align:center; margin-top:8px;">
-            ⏳ Le cercle qui tourne veut dire que Runway travaille — <b>ne relance pas</b>, même si ça semble long.
+            ⏳ Le cercle qui tourne veut dire que le Studio travaille — <b>ne relance pas</b>, même si ça semble long.
           </div>
         </div>
         <div class="status" id="mvStatus" style="margin-top:12px;"><div id="mvStatusText"></div><div class="bar"><div class="fill" id="mvFill"></div></div></div>
@@ -1421,7 +1421,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.61</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.62</span>
 
   </footer>
 </div>
@@ -4757,7 +4757,7 @@ document.getElementById("dvGo").onclick = async () => {
     if (statut !== "COMPLETED") {
       dvLog("DÉLAI DÉPASSÉ — dernier statut", statut || "(aucun statut reçu)");
       throw new Error("Le moteur n'a pas terminé en 6 minutes (dernier statut : " + (statut || "inconnu")
-        + "). Le travail continue peut-être côté serveur — retrouve-le dans fal → Recent History avant de relancer.");
+        + "). Le travail continue peut-être côté serveur — retrouve-le dans l'historique du moteur avant de relancer.");
     }
     const data = await apiPoll(rp);
     dvLog("RÉPONSE BRUTE COMPLÈTE (avant extraction de l'URL)", data);
@@ -6629,14 +6629,14 @@ function rwMajCompteur(pfx) {
   const max = rwLimite(pfx);
   const trop = t.length > max;
   z.innerHTML = t.length + " / " + max + " caractères"
-    + (trop ? ' — <b style="color:var(--gold)">au-dessus de la limite Runway : ton texte sera condensé au lancement, et tu pourras le relire avant envoi.</b>' : "");
+    + (trop ? ' — <b style="color:var(--gold)">au-dessus de la limite : ton texte sera condensé au lancement, et tu pourras le relire avant envoi.</b>' : "");
 }
 function rwMajOptInfo(pfx) {
   const t = (document.getElementById(pfx + "OptTexte").value || "").trim();
   const z = document.getElementById(pfx + "OptInfo");
   const ok = t.length <= RW_PROMPT_MAX && t.length > 0;
   z.innerHTML = t.length + " / " + RW_PROMPT_MAX + " caractères · "
-    + (ok ? '<span style="color:var(--ok)">✓ compatible Runway</span>'
+    + (ok ? '<span style="color:var(--ok)">✓ compatible</span>'
           : '<span class="err">✗ encore trop long — raccourcis avant de lancer</span>');
   return ok;
 }
@@ -6843,9 +6843,9 @@ async function rwAttendre(id, zoneJournal, setSt, minutes) {
           // autant que le texte. L'ancien message « Reformule ton texte » a fait
           // chercher Papy au mauvais endroit le 24 août : quatre essais avec des
           // prompts différents, tous bloqués, car c'était l'image qui était visée.
-          aide = " → La modération du FOURNISSEUR du moteur a bloqué le contenu. Cela peut venir de l'IMAGE, de la VIDÉO ou du texte — pas forcément du texte. Si le même contenu passe dans le portail Runway, signale-le au support Runway avec l'identifiant de tâche ci-dessus.";
+          aide = " → La modération du FOURNISSEUR du moteur a bloqué le contenu. Cela peut venir de l'IMAGE, de la VIDÉO ou du texte — pas forcément du texte. Si le même contenu passe ailleurs, garde l'identifiant de tâche ci-dessus pour Papy.";
         else if (/SAFETY/i.test(code))
-          aide = " → La modération de Runway a bloqué le contenu. Reformule ton texte.";
+          aide = " → La modération a bloqué le contenu. Reformule ton texte.";
         // v41.50 : on affiche le coût RÉEL facturé, lu dans la réponse, au lieu
         // d'un avertissement générique. Le 24 août, cinq refus ont affiché
         // « Runway facture une génération refusée » alors que chacun indiquait
@@ -6853,7 +6853,7 @@ async function rwAttendre(id, zoneJournal, setSt, minutes) {
         const cr = t.cost && typeof t.cost.credits === "number" ? t.cost.credits : null;
         const argent = cr === 0 ? " ✓ Ce refus ne t'a RIEN coûté (0 crédit facturé)."
           : cr > 0 ? " ⚠️ Ce refus t'a été FACTURÉ " + cr + " crédits (≈ " + (cr / 100).toFixed(2) + " $)."
-          : " ⚠️ Coût du refus inconnu — vérifie ton solde Runway avant de relancer.";
+          : " ⚠️ Coût du refus inconnu — vérifie ton solde avant de relancer.";
         throw new Error("Le Studio a refusé la génération" + (motif ? " : " + motif : ".")
           + (code ? " [" + code + "]" : "") + aide + argent);
       }
@@ -6871,7 +6871,7 @@ function alRefresh() {
   b.textContent = !alVideo ? "Choisis d'abord une vidéo"
     : "🎞️ Éditer avec Aleph 2.0 — " + alCredits() + " crédits (≈ " + (alCredits() / 100).toFixed(2) + " $)";
   document.getElementById("alCout").innerHTML = !alVideo ? "Importe une vidéo pour connaître le coût."
-    : "Durée " + alDuree.toFixed(1) + " s · <b style='color:var(--gold)'>" + alCredits() + " crédits Runway ≈ " + (alCredits() / 100).toFixed(2) + " $</b> · " + alRefs.length + " image(s) de référence.";
+    : "Durée " + alDuree.toFixed(1) + " s · <b style='color:var(--gold)'>" + alCredits() + " crédits Studio ≈ " + (alCredits() / 100).toFixed(2) + " $</b> · " + alRefs.length + " image(s) de référence.";
 }
 function alCredits() { return Math.max(AL_CR_MIN, Math.ceil(alDuree * AL_CR_S)); }
 document.getElementById("alImportBtn").onclick = () => document.getElementById("alInput").click();
@@ -6976,7 +6976,7 @@ document.getElementById("alGo").onclick = async () => {
     // v41.47 : « Nouvelle génération » est le SEUL geste qui efface le travail
     // précédent. Tant qu'on ne clique pas dessus, tout reste en place.
     document.getElementById("alNouvelle").onclick = () => rwNouvelleGeneration("al");
-    rwRondFini("al", "Terminé · " + alCredits() + " crédits Runway");
+    rwRondFini("al", "Terminé · " + alCredits() + " crédits Studio");
     setSt("<span class='okc'>✓ Terminé ! " + alCredits() + " crédits Studio utilisés.</span>", 100);
   } catch (e) {
     rwRondEchec("al", e.message);
@@ -7156,7 +7156,7 @@ function sdRefresh() {
   if (sdAudios.length) detail.push(sdAudios.length + " audio(s) de référence (gratuits)");
   if (secV > 0) detail.push("<b style='color:var(--gold)'>" + secV.toFixed(1) + " s de vidéo de référence facturée à " + sdMoteur().crRef[sdRes] + " cr/s</b>");
   document.getElementById("sdCout").innerHTML = detail.join(" · ")
-    + " · <b style='color:var(--gold)'>" + sdCredits() + " crédits Runway ≈ " + (sdCredits() / 100).toFixed(2) + " $</b>";
+    + " · <b style='color:var(--gold)'>" + sdCredits() + " crédits Studio ≈ " + (sdCredits() / 100).toFixed(2) + " $</b>";
 }
 // ——— Bascule entre les deux modes ———
 function sdMajMode() {
@@ -7372,7 +7372,7 @@ function fsMajMode() {
   document.getElementById("fsBlocRef").classList.toggle("hidden", fsMode !== "ref");
   document.querySelectorAll("#fsModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.fsmode === fsMode));
   document.getElementById("fsModeAide").innerHTML = fsMode === "image"
-    ? "<code>image-to-video</code> — une <b>seule photo</b> est animée. Le plus simple, et le plus proche du mode Photo de Runway."
+    ? "<code>image-to-video</code> — une <b>seule photo</b> est animée. Le plus simple."
     : "<code>reference-to-video</code> — jusqu'à 9 images, 3 vidéos, 3 audios, désignées dans ton texte par <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b>. C'est ce mode qui permet d'appliquer <b>une seule vidéo de danse à plusieurs personnes</b>.";
   fsRefresh();
 }
@@ -7804,7 +7804,7 @@ function mvMajMode() {
   document.getElementById("mvBlocCustom").classList.toggle("hidden", mvMode !== "custom");
   document.querySelectorAll("#mvModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.mvmode === mvMode));
   document.getElementById("mvModeAide").innerHTML = mvMode === "auto"
-    ? "Runway lit ton texte et le découpe en <b>5 plans</b> cohérents tout seul. Le plus rapide."
+    ? "Le Studio lit ton texte et le découpe en <b>5 plans</b> cohérents tout seul. Le plus rapide."
     : "Tu écris <b>chaque plan toi-même</b>, 3 à 5. Plus de contrôle, mais la somme des durées doit correspondre exactement à la durée totale.";
   if (mvMode === "custom") mvRendreShots();
   mvRefresh();
@@ -7853,7 +7853,7 @@ function mvRefresh() {
   document.getElementById("mvCout").innerHTML = manque ? "" :
     (mvMode === "auto" ? "Mode auto · 5 plans" : "Mode custom · " + mvShots.length + " plans")
     + " · " + document.getElementById("mvRatio").value + " · " + mvDuree + " s"
-    + " · <b style='color:var(--gold)'>coût affiché par Runway avant confirmation</b>";
+    + " · <b style='color:var(--gold)'>coût affiché avant confirmation</b>";
 }
 
 document.getElementById("mvImgBtn").onclick = () => document.getElementById("mvImgInput").click();
@@ -8046,7 +8046,7 @@ document.getElementById("sdGo").onclick = async () => {
     // v41.47 : « Nouvelle génération » est le SEUL geste qui efface le travail
     // précédent. Tant qu'on ne clique pas dessus, tout reste en place.
     document.getElementById("sdNouvelle").onclick = () => rwNouvelleGeneration("sd");
-    rwRondFini("sd", "Terminé · " + sdCredits() + " crédits Runway");
+    rwRondFini("sd", "Terminé · " + sdCredits() + " crédits Studio");
     setSt("<span class='okc'>✓ Terminé ! " + sdCredits() + " crédits Studio utilisés.</span>", 100);
   } catch (e) {
     rwRondEchec("sd", e.message);
