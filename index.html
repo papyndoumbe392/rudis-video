@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.59 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.60 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -654,6 +654,10 @@
     <div class="estimate" id="ideaInfo"></div>
 
     <div class="label">Scénario professionnel (généré ou écrit à la main)</div>
+    <!-- v41.60 : exemples cliquables — insèrent un texte de départ que le
+         client peut ensuite modifier. Mêmes 6 scènes que l'onglet 💡 Idées,
+         reformulées à la première personne pour ce champ précis. -->
+    <div class="chips" id="scenarioExemplesChips" style="margin-bottom:8px;"></div>
     <textarea id="prompt" placeholder="Décris la vidéo… Ex : The man sings passionately and dances to an afrobeats groove at sunset on a beach, smooth camera orbit, warm cinematic light. (l'anglais donne de meilleurs résultats)"></textarea>
 
     <!-- v41.8 : styles de danse prêts à l'emploi — la mécanique corporelle est décrite au moteur -->
@@ -1417,7 +1421,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.59</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.60</span>
 
   </footer>
 </div>
@@ -8103,6 +8107,39 @@ function ideesAfficher() {
   });
 }
 ideesAfficher();
+
+// ═══════════════════════════════════════════════════════════════════
+//  v41.60 · EXEMPLES CLIQUABLES DANS L'ONGLET SCÉNARIO
+// ═══════════════════════════════════════════════════════════════════
+// Même famille de scènes que l'onglet Idées, mais adaptées pour être
+// insérées DIRECTEMENT dans le champ #prompt d'un clic — pas de copier/
+// coller à faire. Le client garde la main : le texte inséré reste
+// modifiable comme n'importe quel texte tapé à la main.
+const SCENARIO_EXEMPLES = [
+  { label: "🎤 Arrivée + danse", texte: "The person walks toward a concert stage at night, followed by several dancers in matching outfits. The crowd roars under colorful stage lights. They climb onto the stage platform and start dancing energetically together, smooth cinematic camera, dynamic concert atmosphere." },
+  { label: "🎙️ Chant seul", texte: "The person walks onto a stage holding a microphone, spotlight following them. The audience cheers under warm golden stage lights. They raise the microphone and start singing passionately, smooth cinematic camera slowly zooming in, warm concert atmosphere." },
+  { label: "💃 Boîte de nuit", texte: "The person enters a luxurious nightclub with purple ambient lighting and a bar in the background. They walk toward the dance floor with a confident stride and start dancing slowly and elegantly to afrobeats rhythm, smooth cinematic camera, sophisticated nightclub atmosphere." },
+  { label: "🕺 Groupe chorégraphié", texte: "Several dancers wearing matching outfits stand in a line on a stage under warm lights, facing the crowd. Music starts and they begin a synchronized dance routine, moving together in rhythm. The crowd claps along, smooth wide cinematic camera, energetic festival atmosphere." },
+  { label: "🎭 Duo chant/danse", texte: "The person stands at a microphone singing on a stage, while a dancer performs energetically beside them. The crowd cheers under colorful stage lights. The camera alternates smoothly between the singer and the dancer, cinematic movement, lively concert atmosphere." },
+  { label: "🏖️ Plage au coucher du soleil", texte: "The person walks barefoot along a sunset beach, warm golden light on the water behind them. They start singing softly, gentle sea breeze moving their clothes, smooth slow cinematic camera, calm romantic atmosphere." },
+];
+(function initScenarioExemples() {
+  const box = document.getElementById("scenarioExemplesChips");
+  if (!box) return;
+  SCENARIO_EXEMPLES.forEach(ex => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = ex.label;
+    b.title = "Insère ce texte dans le champ ci-dessous — tu pourras le modifier";
+    b.onclick = () => {
+      const champ = document.getElementById("prompt");
+      champ.value = ex.texte;
+      champ.dispatchEvent(new Event("input", { bubbles: true }));
+      champ.focus();
+    };
+    box.appendChild(b);
+  });
+})();
 
 </script>
 </body>
