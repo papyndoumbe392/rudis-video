@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.51 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.52 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1038,6 +1038,9 @@
           <br>À ne pas confondre avec « Générer l'audio » à l'étape ③ : ici tu <i>donnes</i> un son au moteur, là tu lui demandes d'en <i>créer</i> un.</div>
           <button class="chip" id="sdAudBtn">🎵 Ajouter un audio de référence</button>
           <input type="file" id="sdAudInput" accept="audio/*" style="display:none;">
+          <div class="hint" style="margin-top:8px;">Si ta chanson est trop longue pour le moteur, l'app en <b>garde automatiquement ce qui tient</b> — tu n'as pas besoin de la découper toi-même.
+          Pour prendre le refrain plutôt que l'intro, indique à partir de quelle seconde couper :
+          <input type="number" id="sdAudDebut" value="0" min="0" step="1" style="width:80px; margin-left:6px;"> s</div>
           <div id="sdAudListe" class="estimate"></div>
         </div>
       </div>
@@ -1131,7 +1134,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.51</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.52</span>
 
   </footer>
 </div>
@@ -4927,6 +4930,18 @@ let rfFile = null;      // fichier importé, hébergé au lancement
 let rfDur = 0;
 let rfRatio = "9:16";
 let rfJobEnCours = null;
+// v41.51 : format RÉEL de la vidéo importée, mesuré dans le navigateur.
+// Sert à empêcher la conversion « vers le format qu'on a déjà » — le
+// piège du 24 août : le sélecteur démarre sur 9:16, et convertir une
+// vidéo déjà verticale en 9:16 la renvoie évidemment verticale.
+let rfSrcRatio = "";      // "9:16" · "16:9" · "1:1" · "" si inconnu
+function rfFormatDe(l, h) {
+  if (!l || !h) return "";
+  const r = l / h;
+  if (r >= 1.2) return "16:9";
+  if (r <= 0.85) return "9:16";
+  return "1:1";
+}
 
 function rfSetStatus(txt, pct) {
   document.getElementById("rfStatus").classList.add("on");
@@ -4936,11 +4951,18 @@ function rfSetStatus(txt, pct) {
 function rfRefresh() {
   const pret = !!(rfSource || rfFile);
   const go = document.getElementById("rfGo");
-  go.disabled = !pret;
-  go.textContent = pret ? "🔄 Convertir en " + rfRatio + " (− 2 vidéos)" : "Choisis d'abord une vidéo";
-  document.getElementById("rfCost").innerHTML = pret
-    ? `Cette conversion débite <b>2 vidéos</b> de ton code${rfDur ? ` — vidéo de ${Math.round(rfDur)} s` : ""}.`
-    : "";
+  // v41.51 : si la cible est déjà le format de la source, la conversion
+  // ne peut rien changer. On bloque AVANT de débiter 2 vidéos.
+  const memeFormat = pret && rfSrcRatio && rfSrcRatio === rfRatio;
+  go.disabled = !pret || memeFormat;
+  go.textContent = !pret ? "Choisis d'abord une vidéo"
+    : memeFormat ? "Ta vidéo est déjà en " + rfRatio + " — choisis un autre format"
+    : "🔄 Convertir en " + rfRatio + " (− 2 vidéos)";
+  document.getElementById("rfCost").innerHTML = !pret ? ""
+    : memeFormat
+      ? `<span class="err">Cette vidéo est <b>déjà en ${rfRatio}</b>. La convertir vers le même format la renverrait identique — et te coûterait 2 vidéos pour rien. Choisis le format que tu veux OBTENIR.</span>`
+      : `Cette conversion débite <b>2 vidéos</b> de ton code${rfDur ? ` — vidéo de ${Math.round(rfDur)} s` : ""}.`
+        + (rfSrcRatio ? `<br>De <b>${rfSrcRatio}</b> vers <b>${rfRatio}</b>.` : "");
 }
 document.getElementById("rfImportBtn").onclick = () => document.getElementById("rfVideoInput").click();
 document.getElementById("rfVideoInput").onchange = (e) => {
@@ -4960,7 +4982,19 @@ document.getElementById("rfVideoInput").onchange = (e) => {
     document.getElementById("rfUseLast").classList.remove("on");
     document.getElementById("rfImportBtn").classList.add("on");
     const trop = rfDur > 30 ? " ⚠️ le studio accepte 30 s maximum." : "";
-    document.getElementById("rfVideoName").textContent = `✓ ${f.name} (${rfDur} s)${trop}`;
+    rfSrcRatio = rfFormatDe(probe.videoWidth, probe.videoHeight);
+    const dit = rfSrcRatio === "16:9" ? "horizontale 🖥️" : rfSrcRatio === "9:16" ? "verticale 📱" : rfSrcRatio === "1:1" ? "carrée ◻️" : "";
+    document.getElementById("rfVideoName").innerHTML =
+      `✓ ${f.name} (${rfDur} s)${trop}` +
+      (dit ? `<br><b>Format d'origine : ${dit} — ${probe.videoWidth} × ${probe.videoHeight}</b>` : "");
+    // On propose d'emblée le format OPPOSÉ : c'est presque toujours
+    // l'intention quand on ouvre ce volet.
+    if (rfSrcRatio === "9:16" || rfSrcRatio === "16:9") {
+      const cible = rfSrcRatio === "9:16" ? "16:9" : "9:16";
+      rfRatio = cible;
+      document.getElementById("rfRatio").querySelectorAll(".chip").forEach(c =>
+        c.classList.toggle("on", c.dataset.rf === cible));
+    }
     rfRefresh();
   };
   probe.onerror = () => { document.getElementById("rfVideoName").textContent = "⚠️ Vidéo illisible."; };
@@ -4973,6 +5007,8 @@ document.getElementById("rfUseLast").onclick = () => {
   pv.src = lastVideoUrl; pv.classList.remove("hidden");
   document.getElementById("rfImportBtn").classList.remove("on");
   document.getElementById("rfUseLast").classList.add("on");
+  rfSrcRatio = "";
+  pv.onloadedmetadata = () => { rfSrcRatio = rfFormatDe(pv.videoWidth, pv.videoHeight); rfRefresh(); };
   document.getElementById("rfVideoName").textContent = `✓ Dernière vidéo générée (${rfDur} s)`;
   rfRefresh();
 };
@@ -5011,6 +5047,10 @@ document.getElementById("rfGo").onclick = async () => {
       url = await hebergerFichier(rfFile, "aconvertir.mp4");
     }
     rfSetStatus("Envoi au studio…", 10);
+    // v41.51 : on affiche le format demandé, pour qu'un doute se lève tout
+    // de suite au lieu d'attendre la fin de la conversion.
+    rfSetStatus("Envoi au studio… format demandé : <b>" + rfRatio + "</b>"
+      + (rfSrcRatio ? " (source " + rfSrcRatio + ")" : ""), 10);
     const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: rfRatio });
     rfJobEnCours = job.request_id || null;
     const statusUrl = job.status_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}/status`;
@@ -6581,6 +6621,10 @@ const SD_MOTEURS = {
     dureeMin: 4, dureeMax: 30,
     promptMax: 15000,
     maxImages: 30, maxVideos: 9, maxAudios: 10,
+    // ⚠️ Durées CUMULÉES imposées par le spec — pas seulement le nombre de
+    // fichiers. Le 24 août, un MP3 de 21,6 s est passé en 2.5 et a fait
+    // échouer la 2.0 en 400 : sa limite audio est de 15 s, pas 30.
+    audioMaxS: 30, videoMaxS: 30,
     aMode: true,                 // envoie mode:"reference"
     ratios: {
       "480p":  { "21:9": "992:432",   "16:9": "854:480",   "4:3": "752:560",   "1:1": "640:640",   "3:4": "560:752",   "9:16": "480:854"  },
@@ -6597,6 +6641,7 @@ const SD_MOTEURS = {
     dureeMin: 4, dureeMax: 15,
     promptMax: 3500,
     maxImages: 9, maxVideos: 3, maxAudios: 3,
+    audioMaxS: 15, videoMaxS: 15,   // ⚠️ moitié moins que la 2.5
     aMode: false,                // ⚠️ PAS de champ mode — interdit ici
     ratios: {
       // ⚠️ le 16:9 en 480p vaut 864:496 ici, PAS 854:480 comme en 2.5.
@@ -6617,7 +6662,10 @@ function sdMoteur() { return SD_MOTEURS[sdModele]; }
 // Table de ratios du moteur courant — remplace l'ancienne constante fixe.
 function sdRatios() { return sdMoteur().ratios; }
 
-const SD_VIDEO_MAX_S = 30;     // durée cumulée maximale de toutes les vidéos
+// v41.51 : les plafonds de durée dépendent du moteur — voir SD_MOTEURS.
+function sdVideoMaxS() { return sdMoteur().videoMaxS; }
+function sdAudioMaxS() { return sdMoteur().audioMaxS; }
+function sdSecondesAudio() { return sdAudios.reduce((t, a) => t + (a.duree || 0), 0); }
 // État. sdRefs sert aux DEUX modes (images de référence).
 let sdRes = "720p", sdRefs = [], sdMode = "photo";
 let sdVideo = null, sdVideoDuree = 0;   // vidéo de départ (mode vidéo)
@@ -6692,8 +6740,10 @@ function sdManque() {
   if (!document.getElementById("sdPrompt").value.trim()) return "Écris d'abord ta scène à l'étape ②";
   if (sdMode === "photo" && !sdRefs.length) return "Ajoute au moins une image à l'étape ①";
   if (sdMode === "video" && !sdVideo) return "Importe la vidéo de départ à l'étape ①";
-  if (sdMode === "video" && sdSecondesVideo() > SD_VIDEO_MAX_S + 0.5)
-    return "Tes vidéos font " + sdSecondesVideo().toFixed(1) + " s en tout — 30 s maximum";
+  if (sdSecondesAudio() > sdAudioMaxS() + 0.5)
+    return "Tes audios font " + sdSecondesAudio().toFixed(1) + " s — " + sdMoteur().nom + " accepte " + sdAudioMaxS() + " s";
+  if (sdMode === "video" && sdSecondesVideo() > sdVideoMaxS() + 0.5)
+    return "Tes vidéos font " + sdSecondesVideo().toFixed(1) + " s en tout — " + sdVideoMaxS() + " s maximum pour " + sdMoteur().nom;
   return "";
 }
 function sdRefresh() {
@@ -6756,8 +6806,8 @@ document.getElementById("sdVidInput").onchange = (e) => {
   const f = e.target.files[0]; if (!f) return;
   const v = document.createElement("video"); v.preload = "metadata";
   v.onloadedmetadata = () => {
-    if (v.duration > SD_VIDEO_MAX_S + 0.5) {
-      document.getElementById("sdVidNom").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — Seedance accepte 30 s maximum.</span>';
+    if (v.duration > sdVideoMaxS() + 0.5) {
+      document.getElementById("sdVidNom").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — " + sdMoteur().nom + " accepte " + sdVideoMaxS() + " s maximum.</span>';
       sdVideo = null; sdVideoDuree = 0; sdRefresh(); return;
     }
     sdVideo = f; sdVideoDuree = v.duration;
@@ -6794,16 +6844,42 @@ document.getElementById("sdAudInput").onchange = (e) => {
   const maxA = sdMoteur().maxAudios;
   if (sdAudios.length >= maxA) { alert(maxA + " audios de référence au maximum pour " + sdMoteur().nom + "."); return; }
   const a = document.createElement("audio"); a.preload = "metadata";
-  const ajouter = (duree) => {
-    const total = sdAudios.reduce((t, x) => t + (x.duree || 0), 0) + (duree || 0);
-    if (duree && total > 30.5) {
-      alert("Tes audios feraient " + total.toFixed(1) + " s en tout — Runway accepte 30 s cumulées au maximum.");
+  const liste = () => {
+    document.getElementById("sdAudListe").innerHTML = sdAudios.map((x, i) =>
+      "🎵 audio " + (i + 1) + " · " + x.fichier.name + (x.duree ? " (" + x.duree.toFixed(1) + " s)" : "")
+      + (x.coupe ? " <span style='color:var(--gold)'>✂️ " + x.coupe + "</span>" : "")).join("<br>");
+  };
+  // v41.51 : au lieu de REFUSER une chanson trop longue, on en garde ce qui
+  // tient dans le budget du moteur. Papy travaille avec des morceaux entiers :
+  // lui demander d'ouvrir un éditeur audio à chaque essai serait absurde.
+  const ajouter = async (duree) => {
+    const dejaPris = sdAudios.reduce((t, x) => t + (x.duree || 0), 0);
+    const reste = sdAudioMaxS() - dejaPris;
+    if (reste <= 0.5) {
+      alert("Tu as déjà " + dejaPris.toFixed(1) + " s d'audio — " + sdMoteur().nom
+        + " en accepte " + sdAudioMaxS() + " s en tout. Retire un audio avant d'en ajouter un autre.");
+      return;
+    }
+    if (duree && duree > reste + 0.5) {
+      const debut = Math.max(0, Number(document.getElementById("sdAudDebut").value) || 0);
+      if (debut >= duree) {
+        alert("Ton point de départ (" + debut + " s) dépasse la durée du fichier (" + duree.toFixed(1) + " s).");
+        return;
+      }
+      document.getElementById("sdAudListe").innerHTML = "✂️ Découpe de « " + f.name + " » en cours…";
+      const r = await sdCouperAudio(f, debut, reste);
+      if (!r) {
+        alert("Ce fichier n'a pas pu être découpé automatiquement. Raccourcis-le à "
+          + reste.toFixed(0) + " s maximum avant de le charger.");
+        liste(); return;
+      }
+      sdAudios.push({ fichier: r.fichier, duree: r.duree,
+        coupe: r.duree.toFixed(1) + " s gardées à partir de " + debut + " s · " + r.methode });
+      liste(); sdRefresh();
       return;
     }
     sdAudios.push({ fichier: f, duree: duree || 0 });
-    document.getElementById("sdAudListe").innerHTML = sdAudios
-      .map((x, i) => "🎵 audio " + (i + 1) + " · " + x.fichier.name + (x.duree ? " (" + x.duree.toFixed(1) + " s)" : "")).join("<br>");
-    sdRefresh();
+    liste(); sdRefresh();
   };
   a.onloadedmetadata = () => ajouter(a.duration);
   // Les exports du studio ont parfois des métadonnées non standard : si la durée
@@ -6813,8 +6889,107 @@ document.getElementById("sdAudInput").onchange = (e) => {
   e.target.value = "";
 };
 // ═══════════════════════════════════════════════════════════════════
-//  v41.49 · CONSTRUCTION DES PAYLOADS SEEDANCE 2.5
+//  v41.51 · DÉCOUPE AUTOMATIQUE DE L'AUDIO DE RÉFÉRENCE
 // ═══════════════════════════════════════════════════════════════════
+// Seedance impose une durée CUMULÉE d'audio : 30 s en 2.5, 15 s en 2.0.
+// Papy travaille avec des chansons entières — il ne doit pas avoir à
+// ouvrir un éditeur audio pour donner une référence. L'app coupe donc
+// elle-même, dans le navigateur, sans rien envoyer nulle part.
+//
+// Deux méthodes selon le fichier :
+//  · MP3 → découpe AU CADRE près. Un MP3 est une suite de trames
+//    indépendantes : on garde celles qui tombent dans la fenêtre voulue
+//    et on les recolle. Aucun réencodage, aucune perte de qualité.
+//  · autres formats (m4a, wav, aac…) → décodage par le navigateur puis
+//    réencodage en WAV. Plus lourd, mais universel.
+//
+// La découpe part d'un instant choisi par Papy : le refrain d'une
+// chanson est rarement à la seconde zéro.
+const MP3_BR = [0,32,40,48,56,64,80,96,112,128,160,192,224,256,320,0];  // MPEG1 Layer III, kbit/s
+const MP3_SR = [44100, 48000, 32000];
+
+// Découpe un MP3 en gardant les trames de [debutS, debutS+dureeS].
+// Renvoie null si le fichier n'est pas un MPEG1 Layer III lisible.
+async function sdCouperMp3(fichier, debutS, dureeS) {
+  const buf = new Uint8Array(await fichier.arrayBuffer());
+  let i = 0, entete = 0;
+  // Une balise ID3v2 précède souvent les trames : on la garde telle quelle.
+  if (buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) {
+    entete = 10 + (((buf[6] & 0x7f) << 21) | ((buf[7] & 0x7f) << 14) | ((buf[8] & 0x7f) << 7) | (buf[9] & 0x7f));
+    i = entete;
+  }
+  const morceaux = [];
+  let t = 0, garde = 0;
+  while (i < buf.length - 4) {
+    if (buf[i] === 0xFF && (buf[i + 1] & 0xE0) === 0xE0) {
+      const ver = (buf[i + 1] >> 3) & 3, couche = (buf[i + 1] >> 1) & 3;
+      const bri = (buf[i + 2] >> 4) & 0xF, sri = (buf[i + 2] >> 2) & 3;
+      if (ver === 3 && couche === 1 && bri !== 0 && bri !== 15 && sri !== 3) {
+        const debit = MP3_BR[bri] * 1000, ech = MP3_SR[sri], bourre = (buf[i + 2] >> 1) & 1;
+        const taille = Math.floor(144 * debit / ech) + bourre;
+        if (taille > 4) {
+          const duree = 1152 / ech;
+          if (t >= debutS && garde < dureeS) { morceaux.push(buf.subarray(i, i + taille)); garde += duree; }
+          t += duree;
+          i += taille;
+          if (garde >= dureeS) break;
+          continue;
+        }
+      }
+    }
+    i++;
+  }
+  if (!morceaux.length) return null;
+  const parties = entete ? [buf.subarray(0, entete), ...morceaux] : morceaux;
+  return { blob: new Blob(parties, { type: "audio/mpeg" }), duree: garde, methode: "MP3 au cadre près" };
+}
+
+// Décode n'importe quel format lisible par le navigateur, garde la
+// fenêtre voulue, réencode en WAV 16 bits.
+async function sdCouperViaNavigateur(fichier, debutS, dureeS) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  const ctx = new AC();
+  try {
+    const audio = await ctx.decodeAudioData(await fichier.arrayBuffer());
+    const ech = audio.sampleRate, voies = Math.min(audio.numberOfChannels, 2);
+    const d0 = Math.floor(debutS * ech);
+    const n = Math.min(Math.floor(dureeS * ech), audio.length - d0);
+    if (n <= 0) return null;
+    const pistes = [];
+    for (let c = 0; c < voies; c++) pistes.push(audio.getChannelData(c).subarray(d0, d0 + n));
+    const octets = 44 + n * voies * 2;
+    const vue = new DataView(new ArrayBuffer(octets));
+    const txt = (o, s) => { for (let k = 0; k < s.length; k++) vue.setUint8(o + k, s.charCodeAt(k)); };
+    txt(0, "RIFF"); vue.setUint32(4, octets - 8, true); txt(8, "WAVEfmt ");
+    vue.setUint32(16, 16, true); vue.setUint16(20, 1, true); vue.setUint16(22, voies, true);
+    vue.setUint32(24, ech, true); vue.setUint32(28, ech * voies * 2, true);
+    vue.setUint16(32, voies * 2, true); vue.setUint16(34, 16, true);
+    txt(36, "data"); vue.setUint32(40, n * voies * 2, true);
+    let o = 44;
+    for (let k = 0; k < n; k++)
+      for (let c = 0; c < voies; c++) {
+        const v = Math.max(-1, Math.min(1, pistes[c][k]));
+        vue.setInt16(o, v < 0 ? v * 0x8000 : v * 0x7FFF, true); o += 2;
+      }
+    return { blob: new Blob([vue.buffer], { type: "audio/wav" }), duree: n / ech, methode: "réencodé en WAV" };
+  } catch (_) { return null; }
+  finally { ctx.close && ctx.close(); }
+}
+
+// Point d'entrée : essaie la découpe au cadre, sinon le navigateur.
+async function sdCouperAudio(fichier, debutS, dureeS) {
+  let r = null;
+  if (/\.mp3$/i.test(fichier.name) || fichier.type === "audio/mpeg")
+    r = await sdCouperMp3(fichier, debutS, dureeS);
+  if (!r) r = await sdCouperViaNavigateur(fichier, debutS, dureeS);
+  if (!r) return null;
+  const ext = r.blob.type === "audio/wav" ? ".wav" : ".mp3";
+  const base = fichier.name.replace(/\.[^.]+$/, "");
+  return { fichier: new File([r.blob], base + "-extrait" + ext, { type: r.blob.type }), duree: r.duree, methode: r.methode };
+}
+
+
 // Chaque champ ci-dessous vient du spec OpenAPI officiel de Runway
 // (github.com/runwayml/openapi, variante model = "seedance2_5"), celui qui
 // engendre les SDK Node et Python de Runway. Rien n'est déduit.
