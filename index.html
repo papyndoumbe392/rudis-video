@@ -863,13 +863,23 @@
          l'épaule. Champ de type password + œil pour vérifier une faute de frappe. -->
     <div id="admLogin" style="border:1px solid var(--gold); border-radius:12px; padding:12px; margin-bottom:14px;">
       <b style="color:var(--gold)">🔐 ESPACE ADMIN — STUDIO RUDIS</b>
-      <div class="hint">PIN administrateur. Il n'est jamais enregistré sur cet appareil et la session se ferme seule après 25 minutes sans activité.</div>
+      <div class="hint">PIN administrateur. La session se ferme seule après 25 minutes sans activité.</div>
       <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
         <input type="password" id="admPinInput" inputmode="numeric" autocomplete="off" placeholder="••••••" style="flex:1; letter-spacing:3px;">
         <button class="chip" id="admVoir" title="Afficher le PIN">👁️</button>
         <button class="chip" id="admEffacerBtn" title="Effacer">✕</button>
       </div>
+      <label style="display:flex; gap:8px; align-items:flex-start; margin-top:10px; cursor:pointer;">
+        <input type="checkbox" id="admMemoire" style="margin-top:3px;">
+        <span class="hint" style="margin:0;">
+          <b style="color:var(--gold)">Rester connecté 24 h sur cet appareil</b><br>
+          Le PIN sera <b>enregistré sur cet appareil</b> pendant 24 heures : tu n'auras plus à le saisir.
+          <span class="err">À ne cocher que sur un appareil qui reste entre tes mains</span> — pendant ces 24 h,
+          toute personne qui l'utilise pourra ouvrir les Moteurs et dépenser des crédits Runway.
+        </span>
+      </label>
       <button class="master" id="admValider" style="margin-top:10px;">Ouvrir l'espace admin</button>
+      <button class="chip hidden" id="admOublier" style="margin-top:8px;">🗑️ Oublier cet appareil</button>
       <div class="estimate" id="admLoginInfo"></div>
     </div>
 
@@ -880,6 +890,7 @@
       <div class="chips" style="margin-top:8px;">
         <button class="chip" id="admRetour">← Retour aux moteurs</button>
         <button class="chip" id="admFermer">🔒 Fermer la session</button>
+        <button class="chip hidden" id="admOublier2">🗑️ Oublier cet appareil</button>
       </div>
     </div>
     <div id="admCorps" class="hidden">
@@ -5946,16 +5957,84 @@ fxRefresh();
 //  2. la saisie doit être masquée (champ password), avec un œil pour vérifier
 //     une faute de frappe — la boîte prompt() du navigateur l'affichait en clair.
 //  3. fermeture automatique après 25 minutes sans activité.
-let admSession = "";            // le PIN, en mémoire vive et nulle part ailleurs
+let admSession = "";            // le PIN, en mémoire vive
 let admDernierGeste = 0;        // horodatage de la dernière action
 let admHorloge = null;
 const ADM_INACTIVITE_MS = 25 * 60 * 1000;   // 25 minutes
 
+// ═══ v41.52 : « RESTER CONNECTÉ 24 H » — DEMANDE DE PAPY ═══
+// Papy travaille sur trois appareils (iPhone, MacBook Pro, Mac Pro) et
+// devait ressaisir son PIN à chaque ouverture de l'app. Il a demandé
+// que le code reste valable 24 heures.
+//
+// ⚠️ CE QUE ÇA CHANGE, EN TOUTE FRANCHISE :
+// Pour survivre à un rechargement, le PIN doit être ÉCRIT sur l'appareil.
+// L'exigence n°1 de la v41.41 — « le PIN ne doit jamais rester sur le
+// Mac » — n'est donc plus vraie quand cette option est cochée.
+// Le brouillage ci-dessous n'est PAS de la sécurité : il empêche de lire
+// le code par-dessus l'épaule, pas quelqu'un qui sait chercher.
+// Concrètement : pendant 24 h, toute personne qui a l'appareil déverrouillé
+// peut ouvrir l'espace Moteurs et dépenser des crédits Runway.
+//
+// C'est pour ça que l'option est DÉCOCHÉE par défaut, qu'elle est affichée
+// avec son avertissement, et qu'un bouton « Oublier cet appareil » l'annule
+// immédiatement. Chaque appareil garde sa propre mémoire : trois saisies
+// pour trois appareils, puis plus rien pendant 24 h.
+const ADM_MEMOIRE_CLE = "starclip_adm_24h";
+const ADM_MEMOIRE_MS = 24 * 60 * 60 * 1000;
+
+// Brouillage réversible. Objectif : que le PIN ne soit pas lisible en clair
+// d'un coup d'œil. Rien de plus — et surtout pas un chiffrement.
+function admBrouiller(txt, sens) {
+  try {
+    const clef = "StarClipStudioRudis";
+    const src = sens ? txt : atob(txt);
+    let out = "";
+    for (let i = 0; i < src.length; i++)
+      out += String.fromCharCode(src.charCodeAt(i) ^ clef.charCodeAt(i % clef.length));
+    return sens ? btoa(out) : out;
+  } catch (_) { return ""; }
+}
+
+function admMemoriser(pin) {
+  try {
+    localStorage.setItem(ADM_MEMOIRE_CLE, JSON.stringify({
+      p: admBrouiller(pin, true), exp: Date.now() + ADM_MEMOIRE_MS,
+    }));
+  } catch (_) {}   // navigation privée, quota plein : on continue sans mémoire
+}
+
+// Renvoie le PIN mémorisé s'il est encore valable, sinon "" — et nettoie.
+function admPinMemorise() {
+  try {
+    const brut = localStorage.getItem(ADM_MEMOIRE_CLE);
+    if (!brut) return "";
+    const d = JSON.parse(brut);
+    if (!d || !d.exp || Date.now() > d.exp) { admOublierAppareil(); return ""; }
+    return admBrouiller(d.p, false) || "";
+  } catch (_) { return ""; }
+}
+
+function admOublierAppareil() {
+  try { localStorage.removeItem(ADM_MEMOIRE_CLE); } catch (_) {}
+}
+
+// Heures restantes avant expiration, pour l'afficher à Papy.
+function admHeuresRestantes() {
+  try {
+    const d = JSON.parse(localStorage.getItem(ADM_MEMOIRE_CLE) || "null");
+    if (!d || !d.exp) return 0;
+    return Math.max(0, Math.round((d.exp - Date.now()) / 3600000));
+  } catch (_) { return 0; }
+}
+
 function admPin() { return admSession; }
 
-function admOuvrirSession(pin) {
+function admOuvrirSession(pin, memoriser) {
   admSession = pin;
   admDernierGeste = Date.now();
+  if (memoriser) admMemoriser(pin);
+  admMajBoutonsMemoire();
   document.getElementById("admLogin").classList.add("hidden");
   document.getElementById("admBarre").classList.remove("hidden");
   document.getElementById("admCorps").classList.remove("hidden");
@@ -5981,6 +6060,21 @@ function admFermerSession(raison) {
   if (i) i.innerHTML = raison ? '<span style="color:var(--gold)">' + raison + "</span>" : "";
   const z = document.getElementById("adminZone");
   if (z) z.classList.add("hidden");
+  admMajBoutonsMemoire();
+}
+
+// Affiche les boutons « Oublier cet appareil » seulement s'il y a
+// effectivement quelque chose à oublier, avec le temps restant.
+function admMajBoutonsMemoire() {
+  const h = admHeuresRestantes();
+  for (const id of ["admOublier", "admOublier2"]) {
+    const b = document.getElementById(id);
+    if (!b) continue;
+    b.classList.toggle("hidden", h <= 0);
+    b.textContent = "🗑️ Oublier cet appareil (" + h + " h restantes)";
+  }
+  const c = document.getElementById("admMemoire");
+  if (c) c.checked = h > 0;
 }
 
 // Minuteur : affiche le temps restant et referme tout seul à 0.
@@ -6006,7 +6100,16 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   ouvre.onclick = () => {
     if (admSession) { admFermerSession(""); return; }
     zone.classList.remove("hidden");
+    // v41.52 : si cet appareil a mémorisé le PIN il y a moins de 24 h, on
+    // ouvre directement l'espace — c'est tout l'intérêt de l'option.
+    const memo = admPinMemorise();
+    if (memo) {
+      admOuvrirSession(memo, false);       // déjà en mémoire, inutile de réécrire
+      zone.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
     document.getElementById("admLogin").classList.remove("hidden");
+    admMajBoutonsMemoire();
     zone.scrollIntoView({ behavior: "smooth" });
     setTimeout(() => document.getElementById("admPinInput").focus(), 300);
   };
@@ -6017,7 +6120,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
     if (!v) { document.getElementById("admLoginInfo").innerHTML = '<span class="err">Saisis ton PIN.</span>'; return; }
     // Le PIN n'est pas vérifié ici : c'est le Worker qui tranche à chaque appel.
     // Un PIN faux donnera « Espace réservé au studio » au premier bouton utilisé.
-    admOuvrirSession(v);
+    admOuvrirSession(v, document.getElementById("admMemoire").checked);
   };
   document.getElementById("admValider").onclick = valider;
   champ.addEventListener("keydown", (e) => { if (e.key === "Enter") valider(); });
@@ -6029,6 +6132,15 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   };
   document.getElementById("admEffacerBtn").onclick = () => { champ.value = ""; champ.focus(); };
   document.getElementById("admFermer").onclick = () => admFermerSession("Session fermée.");
+  // Deux gestes distincts : « Fermer la session » replie l'espace mais garde
+  // la mémoire 24 h ; « Oublier cet appareil » efface le PIN enregistré.
+  const oublier = () => {
+    admOublierAppareil();
+    admFermerSession("Cet appareil ne se souvient plus de ton PIN. Il faudra le ressaisir.");
+  };
+  document.getElementById("admOublier").onclick = oublier;
+  document.getElementById("admOublier2").onclick = oublier;
+  admMajBoutonsMemoire();
 
   document.getElementById("admCarteAleph").onclick = () => admVue("aleph");
   document.getElementById("admCarteSeed").onclick  = () => admVue("seed");
