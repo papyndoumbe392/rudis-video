@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.52 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.53 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -920,9 +920,99 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Photos de l'artiste, tenue, décor · chant et lip-sync · références gratuites.</p>
           <div class="admCartePied">4 à 30 s · 480p / 720p / 1080p · dès 20 crédits/s</div>
         </div>
+        <!-- v41.53 : Seedance 2.0 via FAL. Même moteur ByteDance, autre porte
+             d'entrée. Runway a refusé sept fois par son API alors que son
+             propre portail acceptait ; FAL est un troisième chemin à tester. -->
+        <div class="card admCarte" id="admCarteFal" style="border-color:#4ade80;">
+          <div class="admCarteIcone">🌱</div>
+          <h2 style="margin:0; color:#4ade80;">SEEDANCE 2.0 · FAL</h2>
+          <div class="admCarteSous">MÊME MOTEUR · AUTRE PORTE</div>
+          <p class="sub" style="margin:10px 0 0;">« Le même Seedance, mais en passant par FAL au lieu de Runway. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Photo → vidéo, ou références multiples (9 images, 3 vidéos, 3 audios) désignées dans le texte.</p>
+          <div class="admCartePied">4 à 15 s · 480p / 720p · crédits StarClip</div>
+        </div>
       </div>
     </div>
 
+
+    <!-- ─────────── PAGE ADMIN 3 · SEEDANCE 2.0 VIA FAL ─────────── -->
+    <div id="admPageFal" class="hidden">
+      <h2>🌱 SEEDANCE 2.0 — VIA FAL</h2>
+      <p class="sub">Le même moteur ByteDance que Seedance côté Runway, mais atteint par FAL. Deux modes, exactement ceux du schéma officiel de FAL.</p>
+
+      <div class="card">
+        <div class="step">⓪ QUEL MODE ?</div>
+        <div class="chips" id="fsModeChips">
+          <button class="chip on" data-fsmode="image">📸 PHOTO → VIDÉO</button>
+          <button class="chip" data-fsmode="ref">🎬 RÉFÉRENCES → VIDÉO</button>
+        </div>
+        <div class="hint" id="fsModeAide"></div>
+      </div>
+
+      <div class="card">
+        <div class="step">① TES MÉDIAS</div>
+
+        <div id="fsBlocImage">
+          <div class="hint">Une seule image de départ. Elle est animée telle quelle.</div>
+          <button class="chip" id="fsImgBtn">🖼️ Choisir la photo de départ</button>
+          <input type="file" id="fsImgInput" accept="image/*" style="display:none;">
+          <div id="fsImgNom" class="estimate"></div>
+        </div>
+
+        <div id="fsBlocRef" class="hidden">
+          <div class="hint">Jusqu'à <b>9 images</b>, <b>3 vidéos</b> et <b>3 audios</b>. Dans ton texte, désigne-les par
+          <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b> — c'est ainsi que le moteur sait quoi utiliser où.
+          <br>Vidéos : 2 à 15 s cumulées, 50 Mo au total. Audios : 15 s cumulées, et il faut alors au moins une image ou une vidéo.</div>
+          <button class="chip" id="fsRefImgBtn">🖼️ Ajouter une image</button>
+          <input type="file" id="fsRefImgInput" accept="image/*" style="display:none;">
+          <button class="chip" id="fsRefVidBtn">🎬 Ajouter une vidéo</button>
+          <input type="file" id="fsRefVidInput" accept="video/*" style="display:none;">
+          <button class="chip" id="fsRefAudBtn">🎵 Ajouter un audio</button>
+          <input type="file" id="fsRefAudInput" accept="audio/*" style="display:none;">
+          <div id="fsRefListe" class="estimate"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="step">② TA SCÈNE</div>
+        <div class="hint">Décris ce qui doit se passer. En mode Références, cite <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b> dans la phrase.</div>
+        <textarea id="fsPrompt" rows="5" placeholder="Le chanteur de @Image1 danse le makossa, entouré de danseurs, mouvements de @Video1."></textarea>
+      </div>
+
+      <div class="card">
+        <div class="step">③ FORMAT</div>
+        <div class="label">Résolution</div>
+        <div class="chips" id="fsResChips">
+          <button class="chip" data-fsres="480p">480p</button>
+          <button class="chip on" data-fsres="720p">720p</button>
+        </div>
+        <div class="label" style="margin-top:10px;">Cadre</div>
+        <select id="fsRatio">
+          <option value="auto">auto — le moteur décide</option>
+          <option value="16:9" selected>16:9 — horizontal</option>
+          <option value="9:16">9:16 — vertical</option>
+          <option value="1:1">1:1 — carré</option>
+          <option value="4:3">4:3</option>
+          <option value="3:4">3:4</option>
+          <option value="21:9">21:9 — cinéma large</option>
+        </select>
+        <div class="label" style="margin-top:10px;">Durée</div>
+        <select id="fsDuree"></select>
+        <label style="display:flex; gap:8px; align-items:center; margin-top:10px;">
+          <input type="checkbox" id="fsAudio" checked>
+          <span>🔊 Générer l'audio (bruitages, ambiance, voix synchronisée)</span>
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="step">④ LANCER</div>
+        <button class="master" id="fsGo" disabled>Choisis d'abord tes médias</button>
+        <div class="estimate" id="fsCout" style="margin-top:8px;"></div>
+        <div class="status" id="fsStatus" style="margin-top:12px;"><div id="fsStatusText"></div><div class="bar"><div class="fill" id="fsFill"></div></div></div>
+        <div id="fsResult"></div>
+        <details style="margin-top:12px;"><summary class="hint">🔎 Journal technique</summary><pre id="fsJournal" class="journal"></pre></details>
+      </div>
+    </div>
 
     <!-- ─────────── PAGE ADMIN 1 · ALEPH 2.0 ─────────── -->
     <div id="admPageAleph" class="hidden">
@@ -1145,7 +1235,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.52</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.53</span>
 
   </footer>
 </div>
@@ -6144,6 +6234,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
 
   document.getElementById("admCarteAleph").onclick = () => admVue("aleph");
   document.getElementById("admCarteSeed").onclick  = () => admVue("seed");
+  document.getElementById("admCarteFal").onclick   = () => admVue("fal");
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -6159,10 +6250,12 @@ function admVue(quoi) {
   const ch = document.getElementById("admChoix");
   const pa = document.getElementById("admPageAleph");
   const ps = document.getElementById("admPageSeed");
+  const pf = document.getElementById("admPageFal");
   const ret = document.getElementById("admRetour");
   ch.classList.toggle("hidden", quoi !== "choix");
   pa.classList.toggle("hidden", quoi !== "aleph");
   ps.classList.toggle("hidden", quoi !== "seed");
+  if (pf) pf.classList.toggle("hidden", quoi !== "fal");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
   document.getElementById("adminZone").scrollTop = 0;
@@ -7001,8 +7094,284 @@ document.getElementById("sdAudInput").onchange = (e) => {
   e.target.value = "";
 };
 // ═══════════════════════════════════════════════════════════════════
-//  v41.51 · DÉCOUPE AUTOMATIQUE DE L'AUDIO DE RÉFÉRENCE
+//  v41.53 · SEEDANCE 2.0 VIA FAL
 // ═══════════════════════════════════════════════════════════════════
+// Champs repris MOT POUR MOT du schéma publié par FAL le 25 août 2026
+// (fal.ai → Model API Reference → Bytedance → Seedance 2.0).
+// Ils n'ont RIEN à voir avec ceux de Runway : ici c'est image_url,
+// resolution "480p"/"720p", aspect_ratio "16:9", duration en TEXTE,
+// generate_audio. Ne jamais recopier un champ Runway ici.
+//
+// Deux points de terminaison distincts — pas un champ « mode » :
+//   image-to-video      → prompt + image_url
+//   reference-to-video  → prompt + image_urls / video_urls / audio_urls
+//
+// En mode références, le prompt DÉSIGNE les médias : @Image1, @Video1,
+// @Audio1. C'est ce qui permet une vidéo de danse pour plusieurs
+// personnes — la limite qui bloquait Aleph.
+const FS_ENDPOINTS = {
+  image: "bytedance/seedance-2.0/image-to-video",
+  ref:   "bytedance/seedance-2.0/reference-to-video",
+};
+const FS_LIMITES = {
+  images: 9, videos: 3, audios: 3,   // reference-to-video
+  imageMo: 30, videosMo: 50, audioMo: 15,
+  videoSMin: 2, videoSMax: 15,       // durée cumulée des vidéos
+  audioSMax: 15,                     // durée cumulée des audios
+  totalFichiers: 12,                 // « total files across all modalities »
+};
+let fsMode = "image", fsRes = "720p";
+let fsImage = null;                                  // photo de départ (mode image)
+let fsRefImages = [], fsRefVideos = [], fsRefAudios = [];
+
+function fsLog(titre, obj) {
+  const z = document.getElementById("fsJournal");
+  if (!z) return;
+  const h = new Date().toLocaleTimeString("fr-FR");
+  z.textContent += "[" + h + "] " + titre + " → "
+    + (typeof obj === "string" ? obj : JSON.stringify(obj)) + "\n\n";
+  z.scrollTop = z.scrollHeight;
+}
+function fsSetStatus(txt, pct) {
+  document.getElementById("fsStatus").classList.add("on");
+  document.getElementById("fsStatusText").innerHTML = txt;
+  document.getElementById("fsFill").style.width = (pct || 0) + "%";
+}
+function fsSecondes(liste) { return liste.reduce((t, x) => t + (x.duree || 0), 0); }
+
+// Ce qui manque pour lancer. Chaîne vide = prêt.
+function fsManque() {
+  if (!document.getElementById("fsPrompt").value.trim()) return "Écris d'abord ta scène à l'étape ②";
+  if (fsMode === "image" && !fsImage) return "Choisis la photo de départ à l'étape ①";
+  if (fsMode === "ref") {
+    if (!fsRefImages.length && !fsRefVideos.length) return "Ajoute au moins une image ou une vidéo de référence";
+    // Règle explicite du schéma FAL : un audio seul n'est pas accepté.
+    if (fsRefAudios.length && !fsRefImages.length && !fsRefVideos.length)
+      return "Un audio de référence exige au moins une image ou une vidéo";
+    const sv = fsSecondes(fsRefVideos);
+    if (fsRefVideos.length && sv < FS_LIMITES.videoSMin - 0.5)
+      return "Tes vidéos font " + sv.toFixed(1) + " s — il en faut au moins " + FS_LIMITES.videoSMin;
+    if (sv > FS_LIMITES.videoSMax + 0.5)
+      return "Tes vidéos font " + sv.toFixed(1) + " s — " + FS_LIMITES.videoSMax + " s au maximum";
+    const sa = fsSecondes(fsRefAudios);
+    if (sa > FS_LIMITES.audioSMax + 0.5)
+      return "Tes audios font " + sa.toFixed(1) + " s — " + FS_LIMITES.audioSMax + " s au maximum";
+    if (fsRefImages.length + fsRefVideos.length + fsRefAudios.length > FS_LIMITES.totalFichiers)
+      return FS_LIMITES.totalFichiers + " fichiers au maximum, toutes catégories confondues";
+  }
+  return "";
+}
+function fsRefresh() {
+  const manque = fsManque();
+  const b = document.getElementById("fsGo");
+  b.disabled = !!manque;
+  b.textContent = manque ? manque : "✨ Créer avec Seedance 2.0 (FAL)";
+  const d = document.getElementById("fsDuree").value;
+  const detail = [fsRes, document.getElementById("fsRatio").value, d === "auto" ? "durée automatique" : d + " s"];
+  if (fsMode === "ref")
+    detail.push(fsRefImages.length + " image(s), " + fsRefVideos.length + " vidéo(s), " + fsRefAudios.length + " audio(s)");
+  document.getElementById("fsCout").innerHTML = detail.join(" · ")
+    + " · <b style='color:var(--gold)'>débité de ton crédit StarClip</b>";
+}
+function fsMajMode() {
+  document.getElementById("fsBlocImage").classList.toggle("hidden", fsMode !== "image");
+  document.getElementById("fsBlocRef").classList.toggle("hidden", fsMode !== "ref");
+  document.querySelectorAll("#fsModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.fsmode === fsMode));
+  document.getElementById("fsModeAide").innerHTML = fsMode === "image"
+    ? "Une <b>seule photo</b> est animée. Le plus simple, et le plus proche du mode Photo de Runway."
+    : "<b>Plusieurs références</b> : jusqu'à 9 images, 3 vidéos, 3 audios — désignées dans ton texte par @Image1, @Video1, @Audio1. C'est ce mode qui permet d'appliquer <b>une seule vidéo de danse à plusieurs personnes</b>.";
+  fsRefresh();
+}
+function fsMajListe() {
+  const l = [];
+  fsRefImages.forEach((x, i) => l.push("🖼️ <b>@Image" + (i + 1) + "</b> · " + x.fichier.name));
+  fsRefVideos.forEach((x, i) => l.push("🎬 <b>@Video" + (i + 1) + "</b> · " + x.fichier.name + " (" + x.duree.toFixed(1) + " s)"));
+  fsRefAudios.forEach((x, i) => l.push("🎵 <b>@Audio" + (i + 1) + "</b> · " + x.fichier.name + (x.duree ? " (" + x.duree.toFixed(1) + " s)" : "")));
+  document.getElementById("fsRefListe").innerHTML = l.join("<br>");
+}
+// Mesure la durée d'un média avant de l'accepter — les plafonds de FAL
+// portent sur des SECONDES CUMULÉES, pas sur le nombre de fichiers.
+function fsDureeDe(fichier, estVideo) {
+  return new Promise(res => {
+    const el = document.createElement(estVideo ? "video" : "audio");
+    el.preload = "metadata";
+    el.onloadedmetadata = () => res(el.duration || 0);
+    el.onerror = () => res(0);
+    el.src = URL.createObjectURL(fichier);
+  });
+}
+
+// Construit le corps de la requête. Aucun champ inventé : tout vient du
+// schéma FAL. Les champs vides ne sont pas envoyés du tout.
+function fsPayload(o) {
+  const p = { prompt: o.prompt, resolution: o.resolution };
+  if (o.aspect_ratio && o.aspect_ratio !== "auto") p.aspect_ratio = o.aspect_ratio;
+  if (o.duration && o.duration !== "auto") p.duration = String(o.duration);
+  p.generate_audio = !!o.generate_audio;
+  if (o.mode === "image") {
+    p.image_url = o.image_url;
+  } else {
+    if (o.image_urls && o.image_urls.length) p.image_urls = o.image_urls;
+    if (o.video_urls && o.video_urls.length) p.video_urls = o.video_urls;
+    if (o.audio_urls && o.audio_urls.length) p.audio_urls = o.audio_urls;
+  }
+  return p;
+}
+
+// ─── Initialisation et gestes du volet FAL Seedance 2.0 ───
+(function fsInit() {
+  const d = document.getElementById("fsDuree");
+  if (!d) return;
+  d.innerHTML = '<option value="auto" selected>auto — le moteur décide</option>';
+  for (let i = 4; i <= 15; i++) d.innerHTML += '<option value="' + i + '">' + i + " secondes</option>";
+  document.querySelectorAll("#fsModeChips .chip").forEach(c =>
+    c.onclick = () => { fsMode = c.dataset.fsmode; fsMajMode(); });
+  document.querySelectorAll("#fsResChips .chip").forEach(c => c.onclick = () => {
+    document.querySelectorAll("#fsResChips .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on"); fsRes = c.dataset.fsres; fsRefresh();
+  });
+  d.onchange = fsRefresh;
+  document.getElementById("fsRatio").onchange = fsRefresh;
+  document.getElementById("fsPrompt").addEventListener("input", fsRefresh);
+
+  // Photo de départ (mode image)
+  document.getElementById("fsImgBtn").onclick = () => document.getElementById("fsImgInput").click();
+  document.getElementById("fsImgInput").onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > FS_LIMITES.imageMo * 1024 * 1024) {
+      alert("Image trop lourde : " + Math.round(f.size / 1048576) + " Mo, maximum " + FS_LIMITES.imageMo + " Mo."); return;
+    }
+    fsImage = f;
+    document.getElementById("fsImgNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+    fsRefresh(); e.target.value = "";
+  };
+
+  // Références multiples
+  document.getElementById("fsRefImgBtn").onclick = () => document.getElementById("fsRefImgInput").click();
+  document.getElementById("fsRefImgInput").onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    if (fsRefImages.length >= FS_LIMITES.images) { alert(FS_LIMITES.images + " images au maximum."); return; }
+    if (f.size > FS_LIMITES.imageMo * 1024 * 1024) { alert("Image trop lourde (maximum " + FS_LIMITES.imageMo + " Mo)."); return; }
+    fsRefImages.push({ fichier: f }); fsMajListe(); fsRefresh(); e.target.value = "";
+  };
+  document.getElementById("fsRefVidBtn").onclick = () => document.getElementById("fsRefVidInput").click();
+  document.getElementById("fsRefVidInput").onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    if (fsRefVideos.length >= FS_LIMITES.videos) { alert(FS_LIMITES.videos + " vidéos au maximum."); return; }
+    const duree = await fsDureeDe(f, true);
+    const total = fsSecondes(fsRefVideos) + duree;
+    if (total > FS_LIMITES.videoSMax + 0.5) {
+      alert("Tes vidéos feraient " + total.toFixed(1) + " s — FAL accepte " + FS_LIMITES.videoSMax + " s cumulées."); return;
+    }
+    fsRefVideos.push({ fichier: f, duree: duree }); fsMajListe(); fsRefresh(); e.target.value = "";
+  };
+  document.getElementById("fsRefAudBtn").onclick = () => document.getElementById("fsRefAudInput").click();
+  document.getElementById("fsRefAudInput").onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    if (fsRefAudios.length >= FS_LIMITES.audios) { alert(FS_LIMITES.audios + " audios au maximum."); return; }
+    const duree = await fsDureeDe(f, false);
+    const reste = FS_LIMITES.audioSMax - fsSecondes(fsRefAudios);
+    // Même service que pour Seedance Runway : on coupe au lieu de refuser.
+    if (duree > reste + 0.5) {
+      document.getElementById("fsRefListe").innerHTML = "✂️ Découpe de « " + f.name + " » en cours…";
+      const r = await sdCouperAudio(f, 0, reste);
+      if (!r) { alert("Ce fichier n'a pas pu être découpé. Raccourcis-le à " + reste.toFixed(0) + " s."); fsMajListe(); return; }
+      fsRefAudios.push({ fichier: r.fichier, duree: r.duree });
+    } else {
+      fsRefAudios.push({ fichier: f, duree: duree });
+    }
+    fsMajListe(); fsRefresh(); e.target.value = "";
+  };
+
+  document.getElementById("fsGo").onclick = async () => {
+    const go = document.getElementById("fsGo");
+    go.disabled = true;
+    document.getElementById("fsResult").innerHTML = "";
+    try {
+      const manque = fsManque(); if (manque) throw new Error(manque);
+      const chemin = FS_ENDPOINTS[fsMode];
+      fsLog("DÉMARRAGE", { moteur: "seedance-2.0 (FAL)", mode: fsMode, endpoint: chemin,
+        resolution: fsRes, aspect_ratio: document.getElementById("fsRatio").value,
+        duration: document.getElementById("fsDuree").value });
+
+      // Hébergement : FAL veut des URL, pas des fichiers.
+      const heberger = async (f, quoi) => {
+        fsSetStatus("Hébergement de « " + f.name + " » (" + quoi + ")…", 8);
+        const u = await hebergerFichier(f, f.name);
+        fsLog("HÉBERGÉ · " + quoi, { fichier: f.name, octets: f.size });
+        return u;
+      };
+      let image_url = "", image_urls = [], video_urls = [], audio_urls = [];
+      if (fsMode === "image") {
+        image_url = await heberger(fsImage, "PHOTO DE DÉPART");
+      } else {
+        for (const x of fsRefImages) image_urls.push(await heberger(x.fichier, "IMAGE"));
+        for (const x of fsRefVideos) video_urls.push(await heberger(x.fichier, "VIDÉO"));
+        for (const x of fsRefAudios) audio_urls.push(await heberger(x.fichier, "AUDIO"));
+      }
+
+      const payload = fsPayload({
+        mode: fsMode,
+        prompt: document.getElementById("fsPrompt").value.trim(),
+        resolution: fsRes,
+        aspect_ratio: document.getElementById("fsRatio").value,
+        duration: document.getElementById("fsDuree").value,
+        generate_audio: document.getElementById("fsAudio").checked,
+        image_url: image_url, image_urls: image_urls, video_urls: video_urls, audio_urls: audio_urls,
+      });
+      const lisible = Object.assign({}, payload);
+      for (const k of ["image_url", "image_urls", "video_urls", "audio_urls"])
+        if (lisible[k]) lisible[k] = Array.isArray(lisible[k]) ? "[" + lisible[k].length + "]" : "[média]";
+      fsLog("PAYLOAD (médias masqués)", lisible);
+
+      fsSetStatus("Envoi au studio…", 12);
+      const job = await apiSubmit(chemin, payload);
+      fsLog("TÂCHE CRÉÉE", { request_id: job.request_id || "?" });
+      const statusUrl = job.status_url || `https://queue.fal.run/${chemin}/requests/${job.request_id}/status`;
+      const responseUrl = job.response_url || `https://queue.fal.run/${chemin}/requests/${job.request_id}`;
+
+      let pct = 14;
+      for (let i = 0; i < 200; i++) {
+        await new Promise(rs => setTimeout(rs, 4000));
+        const sj = await apiPoll(statusUrl);
+        pct = Math.min(pct + 2, 92);
+        if (sj.status === "IN_QUEUE") fsSetStatus("En file d'attente…", pct);
+        else if (sj.status === "IN_PROGRESS") fsSetStatus("Seedance travaille… (2 à 6 min)", pct);
+        else if (sj.status === "COMPLETED") break;
+        if (sj.status === "FAILED" || sj.status === "ERROR") {
+          fsLog("ÉCHEC", sj);
+          const rep = await apiPoll(responseUrl).catch(() => ({}));
+          fsLog("RÉPONSE COMPLÈTE", rep);
+          const motif = rep.detail
+            ? (Array.isArray(rep.detail) ? rep.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(rep.detail))
+            : (rep.error || rep.message || "motif non précisé");
+          throw new Error("FAL a refusé la génération : " + motif);
+        }
+      }
+      const data = await apiPoll(responseUrl);
+      const out = data.video?.url || data.response?.video?.url || data.output?.video?.url;
+      if (!out) { fsLog("RÉPONSE SANS VIDÉO", data); throw new Error("Vidéo introuvable dans la réponse — voir le journal."); }
+      fsLog("TERMINÉ", { url: String(out).slice(0, 60) + "…" });
+      fsSetStatus("<span class='okc'>✓ Vidéo prête !</span>", 100);
+      lastVideoUrl = out;
+      document.getElementById("fsResult").innerHTML =
+        `<video controls playsinline style="width:100%; border-radius:10px; margin-top:12px;" src="${out}"></video>
+         <button class="dl btn" id="fsSaveBtn">⏳ Préparation de l'enregistrement…</button>
+         <div class="estimate" id="fsSaveHint"></div>`;
+      prepareVideoFile(out, document.getElementById("fsSaveBtn"));
+      document.getElementById("fsSaveBtn").onclick = () => saveVideo(out, document.getElementById("fsSaveHint"));
+    } catch (err) {
+      fsLog("ERREUR", err.message);
+      fsSetStatus('<span class="err">✗ ' + err.message + "</span>", 0);
+    } finally {
+      fsRefresh();
+    }
+  };
+
+  fsMajMode();
+})();
+
+
 // Seedance impose une durée CUMULÉE d'audio : 30 s en 2.5, 15 s en 2.0.
 // Papy travaille avec des chansons entières — il ne doit pas avoir à
 // ouvrir un éditeur audio pour donner une référence. L'app coupe donc
