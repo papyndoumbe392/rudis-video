@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.56 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.57 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1394,7 +1394,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.56</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.57</span>
 
   </footer>
 </div>
@@ -7774,7 +7774,7 @@ let mvShots = [{ prompt: "", duree: 4 }, { prompt: "", duree: 3 }, { prompt: "",
 function mvMajMode() {
   document.getElementById("mvBlocAuto").classList.toggle("hidden", mvMode !== "auto");
   document.getElementById("mvBlocCustom").classList.toggle("hidden", mvMode !== "custom");
-  document.querySelectorAll("#mvModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.msmode === mvMode));
+  document.querySelectorAll("#mvModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.mvmode === mvMode));
   document.getElementById("mvModeAide").innerHTML = mvMode === "auto"
     ? "Runway lit ton texte et le découpe en <b>5 plans</b> cohérents tout seul. Le plus rapide."
     : "Tu écris <b>chaque plan toi-même</b>, 3 à 5. Plus de contrôle, mais la somme des durées doit correspondre exactement à la durée totale.";
@@ -7792,9 +7792,9 @@ function mvRendreShots() {
         <input type="number" data-mvdur="${i}" value="${s.duree}" min="1" max="15" style="width:70px;">
       </div>
     </div>`).join("");
-  z.querySelectorAll("[data-mvplan]").forEach(t => t.oninput = () => { mvShots[+t.dataset.msplan].prompt = t.value; mvRefresh(); });
-  z.querySelectorAll("[data-mvdur]").forEach(t => t.oninput = () => { mvShots[+t.dataset.msdur].duree = Number(t.value) || 0; mvRefresh(); });
-  z.querySelectorAll("[data-mvdel]").forEach(b => b.onclick = () => { mvShots.splice(+b.dataset.msdel, 1); mvRendreShots(); mvRefresh(); });
+  z.querySelectorAll("[data-mvplan]").forEach(t => t.oninput = () => { mvShots[+t.dataset.mvplan].prompt = t.value; mvRefresh(); });
+  z.querySelectorAll("[data-mvdur]").forEach(t => t.oninput = () => { mvShots[+t.dataset.mvdur].duree = Number(t.value) || 0; mvRefresh(); });
+  z.querySelectorAll("[data-mvdel]").forEach(b => b.onclick = () => { mvShots.splice(+b.dataset.mvdel, 1); mvRendreShots(); mvRefresh(); });
   document.getElementById("mvAjouterPlan").classList.toggle("hidden", mvShots.length >= 5);
 }
 function mvSommeShots() { return mvShots.reduce((t, s) => t + (s.duree || 0), 0); }
@@ -7835,10 +7835,10 @@ document.getElementById("mvImgInput").onchange = (e) => {
   document.getElementById("mvImgNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
   e.target.value = "";
 };
-document.querySelectorAll("#mvModeChips .chip").forEach(c => c.onclick = () => { mvMode = c.dataset.msmode; mvMajMode(); });
+document.querySelectorAll("#mvModeChips .chip").forEach(c => c.onclick = () => { mvMode = c.dataset.mvmode; mvMajMode(); });
 document.querySelectorAll("#mvDureeChips .chip").forEach(c => c.onclick = () => {
   document.querySelectorAll("#mvDureeChips .chip").forEach(x => x.classList.remove("on"));
-  c.classList.add("on"); mvDuree = Number(c.dataset.msduree); mvRefresh();
+  c.classList.add("on"); mvDuree = Number(c.dataset.mvduree); mvRefresh();
 });
 document.getElementById("mvAjouterPlan").onclick = () => {
   if (mvShots.length >= 5) return;
