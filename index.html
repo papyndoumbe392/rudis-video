@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.54 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.55 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1299,7 +1299,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.54</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.55</span>
 
   </footer>
 </div>
@@ -7185,6 +7185,7 @@ const FS_LIMITES = {
   totalFichiers: 12,                 // « total files across all modalities »
 };
 let fsMode = "image", fsRes = "720p";
+let fsTic = null;                                    // battement du chronomètre
 let fsImage = null;                                  // photo de départ (mode image)
 let fsRefImages = [], fsRefVideos = [], fsRefAudios = [];
 
@@ -7378,7 +7379,13 @@ async function fsPoll(url) {
       const manque = fsManque(); if (manque) throw new Error(manque);
       const vide = document.getElementById("fsVide"); if (vide) vide.classList.add("hidden");
       rwRondMontrer("fs", true);
-      rwRondChrono("fs");          // le chronomètre démarre à zéro
+      // v41.55 : rwRondChrono AFFICHE le temps écoulé depuis rwDepart — elle ne
+      // le fait pas avancer toute seule. Sans ces deux lignes, le cadran restait
+      // bloqué sur 00:00 pendant les 2 à 6 minutes de génération.
+      rwDepart = Date.now();
+      if (fsTic) clearInterval(fsTic);
+      fsTic = setInterval(() => rwRondChrono("fs"), 1000);
+      rwRondChrono("fs");
       rwRondMaj("fs", 0, "Préparation…");
       const chemin = FS_ENDPOINTS[fsMode];
       fsLog("DÉMARRAGE", { moteur: "seedance-2.0 (FAL)", mode: fsMode, endpoint: chemin,
@@ -7464,6 +7471,9 @@ async function fsPoll(url) {
       document.getElementById("fsFill").style.width = "0%";
       rwRondEchec("fs", err.message);
     } finally {
+      if (fsTic) { clearInterval(fsTic); fsTic = null; }
+      rwRondChrono("fs");     // fige le cadran sur la durée réelle
+      rwDepart = 0;
       fsRefresh();
     }
   };
