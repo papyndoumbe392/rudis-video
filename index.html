@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.60 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.61 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -347,7 +347,7 @@
         <button class="chip" data-ratio="1:1" onclick="pickRatio(this)">◻️ 1:1 Carré</button>
       </div>
       <div class="estimate" id="ratioHint" style="margin-top:4px;"></div>
-      <div class="estimate">🎨 L'IA prolonge le vrai décor de ta photo (comme Runway) — jamais de flou, jamais de duplication. (≈ 0,04 $ par changement de format)</div>
+      <div class="estimate">🎨 L'IA prolonge le vrai décor de ta photo — jamais de flou, jamais de duplication. (≈ 0,04 $ par changement de format)</div>
     </div>
   </section>
 
@@ -933,7 +933,7 @@
     <div id="admBarre" class="hidden" style="border:1px solid var(--gold); border-radius:12px; padding:10px 12px; margin-bottom:14px;">
       <b style="color:var(--gold)">🔐 ESPACE ADMIN — STUDIO RUDIS</b>
       <span id="admMinuteur" style="float:right; opacity:.6; font-size:12px;"></span>
-      <div class="hint">Moteurs Runway facturés en crédits Runway (0,01 $ le crédit), séparés des crédits StarClip des clients. Ces pages ne sont pas visibles par les clients.</div>
+      <div class="hint">Moteurs Studio facturés en crédits Studio (0,01 $ le crédit), séparés des crédits StarClip des clients. Ces pages ne sont pas visibles par les clients.</div>
       <div class="chips" style="margin-top:8px;">
         <button class="chip" id="admRetour">← Retour aux moteurs</button>
         <button class="chip" id="admFermer">🔒 Fermer la session</button>
@@ -972,9 +972,9 @@
              propre portail acceptait ; FAL est un troisième chemin à tester. -->
         <div class="card admCarte" id="admCarteFal" style="border-color:#4ade80;">
           <div class="admCarteIcone">🌱</div>
-          <h2 style="margin:0; color:#4ade80;">SEEDANCE 2.0 · FAL</h2>
+          <h2 style="margin:0; color:#4ade80;">SEEDANCE 2.0 · MOTEUR A</h2>
           <div class="admCarteSous">MÊME MOTEUR · AUTRE PORTE</div>
-          <p class="sub" style="margin:10px 0 0;">« Le même Seedance, mais en passant par FAL au lieu de Runway. »</p>
+          <p class="sub" style="margin:10px 0 0;">« Le même Seedance, mais en passant par le Moteur A au lieu du Studio. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Photo → vidéo, ou références multiples (9 images, 3 vidéos, 3 audios) désignées dans le texte.</p>
           <div class="admCartePied">4 à 15 s · 480p / 720p · crédits StarClip</div>
         </div>
@@ -985,9 +985,9 @@
           <div class="admCarteIcone">🎬</div>
           <h2 style="margin:0; color:#60a5fa;">MULTI-SHOT VIDEO</h2>
           <div class="admCarteSous">UNE HISTOIRE · PLUSIEURS PLANS</div>
-          <p class="sub" style="margin:10px 0 0;">« Un seul texte, et Runway le découpe en scène complète. »</p>
+          <p class="sub" style="margin:10px 0 0;">« Un seul texte, et le Studio le découpe en scène complète. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Mode auto (5 plans automatiques) ou mode personnalisé (3 à 5 plans écrits par toi). Photo de référence optionnelle.</p>
-          <div class="admCartePied">5, 10 ou 15 s · 6 formats · Runway</div>
+          <div class="admCartePied">5, 10 ou 15 s · 6 formats · Studio</div>
         </div>
       </div>
     </div>
@@ -996,7 +996,7 @@
     <!-- ─────────── PAGE ADMIN 4 · MULTI-SHOT VIDEO ─────────── -->
     <div id="admPageMulti" class="hidden">
       <h2>🎬 MULTI-SHOT VIDEO</h2>
-      <p class="sub">Une histoire en un seul texte devient une vidéo à plusieurs plans — ou construis chaque plan toi-même. Champs et bornes repris du spec officiel Runway (/v1/recipes/multi_shot_video).</p>
+      <p class="sub">Une histoire en un seul texte devient une vidéo à plusieurs plans — ou construis chaque plan toi-même.</p>
 
       <div class="card">
         <div class="step">⓪ QUEL MODE ?</div>
@@ -1011,7 +1011,7 @@
         <div class="step">① TON HISTOIRE</div>
 
         <div id="mvBlocAuto">
-          <div class="hint">Décris toute la scène en un seul texte. Runway la découpe lui-même en 5 plans cohérents. 2500 caractères maximum.</div>
+          <div class="hint">Décris toute la scène en un seul texte. Le Studio la découpe lui-même en 5 plans cohérents. 2500 caractères maximum.</div>
           <textarea id="mvPrompt" rows="6" placeholder="A lone singer walks into a nightclub at night. He greets the crowd. He starts dancing to makossa music. Dancers join him. The crowd cheers as the song ends."></textarea>
           <div class="estimate" id="mvCompteur"></div>
         </div>
@@ -1023,7 +1023,7 @@
         </div>
 
         <div style="margin-top:14px; border-top:1px solid rgba(255,255,255,.12); padding-top:12px;">
-          <div class="hint"><b style="color:var(--gold)">🖼️ Image de départ</b> (facultatif) — sert de première image de la vidéo, comme sur le portail Runway.</div>
+          <div class="hint"><b style="color:var(--gold)">🖼️ Image de départ</b> (facultatif) — sert de première image de la vidéo.</div>
           <button class="chip" id="mvImgBtn">🖼️ Choisir l'image</button>
           <input type="file" id="mvImgInput" accept="image/*" style="display:none;">
           <div id="mvImgNom" class="estimate"></div>
@@ -1085,8 +1085,8 @@
 
     <!-- ─────────── PAGE ADMIN 3 · SEEDANCE 2.0 VIA FAL ─────────── -->
     <div id="admPageFal" class="hidden">
-      <h2>🌱 SEEDANCE 2.0 — VIA FAL</h2>
-      <p class="sub">Le même moteur ByteDance que Seedance côté Runway, atteint par FAL. Disposition reprise de fal.ai : les réglages à gauche avec leur nom exact, l'aperçu à droite.</p>
+      <h2>🌱 SEEDANCE 2.0 — VIA MOTEUR A</h2>
+      <p class="sub">Le même moteur ByteDance que Seedance côté Studio, atteint par le Moteur A. Réglages à gauche avec leur nom exact, aperçu à droite.</p>
 
       <div class="chips" id="fsModeChips" style="margin-bottom:14px;">
         <button class="chip on" data-fsmode="image">image-to-video</button>
@@ -1134,7 +1134,7 @@
               <button class="chip" data-fsres="480p">480p</button>
               <button class="chip on" data-fsres="720p">720p</button>
             </div>
-            <div class="falAide">480p pour aller plus vite, 720p pour l'équilibre. FAL ne propose pas le 1080p sur ce modèle.</div>
+            <div class="falAide">480p pour aller plus vite, 720p pour l'équilibre. Le Moteur A ne propose pas le 1080p sur ce modèle.</div>
           </div>
 
           <div class="falChamp">
@@ -1219,8 +1219,8 @@
         <textarea id="alPrompt" rows="3" placeholder="Ex : remplace l'arrière-plan par une grande scène de concert avec public, garde les personnes et leurs mouvements identiques"></textarea>
         <div class="estimate" id="alPromptCpt"></div>
         <div id="alOpt" class="hidden" style="margin-top:12px; border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px;">
-          <div style="font-weight:700; color:var(--gold);">✍️ Prompt optimisé pour Runway</div>
-          <div class="hint">Ton texte dépassait la limite de 1000 caractères imposée par Runway. Il a été condensé sans perdre aucune contrainte. Relis-le, modifie-le si tu veux, puis lance.</div>
+          <div style="font-weight:700; color:var(--gold);">✍️ Prompt optimisé pour le Studio</div>
+          <div class="hint">Ton texte dépassait la limite de 1000 caractères imposée par le Studio. Il a été condensé sans perdre aucune contrainte. Relis-le, modifie-le si tu veux, puis lance.</div>
           <textarea id="alOptTexte" rows="7" style="margin-top:8px;"></textarea>
           <div class="estimate" id="alOptInfo"></div>
           <div class="chips" style="margin-top:8px;">
@@ -1233,7 +1233,7 @@
           </details>
         </div>
 
-        <div class="hint" style="margin-top:10px;">Images de guidage (optionnel, 5 maximum) — par exemple la photo du décor voulu. Runway s'en sert comme cible visuelle.</div>
+        <div class="hint" style="margin-top:10px;">Images de guidage (optionnel, 5 maximum) — par exemple la photo du décor voulu. Le Studio s'en sert comme cible visuelle.</div>
         <button class="chip" id="alRefBtn">🖼️ Ajouter une image de référence</button>
         <input type="file" id="alRefInput" accept="image/*" style="display:none;">
         <div id="alRefListe" class="estimate"></div>
@@ -1295,7 +1295,7 @@
 
         <!-- ——— MODE PHOTO ——— -->
         <div id="sdBlocPhoto">
-          <div class="hint">Jusqu'à 30 images : l'artiste, sa tenue, le décor voulu. Les images de référence sont GRATUITES chez Runway. 200 Mo maximum par fichier.</div>
+          <div class="hint">Jusqu'à 30 images : l'artiste, sa tenue, le décor voulu. Les images de référence sont GRATUITES. 200 Mo maximum par fichier.</div>
           <button class="chip" id="sdRefBtn">🖼️ Ajouter une image de référence</button>
           <input type="file" id="sdRefInput" accept="image/*" style="display:none;">
           <div id="sdRefListe" class="estimate"></div>
@@ -1338,8 +1338,8 @@
         <textarea id="sdPrompt" rows="4" placeholder="Ex : la chanteuse de l'image 1 chante sur la scène de l'image 3, entourée de danseurs, plan large cinématographique"></textarea>
         <div class="estimate" id="sdPromptCpt"></div>
         <div id="sdOpt" class="hidden" style="margin-top:12px; border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px;">
-          <div style="font-weight:700; color:var(--gold);">✍️ Prompt optimisé pour Runway</div>
-          <div class="hint">Ton texte dépassait la limite de 1000 caractères imposée par Runway. Il a été condensé sans perdre aucune contrainte. Relis-le, modifie-le si tu veux, puis lance.</div>
+          <div style="font-weight:700; color:var(--gold);">✍️ Prompt optimisé pour le Studio</div>
+          <div class="hint">Ton texte dépassait la limite de 1000 caractères imposée par le Studio. Il a été condensé sans perdre aucune contrainte. Relis-le, modifie-le si tu veux, puis lance.</div>
           <textarea id="sdOptTexte" rows="7" style="margin-top:8px;"></textarea>
           <div class="estimate" id="sdOptInfo"></div>
           <div class="chips" style="margin-top:8px;">
@@ -1421,7 +1421,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.60</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.61</span>
 
   </footer>
 </div>
@@ -6659,7 +6659,7 @@ async function rwPreparerPrompt(pfx, zoneJournal, setSt) {
     return v;
   }
   // Cas 3 : première fois → on condense, on affiche, et on S'ARRÊTE LÀ.
-  if (setSt) setSt("✍️ Ton texte dépasse la limite Runway — condensation en cours…", -1);
+  if (setSt) setSt("✍️ Ton texte dépasse la limite du Studio — condensation en cours…", -1);
   const condense = await rwCondenser(brut, zoneJournal);
   champOpt.value = condense;
   document.getElementById(pfx + "OptOrig").textContent = brut;
@@ -6854,11 +6854,11 @@ async function rwAttendre(id, zoneJournal, setSt, minutes) {
         const argent = cr === 0 ? " ✓ Ce refus ne t'a RIEN coûté (0 crédit facturé)."
           : cr > 0 ? " ⚠️ Ce refus t'a été FACTURÉ " + cr + " crédits (≈ " + (cr / 100).toFixed(2) + " $)."
           : " ⚠️ Coût du refus inconnu — vérifie ton solde Runway avant de relancer.";
-        throw new Error("Runway a refusé la génération" + (motif ? " : " + motif : ".")
+        throw new Error("Le Studio a refusé la génération" + (motif ? " : " + motif : ".")
           + (code ? " [" + code + "]" : "") + aide + argent);
       }
     }
-    throw new Error("Runway n'a pas terminé en " + (minutes || 12) + " minutes (dernier statut : " + (statut || "inconnu") + "). Retrouve la tâche dans ton portail Runway avant de relancer.");
+    throw new Error("Le Studio n'a pas terminé en " + (minutes || 12) + " minutes (dernier statut : " + (statut || "inconnu") + "). Retrouve la tâche avant de relancer.");
   } finally { ch.stop(); }
 }
 
@@ -6937,9 +6937,9 @@ document.getElementById("alGo").onclick = async () => {
     rwLog("alJournal", "DÉMARRAGE", { moteur: "aleph2", duree_s: Math.round(alDuree * 10) / 10, credits: alCredits() });
     // ÉTAPE 1 — envoi du fichier chez Runway, progression RÉELLE
     rwLog("alJournal", "FICHIER", { nom: alVideo.name, taille_Mo: Math.round(alVideo.size / 104857.6) / 10, duree_s: Math.round(alDuree * 10) / 10, type: alVideo.type });
-    setSt("Étape 1/4 · Envoi de la vidéo vers Runway… 0 %", 0);
+    setSt("Étape 1/4 · Envoi de la vidéo vers le Studio… 0 %", 0);
     const videoUri = await rwEnvoyerFichier(alVideo, "alJournal",
-      (pct) => setSt("Étape 1/4 · Envoi de la vidéo vers Runway… " + pct + " %", pct), "VIDÉO");
+      (pct) => setSt("Étape 1/4 · Envoi de la vidéo vers le Studio… " + pct + " %", pct), "VIDÉO");
     const payload = {
       model: "aleph2",
       videoUri: videoUri,
@@ -6959,10 +6959,10 @@ document.getElementById("alGo").onclick = async () => {
     setSt("Étape 3/4 · Création de la tâche…", -1);
     const t = await rwSubmit("video_to_video", payload);
     rwLog("alJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
-    setSt("Étape 4/4 · Traitement Runway…", -1);
+    setSt("Étape 4/4 · Traitement du Studio…", -1);
     const fin = await rwAttendre(t.id, "alJournal", setSt, 12);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
-    if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    if (!url) throw new Error("Vidéo introuvable dans la réponse. Voir le journal technique.");
     // v41.47 : la vidéo vient d'un autre domaine — le navigateur l'OUVRE au lieu
     // de la télécharger, et écrase la page StarClip. target="_blank" + rel garde
     // ton travail intact : tu prends ta vidéo, tu fermes l'onglet, tu retrouves tout.
@@ -6977,7 +6977,7 @@ document.getElementById("alGo").onclick = async () => {
     // précédent. Tant qu'on ne clique pas dessus, tout reste en place.
     document.getElementById("alNouvelle").onclick = () => rwNouvelleGeneration("al");
     rwRondFini("al", "Terminé · " + alCredits() + " crédits Runway");
-    setSt("<span class='okc'>✓ Terminé ! " + alCredits() + " crédits Runway utilisés.</span>", 100);
+    setSt("<span class='okc'>✓ Terminé ! " + alCredits() + " crédits Studio utilisés.</span>", 100);
   } catch (e) {
     rwRondEchec("al", e.message);
     setSt(`<span class="err">✗ ${e.message}</span>`, 0);
@@ -7359,7 +7359,7 @@ function fsRefresh() {
   const manque = fsManque();
   const b = document.getElementById("fsGo");
   b.disabled = !!manque;
-  b.textContent = manque ? manque : "✨ Créer avec Seedance 2.0 (FAL)";
+  b.textContent = manque ? manque : "✨ Créer avec Seedance 2.0 (Moteur A)";
   const d = document.getElementById("fsDuree").value;
   const detail = [fsRes, document.getElementById("fsRatio").value, d === "auto" ? "durée automatique" : d + " s"];
   if (fsMode === "ref")
@@ -7421,7 +7421,7 @@ async function fsSubmit(endpoint, payload) {
     body: JSON.stringify({ pin: admPin(), endpoint: endpoint, payload: payload }),
   });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d.error || ("FAL a refusé (" + r.status + ")"));
+  if (!r.ok) throw new Error(d.error || ("Le Moteur A a refusé (" + r.status + ")"));
   return d;
 }
 async function fsPoll(url) {
@@ -7574,7 +7574,7 @@ async function fsPoll(url) {
           const motif = rep.detail
             ? (Array.isArray(rep.detail) ? rep.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(rep.detail))
             : (rep.error || rep.message || "motif non précisé");
-          throw new Error("FAL a refusé la génération : " + motif);
+          throw new Error("Le Moteur A a refusé la génération : " + motif);
         }
       }
       const data = await fsPoll(responseUrl);
@@ -7921,10 +7921,10 @@ document.getElementById("mvGo").onclick = async () => {
     // seulement si rwDepart est posé (voir plus haut). C'était la vraie
     // cause : sans rwDepart, rwTempsTotal() renvoyait une chaîne VIDE, donc
     // aucun temps n'apparaissait du tout, pas même figé — juste absent.
-    setSt("Étape 3/3 · Runway construit tes plans (2 à 6 min)…", -1);
+    setSt("Étape 3/3 · Le Studio construit tes plans (2 à 6 min)…", -1);
     const fin = await rwAttendre(t.id, "mvJournal", setSt, 15);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
-    if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    if (!url) throw new Error("Vidéo introuvable dans la réponse. Voir le journal technique.");
     document.getElementById("mvResult").innerHTML =
       `<video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
        <div class="chips" style="margin-top:8px;">
@@ -8029,10 +8029,10 @@ document.getElementById("sdGo").onclick = async () => {
     setSt("Étape 2/3 · Création de la tâche…", -1);
     const t = await rwSubmit(sdMode === "video" ? "video_to_video" : "image_to_video", payload);
     rwLog("sdJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
-    setSt("Étape 3/3 · Traitement Runway…", -1);
+    setSt("Étape 3/3 · Traitement du Studio…", -1);
     const fin = await rwAttendre(t.id, "sdJournal", setSt, 15);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
-    if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
+    if (!url) throw new Error("Vidéo introuvable dans la réponse. Voir le journal technique.");
     // v41.47 : la vidéo vient d'un autre domaine — le navigateur l'OUVRE au lieu
     // de la télécharger, et écrase la page StarClip. target="_blank" + rel garde
     // ton travail intact : tu prends ta vidéo, tu fermes l'onglet, tu retrouves tout.
@@ -8047,7 +8047,7 @@ document.getElementById("sdGo").onclick = async () => {
     // précédent. Tant qu'on ne clique pas dessus, tout reste en place.
     document.getElementById("sdNouvelle").onclick = () => rwNouvelleGeneration("sd");
     rwRondFini("sd", "Terminé · " + sdCredits() + " crédits Runway");
-    setSt("<span class='okc'>✓ Terminé ! " + sdCredits() + " crédits Runway utilisés.</span>", 100);
+    setSt("<span class='okc'>✓ Terminé ! " + sdCredits() + " crédits Studio utilisés.</span>", 100);
   } catch (e) {
     rwRondEchec("sd", e.message);
     setSt(`<span class="err">✗ ${e.message}</span>`, 0);
