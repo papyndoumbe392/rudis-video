@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.57 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.59 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -191,6 +191,7 @@
     <a data-tab="scenario" class="qnav">🎬 Scénario<small>Scenario</small></a>
     <a data-tab="finition" class="qnav">🎤 Finition<small>Finishing</small></a>
     <a data-tab="commander" class="qnav">💳 Commander<small>Order</small></a>
+    <a data-tab="idees" class="qnav">💡 Idées<small>Ideas</small></a>
     <a data-tab="tout" class="qnav">📜 Tout voir<small>See all</small></a>
   </nav>
   <style>
@@ -872,6 +873,22 @@
     </a>
   </section>
 
+  <!-- v41.59 : ONGLET CLIENT « IDEES » - prompts d'exemple a copier-adapter.
+       Simple lecture/copie : n'ouvre AUCUN acces a Multi-Shot Video, qui
+       reste reserve a l'espace admin (credits Runway de Papy). -->
+  <section class="card" id="sec-idees" style="border-color:var(--gold);">
+    <h2><span class="num" style="background:var(--gold); color:#1a1204;">&#128161;</span> Idees de textes pour ta video</h2>
+    <p class="sub" style="margin:0 0 12px;">Des exemples de descriptions qui fonctionnent bien pour une scene de danse ou de chant. <b>Copie, puis change quelques mots</b> pour ta propre scene &mdash; les vetements, le style de musique, le nombre de danseurs.<br><span style="opacity:.85">Example scene descriptions that work well. Copy, then change a few words for your own scene.</span></p>
+
+    <div id="ideesListe"></div>
+
+    <div class="estimate" style="margin-top:12px;">
+      &#128161; <b>Astuce</b> &mdash; decris toujours les vetements et l'ambiance, jamais un nom. Ecris en anglais si tu peux : les moteurs le comprennent mieux.<br>
+      <span style="opacity:.85">Tip &mdash; always describe clothes and mood, never a name. Write in English if you can.</span>
+    </div>
+  </section>
+
+
   <!-- ═══════════════════════════════════════════════════════════════════
        v41.38 · ESPACE ADMIN PRIVÉ — MOTEURS RUNWAY
        Réservé à Papy. Masqué par défaut, révélé par le bouton discret en
@@ -1049,6 +1066,12 @@
             </div>
           </div>
           <div class="rwRondEtape" id="mvEtape">Préparation…</div>
+          <!-- v41.58 : avertissement FIXE, visible même sans lire le
+               chronomètre — un client pressé peut relancer et payer deux
+               fois s'il croit que rien n'avance. -->
+          <div class="hint" style="text-align:center; margin-top:8px;">
+            ⏳ Le cercle qui tourne veut dire que Runway travaille — <b>ne relance pas</b>, même si ça semble long.
+          </div>
         </div>
         <div class="status" id="mvStatus" style="margin-top:12px;"><div id="mvStatusText"></div><div class="bar"><div class="fill" id="mvFill"></div></div></div>
         <div id="mvResult"></div>
@@ -1394,7 +1417,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.57</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.59</span>
 
   </footer>
 </div>
@@ -6127,7 +6150,8 @@ fxRefresh();
     'nav-tenue':'look', 'nav-decor':'look', 'sec-auto6':'look',
     'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
-    'sec-auto9':'commander', 'sec-auto10':'commander'
+    'sec-auto9':'commander', 'sec-auto10':'commander',
+    'sec-idees':'idees'
   };
   var tabs = document.querySelectorAll('#tabbar .qnav');
 
@@ -7854,6 +7878,7 @@ document.getElementById("mvGo").onclick = async () => {
   const go = document.getElementById("mvGo");
   go.disabled = true;
   document.getElementById("mvResult").innerHTML = "";
+  let mvTic = null;
   const setSt = (txt, pct) => {
     document.getElementById("mvStatus").classList.add("on");
     document.getElementById("mvStatusText").innerHTML = txt;
@@ -7863,6 +7888,14 @@ document.getElementById("mvGo").onclick = async () => {
   try {
     const manque = mvManque(); if (manque) throw new Error(manque);
     rwRondMontrer("mv", true);
+    // v41.58 : même bug que le volet FAL du 25 août — rwRondChrono() AFFICHE
+    // le temps écoulé depuis rwDepart, elle ne le fait pas avancer. Sans ces
+    // deux lignes, le cadran restait bloqué sur 00:00 pendant tout le
+    // traitement Runway (2 à 6 min), au point que Papy craignait que rien
+    // n'avance et relance une seconde génération payante par erreur.
+    rwDepart = Date.now();
+    mvTic = setInterval(() => rwRondChrono("mv"), 1000);
+    rwRondChrono("mv");
     rwLog("mvJournal", "DÉMARRAGE", { mode: mvMode, ratio: document.getElementById("mvRatio").value, duree: mvDuree });
 
     const payload = { mode: mvMode, version: MV_VERSION,
@@ -7879,7 +7912,12 @@ document.getElementById("mvGo").onclick = async () => {
     setSt("Étape 2/3 · Création de la tâche…", -1);
     const t = await rwSubmit("recipes/multi_shot_video", payload);
     rwLog("mvJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
-    setSt("Étape 3/3 · Traitement Runway…", -1);
+    // v41.58 : rwAttendre() lance rwChrono() en interne, qui affiche
+    // "⏱ mm:ss · Traitement Runway · STATUT" à chaque seconde — mais
+    // seulement si rwDepart est posé (voir plus haut). C'était la vraie
+    // cause : sans rwDepart, rwTempsTotal() renvoyait une chaîne VIDE, donc
+    // aucun temps n'apparaissait du tout, pas même figé — juste absent.
+    setSt("Étape 3/3 · Runway construit tes plans (2 à 6 min)…", -1);
     const fin = await rwAttendre(t.id, "mvJournal", setSt, 15);
     const url = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
     if (!url) throw new Error("Vidéo introuvable dans la réponse Runway. Voir le journal technique.");
@@ -7898,9 +7936,12 @@ document.getElementById("mvGo").onclick = async () => {
       if (mvMode === "custom") mvRendreShots();
       mvRefresh();
     };
+    if (mvTic) { clearInterval(mvTic); mvTic = null; }
+    rwRondChrono("mv");   // fige le cadran sur la durée réelle
     rwRondFini("mv", "Terminé");
     setSt("<span class='okc'>✓ Terminé !</span>", 100);
   } catch (e) {
+    if (mvTic) { clearInterval(mvTic); mvTic = null; }
     rwRondEchec("mv", e.message);
     setSt(`<span class="err">✗ ${e.message}</span>`, 0);
     rwLog("mvJournal", "ERREUR", e.message);
@@ -8009,6 +8050,59 @@ document.getElementById("sdGo").onclick = async () => {
     rwLog("sdJournal", "ERREUR", e.message);
   } finally { clearInterval(sdTic); rwDepart = 0; go.disabled = false; sdRefresh(); }
 };
+
+// ═══════════════════════════════════════════════════════════════════
+//  v41.59 · ONGLET CLIENT « IDÉES » — prompts d'exemple, lecture seule
+// ═══════════════════════════════════════════════════════════════════
+// Repris du pack de gabarits livré à Papy le 25 août. Six exemples, chacun
+// avec une structure éprouvée en réel (arrivée → scène → action). Aucun
+// bouton d'ici n'appelle Runway ni FAL : c'est du texte à copier, point.
+const IDEES_PROMPTS = [
+  {
+    titre: "🎤 Arrivée puis danse sur scène",
+    texte: "A [description de la personne] walks toward a concert stage at night, followed by [nombre] [description du groupe]. The crowd roars in the background under colorful stage lights. They climb onto the stage platform. [Sujet] and the [groupe] start dancing energetically together, smooth cinematic camera, dynamic concert atmosphere.",
+  },
+  {
+    titre: "🎙️ Chant seul, avec micro",
+    texte: "A [description de la personne] walks onto a stage holding a microphone, spotlight following [him/her]. The audience cheers in [couleur] stage lights. [Il/Elle] raises the microphone and starts singing passionately, smooth cinematic camera slowly zooming in, warm concert atmosphere.",
+  },
+  {
+    titre: "💃 Danse en boîte de nuit",
+    texte: "A [description de la personne] enters a luxurious nightclub with [couleur] ambient lighting and a bar in the background. [Il/Elle] walks toward the dance floor with a confident stride and starts dancing slowly and elegantly to [style musical] rhythm, smooth cinematic camera, sophisticated nightclub atmosphere.",
+  },
+  {
+    titre: "🕺 Groupe en chorégraphie",
+    texte: "[Nombre] dancers wearing [couleur/style de tenue] stand in a line on a stage under [couleur] lights, facing the crowd. Music starts and they begin a synchronized dance routine, moving together in rhythm to [style musical]. The crowd claps along, smooth wide cinematic camera, energetic festival atmosphere.",
+  },
+  {
+    titre: "🎭 Duo — l'un chante, l'autre danse",
+    texte: "A [description personne 1] stands at a microphone singing on a stage, while a [description personne 2] dances energetically beside [him/her]. The crowd cheers under [couleur] stage lights. The camera alternates smoothly between the singer and the dancer, cinematic movement, lively concert atmosphere.",
+  },
+  {
+    titre: "✨ Finale — le public en fête",
+    texte: "The music reaches its peak on stage. [Sujet] raises [his/her] arms as [couleur] lights flash and confetti falls. The crowd cheers loudly, smooth wide cinematic camera capturing the whole stage, triumphant festival atmosphere.",
+  },
+];
+
+function ideesAfficher() {
+  const z = document.getElementById("ideesListe");
+  if (!z) return;
+  z.innerHTML = IDEES_PROMPTS.map((p, i) => `
+    <div class="card" style="margin-top:${i === 0 ? 0 : 10}px; padding:12px 14px;">
+      <b style="color:var(--gold);">${p.titre}</b>
+      <div class="hint" style="margin-top:6px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; line-height:1.6; white-space:pre-wrap;">${p.texte}</div>
+      <button class="chip" data-ideescopier="${i}" style="margin-top:8px;">📋 Copier ce texte</button>
+    </div>`).join("");
+  z.querySelectorAll("[data-ideescopier]").forEach(b => {
+    b.onclick = async () => {
+      const texte = IDEES_PROMPTS[+b.dataset.ideescopier].texte;
+      try { await navigator.clipboard.writeText(texte); b.textContent = "✓ Copié !"; }
+      catch (e) { prompt("Copie manuellement :", texte); }
+      setTimeout(() => { b.textContent = "📋 Copier ce texte"; }, 2200);
+    };
+  });
+}
+ideesAfficher();
 
 </script>
 </body>
