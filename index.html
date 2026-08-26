@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.76 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.77 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -391,7 +391,16 @@
         <button class="chip" data-target="femme" onclick="pickTryTarget(this)">Mannequin femme</button>
       </div>
     </div>
-    <button class="btn" id="outfitGo" style="display:none; margin-top:12px;">👔 Transformer la tenue (≈ 0,04 $)</button>
+    <!-- v41.77 : qualité des retouches d'image, valable pour TOUT l'app -->
+    <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,.12); padding-top:10px;">
+      <div class="label">Qualité des retouches d'image</div>
+      <div class="chips" id="nbQualiteChips">
+        <button class="chip on" data-nbq="standard">⚡ Rapide · ≈ 0,04 $</button>
+        <button class="chip" data-nbq="pro">💎 Pro · ≈ 0,15 $</button>
+      </div>
+      <div class="estimate" id="nbQualiteInfo"></div>
+    </div>
+    <button class="btn" id="outfitGo" style="display:none; margin-top:12px;">👔 Transformer la tenue</button>
     <div class="estimate" id="outfitInfo">Le visage, la pose et le décor sont préservés au maximum — seuls les habits changent. Si le visage bouge un peu, le volet 🎯 « Recoller le vrai visage » le corrige.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT les habits.</b> · <i>This tool only changes the clothes.</i></div>
     <div id="outfitPreview"></div>
   </section>
@@ -1547,7 +1556,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.76</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.77</span>
 
   </footer>
 </div>
@@ -2286,6 +2295,26 @@ const OUTFITS = [
   });
   document.getElementById("outfitGo").onclick = transformOutfit;
 
+// v41.77 : le choix vaut pour TOUTES les retouches d'image de l'app —
+// tenue, décor, recollage de visage — pas seulement ce volet.
+(function initNbQualite() {
+  const box = document.getElementById("nbQualiteChips");
+  if (!box) return;
+  const maj = () => {
+    const info = document.getElementById("nbQualiteInfo");
+    if (info) info.innerHTML = nbQualite === "pro"
+      ? "💎 <b style='color:var(--gold)'>Pro</b> — meilleur rendu des visages, des tissus et des textes. Environ 4× plus cher. À réserver à la version finale."
+      : "⚡ <b>Rapide</b> — idéal pour essayer plusieurs idées. Passe en Pro quand le résultat te plaît.";
+  };
+  box.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+    box.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on");
+    nbQualite = c.dataset.nbq;
+    maj();
+  });
+  maj();
+})();
+
   // — Essayage d'après photo de tenue —
   const opInput = document.getElementById("outfitPhotoInput");
   const openOp = () => opInput.click();
@@ -2523,7 +2552,7 @@ async function transformLieu() {
   const btn = document.getElementById("lieuGo");
   btn.disabled = true; info.textContent = "🏛️ Changement de décor en cours (10-30 s)…";
   try {
-    const path = "fal-ai/nano-banana/edit";
+    const path = nbModele();
     // v37.5 : posture demandée par le client (facultatif), traduite en anglais.
     let poseDemandee = "";
     const chkPose = document.getElementById("lieuPoseChk");
@@ -2614,6 +2643,19 @@ async function transformLieu() {
   } finally { btn.disabled = false; }
 }
 
+// ═══ v41.77 · QUALITÉ DES RETOUCHES D'IMAGE ═══
+// Deux moteurs Google, mêmes champs, qualités et prix différents :
+//   standard  fal-ai/nano-banana/edit      ≈ 0,039 $ / image
+//   pro       fal-ai/nano-banana-pro/edit  ≈ 0,15  $ / image  (~4× plus cher)
+// Le Pro est celui que Papy a repéré dans le portail Runway le 26 août.
+// On le propose en CHOIX, pas en remplacement : les essais restent bon
+// marché, et on passe en Pro pour la version finale.
+let nbQualite = "standard";
+function nbModele() {
+  return nbQualite === "pro" ? "fal-ai/nano-banana-pro/edit" : "fal-ai/nano-banana/edit";
+}
+function nbPrix() { return nbQualite === "pro" ? 0.15 : 0.039; }
+
 let outfitPhotoUrl = null;
 let tryTarget = "me";
 function pickTryTarget(el) {
@@ -2666,7 +2708,7 @@ async function transformOutfit() {
   const btn = document.getElementById("outfitGo");
   btn.disabled = true; info.textContent = "👔 Transformation en cours (10-30 s)…";
   try {
-    const path = "fal-ai/nano-banana/edit";
+    const path = nbModele();
     const job = await apiSubmit(path, ({
         // v37.1 : la consigne anti-duplication manquait ici alors qu'elle existait
         // dans le volet Décor — l'IA ajoutait un personnage habillé devant l'original
@@ -2750,7 +2792,7 @@ document.getElementById("decorGo").onclick = async () => {
   btn.disabled = true;
   info.textContent = "🎨 Création du décor en cours (10–40 s)…";
   try {
-    const path = "fal-ai/nano-banana/edit";
+    const path = nbModele();
     const facePart = faceRefs.length
       ? " Use the additional reference images ONLY to keep the main person's face and identity exactly right."
       : "";
@@ -3202,7 +3244,7 @@ document.getElementById("t2iGo").onclick = async () => {
       info.textContent = "🎨 1/2 — Mise en forme de ta description…";
       const en = await t2iTraduire(desc);
       const GARDE = "The person from the FIRST input image must appear in the result STRICTLY unchanged and fully recognizable: exact same face, same facial features, same skin tone, same hairstyle, same body shape and same outfit — never slimmer, never larger, never altered. Keep this person in the foreground as the main subject, in a stable, natural standing or seated pose. Do not remove or replace this person. Build the scene described below AROUND them. Do not add any person, object or costume that is not requested in the scene description. Scene: ";
-      path = "fal-ai/nano-banana/edit";
+      path = nbModele();
       const images = [t2iPhotoUrl].concat(faceRefUrls.filter(Boolean).slice(0, 2));
       payload = {
         prompt: GARDE + en + ". Photorealistic, cinematic lighting, natural realistic light on the person matching the scene, high detail, high quality.",
@@ -4803,7 +4845,7 @@ document.getElementById("dvCreerBtn").onclick = async () => {
   try {
     if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
     info.textContent = "🎨 Création de ton décor… (10–30 s)";
-    const job = await apiSubmit("fal-ai/nano-banana/edit", {
+    const job = await apiSubmit(nbModele(), {
       // v41.33 : cadrage imposé EN DUR (garantie par construction, le client n'écrit que
       // le lieu). Constat des essais du 18 août : un décor cadré comme nos vidéos sources
       // (appareil à hauteur de poitrine) + un sol légèrement réfléchissant ancrent les
@@ -5698,7 +5740,7 @@ document.getElementById("rtGo").onclick = async () => {
     // (« did not generate the expected output »), on retente avec une consigne
     // beaucoup plus courte — c'est presque toujours la complexité qui bloque.
     const lancer = async (txt) => {
-      const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt: txt, image_urls: [rtSource] });
+      const job = await apiSubmit(nbModele(), { prompt: txt, image_urls: [rtSource] });
       const st = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
       const rp = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
       for (let i = 0; i < 60; i++) {
@@ -5896,7 +5938,7 @@ document.getElementById("poGo").onclick = async () => {
       + "Keep EXACTLY the same clothing as in the FIRST image (same garments, same colors, "
       + "same patterns and accessories) and the exact same background and lighting as the FIRST image. "
       + UNIQUE_PERSON + "Natural anatomy, correct hands with five fingers. Photorealistic, seamless, high quality.";
-    const job = await apiSubmit("fal-ai/nano-banana/edit", { prompt, image_urls: images, num_images: 1 });
+    const job = await apiSubmit(nbModele(), { prompt, image_urls: images, num_images: 1 });
     const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
     for (let i = 0; i < 60; i++) {
