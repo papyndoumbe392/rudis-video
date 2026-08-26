@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.67 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.68 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1443,7 +1443,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.67</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.68</span>
 
   </footer>
 </div>
@@ -2163,6 +2163,18 @@ const OUTFITS = [
       document.getElementById("outfitCustom").classList.toggle("hidden", id !== "custom");
       document.getElementById("outfitPhotoZone").classList.toggle("hidden", id !== "photo");
       document.getElementById("outfitGo").style.display = (id === "keep") ? "none" : "block";
+      // v41.68 : en changeant de tenue, l'ancien aperçu ne correspond plus.
+      // On l'efface pour éviter que Papy croie que le nouveau choix a échoué.
+      if (id !== "keep") {
+        const prev = document.getElementById("outfitPreview");
+        if (prev && prev.innerHTML) {
+          prev.innerHTML = "";
+          document.getElementById("outfitInfo").innerHTML =
+            stylePhotoUrl
+            ? "Nouvelle tenue choisie. <b style='color:var(--gold)'>Elle sera appliquée par-dessus la transformation précédente.</b> Touche Transformer."
+            : "Tenue choisie — touche Transformer.";
+        }
+      }
       if (id === "keep") { stylePhotoUrl = null; document.getElementById("outfitPreview").innerHTML = ""; document.getElementById("outfitInfo").textContent = "Le visage, la pose et le décor sont préservés au maximum — seuls les habits changent. Si le visage bouge un peu, le volet 🎯 « Recoller le vrai visage » le corrige."; }
       document.getElementById("dotOutfit").classList.toggle("on", id !== "keep");
     };
@@ -2518,14 +2530,18 @@ const UNIQUE_PERSON = "The result must contain EXACTLY ONE person: modify the ex
 async function transformOutfit() {
   const info = document.getElementById("outfitInfo");
   let desc = outfitSel === "custom" ? document.getElementById("outfitCustom").value.trim() : OUTFITS.find(o => o[0] === outfitSel)[2];
-  let images = [photoDataUrl];
+  // v41.68 : on repart du DERNIER résultat s'il existe, comme le fait déjà le
+  // volet Décor. Avant, chaque nouvel essai repartait de la photo brute et
+  // effaçait la transformation précédente — signalé par Papy le 26 août.
+  const baseTenue = stylePhotoUrl || photoDataUrl;
+  let images = [baseTenue];
   let tryPrompt = null;
 
   if (outfitSel === "photo") {
     if (!outfitPhotoUrl) { info.textContent = "Ajoute d'abord la photo de la tenue."; return; }
     if (tryTarget === "me") {
-      if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1) — ou choisis un mannequin."; return; }
-      images = [photoDataUrl, outfitPhotoUrl];
+      if (!baseTenue) { info.textContent = "Ajoute d'abord ta photo (volet 1) — ou choisis un mannequin."; return; }
+      images = [baseTenue, outfitPhotoUrl];
       tryPrompt = GARDE_VISAGE   // v37.2
         + "Completely REPLACE all clothing worn by the person in the first image with the outfit shown in the second image. "
         + "Copy the second image's garments faithfully: exact same fabric, exact same pattern (checks, prints, embroidery), "
@@ -2539,7 +2555,7 @@ async function transformOutfit() {
       tryPrompt = `A photorealistic full-body ${who} African fashion model wearing the exact outfit shown in the image (same garments, colors, patterns and style), standing in a professional photo studio with soft lighting, front view, natural pose, high quality.`;
     }
   } else {
-    if (!photoDataUrl) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
+    if (!baseTenue) { info.textContent = "Ajoute d'abord ta photo (volet 1)."; return; }
     if (!desc) { info.textContent = "Décris la tenue souhaitée."; return; }
   }
 
@@ -2593,6 +2609,15 @@ async function transformOutfit() {
     document.getElementById("outfitRevert").onclick = () => {
       stylePhotoUrl = null;
       document.getElementById("outfitPreview").innerHTML = "";
+      // v41.68 : stylePhotoUrl est PARTAGÉ avec le volet Décor. En l'effaçant
+      // ici sans nettoyer là-bas, Papy voyait un aperçu Décor qui ne
+      // correspondait plus à rien. On remet les deux volets d'accord.
+      const dp = document.getElementById("decorPreview");
+      if (dp && dp.innerHTML) {
+        dp.innerHTML = "";
+        const di = document.getElementById("decorInfo");
+        if (di) di.textContent = "Aperçu effacé : la tenue est revenue à la photo originale.";
+      }
       info.textContent = "Photo originale rétablie.";
     };
   } catch (err) {
