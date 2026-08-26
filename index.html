@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.68 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.69 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1238,6 +1238,10 @@
       <div class="card">
         <div class="step">② CE QU'IL FAUT CHANGER</div>
         <div class="hint">Décris le changement, en français ou en anglais. 1000 caractères maximum.</div>
+        <!-- v41.69 : exemples cliquables. Le premier est le prompt de scène de
+             concert mis au point par Papy — il résout le défaut le plus courant :
+             les danseurs qui flottent au-dessus du public au lieu d'être sur scène. -->
+        <div class="chips" id="alExemplesChips" style="margin-bottom:8px;"></div>
         <textarea id="alPrompt" rows="3" placeholder="Ex : remplace l'arrière-plan par une grande scène de concert avec public, garde les personnes et leurs mouvements identiques"></textarea>
         <div class="estimate" id="alPromptCpt"></div>
         <div id="alOpt" class="hidden" style="margin-top:12px; border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px;">
@@ -1443,7 +1447,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.68</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.69</span>
 
   </footer>
 </div>
@@ -6937,6 +6941,51 @@ document.getElementById("alInput").onchange = (e) => {
   v.onerror = () => { document.getElementById("alNom").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
   v.src = URL.createObjectURL(f);
 };
+// v41.69 · EXEMPLES CLIQUABLES POUR ALEPH
+// ⚠️ Aleph n'utilise PAS la syntaxe @Image1/@Video1 du Moteur A : il travaille
+// sur la vidéo fournie, et les images de référence servent de cible visuelle
+// sans être nommées. Les prompts sont donc écrits en conséquence.
+// Limite Aleph : 1000 caractères. Tous les exemples ci-dessous tiennent dedans.
+const AL_EXEMPLES = [
+  { label: "🎤 Scène de concert (anti-flottement)", texte:
+    "Replace the entire environment in every frame with a concert stage: stage floor, podium, LED screens, colored spotlights, audience below and in front. Same venue for the whole clip, including during close-ups and camera cuts. "
+    + "The people in the source video are the only source for faces, skin, hair, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Keep all of them, add none, remove none. "
+    + "Every singer and dancer stands on the stage floor, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. Extend the stage floor under them where needed. The audience stays below and in front of the stage. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+  { label: "🌃 Rue de nuit", texte:
+    "Replace the entire environment in every frame with a city street at night: wet asphalt, street lamps, storefront lights, blurred traffic in the background. Same street for the whole clip, including during close-ups and camera cuts. "
+    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    + "Everyone stands on the ground, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+  { label: "🏖️ Plage au coucher du soleil", texte:
+    "Replace the entire environment in every frame with a beach at sunset: wet sand, ocean waves behind, warm golden light, distant palm trees. Same location for the whole clip, including during close-ups and camera cuts. "
+    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    + "Everyone stands on the sand, feet in contact with it, with matching perspective, warm lighting and contact shadows. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+  { label: "💎 Boîte de nuit luxueuse", texte:
+    "Replace the entire environment in every frame with a luxurious nightclub: polished dance floor, bar with bottles behind, purple and gold ambient lighting, blurred guests in the background. Same venue for the whole clip, including during close-ups and camera cuts. "
+    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    + "Everyone stands on the dance floor, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+];
+(function initAlExemples() {
+  const box = document.getElementById("alExemplesChips");
+  if (!box) return;
+  AL_EXEMPLES.forEach(ex => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = ex.label;
+    b.title = "Insère ce texte — tu pourras le modifier";
+    b.onclick = () => {
+      const champ = document.getElementById("alPrompt");
+      champ.value = ex.texte;
+      champ.dispatchEvent(new Event("input", { bubbles: true }));
+      champ.focus();
+    };
+    box.appendChild(b);
+  });
+})();
+
 document.getElementById("alRefBtn").onclick = () => document.getElementById("alRefInput").click();
 document.getElementById("alRefInput").onchange = (e) => {
   const f = e.target.files[0]; if (!f) return;
