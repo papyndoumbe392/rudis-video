@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.72 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.73 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1447,7 +1447,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.72</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.73</span>
 
   </footer>
 </div>
@@ -6946,37 +6946,42 @@ document.getElementById("alInput").onchange = (e) => {
 // sur la vidéo fournie, et les images de référence servent de cible visuelle
 // sans être nommées. Les prompts sont donc écrits en conséquence.
 // Limite Aleph : 1000 caractères. Tous les exemples ci-dessous tiennent dedans.
+// v41.73 : cette garde ouvre CHAQUE prompt. Sur 2108bb90...mp4, le plan large
+// est ressorti avec une scène VIDE — le moteur avait rangé les danseurs dans
+// « l'environnement » à remplacer. Mettre la préservation des personnes EN
+// PREMIER, avant toute consigne de décor, corrige ce défaut.
+const GARDE_PERSONNES = "CRITICAL: every person visible in the source video must remain visible in the output, in every single frame, including wide shots where they appear small. Never delete, never hide, never leave the scene empty. Keep their faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. ";
 const AL_EXEMPLES = [
   { label: "🎤 Scène de concert (scène surélevée)", texte:
-    "Replace the entire environment in every frame with a concert stage at night: raised stage platform with a visible front edge, LED screens behind, colored spotlights, crowd BELOW the stage level. Same venue for the whole clip, including close-ups and camera cuts. "
-    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
-    + "Every performer stands ON the raised stage platform, feet in contact with the stage floor, never among the spectators, never above the crowd. The camera looks slightly up at them from the audience. Spectators are visible only at the bottom of the frame, below the stage edge. "
-    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+    "CRITICAL: every person visible in the source video must remain visible in the output, in every single frame, including wide shots where they appear small. Never delete, never hide, never leave the stage empty. Keep their faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    + "Around these people, replace only the background with a concert stage at night: raised stage platform with a visible front edge, LED screens behind, colored spotlights, crowd BELOW the stage level. Same venue for the whole clip, including close-ups and camera cuts. "
+    + "Every performer stands ON the raised platform, feet in contact with the stage floor, never among the spectators, never above the crowd. The camera looks slightly up at them from the audience. Spectators stay at the bottom of the frame, below the stage edge. "
+    + "Keep the original timing exactly so the source audio stays in sync." },
   { label: "🎭 Duo qui chante (homme/femme)", texte:
-    "Replace the entire environment in every frame with a concert stage at night: stage floor, LED screens behind, colored spotlights, audience below and in front. Same venue for the whole clip, including during close-ups and camera cuts. "
-    + "Keep both people from the source video exactly as they are: faces, caps, clothing, body proportions, gestures, mouth movements while singing, camera moves, cuts and timing. Add none, remove none. "
-    + "Both stand on the stage floor, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. The audience stays below and in front of the stage. "
-    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+    "CRITICAL: both people in the source video must remain visible in every frame, including wide shots. Never delete, never hide. Keep their faces, caps, clothing, body proportions, gestures, mouth movements while singing, camera moves, cuts and timing. Add none, remove none. "
+    + "Around them, replace only the background with a concert stage at night: raised stage platform, LED screens behind, colored spotlights, audience below the stage level. Same venue for the whole clip, including close-ups and cuts. "
+    + "Both stand on the stage floor, feet in contact with it, with matching perspective, lighting and contact shadows. The audience stays below and in front. "
+    + "Keep the original timing exactly so the source audio stays in sync." },
   { label: "🇨🇲 Rue de Douala (foule des 2 côtés)", texte:
-    "Replace the entire environment in every frame with a Douala city street in daylight: wide open asphalt road in the centre, dense crowd of spectators standing along BOTH sidewalks, colourful shopfronts, signboards and parasols behind them, overcast tropical sky. Same street for the whole clip, including during close-ups and camera cuts. "
-    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. Take no person from the reference image. "
-    + "The performers stay in the middle of the empty road, feet in contact with the asphalt, never inside the crowd, with matching perspective, daylight, reflections and contact shadows. The spectators stay on the sidewalks, behind them. "
-    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+    "CRITICAL: every person visible in the source video must remain visible in every frame, including wide shots. Never delete, never hide. Keep their faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. Take no person from the reference image. "
+    + "Around them, replace only the background with a Douala city street in daylight: wide open asphalt road in the centre, dense crowd along BOTH sidewalks, colourful shopfronts, signboards and parasols behind them, overcast tropical sky. Same street for the whole clip. "
+    + "The performers stay in the middle of the empty road, feet in contact with the asphalt, never inside the crowd. The spectators stay on the sidewalks, behind them. "
+    + "Keep the original timing exactly so the source audio stays in sync." },
   { label: "🌃 Rue de nuit", texte:
-    "Replace the entire environment in every frame with a city street at night: wet asphalt, street lamps, storefront lights, blurred traffic in the background. Same street for the whole clip, including during close-ups and camera cuts. "
-    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    GARDE_PERSONNES
+    + "Around them, replace only the background with a city street at night: wet asphalt, street lamps, storefront lights, blurred traffic behind. Same street for the whole clip, including close-ups and cuts. "
     + "Everyone stands on the ground, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. "
-    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+    + "Keep the original timing exactly so the source audio stays in sync." },
   { label: "🏖️ Plage au coucher du soleil", texte:
-    "Replace the entire environment in every frame with a beach at sunset: wet sand, ocean waves behind, warm golden light, distant palm trees. Same location for the whole clip, including during close-ups and camera cuts. "
-    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    GARDE_PERSONNES
+    + "Around them, replace only the background with a beach at sunset: wet sand, ocean waves behind, warm golden light, distant palm trees. Same location for the whole clip, including close-ups and cuts. "
     + "Everyone stands on the sand, feet in contact with it, with matching perspective, warm lighting and contact shadows. "
-    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+    + "Keep the original timing exactly so the source audio stays in sync." },
   { label: "💎 Boîte de nuit luxueuse", texte:
-    "Replace the entire environment in every frame with a luxurious nightclub: polished dance floor, bar with bottles behind, purple and gold ambient lighting, blurred guests in the background. Same venue for the whole clip, including during close-ups and camera cuts. "
-    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    GARDE_PERSONNES
+    + "Around them, replace only the background with a luxurious nightclub: polished dance floor, bar with bottles behind, purple and gold ambient lighting, blurred guests behind. Same venue for the whole clip, including close-ups and cuts. "
     + "Everyone stands on the dance floor, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. "
-    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+    + "Keep the original timing exactly so the source audio stays in sync." },
 ];
 (function initAlExemples() {
   const box = document.getElementById("alExemplesChips");
