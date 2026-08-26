@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.62 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.63 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1091,6 +1091,7 @@
       <div class="chips" id="fsModeChips" style="margin-bottom:14px;">
         <button class="chip on" data-fsmode="image">image-to-video</button>
         <button class="chip" data-fsmode="ref">reference-to-video</button>
+        <button class="chip" data-fsmode="texte">text-to-video</button>
       </div>
       <div class="hint" id="fsModeAide" style="margin-bottom:14px;"></div>
 
@@ -1421,7 +1422,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.62</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.63</span>
 
   </footer>
 </div>
@@ -7302,6 +7303,7 @@ document.getElementById("sdAudInput").onchange = (e) => {
 const FS_ENDPOINTS = {
   image: "bytedance/seedance-2.0/image-to-video",
   ref:   "bytedance/seedance-2.0/reference-to-video",
+  texte: "bytedance/seedance-2.0/text-to-video",   // v41.63 : aucun média, prompt seul
 };
 const FS_LIMITES = {
   images: 9, videos: 3, audios: 3,   // reference-to-video
@@ -7336,6 +7338,7 @@ function fsSecondes(liste) { return liste.reduce((t, x) => t + (x.duree || 0), 0
 // Ce qui manque pour lancer. Chaîne vide = prêt.
 function fsManque() {
   if (!document.getElementById("fsPrompt").value.trim()) return "Écris d'abord ta scène à l'étape ②";
+  if (fsMode === "texte") return "";   // v41.63 : prompt seul, aucun média requis
   if (fsMode === "image" && !fsImage) return "Choisis la photo de départ à l'étape ①";
   if (fsMode === "ref") {
     if (!fsRefImages.length && !fsRefVideos.length) return "Ajoute au moins une image ou une vidéo de référence";
@@ -7373,6 +7376,8 @@ function fsMajMode() {
   document.querySelectorAll("#fsModeChips .chip").forEach(c => c.classList.toggle("on", c.dataset.fsmode === fsMode));
   document.getElementById("fsModeAide").innerHTML = fsMode === "image"
     ? "<code>image-to-video</code> — une <b>seule photo</b> est animée. Le plus simple."
+    : fsMode === "texte"
+    ? "<code>text-to-video</code> — <b>aucun média</b>, la vidéo est créée uniquement à partir de ton texte. Décris tout : la personne, le décor, l'action."
     : "<code>reference-to-video</code> — jusqu'à 9 images, 3 vidéos, 3 audios, désignées dans ton texte par <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b>. C'est ce mode qui permet d'appliquer <b>une seule vidéo de danse à plusieurs personnes</b>.";
   fsRefresh();
 }
@@ -7402,7 +7407,9 @@ function fsPayload(o) {
   if (o.aspect_ratio && o.aspect_ratio !== "auto") p.aspect_ratio = o.aspect_ratio;
   if (o.duration && o.duration !== "auto") p.duration = String(o.duration);
   p.generate_audio = !!o.generate_audio;
-  if (o.mode === "image") {
+  if (o.mode === "texte") {
+    // v41.63 : text-to-video n'accepte AUCUN média — ni image_url, ni les listes.
+  } else if (o.mode === "image") {
     p.image_url = o.image_url;
   } else {
     if (o.image_urls && o.image_urls.length) p.image_urls = o.image_urls;
@@ -7526,7 +7533,9 @@ async function fsPoll(url) {
         return u;
       };
       let image_url = "", image_urls = [], video_urls = [], audio_urls = [];
-      if (fsMode === "image") {
+      if (fsMode === "texte") {
+        // aucun média à héberger
+      } else if (fsMode === "image") {
         image_url = await heberger(fsImage, "PHOTO DE DÉPART");
       } else {
         for (const x of fsRefImages) image_urls.push(await heberger(x.fichier, "IMAGE"));
