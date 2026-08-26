@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.63 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.64 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1134,8 +1134,11 @@
             <div class="chips" id="fsResChips">
               <button class="chip" data-fsres="480p">480p</button>
               <button class="chip on" data-fsres="720p">720p</button>
+              <button class="chip" data-fsres="1080p">1080p</button>
+              <button class="chip" data-fsres="4k">4K</button>
             </div>
-            <div class="falAide">480p pour aller plus vite, 720p pour l'équilibre. Le Moteur A ne propose pas le 1080p sur ce modèle.</div>
+            <div class="falAide">480p rapide · 720p équilibré · 1080p haute qualité · 4K qualité maximale.
+            <b style="color:var(--gold)">1080p et 4K sont plus lents et plus chers</b> — commence en 480p pour tester.</div>
           </div>
 
           <div class="falChamp">
@@ -1422,7 +1425,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.63</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.64</span>
 
   </footer>
 </div>
@@ -7290,7 +7293,7 @@ document.getElementById("sdAudInput").onchange = (e) => {
 // Champs repris MOT POUR MOT du schéma publié par FAL le 25 août 2026
 // (fal.ai → Model API Reference → Bytedance → Seedance 2.0).
 // Ils n'ont RIEN à voir avec ceux de Runway : ici c'est image_url,
-// resolution "480p"/"720p", aspect_ratio "16:9", duration en TEXTE,
+// resolution "480p"/"720p"/"1080p"/"4k", aspect_ratio "16:9", duration en TEXTE,
 // generate_audio. Ne jamais recopier un champ Runway ici.
 //
 // Deux points de terminaison distincts — pas un champ « mode » :
