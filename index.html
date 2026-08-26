@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.77 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.78 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1556,7 +1556,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.77</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.78</span>
 
   </footer>
 </div>
@@ -7097,6 +7097,7 @@ document.getElementById("alInput").onchange = (e) => {
 // PREMIER, avant toute consigne de décor, corrige ce défaut.
 const GARDE_PERSONNES = "CRITICAL: every person visible in the source video must remain visible in the output, in every single frame, including wide shots where they appear small. Never delete, never hide, never leave the scene empty. Keep their faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. ";
 const AL_EXEMPLES = [
+  { label: "⭐ Scène de concert (le meilleur)", texte: "Replace the ENTIRE original environment in every frame with the provided concert stage. ALL performers must stand ON TOP OF the main stage floor, never below the stage, never in front of the podium, never among the audience. Extend the stage floor under every dancer and singer with correct perspective and contact shadows. Completely remove the original street, walls, pavement and any vehicle in EVERY frame. They must NEVER reappear, even during camera cuts. Preserve the singers and all dancers exactly: faces, clothes, bodies, choreography, timing and camera cuts. Maintain ONE continuous concert venue across the whole video. Reconstruct each camera angle inside the same concert stage. Audience stays only beyond the front edge of the stage. No vehicles. No original background. No street. No old location. No performers below stage level. Background replacement only, realistic concert lighting." },
   { label: "🎤 Scène de concert (scène surélevée)", texte:
     "CRITICAL: every person visible in the source video must remain visible in the output, in every single frame, including wide shots where they appear small. Never delete, never hide, never leave the stage empty. Keep their faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
     + "Around these people, replace only the background with a concert stage at night: raised stage platform with a visible front edge, LED screens behind, colored spotlights, crowd BELOW the stage level. Same venue for the whole clip, including close-ups and camera cuts. "
@@ -7789,7 +7790,8 @@ async function fsPoll(url) {
 // larges tout seul. On garde donc la formulation d'origine, éprouvée.
 // Mode d'emploi : charger le décor en image, l'extrait en vidéo, puis coller.
 const FS_EXEMPLES = [
-  { label: "🎤 Scène de concert", texte:
+  { label: "⭐ Scène de concert (le meilleur)", texte: "Replace the ENTIRE original environment in every frame with the provided concert stage. ALL performers must stand ON TOP OF the main stage floor, never below the stage, never in front of the podium, never among the audience. Extend the stage floor under every dancer and singer with correct perspective and contact shadows. Completely remove the original street, walls, pavement and any vehicle in EVERY frame. They must NEVER reappear, even during camera cuts. Preserve the singers and all dancers exactly: faces, clothes, bodies, choreography, timing and camera cuts. Maintain ONE continuous concert venue across the whole video. Reconstruct each camera angle inside the same concert stage. Audience stays only beyond the front edge of the stage. No vehicles. No original background. No street. No old location. No performers below stage level. Background replacement only, realistic concert lighting." },
+  { label: "🎤 Scène de concert (v1)", texte:
     "Replace the entire environment in every frame with a concert stage at night: raised stage platform with a visible front edge, LED screens behind, colored spotlights, crowd BELOW the stage level. Same venue for the whole clip, including close-ups and camera cuts. "
     + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
     + "Every performer stands ON the raised stage platform, feet in contact with the stage floor, never among the spectators, never above the crowd. The camera looks slightly up at them from the audience. Spectators are visible only at the bottom of the frame, below the stage edge. "
