@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.66 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.67 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1443,7 +1443,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.66</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.67</span>
 
   </footer>
 </div>
@@ -8153,6 +8153,10 @@ const IDEES_PROMPTS = [
     texte: "A [description personne 1] stands at a microphone singing on a stage, while a [description personne 2] dances energetically beside [him/her]. The crowd cheers under [couleur] stage lights. The camera alternates smoothly between the singer and the dancer, cinematic movement, lively concert atmosphere.",
   },
   {
+    titre: "🎵 Danse sur TA musique (mode références)",
+    texte: "@Image1 dances in a nightclub at night, following the movements of @Video1, in rhythm with @Audio1, smooth cinematic camera, warm stage lights.",
+  },
+  {
     titre: "✨ Finale — le public en fête",
     texte: "The music reaches its peak on stage. [Sujet] raises [his/her] arms as [couleur] lights flash and confetti falls. The crowd cheers loudly, smooth wide cinematic camera capturing the whole stage, triumphant festival atmosphere.",
   },
@@ -8191,6 +8195,7 @@ const SCENARIO_EXEMPLES = [
   { label: "💃 Boîte de nuit", texte: "The person enters a luxurious nightclub with purple ambient lighting and a bar in the background. They walk toward the dance floor with a confident stride and start dancing slowly and elegantly to afrobeats rhythm, smooth cinematic camera, sophisticated nightclub atmosphere." },
   { label: "🕺 Groupe chorégraphié", texte: "Several dancers wearing matching outfits stand in a line on a stage under warm lights, facing the crowd. Music starts and they begin a synchronized dance routine, moving together in rhythm. The crowd claps along, smooth wide cinematic camera, energetic festival atmosphere." },
   { label: "🎭 Duo chant/danse", texte: "The person stands at a microphone singing on a stage, while a dancer performs energetically beside them. The crowd cheers under colorful stage lights. The camera alternates smoothly between the singer and the dancer, cinematic movement, lively concert atmosphere." },
+  { label: "🎵 Danse sur ta musique", texte: "@Image1 dances in a nightclub at night, following the movements of @Video1, in rhythm with @Audio1, smooth cinematic camera, warm stage lights." },
   { label: "🏖️ Plage au coucher du soleil", texte: "The person walks barefoot along a sunset beach, warm golden light on the water behind them. They start singing softly, gentle sea breeze moving their clothes, smooth slow cinematic camera, calm romantic atmosphere." },
 ];
 (function initScenarioExemples() {
