@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.64 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.65 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1112,6 +1112,12 @@
             <input type="file" id="fsImgInput" accept="image/*" style="display:none;">
             <div id="fsImgNom" class="falAide"></div>
             <div class="falAide">Une seule image de départ, 30 Mo maximum. JPEG, PNG ou WebP.</div>
+            <!-- v41.65 : end_image_url, confirmé dans le schéma officiel FAL -->
+            <div class="falNom" style="margin-top:10px;"><code>end_image_url</code><span class="falType">string</span></div>
+            <button class="chip" id="fsImgFinBtn">🏁 Image de fin (facultatif)</button>
+            <input type="file" id="fsImgFinInput" accept="image/*" style="display:none;">
+            <div id="fsImgFinNom" class="falAide"></div>
+            <div class="falAide">Si tu en mets une, la vidéo fera la <b>transition</b> de la photo de départ vers celle-ci.</div>
           </div>
 
           <div class="falChamp hidden" id="fsBlocRef">
@@ -1168,6 +1174,15 @@
               <span>Générer l'audio synchronisé</span>
             </label>
             <div class="falAide">Bruitages, ambiance et voix synchronisée. Le coût est le même, audio ou non.</div>
+          </div>
+
+          <div class="falChamp">
+            <div class="falNom"><code>bitrate_mode</code><span class="falType">BitrateModeEnum</span><span class="falType">default:"standard"</span></div>
+            <div class="chips" id="fsBitrateChips">
+              <button class="chip on" data-fsbitrate="standard">standard</button>
+              <button class="chip" data-fsbitrate="high">high</button>
+            </div>
+            <div class="falAide">« high » demande un encodage de meilleure qualité, fichier plus lourd. Sans effet sur le prix.</div>
           </div>
         </div>
 
@@ -1425,7 +1440,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.64</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.65</span>
 
   </footer>
 </div>
@@ -7318,6 +7333,8 @@ const FS_LIMITES = {
 let fsMode = "image", fsRes = "720p";
 let fsTic = null;                                    // battement du chronomètre
 let fsImage = null;                                  // photo de départ (mode image)
+let fsImageFin = null;                               // v41.65 : image de fin (facultatif)
+let fsBitrate = "standard";                          // v41.65 : qualité d'encodage
 let fsRefImages = [], fsRefVideos = [], fsRefAudios = [];
 
 function fsLog(titre, obj) {
@@ -7410,10 +7427,12 @@ function fsPayload(o) {
   if (o.aspect_ratio && o.aspect_ratio !== "auto") p.aspect_ratio = o.aspect_ratio;
   if (o.duration && o.duration !== "auto") p.duration = String(o.duration);
   p.generate_audio = !!o.generate_audio;
+  if (o.bitrate_mode && o.bitrate_mode !== "standard") p.bitrate_mode = o.bitrate_mode;
   if (o.mode === "texte") {
     // v41.63 : text-to-video n'accepte AUCUN média — ni image_url, ni les listes.
   } else if (o.mode === "image") {
     p.image_url = o.image_url;
+    if (o.end_image_url) p.end_image_url = o.end_image_url;
   } else {
     if (o.image_urls && o.image_urls.length) p.image_urls = o.image_urls;
     if (o.video_urls && o.video_urls.length) p.video_urls = o.video_urls;
@@ -7469,6 +7488,22 @@ async function fsPoll(url) {
     document.getElementById("fsImgNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
     fsRefresh(); e.target.value = "";
   };
+
+  // v41.65 : image de fin
+  document.getElementById("fsImgFinBtn").onclick = () => document.getElementById("fsImgFinInput").click();
+  document.getElementById("fsImgFinInput").onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > FS_LIMITES.imageMo * 1024 * 1024) {
+      alert("Image trop lourde : maximum " + FS_LIMITES.imageMo + " Mo."); return;
+    }
+    fsImageFin = f;
+    document.getElementById("fsImgFinNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+    fsRefresh(); e.target.value = "";
+  };
+  document.querySelectorAll("#fsBitrateChips .chip").forEach(c => c.onclick = () => {
+    document.querySelectorAll("#fsBitrateChips .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on"); fsBitrate = c.dataset.fsbitrate; fsRefresh();
+  });
 
   // Références multiples
   document.getElementById("fsRefImgBtn").onclick = () => document.getElementById("fsRefImgInput").click();
@@ -7535,11 +7570,12 @@ async function fsPoll(url) {
         fsLog("HÉBERGÉ · " + quoi, { fichier: f.name, octets: f.size });
         return u;
       };
-      let image_url = "", image_urls = [], video_urls = [], audio_urls = [];
+      let image_url = "", end_image_url = "", image_urls = [], video_urls = [], audio_urls = [];
       if (fsMode === "texte") {
         // aucun média à héberger
       } else if (fsMode === "image") {
         image_url = await heberger(fsImage, "PHOTO DE DÉPART");
+        if (fsImageFin) end_image_url = await heberger(fsImageFin, "IMAGE DE FIN");
       } else {
         for (const x of fsRefImages) image_urls.push(await heberger(x.fichier, "IMAGE"));
         for (const x of fsRefVideos) video_urls.push(await heberger(x.fichier, "VIDÉO"));
@@ -7553,10 +7589,12 @@ async function fsPoll(url) {
         aspect_ratio: document.getElementById("fsRatio").value,
         duration: document.getElementById("fsDuree").value,
         generate_audio: document.getElementById("fsAudio").checked,
-        image_url: image_url, image_urls: image_urls, video_urls: video_urls, audio_urls: audio_urls,
+        image_url: image_url, end_image_url: end_image_url,
+        image_urls: image_urls, video_urls: video_urls, audio_urls: audio_urls,
+        bitrate_mode: fsBitrate,
       });
       const lisible = Object.assign({}, payload);
-      for (const k of ["image_url", "image_urls", "video_urls", "audio_urls"])
+      for (const k of ["image_url", "end_image_url", "image_urls", "video_urls", "audio_urls"])
         if (lisible[k]) lisible[k] = Array.isArray(lisible[k]) ? "[" + lisible[k].length + "]" : "[média]";
       fsLog("PAYLOAD (médias masqués)", lisible);
 
