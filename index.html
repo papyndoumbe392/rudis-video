@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.71 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.72 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1447,7 +1447,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.71</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.72</span>
 
   </footer>
 </div>
@@ -6588,7 +6588,7 @@ function rwNouvelleGeneration(pfx) {
   if (pfx === "al") {
     alVideo = null; alDuree = 0; alRefs = [];
     document.getElementById("alNom").innerHTML = "";
-    document.getElementById("alRefListe").innerHTML = "";
+    if (typeof alMajRefListe === "function") alMajRefListe(); else document.getElementById("alRefListe").innerHTML = "";
     document.getElementById("alInput").value = "";
     document.getElementById("alRefInput").value = "";
     document.getElementById("alImportBtn").classList.remove("on");
@@ -6997,11 +6997,31 @@ const AL_EXEMPLES = [
 })();
 
 document.getElementById("alRefBtn").onclick = () => document.getElementById("alRefInput").click();
+// v41.72 : chaque image peut maintenant être retirée individuellement.
+function alMajRefListe() {
+  const z = document.getElementById("alRefListe");
+  if (!alRefs.length) { z.innerHTML = ""; return; }
+  z.innerHTML = alRefs.map((x, i) =>
+    '<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">'
+    + '<span style="flex:1;">🖼️ ' + (i + 1) + " · " + x.name + '</span>'
+    + '<button class="chip" data-alrefdel="' + i + '" style="padding:2px 10px; flex-shrink:0;">✕</button>'
+    + '</div>').join("");
+  z.querySelectorAll("[data-alrefdel]").forEach(b => {
+    b.onclick = () => {
+      alRefs.splice(+b.dataset.alrefdel, 1);
+      // Sans ce reset, recharger la MÊME image ensuite ne déclenche rien :
+      // le navigateur voit une valeur identique et n'émet pas d'événement.
+      document.getElementById("alRefInput").value = "";
+      alMajRefListe(); alRefresh();
+    };
+  });
+}
 document.getElementById("alRefInput").onchange = (e) => {
   const f = e.target.files[0]; if (!f) return;
-  if (alRefs.length >= 5) { alert("Aleph accepte 5 images de guidage au maximum."); return; }
+  if (alRefs.length >= 5) { alert("Aleph accepte 5 images de guidage au maximum. Retire-en une avec ✕ avant d'en ajouter une autre."); return; }
   alRefs.push(f);
-  document.getElementById("alRefListe").innerHTML = alRefs.map((x, i) => "🖼️ " + (i + 1) + " · " + x.name).join("<br>");
+  e.target.value = "";   // permet de recharger le même fichier plus tard
+  alMajRefListe();
   alRefresh();
 };
 document.getElementById("alGo").onclick = async () => {
