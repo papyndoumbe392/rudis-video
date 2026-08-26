@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.65 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.66 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1103,7 +1103,9 @@
           <div class="falChamp">
             <div class="falNom"><code>prompt</code><span class="falType">string</span><span class="falReq">required</span></div>
             <textarea id="fsPrompt" rows="5" placeholder="The man dances slowly in the nightclub, elegant makossa movements."></textarea>
-            <div class="falAide">Le texte qui décrit la vidéo. En <code>reference-to-video</code>, désigne tes médias par <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b>.</div>
+            <div class="falAide">Le texte qui décrit la vidéo.<br>
+            En <code>reference-to-video</code>, tu <b>DOIS</b> citer chaque fichier chargé par son nom — <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b> — sinon le moteur l\'ignore.<br>
+            <span style="opacity:.8">Exemple : « @Image1 danse dans une rue, mouvements de @Video1, au rythme de @Audio1. »</span></div>
           </div>
 
           <div class="falChamp" id="fsBlocImage">
@@ -1131,8 +1133,9 @@
               <input type="file" id="fsRefAudInput" accept="audio/*" style="display:none;">
             </div>
             <div id="fsRefListe" class="falAide" style="margin-top:8px;"></div>
-            <div class="falAide">9 images (30 Mo pièce) · 3 vidéos (2 à 15 s cumulées, 50 Mo) · 3 audios (15 s cumulées).
-            12 fichiers au total. Un audio seul n'est pas accepté : il faut au moins une image ou une vidéo.</div>
+            <div class="falAide">9 images (30 Mo pièce) · 3 vidéos (2 à 15 s cumulées, 50 Mo) · <b>3 audios : TA MUSIQUE</b> (MP3 ou WAV, 15 s cumulées).
+            12 fichiers au total. Un audio seul n\'est pas accepté : il faut au moins une image ou une vidéo.<br>
+            <b style="color:var(--gold)">Ta chanson</b> : charge-la ici, puis écris <b>@Audio1</b> dans ton texte pour que le moteur la suive.</div>
           </div>
 
           <div class="falChamp">
@@ -1440,7 +1443,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.65</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.66</span>
 
   </footer>
 </div>
@@ -7406,7 +7409,24 @@ function fsMajListe() {
   fsRefImages.forEach((x, i) => l.push("🖼️ <b>@Image" + (i + 1) + "</b> · " + x.fichier.name));
   fsRefVideos.forEach((x, i) => l.push("🎬 <b>@Video" + (i + 1) + "</b> · " + x.fichier.name + " (" + x.duree.toFixed(1) + " s)"));
   fsRefAudios.forEach((x, i) => l.push("🎵 <b>@Audio" + (i + 1) + "</b> · " + x.fichier.name + (x.duree ? " (" + x.duree.toFixed(1) + " s)" : "")));
-  document.getElementById("fsRefListe").innerHTML = l.join("<br>");
+  // v41.66 : sans @Image1 / @Video1 / @Audio1 écrits DANS le prompt, le moteur
+  // ignore purement et simplement les fichiers chargés. Papy l'a demandé :
+  // le rappel doit être visible, pas caché dans une aide en petits caractères.
+  let rappel = "";
+  if (l.length) {
+    const manquants = [];
+    const prompt = (document.getElementById("fsPrompt") || {}).value || "";
+    fsRefImages.forEach((x, i) => { if (!prompt.includes("@Image" + (i + 1))) manquants.push("@Image" + (i + 1)); });
+    fsRefVideos.forEach((x, i) => { if (!prompt.includes("@Video" + (i + 1))) manquants.push("@Video" + (i + 1)); });
+    fsRefAudios.forEach((x, i) => { if (!prompt.includes("@Audio" + (i + 1))) manquants.push("@Audio" + (i + 1)); });
+    rappel = manquants.length
+      ? '<div style="margin-top:10px; padding:8px 10px; border-radius:8px; background:rgba(242,179,61,.12); border:1px solid var(--gold);">'
+        + '⚠️ <b style="color:var(--gold)">' + manquants.join(", ") + '</b> ' + (manquants.length > 1 ? "ne sont pas cités" : "n\'est pas cité")
+        + ' dans ton texte à l\'étape ②.<br><span style="opacity:.8">Sans être cité, un fichier est <b>ignoré</b> par le moteur. '
+        + 'Exemple : « @Image1 danse au rythme de @Audio1 ».</span></div>'
+      : '<div style="margin-top:10px; color:var(--ok);">✓ Tous tes fichiers sont cités dans le texte.</div>';
+  }
+  document.getElementById("fsRefListe").innerHTML = l.join("<br>") + rappel;
 }
 // Mesure la durée d'un média avant de l'accepter — les plafonds de FAL
 // portent sur des SECONDES CUMULÉES, pas sur le nombre de fichiers.
@@ -7475,7 +7495,7 @@ async function fsPoll(url) {
   });
   d.onchange = fsRefresh;
   document.getElementById("fsRatio").onchange = fsRefresh;
-  document.getElementById("fsPrompt").addEventListener("input", fsRefresh);
+  document.getElementById("fsPrompt").addEventListener("input", () => { fsRefresh(); fsMajListe(); });
 
   // Photo de départ (mode image)
   document.getElementById("fsImgBtn").onclick = () => document.getElementById("fsImgInput").click();
