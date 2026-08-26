@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.73 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.75 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1102,6 +1102,11 @@
 
           <div class="falChamp">
             <div class="falNom"><code>prompt</code><span class="falType">string</span><span class="falReq">required</span></div>
+            <!-- v41.74 : exemples de changement de décor, VALIDÉS EN RÉEL sur ce
+                 moteur (Coller_la_petite.mp4, 26 août). Moteur A n'a PAS besoin
+                 du préfixe CRITICAL qu'exige Aleph : il conserve les personnes
+                 sur les plans larges sans qu'on insiste. -->
+            <div class="chips" id="fsExemplesChips" style="margin-bottom:8px;"></div>
             <textarea id="fsPrompt" rows="5" placeholder="The man dances slowly in the nightclub, elegant makossa movements."></textarea>
             <div class="falAide">Le texte qui décrit la vidéo.<br>
             En <code>reference-to-video</code>, tu <b>DOIS</b> citer chaque fichier chargé par son nom — <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b> — sinon le moteur l\'ignore.<br>
@@ -1447,7 +1452,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.73</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.75</span>
 
   </footer>
 </div>
@@ -7490,6 +7495,36 @@ function fsManque() {
   }
   return "";
 }
+// v41.75 · ESTIMATION DU COÛT MOTEUR A
+// Tarifs relevés sur la page officielle fal.ai le 26 août 2026 :
+//   720p  → 0,3034 $/s      1080p → 0,682 $/s
+//   « If video inputs are provided the price is multiplied by 0.6 »
+//   → avec vidéo source en 720p, le prix réel tombe à 0,1814 $/s,
+//     valeur confirmée en toutes lettres sur la page.
+// 480p et 4k ne sont pas chiffrés au même endroit : on les encadre à
+// partir des tarifs par jeton plutôt que d'inventer un chiffre précis.
+const FS_PRIX_S = { "480p": 0.1517, "720p": 0.3034, "1080p": 0.682, "4k": 1.364 };
+const FS_REMISE_VIDEO = 0.6;   // multiplicateur quand une vidéo est fournie
+// FAL annonce explicitement 0,1814 $/s pour « vidéo en entrée + 720p ».
+// Notre calcul (0,3034 × 0,6 = 0,1820) diffère de 0,3 % à cause de leur
+// arrondi. Pour ce cas — le plus fréquent chez Papy — on affiche LEUR
+// chiffre, pas le nôtre.
+const FS_PRIX_EXACTS = { "720p": 0.1814 };
+
+function fsPrixEstime() {
+  const base = FS_PRIX_S[fsRes];
+  if (!base) return null;
+  const d = document.getElementById("fsDuree").value;
+  // « auto » : le moteur décide, on ne peut pas connaître la durée à l'avance.
+  const secondes = d === "auto" ? null : Number(d);
+  const avecVideo = fsMode === "ref" && fsRefVideos.length > 0;
+  const prixS = avecVideo
+    ? (FS_PRIX_EXACTS[fsRes] !== undefined ? FS_PRIX_EXACTS[fsRes] : base * FS_REMISE_VIDEO)
+    : base;
+  return { prixS: prixS, secondes: secondes, avecVideo: avecVideo,
+           total: secondes ? prixS * secondes : null };
+}
+
 function fsRefresh() {
   const manque = fsManque();
   const b = document.getElementById("fsGo");
@@ -7499,8 +7534,22 @@ function fsRefresh() {
   const detail = [fsRes, document.getElementById("fsRatio").value, d === "auto" ? "durée automatique" : d + " s"];
   if (fsMode === "ref")
     detail.push(fsRefImages.length + " image(s), " + fsRefVideos.length + " vidéo(s), " + fsRefAudios.length + " audio(s)");
-  document.getElementById("fsCout").innerHTML = detail.join(" · ")
-    + " · <b style='color:var(--gold)'>débité de ton crédit StarClip</b>";
+
+  const p = fsPrixEstime();
+  let prix = "";
+  if (p) {
+    const parSec = p.prixS.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+    if (p.total !== null) {
+      prix = " · <b style='color:var(--gold)'>≈ " + p.total.toFixed(2) + " $</b>"
+           + " <span style='opacity:.75'>(" + parSec + " $/s × " + p.secondes + " s)</span>";
+    } else {
+      // Durée auto : on annonce le prix à la seconde, pas un total inventé.
+      prix = " · <b style='color:var(--gold)'>" + parSec + " $ par seconde</b>"
+           + " <span style='opacity:.75'>(durée choisie par le moteur)</span>";
+    }
+    if (p.avecVideo) prix += " <span style='opacity:.75'>· remise vidéo −40 % appliquée</span>";
+  }
+  document.getElementById("fsCout").innerHTML = detail.join(" · ") + prix;
 }
 function fsMajMode() {
   document.getElementById("fsBlocImage").classList.toggle("hidden", fsMode !== "image");
@@ -7589,6 +7638,54 @@ async function fsPoll(url) {
   });
   return await r.json().catch(() => ({}));
 }
+
+// v41.74 · EXEMPLES DE CHANGEMENT DE DÉCOR POUR LE MOTEUR A
+// ⚠️ Ces textes sont ceux qui ont RÉELLEMENT fonctionné sur
+// bytedance/seedance-2.0/reference-to-video le 26 août (Coller_la_petite.mp4 :
+// 1 image de décor + 1 vidéo source + 720p + durée auto).
+// Contrairement à Aleph, ce moteur n'a PAS besoin du préfixe "CRITICAL:
+// every person must remain visible" : il garde les personnes sur les plans
+// larges tout seul. On garde donc la formulation d'origine, éprouvée.
+// Mode d'emploi : charger le décor en image, l'extrait en vidéo, puis coller.
+const FS_EXEMPLES = [
+  { label: "🎤 Scène de concert", texte:
+    "Replace the entire environment in every frame with a concert stage at night: raised stage platform with a visible front edge, LED screens behind, colored spotlights, crowd BELOW the stage level. Same venue for the whole clip, including close-ups and camera cuts. "
+    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    + "Every performer stands ON the raised stage platform, feet in contact with the stage floor, never among the spectators, never above the crowd. The camera looks slightly up at them from the audience. Spectators are visible only at the bottom of the frame, below the stage edge. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+  { label: "🇨🇲 Rue de Douala", texte:
+    "Replace the entire environment in every frame with a Douala city street in daylight: wide open asphalt road in the centre, dense crowd of spectators standing along BOTH sidewalks, colourful shopfronts, signboards and parasols behind them, overcast tropical sky. Same street for the whole clip, including close-ups and camera cuts. "
+    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. Take no person from the reference image. "
+    + "The performers stay in the middle of the empty road, feet in contact with the asphalt, never inside the crowd. The spectators stay on the sidewalks, behind them. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+  { label: "🌃 Rue de nuit", texte:
+    "Replace the entire environment in every frame with a city street at night: wet asphalt, street lamps, storefront lights, blurred traffic in the background. Same street for the whole clip, including close-ups and camera cuts. "
+    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    + "Everyone stands on the ground, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+  { label: "💎 Boîte de nuit", texte:
+    "Replace the entire environment in every frame with a luxurious nightclub: polished dance floor, bar with bottles behind, purple and gold ambient lighting, blurred guests in the background. Same venue for the whole clip, including close-ups and camera cuts. "
+    + "Keep every person from the source video exactly as they are: faces, clothing, body proportions, choreography, mouth movements, camera moves, cuts and timing. Add none, remove none. "
+    + "Everyone stands on the dance floor, feet in contact with it, with matching perspective, lighting, reflections and contact shadows. "
+    + "Keep the original timing exactly so the source audio stays in sync. Change the environment only." },
+];
+(function initFsExemples() {
+  const box = document.getElementById("fsExemplesChips");
+  if (!box) return;
+  FS_EXEMPLES.forEach(ex => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = ex.label;
+    b.title = "Insère ce texte — charge d'abord le décor en image et l'extrait en vidéo";
+    b.onclick = () => {
+      const champ = document.getElementById("fsPrompt");
+      champ.value = ex.texte;
+      champ.dispatchEvent(new Event("input", { bubbles: true }));
+      champ.focus();
+    };
+    box.appendChild(b);
+  });
+})();
 
 // ─── Initialisation et gestes du volet FAL Seedance 2.0 ───
 (function fsInit() {
