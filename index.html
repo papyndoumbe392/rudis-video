@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.79 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.80 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1556,13 +1556,27 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.79</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.80</span>
 
   </footer>
 </div>
 
 <script src="config.js"></script>
 <script>
+// ═══ v41.77 · QUALITÉ DES RETOUCHES D'IMAGE ═══
+// Deux moteurs Google, mêmes champs, qualités et prix différents :
+//   standard  fal-ai/nano-banana/edit      ≈ 0,039 $ / image
+//   pro       fal-ai/nano-banana-pro/edit  ≈ 0,15  $ / image  (~4× plus cher)
+// Le Pro est celui que Papy a repéré dans le portail Runway le 26 août.
+// On le propose en CHOIX, pas en remplacement : les essais restent bon
+// marché, et on passe en Pro pour la version finale.
+let nbQualite = "standard";
+function nbModele() {
+  return nbQualite === "pro" ? "fal-ai/nano-banana-pro/edit" : "fal-ai/nano-banana/edit";
+}
+function nbPrix() { return nbQualite === "pro" ? 0.15 : 0.039; }
+
+
 // ——— État ———
 let photoDataUrl = null;
 let photoMasterPng = null;      // 🔒 v41.24 : master PNG sans perte — étalon de la garantie Pixel Lock
@@ -2642,19 +2656,6 @@ async function transformLieu() {
     info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
   } finally { btn.disabled = false; }
 }
-
-// ═══ v41.77 · QUALITÉ DES RETOUCHES D'IMAGE ═══
-// Deux moteurs Google, mêmes champs, qualités et prix différents :
-//   standard  fal-ai/nano-banana/edit      ≈ 0,039 $ / image
-//   pro       fal-ai/nano-banana-pro/edit  ≈ 0,15  $ / image  (~4× plus cher)
-// Le Pro est celui que Papy a repéré dans le portail Runway le 26 août.
-// On le propose en CHOIX, pas en remplacement : les essais restent bon
-// marché, et on passe en Pro pour la version finale.
-let nbQualite = "standard";
-function nbModele() {
-  return nbQualite === "pro" ? "fal-ai/nano-banana-pro/edit" : "fal-ai/nano-banana/edit";
-}
-function nbPrix() { return nbQualite === "pro" ? 0.15 : 0.039; }
 
 let outfitPhotoUrl = null;
 let tryTarget = "me";
