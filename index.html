@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.75 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.76 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -247,6 +247,27 @@
                  border:1px dashed var(--line); border-radius:12px; padding:18px; }
     .falApercu .falVide { opacity:.4; font-size:13px; }
     .falRun { width:100%; margin-top:4px; }
+
+    /* v41.76 — DISPOSITION « PORTAIL ». Papy travaille sur le portail Runway
+       et s'y retrouve mieux : grande zone vidéo au centre, réglages compacts
+       autour. On reprend la STRUCTURE, pas l'habillage : les couleurs
+       restent celles de StarClip. */
+    .portTitre { text-align:center; font-size:20px; font-weight:800; margin:6px 0 14px; }
+    .portScene {
+      border:2px dashed var(--line); border-radius:14px;
+      min-height:300px; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; text-align:center;
+      padding:22px; background:var(--up); position:relative;
+    }
+    .portScene.rempli { border-style:solid; }
+    .portScene video, .portScene img { width:100%; border-radius:10px; }
+    .portVide { opacity:.45; font-size:14px; line-height:1.6; }
+    .portBarre {
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+      justify-content:center; margin-top:14px;
+    }
+    .portBarre .chip { flex-shrink:0; }
+    @media (max-width:640px) { .portScene { min-height:220px; padding:14px; } }
     .rwRondFini .rwRondPct { color:var(--ok); }
 
     /* v41.44 — CHOIX DES MOTEURS : côte à côte sur ordinateur, empilés sur mobile.
@@ -1088,6 +1109,44 @@
       <h2>🌱 SEEDANCE 2.0 — VIA MOTEUR A</h2>
       <p class="sub">Le même moteur ByteDance que Seedance côté Studio, atteint par le Moteur A. Réglages à gauche avec leur nom exact, aperçu à droite.</p>
 
+      <!-- v41.76 : même choix de disposition que pour Aleph. -->
+      <div class="chips" style="margin-bottom:12px;">
+        <button class="chip" id="fsVuePortail">🖥️ Vue portail</button>
+        <button class="chip on" id="fsVueEtapes">📋 Vue détaillée</button>
+      </div>
+
+      <div id="fsPortail" class="hidden">
+        <div class="portTitre">Obtiens la vidéo que tu veux. À partir de celle que tu as.</div>
+        <div class="portScene" id="fsPortScene">
+          <div class="portVide" id="fsPortVide">
+            Touche <b>🎬 vidéo</b> pour choisir l'extrait à améliorer,<br>
+            et <b>🖼️ image</b> pour le décor voulu.
+          </div>
+          <div id="fsPortApercu" style="width:100%;"></div>
+        </div>
+        <div class="portBarre">
+          <button class="chip" id="fsPortVid">🎬 Vidéo à améliorer</button>
+          <button class="chip" id="fsPortImg">🖼️ Décor voulu</button>
+          <button class="chip" id="fsPortAud">🎵 Ta musique</button>
+          <span class="hint" id="fsPortInfo" style="margin:0;"></span>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="chips" id="fsPortExemples" style="margin-bottom:8px;"></div>
+          <textarea id="fsPortPrompt" rows="4" placeholder="Décris le décor voulu, ou touche un exemple ci-dessus."></textarea>
+        </div>
+        <div class="portBarre" style="margin-top:10px;">
+          <span class="hint" style="margin:0;">Résolution</span>
+          <div class="chips" id="fsPortResChips">
+            <button class="chip" data-fspres="480p">480p</button>
+            <button class="chip on" data-fspres="720p">720p</button>
+            <button class="chip" data-fspres="1080p">1080p</button>
+          </div>
+        </div>
+        <button class="master" id="fsPortGo" style="margin-top:12px;" disabled>Importe d'abord une vidéo</button>
+        <div class="estimate" id="fsPortCout" style="margin-top:8px;"></div>
+      </div>
+
+      <div id="fsEtapes">
       <div class="chips" id="fsModeChips" style="margin-bottom:14px;">
         <button class="chip on" data-fsmode="image">image-to-video</button>
         <button class="chip" data-fsmode="ref">reference-to-video</button>
@@ -1225,12 +1284,46 @@
       <!-- Bouton Run en bas, comme sur fal.ai -->
       <button class="master falRun" id="fsGo" disabled style="margin-top:18px;">Choisis d'abord tes médias</button>
       <div class="estimate" id="fsCout" style="margin-top:8px;"></div>
+      </div><!-- /fsEtapes -->
     </div>
 
     <!-- ─────────── PAGE ADMIN 1 · ALEPH 2.0 ─────────── -->
     <div id="admPageAleph" class="hidden">
       <h2>🎞️ ALEPH 2.0 — ÉDITER / CONSERVER</h2>
       <p class="sub">Garde ta vidéo telle qu'elle est — sa danse, son cadrage, son montage — et change son environnement. C'est le moteur du « je garde cette vidéo, je change le décor ».</p>
+
+      <!-- v41.76 : deux dispositions au choix. « Portail » reprend la mise en
+           page du site Runway, que Papy utilise et connaît. « Étapes » est la
+           disposition d'origine, détaillée. Le MOTEUR est le même : seul
+           l'agencement change. -->
+      <div class="chips" style="margin-bottom:12px;">
+        <button class="chip" id="alVuePortail">🖥️ Vue portail</button>
+        <button class="chip on" id="alVueEtapes">📋 Vue étapes</button>
+      </div>
+
+      <div id="alPortail" class="hidden">
+        <div class="portTitre">Obtiens la vidéo que tu veux. À partir de celle que tu as.</div>
+        <div class="portScene" id="alPortScene">
+          <div class="portVide" id="alPortVide">
+            Touche <b>📂 Importer</b> ci-dessous pour choisir ta vidéo.<br>
+            30 secondes maximum.
+          </div>
+          <div id="alPortApercu" style="width:100%;"></div>
+        </div>
+        <div class="portBarre">
+          <button class="chip" id="alPortImport">📂 Importer une vidéo</button>
+          <button class="chip" id="alPortImage">🖼️ Image de référence</button>
+          <span class="hint" id="alPortInfo" style="margin:0;"></span>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="chips" id="alPortExemples" style="margin-bottom:8px;"></div>
+          <textarea id="alPortPrompt" rows="4" placeholder="Décris le décor voulu, ou touche un exemple ci-dessus."></textarea>
+        </div>
+        <button class="master" id="alPortGo" style="margin-top:12px;" disabled>Importe d'abord une vidéo</button>
+        <div class="estimate" id="alPortCout" style="margin-top:8px;"></div>
+      </div>
+
+      <div id="alEtapes">
 
       <div class="card">
         <div class="step">① LA VIDÉO À ÉDITER</div>
@@ -1295,6 +1388,8 @@
         </details>
       </div>
     </div>
+
+      </div><!-- /alEtapes -->
 
     <!-- ─────────── PAGE ADMIN 2 · SEEDANCE 2.5 ─────────── -->
     <div id="admPageSeed" class="hidden">
@@ -1452,7 +1547,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.75</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.76</span>
 
   </footer>
 </div>
@@ -6937,11 +7032,14 @@ document.getElementById("alInput").onchange = (e) => {
   v.onloadedmetadata = () => {
     if (v.duration > 30.5) {
       document.getElementById("alNom").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — Aleph accepte 30 s maximum.</span>';
-      alVideo = null; alRefresh(); return;
+      alVideo = null; alRefresh();
+      if (typeof alPortMaj === "function") alPortMaj();
+      return;
     }
     alDuree = v.duration; alVideo = f;
     document.getElementById("alNom").innerHTML = '<span style="color:var(--ok)">✓ ' + f.name + " (" + v.duration.toFixed(1) + " s · " + v.videoWidth + "×" + v.videoHeight + ")</span>";
     alRefresh();
+    if (typeof alPortMaj === "function") alPortMaj();
   };
   v.onerror = () => { document.getElementById("alNom").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
   v.src = URL.createObjectURL(f);
@@ -7019,6 +7117,7 @@ function alMajRefListe() {
   z.querySelectorAll("[data-alrefdel]").forEach(b => {
     b.onclick = () => {
       alRefs.splice(+b.dataset.alrefdel, 1);
+      if (typeof alPortMaj === "function") setTimeout(alPortMaj, 0);
       // Sans ce reset, recharger la MÊME image ensuite ne déclenche rien :
       // le navigateur voit une valeur identique et n'émet pas d'événement.
       document.getElementById("alRefInput").value = "";
@@ -7687,6 +7786,182 @@ const FS_EXEMPLES = [
   });
 })();
 
+
+// ═══════════════════════════════════════════════════════════════════
+//  v41.76 · DISPOSITION « PORTAIL » — ALEPH ET MOTEUR A
+// ═══════════════════════════════════════════════════════════════════
+// Papy travaille sur le portail Runway et s'y retrouve mieux : une grande
+// zone vidéo au centre, des réglages compacts autour. On reprend cette
+// STRUCTURE sur les deux volets, sans toucher aux moteurs : les boutons
+// portail déclenchent EXACTEMENT les mêmes mécanismes que la vue détaillée.
+// Rien n'est dupliqué — on réutilise les champs fichier existants.
+
+function portBasculer(prefixe, versPortail) {
+  const p = document.getElementById(prefixe + "Portail");
+  const e = document.getElementById(prefixe + (prefixe === "al" ? "Etapes" : "Etapes"));
+  if (!p || !e) return;
+  p.classList.toggle("hidden", !versPortail);
+  e.classList.toggle("hidden", versPortail);
+  const bp = document.getElementById(prefixe + "VuePortail");
+  const be = document.getElementById(prefixe + "VueEtapes");
+  if (bp) bp.classList.toggle("on", versPortail);
+  if (be) be.classList.toggle("on", !versPortail);
+}
+
+(function initPortail() {
+  // ── ALEPH ──
+  const alVP = document.getElementById("alVuePortail");
+  const alVE = document.getElementById("alVueEtapes");
+  if (alVP && alVE) {
+    alVP.onclick = () => { portBasculer("al", true); alPortMaj(); };
+    alVE.onclick = () => portBasculer("al", false);
+
+    // Les boutons portail réutilisent les MÊMES champs fichier que la vue
+    // détaillée : aucune duplication d'état, aucun risque de désynchronisation.
+    document.getElementById("alPortImport").onclick = () => document.getElementById("alInput").click();
+    document.getElementById("alPortImage").onclick  = () => document.getElementById("alRefInput").click();
+
+    // Le prompt est partagé dans les deux sens.
+    const pp = document.getElementById("alPortPrompt");
+    const pc = document.getElementById("alPrompt");
+    pp.addEventListener("input", () => { pc.value = pp.value; pc.dispatchEvent(new Event("input", { bubbles: true })); alPortMaj(); });
+    pc.addEventListener("input", () => { if (pp.value !== pc.value) pp.value = pc.value; });
+
+    // Mêmes exemples que la vue détaillée.
+    const box = document.getElementById("alPortExemples");
+    if (box && typeof AL_EXEMPLES !== "undefined") {
+      AL_EXEMPLES.forEach(ex => {
+        const b = document.createElement("button");
+        b.className = "chip"; b.textContent = ex.label;
+        b.onclick = () => {
+          pp.value = ex.texte;
+          pp.dispatchEvent(new Event("input", { bubbles: true }));
+        };
+        box.appendChild(b);
+      });
+    }
+
+    document.getElementById("alPortGo").onclick = () => document.getElementById("alGo").click();
+  }
+
+  // ── MOTEUR A ──
+  const fsVP = document.getElementById("fsVuePortail");
+  const fsVE = document.getElementById("fsVueEtapes");
+  if (fsVP && fsVE) {
+    fsVP.onclick = () => {
+      // La vue portail sert au changement de décor : on force le mode
+      // références, seul mode qui accepte vidéo + image + audio ensemble.
+      fsMode = "ref"; fsMajMode();
+      portBasculer("fs", true); fsPortMaj();
+    };
+    fsVE.onclick = () => portBasculer("fs", false);
+
+    document.getElementById("fsPortVid").onclick = () => document.getElementById("fsRefVidInput").click();
+    document.getElementById("fsPortImg").onclick = () => document.getElementById("fsRefImgInput").click();
+    document.getElementById("fsPortAud").onclick = () => document.getElementById("fsRefAudInput").click();
+
+    const pp = document.getElementById("fsPortPrompt");
+    const pc = document.getElementById("fsPrompt");
+    pp.addEventListener("input", () => { pc.value = pp.value; pc.dispatchEvent(new Event("input", { bubbles: true })); fsPortMaj(); });
+    pc.addEventListener("input", () => { if (pp.value !== pc.value) pp.value = pc.value; });
+
+    const box = document.getElementById("fsPortExemples");
+    if (box && typeof FS_EXEMPLES !== "undefined") {
+      FS_EXEMPLES.forEach(ex => {
+        const b = document.createElement("button");
+        b.className = "chip"; b.textContent = ex.label;
+        b.onclick = () => { pp.value = ex.texte; pp.dispatchEvent(new Event("input", { bubbles: true })); };
+        box.appendChild(b);
+      });
+    }
+
+    document.querySelectorAll("#fsPortResChips .chip").forEach(c => c.onclick = () => {
+      document.querySelectorAll("#fsPortResChips .chip").forEach(x => x.classList.remove("on"));
+      c.classList.add("on");
+      fsRes = c.dataset.fspres;
+      // Refléter le choix dans la vue détaillée pour rester cohérent.
+      document.querySelectorAll("#fsResChips .chip").forEach(x => x.classList.toggle("on", x.dataset.fsres === fsRes));
+      fsRefresh(); fsPortMaj();
+    });
+
+    document.getElementById("fsPortGo").onclick = () => document.getElementById("fsGo").click();
+  }
+})();
+
+// Rafraîchit l'aperçu et le bouton de la vue portail Aleph.
+function alPortMaj() {
+  const sc = document.getElementById("alPortScene");
+  const ap = document.getElementById("alPortApercu");
+  const vd = document.getElementById("alPortVide");
+  const go = document.getElementById("alPortGo");
+  if (!sc) return;
+  if (alVideo) {
+    if (vd) vd.classList.add("hidden");
+    sc.classList.add("rempli");
+    if (ap && !ap.dataset.nom) {
+      ap.innerHTML = '<video controls playsinline src="' + URL.createObjectURL(alVideo) + '"></video>';
+      ap.dataset.nom = alVideo.name;
+    }
+  } else {
+    if (vd) vd.classList.remove("hidden");
+    sc.classList.remove("rempli");
+    if (ap) { ap.innerHTML = ""; delete ap.dataset.nom; }
+  }
+  const info = document.getElementById("alPortInfo");
+  if (info) info.innerHTML = alVideo
+    ? "✓ " + alDuree.toFixed(1) + " s · " + alRefs.length + " image(s) de référence"
+    : "";
+  const prompt = (document.getElementById("alPortPrompt") || {}).value || "";
+  if (go) {
+    go.disabled = !alVideo || !prompt.trim();
+    go.textContent = !alVideo ? "Importe d'abord une vidéo"
+      : !prompt.trim() ? "Décris le décor voulu"
+      : "✨ Transformer — " + alCredits() + " crédits";
+  }
+  const cout = document.getElementById("alPortCout");
+  if (cout && alVideo) cout.innerHTML = "Durée " + alDuree.toFixed(1) + " s · <b style='color:var(--gold)'>" + alCredits() + " crédits ≈ " + (alCredits() / 100).toFixed(2) + " $</b>";
+}
+
+// Rafraîchit l'aperçu et le bouton de la vue portail Moteur A.
+function fsPortMaj() {
+  const sc = document.getElementById("fsPortScene");
+  const ap = document.getElementById("fsPortApercu");
+  const vd = document.getElementById("fsPortVide");
+  const go = document.getElementById("fsPortGo");
+  if (!sc) return;
+  const v = fsRefVideos.length ? fsRefVideos[0].fichier : null;
+  if (v) {
+    if (vd) vd.classList.add("hidden");
+    sc.classList.add("rempli");
+    if (ap && ap.dataset.nom !== v.name) {
+      ap.innerHTML = '<video controls playsinline src="' + URL.createObjectURL(v) + '"></video>';
+      ap.dataset.nom = v.name;
+    }
+  } else {
+    if (vd) vd.classList.remove("hidden");
+    sc.classList.remove("rempli");
+    if (ap) { ap.innerHTML = ""; delete ap.dataset.nom; }
+  }
+  const info = document.getElementById("fsPortInfo");
+  if (info) info.innerHTML = v
+    ? "✓ " + fsRefVideos[0].duree.toFixed(1) + " s · " + fsRefImages.length + " image(s) · " + fsRefAudios.length + " audio(s)"
+    : "";
+  const prompt = (document.getElementById("fsPortPrompt") || {}).value || "";
+  if (go) {
+    go.disabled = !v || !prompt.trim();
+    go.textContent = !v ? "Importe d'abord une vidéo"
+      : !prompt.trim() ? "Décris le décor voulu"
+      : "✨ Transformer";
+  }
+  const cout = document.getElementById("fsPortCout");
+  const px = typeof fsPrixEstime === "function" ? fsPrixEstime() : null;
+  if (cout && px) {
+    const parSec = px.prixS.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+    cout.innerHTML = fsRes + " · <b style='color:var(--gold)'>" + parSec + " $ par seconde</b>"
+      + (px.avecVideo ? " <span style='opacity:.75'>· remise vidéo −40 %</span>" : "");
+  }
+}
+
 // ─── Initialisation et gestes du volet FAL Seedance 2.0 ───
 (function fsInit() {
   const d = document.getElementById("fsDuree");
@@ -7737,7 +8012,9 @@ const FS_EXEMPLES = [
     const f = e.target.files[0]; if (!f) return;
     if (fsRefImages.length >= FS_LIMITES.images) { alert(FS_LIMITES.images + " images au maximum."); return; }
     if (f.size > FS_LIMITES.imageMo * 1024 * 1024) { alert("Image trop lourde (maximum " + FS_LIMITES.imageMo + " Mo)."); return; }
-    fsRefImages.push({ fichier: f }); fsMajListe(); fsRefresh(); e.target.value = "";
+    fsRefImages.push({ fichier: f }); fsMajListe(); fsRefresh();
+    if (typeof fsPortMaj === "function") fsPortMaj();
+    e.target.value = "";
   };
   document.getElementById("fsRefVidBtn").onclick = () => document.getElementById("fsRefVidInput").click();
   document.getElementById("fsRefVidInput").onchange = async (e) => {
@@ -7748,7 +8025,9 @@ const FS_EXEMPLES = [
     if (total > FS_LIMITES.videoSMax + 0.5) {
       alert("Tes vidéos feraient " + total.toFixed(1) + " s — FAL accepte " + FS_LIMITES.videoSMax + " s cumulées."); return;
     }
-    fsRefVideos.push({ fichier: f, duree: duree }); fsMajListe(); fsRefresh(); e.target.value = "";
+    fsRefVideos.push({ fichier: f, duree: duree }); fsMajListe(); fsRefresh();
+    if (typeof fsPortMaj === "function") fsPortMaj();
+    e.target.value = "";
   };
   document.getElementById("fsRefAudBtn").onclick = () => document.getElementById("fsRefAudInput").click();
   document.getElementById("fsRefAudInput").onchange = async (e) => {
@@ -7765,7 +8044,9 @@ const FS_EXEMPLES = [
     } else {
       fsRefAudios.push({ fichier: f, duree: duree });
     }
-    fsMajListe(); fsRefresh(); e.target.value = "";
+    fsMajListe(); fsRefresh();
+    if (typeof fsPortMaj === "function") fsPortMaj();
+    e.target.value = "";
   };
 
   document.getElementById("fsGo").onclick = async () => {
