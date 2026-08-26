@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.78 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.79 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1556,7 +1556,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.78</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.79</span>
 
   </footer>
 </div>
@@ -7885,7 +7885,18 @@ function portBasculer(prefixe, versPortail) {
       });
     }
 
-    document.getElementById("alPortGo").onclick = () => document.getElementById("alGo").click();
+    document.getElementById("alPortGo").onclick = () => {
+      // On bascule d'abord : sinon le cercle de progression et la vidéo
+      // finale resteraient dans la vue cachée, et Papy ne verrait rien.
+      portBasculer("al", false);
+      const inf = document.getElementById("alNom");
+      if (inf) inf.insertAdjacentHTML("afterend",
+        '<div class="hint" id="alBascInfo" style="color:var(--gold);">⬇️ Suivi de la génération ci-dessous. Reviens en vue portail quand tu veux.</div>');
+      setTimeout(() => { const b = document.getElementById("alBascInfo"); if (b) b.remove(); }, 12000);
+      document.getElementById("alGo").click();
+      const z = document.getElementById("alStatus");
+      if (z) z.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
   }
 
   // ── MOTEUR A ──
@@ -7928,7 +7939,16 @@ function portBasculer(prefixe, versPortail) {
       fsRefresh(); fsPortMaj();
     });
 
-    document.getElementById("fsPortGo").onclick = () => document.getElementById("fsGo").click();
+    document.getElementById("fsPortGo").onclick = () => {
+      portBasculer("fs", false);
+      const inf = document.getElementById("fsCout");
+      if (inf) inf.insertAdjacentHTML("beforebegin",
+        '<div class="hint" id="fsBascInfo" style="color:var(--gold);">⬇️ Suivi de la génération ci-dessous. Reviens en vue portail quand tu veux.</div>');
+      setTimeout(() => { const b = document.getElementById("fsBascInfo"); if (b) b.remove(); }, 12000);
+      document.getElementById("fsGo").click();
+      const z = document.getElementById("fsStatus");
+      if (z) z.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
   }
 })();
 
