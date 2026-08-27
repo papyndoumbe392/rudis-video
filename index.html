@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.80 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.81 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1556,7 +1556,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.80</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.81</span>
 
   </footer>
 </div>
@@ -7145,6 +7145,61 @@ const AL_EXEMPLES = [
       champ.focus();
     };
     box.appendChild(b);
+  });
+})();
+
+// v41.81 · RÉPARATION DE 4 BOUTONS MORTS (audit du 27 août)
+// « Refaire l'optimisation » et « Voir mon texte d'origine » existaient dans
+// la page depuis plusieurs versions sans aucun code derrière. Ils sont
+// présents sur les deux volets : Aleph (al) et Seedance Studio (sd).
+(function initBoutonsOpt() {
+  ["al", "sd"].forEach(pfx => {
+    const refaire = document.getElementById(pfx + "OptRefaire");
+    const voir    = document.getElementById(pfx + "OptVoir");
+    const boite   = document.getElementById(pfx + "OptOrigBoite");
+    const orig    = document.getElementById(pfx + "OptOrig");
+    const texte   = document.getElementById(pfx + "OptTexte");
+    const info    = document.getElementById(pfx + "OptInfo");
+
+    // « Voir mon texte d'origine » : ouvre le bloc replié juste en dessous,
+    // qui contient déjà le texte non condensé.
+    if (voir && boite) {
+      voir.onclick = () => {
+        boite.open = !boite.open;
+        voir.textContent = boite.open ? "📄 Masquer mon texte d'origine" : "📄 Voir mon texte d'origine";
+        if (boite.open) boite.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      };
+    }
+
+    // « Refaire l'optimisation » : relance la condensation sur le texte
+    // d'origine, au cas où la première version ne conviendrait pas.
+    if (refaire && orig && texte) {
+      refaire.onclick = async () => {
+        const source = orig.textContent || "";
+        if (!source.trim()) {
+          if (info) info.innerHTML = "<span class='err'>Texte d'origine introuvable — relance depuis le champ principal.</span>";
+          return;
+        }
+        const libelle = refaire.textContent;
+        refaire.disabled = true;
+        refaire.textContent = "✍️ En cours…";
+        try {
+          const neuf = await rwCondenser(source, pfx + "Journal");
+          if (neuf) {
+            texte.value = neuf;
+            rwMajCompteur(pfx);
+            if (info) info.innerHTML = "<span style='color:var(--ok)'>✓ Nouvelle version proposée — relis-la avant de lancer.</span>";
+          } else if (info) {
+            info.innerHTML = "<span class='err'>L'optimisation n'a rien renvoyé. Réessaie.</span>";
+          }
+        } catch (e) {
+          if (info) info.innerHTML = "<span class='err'>Échec : " + e.message + "</span>";
+        } finally {
+          refaire.disabled = false;
+          refaire.textContent = libelle;
+        }
+      };
+    }
   });
 })();
 
