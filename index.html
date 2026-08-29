@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.82 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.83 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1557,7 +1557,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.82</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.83</span>
 
   </footer>
 </div>
@@ -4089,7 +4089,25 @@ const LIP_MOTEURS = {
 // Necessaire pour le lip-sync : les data URI rendent la requete trop grosse
 // (« Request is too large »). Le fichier part DIRECTEMENT vers le stockage,
 // sans passer par notre serveur.
+// v41.83 · NETTOYAGE DES NOMS DE FICHIERS
+// Les espaces et surtout les apostrophes cassent l'URL une fois le fichier
+// hébergé, et FAL rejette alors toute la requête avec un message obscur
+// (« Invalid parameters in input »). On assainit le nom AVANT l'envoi.
+// Le contenu du fichier n'est pas touché — seul son nom change.
+function nomSur(nom) {
+  const point = (nom || "fichier").lastIndexOf(".");
+  const base = point > 0 ? nom.slice(0, point) : (nom || "fichier");
+  const ext  = point > 0 ? nom.slice(point).toLowerCase() : "";
+  const propre = base
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")  // accents
+    .replace(/['\u2019"`]/g, "")                        // apostrophes droites ET typographiques
+    .replace(/[^A-Za-z0-9._-]+/g, "-")                  // tout le reste -> tiret
+    .replace(/-+/g, "-").replace(/^-|-$/g, "");
+  return (propre || "fichier") + ext.replace(/[^A-Za-z0-9.]/g, "");
+}
+
 async function hebergerFichier(source, nom) {
+  nom = nomSur(nom);
   // v36.1 : accepte un data URI OU directement un fichier (File/Blob) — indispensable
   // pour les vidéos Multi-plans de 30-80 Mo, qu'on n'ose pas convertir en base64 en mémoire.
   let type, corps;
