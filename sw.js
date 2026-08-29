@@ -3,7 +3,7 @@
 // sinon les anciennes copies restent sur l'appareil des clients et ils ne voient
 // jamais les nouveautés. Les caches des versions précédentes sont supprimés
 // automatiquement à l'activation.
-const CACHE = "starclip-v41-81";
+const CACHE = "starclip-v41-82";
 const FILES = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -34,7 +34,12 @@ self.addEventListener("fetch", e => {
   e.respondWith(
     fetch(requete)
       .then(rep => {
-        if (rep && rep.ok && e.request.method === "GET") {
+        // v41.82 : on ne met JAMAIS index.html en cache depuis le réseau.
+        // Avant, une réponse reçue pendant une coupure pouvait figer une
+        // version intermédiaire — cause probable des écarts constatés entre
+        // le Mac Pro et le MacBook du studio. index.html vient désormais
+        // toujours du réseau, et le cache installé ne sert qu'au hors-ligne.
+        if (rep && rep.ok && e.request.method === "GET" && !estPage) {
           const copie = rep.clone();
           caches.open(CACHE).then(c => c.put(e.request, copie)).catch(() => {});
         }

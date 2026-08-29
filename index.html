@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.81 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.82 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1292,6 +1292,7 @@
 
       <!-- Bouton Run en bas, comme sur fal.ai -->
       <button class="master falRun" id="fsGo" disabled style="margin-top:18px;">Choisis d'abord tes médias</button>
+      <button class="chip" id="fsNouvelle" style="margin-top:8px;">🔄 Nouvelle génération — tout effacer</button>
       <div class="estimate" id="fsCout" style="margin-top:8px;"></div>
       </div><!-- /fsEtapes -->
     </div>
@@ -1556,7 +1557,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.81</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.82</span>
 
   </footer>
 </div>
@@ -7760,11 +7761,23 @@ function fsMajMode() {
     : "<code>reference-to-video</code> — jusqu'à 9 images, 3 vidéos, 3 audios, désignées dans ton texte par <b>@Image1</b>, <b>@Video1</b>, <b>@Audio1</b>. C'est ce mode qui permet d'appliquer <b>une seule vidéo de danse à plusieurs personnes</b>.";
   fsRefresh();
 }
+// v41.82 : chaque fichier peut être retiré individuellement, et les
+// compteurs sont affichés en permanence. Avant, un fichier chargé par
+// erreur ne pouvait plus être retiré : il fallait tout recommencer.
+function fsLigneFichier(icone, tag, nom, detail, type, i) {
+  return '<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">'
+    + '<span style="flex:1;">' + icone + ' <b>@' + tag + (i + 1) + '</b> · ' + nom + (detail || "") + '</span>'
+    + '<button class="chip" data-fsdel="' + type + ':' + i + '" style="padding:2px 10px; flex-shrink:0;">✕</button>'
+    + '</div>';
+}
+function fsTotalFichiers() {
+  return fsRefImages.length + fsRefVideos.length + fsRefAudios.length;
+}
 function fsMajListe() {
   const l = [];
-  fsRefImages.forEach((x, i) => l.push("🖼️ <b>@Image" + (i + 1) + "</b> · " + x.fichier.name));
-  fsRefVideos.forEach((x, i) => l.push("🎬 <b>@Video" + (i + 1) + "</b> · " + x.fichier.name + " (" + x.duree.toFixed(1) + " s)"));
-  fsRefAudios.forEach((x, i) => l.push("🎵 <b>@Audio" + (i + 1) + "</b> · " + x.fichier.name + (x.duree ? " (" + x.duree.toFixed(1) + " s)" : "")));
+  fsRefImages.forEach((x, i) => l.push(fsLigneFichier("🖼️", "Image", x.fichier.name, "", "img", i)));
+  fsRefVideos.forEach((x, i) => l.push(fsLigneFichier("🎬", "Video", x.fichier.name, " (" + x.duree.toFixed(1) + " s)", "vid", i)));
+  fsRefAudios.forEach((x, i) => l.push(fsLigneFichier("🎵", "Audio", x.fichier.name, x.duree ? " (" + x.duree.toFixed(1) + " s)" : "", "aud", i)));
   // v41.66 : sans @Image1 / @Video1 / @Audio1 écrits DANS le prompt, le moteur
   // ignore purement et simplement les fichiers chargés. Papy l'a demandé :
   // le rappel doit être visible, pas caché dans une aide en petits caractères.
@@ -7782,7 +7795,31 @@ function fsMajListe() {
         + 'Exemple : « @Image1 danse au rythme de @Audio1 ».</span></div>'
       : '<div style="margin-top:10px; color:var(--ok);">✓ Tous tes fichiers sont cités dans le texte.</div>';
   }
-  document.getElementById("fsRefListe").innerHTML = l.join("<br>") + rappel;
+  // Compteurs visibles en permanence : Papy doit savoir où il en est
+  // AVANT d'atteindre une limite et de recevoir un refus.
+  const compteurs = '<div class="hint" style="margin-top:8px;">'
+    + fsTotalFichiers() + " / " + FS_LIMITES.totalFichiers + " fichiers · "
+    + "🖼️ " + fsRefImages.length + "/" + FS_LIMITES.images + " · "
+    + "🎬 " + fsRefVideos.length + "/" + FS_LIMITES.videos + " · "
+    + "🎵 " + fsRefAudios.length + "/" + FS_LIMITES.audios + "</div>";
+  const z = document.getElementById("fsRefListe");
+  z.innerHTML = l.join("") + compteurs + rappel;
+  // Les boutons ✕ sont recréés à chaque rendu : on les recâble ici.
+  z.querySelectorAll("[data-fsdel]").forEach(b => {
+    b.onclick = () => {
+      const [type, i] = b.dataset.fsdel.split(":");
+      const idx = +i;
+      if (type === "img") fsRefImages.splice(idx, 1);
+      else if (type === "vid") fsRefVideos.splice(idx, 1);
+      else if (type === "aud") fsRefAudios.splice(idx, 1);
+      // Sans ce reset, recharger LE MÊME fichier ensuite ne déclenche rien.
+      ["fsRefImgInput", "fsRefVidInput", "fsRefAudInput"].forEach(id => {
+        const c = document.getElementById(id); if (c) c.value = "";
+      });
+      fsMajListe(); fsRefresh();
+      if (typeof fsPortMaj === "function") fsPortMaj();
+    };
+  });
 }
 // Mesure la durée d'un média avant de l'accepter — les plafonds de FAL
 // portent sur des SECONDES CUMULÉES, pas sur le nombre de fichiers.
@@ -8130,7 +8167,8 @@ function fsPortMaj() {
   document.getElementById("fsRefImgBtn").onclick = () => document.getElementById("fsRefImgInput").click();
   document.getElementById("fsRefImgInput").onchange = (e) => {
     const f = e.target.files[0]; if (!f) return;
-    if (fsRefImages.length >= FS_LIMITES.images) { alert(FS_LIMITES.images + " images au maximum."); return; }
+    if (fsRefImages.length >= FS_LIMITES.images) { alert(FS_LIMITES.images + " images au maximum. Retire-en une avec ✕."); return; }
+    if (fsTotalFichiers() >= FS_LIMITES.totalFichiers) { alert(FS_LIMITES.totalFichiers + " fichiers au maximum toutes catégories. Retire-en un avec ✕."); return; }
     if (f.size > FS_LIMITES.imageMo * 1024 * 1024) { alert("Image trop lourde (maximum " + FS_LIMITES.imageMo + " Mo)."); return; }
     fsRefImages.push({ fichier: f }); fsMajListe(); fsRefresh();
     if (typeof fsPortMaj === "function") fsPortMaj();
@@ -8139,7 +8177,8 @@ function fsPortMaj() {
   document.getElementById("fsRefVidBtn").onclick = () => document.getElementById("fsRefVidInput").click();
   document.getElementById("fsRefVidInput").onchange = async (e) => {
     const f = e.target.files[0]; if (!f) return;
-    if (fsRefVideos.length >= FS_LIMITES.videos) { alert(FS_LIMITES.videos + " vidéos au maximum."); return; }
+    if (fsRefVideos.length >= FS_LIMITES.videos) { alert(FS_LIMITES.videos + " vidéos au maximum. Retire-en une avec ✕."); return; }
+    if (fsTotalFichiers() >= FS_LIMITES.totalFichiers) { alert(FS_LIMITES.totalFichiers + " fichiers au maximum toutes catégories. Retire-en un avec ✕."); return; }
     const duree = await fsDureeDe(f, true);
     const total = fsSecondes(fsRefVideos) + duree;
     if (total > FS_LIMITES.videoSMax + 0.5) {
@@ -8152,7 +8191,8 @@ function fsPortMaj() {
   document.getElementById("fsRefAudBtn").onclick = () => document.getElementById("fsRefAudInput").click();
   document.getElementById("fsRefAudInput").onchange = async (e) => {
     const f = e.target.files[0]; if (!f) return;
-    if (fsRefAudios.length >= FS_LIMITES.audios) { alert(FS_LIMITES.audios + " audios au maximum."); return; }
+    if (fsRefAudios.length >= FS_LIMITES.audios) { alert(FS_LIMITES.audios + " audios au maximum. Retire-en un avec ✕."); return; }
+    if (fsTotalFichiers() >= FS_LIMITES.totalFichiers) { alert(FS_LIMITES.totalFichiers + " fichiers au maximum toutes catégories. Retire-en un avec ✕."); return; }
     const duree = await fsDureeDe(f, false);
     const reste = FS_LIMITES.audioSMax - fsSecondes(fsRefAudios);
     // Même service que pour Seedance Runway : on coupe au lieu de refuser.
@@ -8167,6 +8207,42 @@ function fsPortMaj() {
     fsMajListe(); fsRefresh();
     if (typeof fsPortMaj === "function") fsPortMaj();
     e.target.value = "";
+  };
+
+  // v41.82 · RÉINITIALISATION COMPLÈTE
+  // Point vérifié pendant le correctif : on vide bien les VARIABLES, pas
+  // seulement le texte affiché. Un simple innerHTML = "" laisserait les
+  // fichiers en mémoire et ils repartiraient à la génération suivante.
+  document.getElementById("fsNouvelle").onclick = () => {
+    if (fsTotalFichiers() || fsImage || fsImageFin ||
+        (document.getElementById("fsPrompt").value || "").trim()) {
+      if (!confirm("Effacer tous les fichiers, le texte et les réglages ?")) return;
+    }
+    // 1. Mémoire
+    fsRefImages = []; fsRefVideos = []; fsRefAudios = [];
+    fsImage = null; fsImageFin = null;
+    fsRes = "720p"; fsBitrate = "standard";
+    // 2. Champs fichier — sinon recharger le même fichier ne déclenche rien
+    ["fsImgInput", "fsImgFinInput", "fsRefImgInput", "fsRefVidInput", "fsRefAudInput"]
+      .forEach(id => { const c = document.getElementById(id); if (c) c.value = ""; });
+    // 3. Textes et aperçus
+    ["fsPrompt", "fsPortPrompt"].forEach(id => { const c = document.getElementById(id); if (c) c.value = ""; });
+    ["fsImgNom", "fsImgFinNom", "fsRefListe", "fsResult", "fsJournal", "fsStatusText"]
+      .forEach(id => { const c = document.getElementById(id); if (c) c.innerHTML = ""; });
+    const ap = document.getElementById("fsPortApercu");
+    if (ap) { ap.innerHTML = ""; delete ap.dataset.nom; }
+    const vd = document.getElementById("fsPortVide"); if (vd) vd.classList.remove("hidden");
+    const sc = document.getElementById("fsPortScene"); if (sc) sc.classList.remove("rempli");
+    const st = document.getElementById("fsStatus"); if (st) st.classList.remove("on");
+    const fi = document.getElementById("fsFill"); if (fi) fi.style.width = "0%";
+    if (typeof rwRondMontrer === "function") rwRondMontrer("fs", false);
+    // 4. Réglages visuels
+    document.querySelectorAll("#fsResChips .chip").forEach(x => x.classList.toggle("on", x.dataset.fsres === "720p"));
+    document.querySelectorAll("#fsPortResChips .chip").forEach(x => x.classList.toggle("on", x.dataset.fspres === "720p"));
+    document.querySelectorAll("#fsBitrateChips .chip").forEach(x => x.classList.toggle("on", x.dataset.fsbitrate === "standard"));
+    const au = document.getElementById("fsAudio"); if (au) au.checked = true;
+    fsMajListe(); fsRefresh();
+    if (typeof fsPortMaj === "function") fsPortMaj();
   };
 
   document.getElementById("fsGo").onclick = async () => {
