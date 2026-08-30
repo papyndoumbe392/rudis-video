@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.85 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.86 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -942,7 +942,7 @@
       <b style="color:var(--gold)">🔐 ESPACE ADMIN — STUDIO RUDIS</b>
       <div class="hint">PIN administrateur. La session se ferme seule après 25 minutes sans activité.</div>
       <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
-        <input type="password" id="admPinInput" inputmode="numeric" autocomplete="off" placeholder="••••••" style="flex:1; letter-spacing:3px;">
+        <input type="password" id="admPinInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="••••••" style="flex:1; letter-spacing:3px;">
         <button class="chip" id="admVoir" title="Afficher le PIN">👁️</button>
         <button class="chip" id="admEffacerBtn" title="Effacer">✕</button>
       </div>
@@ -1649,7 +1649,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.85</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.86</span>
 
   </footer>
 </div>
@@ -8479,7 +8479,7 @@ function fsPortMaj() {
 
 
 
-// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.85) ═══════════════
+// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.86) ═══════════════
 // Bloc VOLONTAIREMENT sans DOM ni réseau : test-v41.85.js le découpe entre
 // ces deux bornes et l'exécute dans Node pour tester le vrai code, pas une
 // chaîne de caractères. Ne rien ajouter ici qui touche document ou fetch.
