@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.83 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.85 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1008,6 +1008,18 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Photo → vidéo, ou références multiples (9 images, 3 vidéos, 3 audios) désignées dans le texte.</p>
           <div class="admCartePied">4 à 15 s · 480p / 720p · crédits StarClip</div>
         </div>
+        <!-- v41.85 : MONTAGE AUTO. Une photo + une chanson = un premier montage
+             complet, chaque coupe tombant sur un temps fort. Le visage n'est
+             jamais régénéré : il entre comme image de départ sur les plans où
+             on le voit, et le routage refuse tout moteur qui le repeindrait. -->
+        <div class="card admCarte" id="admCarteMontage" style="border-color:#f0abfc;">
+          <div class="admCarteIcone">🎼</div>
+          <h2 style="margin:0; color:#f0abfc;">MONTAGE AUTO</h2>
+          <div class="admCarteSous">UNE PHOTO · UNE CHANSON · UN CLIP</div>
+          <p class="sub" style="margin:10px 0 0;">« Je donne la chanson et une photo, StarClip me sort le premier montage. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Tempo, refrain, découpage sur les temps forts, un texte prêt par plan. Le visage de la photo n'est jamais refabriqué.</p>
+          <div class="admCartePied">Analyse locale · aucun crédit dépensé</div>
+        </div>
         <!-- v41.56 : Multi-Shot Video, /v1/recipes/multi_shot_video du spec
              officiel. Un seul prompt devient une vidéo à 5 plans, ou toi-même
              écris 3 à 5 plans avec leur durée. -->
@@ -1022,6 +1034,85 @@
       </div>
     </div>
 
+
+    <!-- ─────────── PAGE ADMIN 5 · MONTAGE AUTO (v41.85) ─────────── -->
+    <div id="admPageMontage" class="hidden">
+      <h2>🎼 MONTAGE AUTO</h2>
+      <p class="sub">Une chanson, une photo, et StarClip propose le montage entier : tempo, refrain, coupes sur les temps forts, un texte prêt par plan. Tout est calculé dans le navigateur — aucun crédit n'est dépensé tant que tu n'envoies pas un plan au moteur.</p>
+
+      <div class="falGrille">
+        <div class="falPanneau">
+          <div class="falTitre">① La chanson</div>
+          <div class="falChamp">
+            <button class="btn" id="mtAudBtn">🎵 Choisir la chanson</button>
+            <input type="file" id="mtAudInput" accept="audio/*" style="display:none;">
+            <div class="hint" id="mtAudNom">Aucun fichier.</div>
+          </div>
+          <button class="master" id="mtAnalyser" disabled style="margin-top:6px;">Analyser la chanson</button>
+          <div class="estimate" id="mtAnalyseEtat"></div>
+          <div id="mtAnalyseRes" class="hidden" style="margin-top:12px; border:1px solid var(--gold); border-radius:10px; padding:10px 12px;">
+            <div id="mtBpm" style="font-weight:800; color:var(--gold);"></div>
+            <div class="hint" id="mtBpmNote"></div>
+            <div class="hint" id="mtRefrain" style="margin-top:6px;"></div>
+            <div class="hint" id="mtSections" style="margin-top:6px;"></div>
+          </div>
+
+          <div class="falTitre" style="margin-top:16px;">② Le visage</div>
+          <div class="falChamp">
+            <button class="btn" id="mtPhotoBtn">🖼️ Choisir la photo</button>
+            <input type="file" id="mtPhotoInput" accept="image/*" style="display:none;">
+            <div class="hint" id="mtPhotoNom">Aucun fichier.</div>
+            <div class="hint" style="margin-top:6px; color:var(--ok);">✓ Cette photo sert d'image de DÉPART sur tous les plans où le visage se voit. Le moteur part d'elle : il ne redessine pas le visage.</div>
+          </div>
+
+          <div class="falTitre" style="margin-top:16px;">③ Le clip</div>
+          <div class="falChamp">
+            <div class="falNom">Tenue <span class="falType">décrite par les vêtements et les couleurs, jamais par un nom</span></div>
+            <input type="text" id="mtTenue" placeholder="a man in a white linen shirt and black trousers">
+          </div>
+          <div class="falChamp">
+            <div class="falNom">Décors <span class="falType">un par ligne, en anglais</span></div>
+            <textarea id="mtDecors" rows="3" placeholder="an empty rooftop terrace at golden hour, city skyline behind&#10;a dark parking level, wet concrete, single overhead light"></textarea>
+          </div>
+          <div class="falChamp">
+            <div class="falNom">Actions <span class="falType">un par ligne, en anglais</span></div>
+            <textarea id="mtActions" rows="3" placeholder="the subject walks forward and turns toward the camera&#10;the subject leans on a concrete pillar and looks down"></textarea>
+          </div>
+          <div class="falChamp">
+            <div class="falNom">Noms à interdire <span class="falType">séparés par des virgules</span></div>
+            <input type="text" id="mtNoms" placeholder="prénom du client, nom de scène">
+            <div class="hint">Aucun texte ne partira au moteur s'il contient l'un de ces mots.</div>
+          </div>
+          <div class="falChamp">
+            <div class="falNom">Étendue</div>
+            <div class="chips" id="mtFenetreChips">
+              <button class="chip on" data-mtfen="tout">Toute la chanson</button>
+              <button class="chip" data-mtfen="refrain">Le refrain seul</button>
+            </div>
+            <div class="hint">Durée du refrain <input type="number" id="mtFenSec" value="20" min="5" max="60" style="width:70px; display:inline-block;"> s</div>
+          </div>
+          <div class="falChamp">
+            <div class="falNom">Longueur des plans</div>
+            <div class="hint">de <input type="number" id="mtPlanMin" value="2" min="1" max="10" style="width:60px; display:inline-block;"> s à <input type="number" id="mtPlanMax" value="8" min="2" max="20" style="width:60px; display:inline-block;"> s · le refrain est coupé plus court que le couplet.</div>
+          </div>
+          <button class="master" id="mtConstruire" disabled style="margin-top:10px;">Construire le montage</button>
+          <div class="estimate" id="mtConstruireEtat"></div>
+        </div>
+
+        <div class="falPanneau">
+          <div class="falTitre">Le montage proposé</div>
+          <div class="hint" id="mtPlanVide">Analyse la chanson et choisis la photo, puis touche « Construire le montage ».</div>
+          <div id="mtPlan"></div>
+          <div class="chips hidden" id="mtPlanActions" style="margin-top:12px;">
+            <button class="chip" id="mtCopier">📋 Copier tous les textes</button>
+            <button class="chip" id="mtCsv">📄 Exporter le minutage (CSV)</button>
+          </div>
+          <div class="hint" id="mtPlanNote" style="margin-top:10px;"></div>
+          <div class="falTitre" style="margin-top:16px;">Journal</div>
+          <pre id="mtJournal" style="max-height:220px; overflow:auto; font-size:11px; white-space:pre-wrap;"></pre>
+        </div>
+      </div>
+    </div>
 
     <!-- ─────────── PAGE ADMIN 4 · MULTI-SHOT VIDEO ─────────── -->
     <div id="admPageMulti" class="hidden">
@@ -1208,7 +1299,8 @@
             <div id="fsRefListe" class="falAide" style="margin-top:8px;"></div>
             <div class="falAide">9 images (30 Mo pièce) · 3 vidéos (2 à 15 s cumulées, 50 Mo) · <b>3 audios : TA MUSIQUE</b> (MP3 ou WAV, 15 s cumulées).
             12 fichiers au total. Un audio seul n\'est pas accepté : il faut au moins une image ou une vidéo.<br>
-            <b style="color:var(--gold)">Ta chanson</b> : charge-la ici, puis écris <b>@Audio1</b> dans ton texte pour que le moteur la suive.</div>
+            <b style="color:var(--gold)">Ta chanson</b> : charge-la ici, puis écris <b>@Audio1</b> dans ton texte pour que le moteur la suive.<br>
+            <b style="color:var(--ok)">✓ Méthode recommandée</b> — quand tu cites @Audio1, le moteur <b>synchronise les lèvres tout seul</b> : plus besoin de passer par l'outil Sync ensuite. Laisse « Générer l'audio » décoché, ta chanson suffit.</div>
           </div>
 
           <div class="falChamp">
@@ -1557,7 +1649,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.83</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.85</span>
 
   </footer>
 </div>
@@ -6636,6 +6728,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteSeed").onclick  = () => admVue("seed");
   document.getElementById("admCarteFal").onclick   = () => admVue("fal");
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
+  document.getElementById("admCarteMontage").onclick = () => admVue("montage");
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -6653,12 +6746,14 @@ function admVue(quoi) {
   const ps = document.getElementById("admPageSeed");
   const pf = document.getElementById("admPageFal");
   const pm = document.getElementById("admPageMulti");
+  const pmo = document.getElementById("admPageMontage");
   const ret = document.getElementById("admRetour");
   ch.classList.toggle("hidden", quoi !== "choix");
   pa.classList.toggle("hidden", quoi !== "aleph");
   ps.classList.toggle("hidden", quoi !== "seed");
   if (pf) pf.classList.toggle("hidden", quoi !== "fal");
   if (pm) pm.classList.toggle("hidden", quoi !== "multi");
+  if (pmo) pmo.classList.toggle("hidden", quoi !== "montage");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
   document.getElementById("adminZone").scrollTop = 0;
@@ -7901,6 +7996,10 @@ async function fsPoll(url) {
 // larges tout seul. On garde donc la formulation d'origine, éprouvée.
 // Mode d'emploi : charger le décor en image, l'extrait en vidéo, puis coller.
 const FS_EXEMPLES = [
+  { label: "🎤 Chanter avec MA chanson (lèvres synchronisées)", texte:
+    "@Image1 sings into the camera, singing in rhythm with @Audio1, mouth moving naturally with the lyrics, expressive confident face, subtle body movements to the beat. Same setting and lighting as the reference image. Smooth cinematic camera slowly pushing in." },
+  { label: "💃 Danser sur MA chanson", texte:
+    "The people in @Image1 dance to the rhythm of @Audio1, natural body and hip movements, hands following the beat. Same setting, same lighting, same clothes. Smooth cinematic camera slowly moving through the scene." },
   { label: "⭐ Scène de concert (le meilleur)", texte: "Replace the ENTIRE original environment in every frame with the provided concert stage. ALL performers must stand ON TOP OF the main stage floor, never below the stage, never in front of the podium, never among the audience. Extend the stage floor under every dancer and singer with correct perspective and contact shadows. Completely remove the original street, walls, pavement and any vehicle in EVERY frame. They must NEVER reappear, even during camera cuts. Preserve the singers and all dancers exactly: faces, clothes, bodies, choreography, timing and camera cuts. Maintain ONE continuous concert venue across the whole video. Reconstruct each camera angle inside the same concert stage. Audience stays only beyond the front edge of the stage. No vehicles. No original background. No street. No old location. No performers below stage level. Background replacement only, realistic concert lighting." },
   { label: "🎤 Scène de concert (v1)", texte:
     "Replace the entire environment in every frame with a concert stage at night: raised stage platform with a visible front edge, LED screens behind, colored spotlights, crowd BELOW the stage level. Same venue for the whole clip, including close-ups and camera cuts. "
@@ -8379,6 +8478,720 @@ function fsPortMaj() {
 })();
 
 
+
+// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.85) ═══════════════
+// Bloc VOLONTAIREMENT sans DOM ni réseau : test-v41.85.js le découpe entre
+// ces deux bornes et l'exécute dans Node pour tester le vrai code, pas une
+// chaîne de caractères. Ne rien ajouter ici qui touche document ou fetch.
+// ══════════════════════════════════════════════════════════════════════
+
+// ——— FFT radix-2, longueur puissance de deux ———
+function mtFft(re, im) {
+  const n = re.length;
+  if (n < 2 || (n & (n - 1)) !== 0) throw new Error("mtFft : longueur non puissance de 2");
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang), half = len >> 1;
+    for (let i = 0; i < n; i += len) {
+      let cwr = 1, cwi = 0;
+      for (let k = 0; k < half; k++) {
+        const ur = re[i + k], ui = im[i + k];
+        const xr = re[i + k + half], xi = im[i + k + half];
+        const vr = xr * cwr - xi * cwi, vi = xr * cwi + xi * cwr;
+        re[i + k] = ur + vr; im[i + k] = ui + vi;
+        re[i + k + half] = ur - vr; im[i + k + half] = ui - vi;
+        const nwr = cwr * wr - cwi * wi; cwi = cwr * wi + cwi * wr; cwr = nwr;
+      }
+    }
+  }
+}
+function mtSpectre(trame) {
+  const n = trame.length, re = new Float64Array(n), im = new Float64Array(n);
+  for (let i = 0; i < n; i++) re[i] = trame[i];
+  mtFft(re, im);
+  const out = new Float64Array(n / 2 + 1);
+  for (let i = 0; i < out.length; i++) out[i] = Math.hypot(re[i], im[i]);
+  return out;
+}
+function mtHann(n) {
+  const w = new Float64Array(n);
+  for (let i = 0; i < n; i++) w[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (n - 1)));
+  return w;
+}
+function mtLisser(v, largeur) {
+  const n = v.length, out = new Float64Array(n);
+  if (!n) return out;
+  const w = Math.max(1, Math.floor(largeur) | 1), demi = (w - 1) / 2;
+  const p = new Float64Array(n + 1);
+  for (let i = 0; i < n; i++) p[i + 1] = p[i] + v[i];
+  for (let i = 0; i < n; i++) {
+    const a = Math.max(0, i - demi), b = Math.min(n - 1, i + demi);
+    out[i] = (p[b + 1] - p[a]) / (b - a + 1);
+  }
+  return out;
+}
+function mtNormaliser(v) {
+  const out = new Float64Array(v.length);
+  let max = 0;
+  for (let i = 0; i < v.length; i++) if (v[i] > max) max = v[i];
+  if (max <= 0) return out;
+  for (let i = 0; i < v.length; i++) out[i] = v[i] / max;
+  return out;
+}
+
+// ——— Traits par trame : énergie, part de la bande voix, tonalité, flux ———
+// La bande 200-4000 Hz porte le fondamental et les premiers formants d'une
+// voix chantée. La « tonalité » vaut 1 moins la platitude spectrale : une note
+// tenue est pointue, une caisse claire est plate. C'est ce qui distingue un
+// refrain chanté d'un drop instrumental plus fort.
+const MT_TRAME = 2048, MT_SAUT = 1024, MT_VOIX_BAS = 200, MT_VOIX_HAUT = 4000;
+function mtTraits(ech, sr) {
+  if (!(sr > 0)) throw new Error("mtTraits : fréquence d'échantillonnage invalide");
+  if (ech.length < MT_TRAME) return { n: 0, tps: [], energie: [], voix: [], tonal: [], flux: [], fps: sr / MT_SAUT };
+  const w = mtHann(MT_TRAME);
+  const n = 1 + Math.floor((ech.length - MT_TRAME) / MT_SAUT);
+  const hz = sr / MT_TRAME;
+  const bas = Math.max(1, Math.floor(MT_VOIX_BAS / hz));
+  const haut = Math.min(MT_TRAME / 2, Math.ceil(MT_VOIX_HAUT / hz));
+  const tps = new Float64Array(n), energie = new Float64Array(n);
+  const voix = new Float64Array(n), tonal = new Float64Array(n), flux = new Float64Array(n);
+  const buf = new Float64Array(MT_TRAME);
+  let prec = null;
+  for (let f = 0; f < n; f++) {
+    const o = f * MT_SAUT;
+    let rms = 0;
+    for (let i = 0; i < MT_TRAME; i++) { const s = ech[o + i]; rms += s * s; buf[i] = s * w[i]; }
+    energie[f] = Math.sqrt(rms / MT_TRAME);
+    tps[f] = o / sr;
+    const mag = mtSpectre(buf);
+    let bande = 0, total = 0;
+    for (let i = 1; i < mag.length; i++) { total += mag[i]; if (i >= bas && i <= haut) bande += mag[i]; }
+    voix[f] = total > 0 ? bande / total : 0;
+    let lg = 0, som = 0, cpt = 0;
+    for (let i = bas; i <= haut; i++) { lg += Math.log(mag[i] + 1e-12); som += mag[i]; cpt++; }
+    const gm = cpt ? Math.exp(lg / cpt) : 0, am = cpt ? som / cpt : 0;
+    tonal[f] = am > 0 ? 1 - gm / am : 0;
+    if (prec) { let d = 0; for (let i = bas; i <= haut; i++) { const x = mag[i] - prec[i]; if (x > 0) d += x; } flux[f] = d; }
+    prec = mag;
+  }
+  return { n, tps, energie, voix, tonal, flux, fps: sr / MT_SAUT };
+}
+function mtChant(tr) {
+  const e = mtNormaliser(tr.energie), out = new Float64Array(tr.n);
+  for (let i = 0; i < tr.n; i++) out[i] = e[i] * tr.voix[i] * tr.tonal[i];
+  return out;
+}
+
+// ——— Le passage le plus chanté (le refrain, pas l'intro) ———
+function mtRefrain(ech, sr, opt) {
+  opt = Object.assign({ duree: 20, sautIntro: 0.08, sautFin: 0.03, lissage: 1, caler: true, fenetreCalage: 1.2 }, opt || {});
+  if (!(sr > 0)) throw new Error("mtRefrain : fréquence invalide");
+  if (!(opt.duree > 0)) throw new Error("mtRefrain : durée invalide");
+  const total = ech.length / sr;
+  if (total <= opt.duree) return { debut: 0, fin: total, duree: total, score: 0, sur: 0, total: total, repli: true, courbe: [], fps: 0 };
+  const tr = mtTraits(ech, sr);
+  if (tr.n === 0) return { debut: 0, fin: opt.duree, duree: opt.duree, score: 0, sur: 0, total: total, repli: true, courbe: [], fps: 0 };
+  const fps = tr.fps;
+  const courbe = mtLisser(mtChant(tr), Math.max(1, Math.round(opt.lissage * fps)));
+  const larg = Math.max(1, Math.round(opt.duree * fps)), n = courbe.length;
+  const p = new Float64Array(n + 1);
+  for (let i = 0; i < n; i++) p[i + 1] = p[i] + courbe[i];
+  let prem = Math.round(opt.sautIntro * n);
+  let dern = n - larg - Math.round(opt.sautFin * n);
+  if (dern < prem) { prem = 0; dern = Math.max(0, n - larg); }
+  let meilleur = prem, score = -Infinity;
+  const tous = [];
+  for (let i = prem; i <= dern; i++) {
+    const v = (p[i + larg] - p[i]) / larg;
+    tous.push(v);
+    if (v > score) { score = v; meilleur = i; }
+  }
+  const tri = tous.slice().sort((a, b) => a - b);
+  const med = tri.length ? tri[tri.length >> 1] : 0;
+  const sur = score > 0 ? Math.min(1, Math.max(0, (score - med) / score)) : 0;
+  let trame = meilleur;
+  if (opt.caler) {
+    const span = Math.round(opt.fenetreCalage * fps);
+    const de = Math.max(prem, trame - span), a = Math.min(n - 1, trame + span);
+    let mf = -Infinity;
+    for (let i = de; i <= a; i++) if (tr.flux[i] > mf) { mf = tr.flux[i]; trame = i; }
+  }
+  let debut = Math.max(0, Math.min(trame / fps, total - opt.duree));
+  return { debut: debut, fin: debut + opt.duree, duree: opt.duree, score: score, sur: sur, total: total, repli: false, courbe: courbe, fps: fps };
+}
+
+// ——— Tempo, temps et mesures ———
+// L'a priori log-normal autour de 120 empêche qu'une chanson à 90 revienne
+// à 180 : l'autocorrélation, seule, confond une mesure avec sa moitié.
+const MT_FPS_CIBLE = 172, MT_BPM_MIN = 60, MT_BPM_MAX = 200, MT_BPM_TYPE = 120, MT_BPM_LARG = 0.9;
+function mtEnveloppe(ech, sr) {
+  let taille = 1; while (taille < Math.round(sr * 0.046)) taille <<= 1;
+  const saut = Math.max(1, Math.round(sr / MT_FPS_CIBLE));
+  const fps = sr / saut, decalage = taille / 2 / sr;
+  if (ech.length < taille) return { env: new Float64Array(0), fps: fps, decalage: decalage };
+  const w = mtHann(taille), n = 1 + Math.floor((ech.length - taille) / saut);
+  const brut = new Float64Array(n), buf = new Float64Array(taille);
+  let prec = null;
+  for (let f = 0; f < n; f++) {
+    const o = f * saut;
+    for (let i = 0; i < taille; i++) buf[i] = ech[o + i] * w[i];
+    const mag = mtSpectre(buf);
+    for (let i = 0; i < mag.length; i++) mag[i] = Math.log(1 + mag[i]);
+    if (prec) { let d = 0; for (let i = 1; i < mag.length; i++) { const x = mag[i] - prec[i]; if (x > 0) d += x; } brut[f] = d; }
+    prec = mag;
+  }
+  // Un fond sonore continu crée un plancher permanent ; on le retire pour que
+  // les attaques ressortent seules.
+  const sol = mtLisser(brut, Math.max(3, Math.round(0.4 * fps)));
+  const env = new Float64Array(n);
+  for (let i = 0; i < n; i++) { const v = brut[i] - sol[i]; env[i] = v > 0 ? v : 0; }
+  return { env: env, fps: fps, decalage: decalage };
+}
+function mtTempo(env, fps) {
+  if (!env.length) return { bpm: 0, pas: 0, sur: 0 };
+  const pasMin = Math.max(2, Math.floor(60 / MT_BPM_MAX * fps));
+  const pasMax = Math.min(env.length - 2, Math.ceil(60 / MT_BPM_MIN * fps));
+  if (pasMax <= pasMin) return { bpm: 0, pas: 0, sur: 0 };
+  const scores = [];
+  let best = { pas: pasMin, score: -Infinity, brut: 0 };
+  for (let pas = pasMin; pas <= pasMax; pas++) {
+    let s = 0;
+    for (let i = pas; i < env.length; i++) s += env[i] * env[i - pas];
+    const brut = s / Math.max(1, env.length - pas);
+    const bpm = 60 * fps / pas;
+    const oct = Math.log2(bpm / MT_BPM_TYPE);
+    const score = brut * Math.exp(-0.5 * Math.pow(oct / MT_BPM_LARG, 2));
+    scores.push(score);
+    if (score > best.score) best = { pas: pas, score: score, brut: brut };
+  }
+  if (!(best.brut > 0)) return { bpm: 0, pas: 0, sur: 0 };
+  const i = best.pas - pasMin;
+  let pas = best.pas;
+  if (i > 0 && i < scores.length - 1) {
+    const a = scores[i - 1], b = scores[i], c = scores[i + 1], den = a - 2 * b + c;
+    if (den !== 0) { const d = 0.5 * (a - c) / den; if (Math.abs(d) < 1) pas = best.pas + d; }
+  }
+  const moy = scores.reduce((x, y) => x + y, 0) / scores.length;
+  return { bpm: 60 * fps / pas, pas: pas, sur: best.score > 0 ? Math.min(1, Math.max(0, (best.score - moy) / best.score)) : 0 };
+}
+function mtPhase(env, pas) {
+  const per = Math.max(1, Math.round(pas));
+  let best = 0, som = -Infinity;
+  for (let d = 0; d < per; d++) {
+    let s = 0;
+    for (let i = d; i < env.length; i += per) s += env[i];
+    if (s > som) { som = s; best = d; }
+  }
+  return best;
+}
+const MT_TEMPS_MESURE = 4;
+function mtGrille(ech, sr) {
+  const e = mtEnveloppe(ech, sr);
+  const t = mtTempo(e.env, e.fps);
+  if (!(t.bpm > 0)) return { bpm: 0, pasS: 0, temps: [], mesures: [], parMesure: MT_TEMPS_MESURE, sur: 0, premier: 0 };
+  const dec = mtPhase(e.env, t.pas);
+  const pasS = 60 / t.bpm, duree = ech.length / sr;
+  const premier = dec / e.fps + e.decalage;
+  const temps = [];
+  for (let x = premier; x <= duree + 1e-9; x += pasS) temps.push(x);
+  let phase = 0, best = -Infinity;
+  for (let ph = 0; ph < MT_TEMPS_MESURE; ph++) {
+    let s = 0;
+    for (let b = ph; b < temps.length; b += MT_TEMPS_MESURE) {
+      const f = Math.round((temps[b] - e.decalage) * e.fps);
+      if (f >= 0 && f < e.env.length) s += e.env[f];
+    }
+    if (s > best) { best = s; phase = ph; }
+  }
+  const mesures = [];
+  for (let b = phase; b < temps.length; b += MT_TEMPS_MESURE) mesures.push(temps[b]);
+  return { bpm: t.bpm, pasS: pasS, temps: temps, mesures: mesures, parMesure: MT_TEMPS_MESURE, sur: t.sur, premier: phase };
+}
+
+// ——— Découpage en sections (intro / couplet / refrain) ———
+function mtNouveaute(tr, fps, contexte) {
+  const n = tr.n, w = Math.max(1, Math.round(contexte * fps)), out = new Float64Array(n);
+  if (!n) return out;
+  const dims = [mtNormaliser(tr.energie), tr.voix, tr.tonal];
+  const pre = dims.map(d => { const p = new Float64Array(n + 1); for (let i = 0; i < n; i++) p[i + 1] = p[i] + d[i]; return p; });
+  const moy = (p, a, b) => b <= a ? 0 : (p[b] - p[a]) / (b - a);
+  for (let i = 0; i < n; i++) {
+    const a0 = Math.max(0, i - w), b1 = Math.min(n, i + w);
+    let d = 0;
+    for (let k = 0; k < dims.length; k++) { const g = moy(pre[k], a0, i), dr = moy(pre[k], i, b1); d += (g - dr) * (g - dr); }
+    out[i] = Math.sqrt(d);
+  }
+  return out;
+}
+// distMin s'applique AUSSI aux deux bouts du morceau : un sommet à 6 s du
+// début découperait une section de 6 s alors qu'on en a demandé 10 minimum.
+function mtSommets(courbe, distMin) {
+  let moy = 0;
+  for (let i = 0; i < courbe.length; i++) moy += courbe[i];
+  moy /= Math.max(1, courbe.length);
+  let et = 0;
+  for (let i = 0; i < courbe.length; i++) et += (courbe[i] - moy) * (courbe[i] - moy);
+  et = Math.sqrt(et / Math.max(1, courbe.length));
+  const seuil = moy + 0.5 * et, cands = [];
+  for (let i = 1; i < courbe.length - 1; i++)
+    if (i >= distMin && i <= courbe.length - distMin
+      && courbe[i] >= courbe[i - 1] && courbe[i] > courbe[i + 1] && courbe[i] > seuil) cands.push(i);
+  cands.sort((a, b) => courbe[b] - courbe[a]);
+  const gardes = [];
+  for (const i of cands) if (gardes.every(p => Math.abs(p - i) >= distMin)) gardes.push(i);
+  return gardes.sort((a, b) => a - b);
+}
+const MT_SECTION_MIN = 6, MT_REFRAIN_SEUIL = 1.15, MT_COUPLET_SEUIL = 0.45;
+function mtSections(ech, sr, opt) {
+  opt = Object.assign({ sectionMin: MT_SECTION_MIN, contexte: 2.5 }, opt || {});
+  const tr = mtTraits(ech, sr), duree = ech.length / sr;
+  if (tr.n === 0) return [{ debut: 0, fin: duree, duree: duree, nom: "instrumental", chant: 0 }];
+  const fps = tr.fps;
+  const chant = mtLisser(mtChant(tr), Math.max(1, Math.round(fps)));
+  const nouv = mtLisser(mtNouveaute(tr, fps, opt.contexte), Math.max(1, Math.round(0.5 * fps)));
+  const bornes = [0].concat(mtSommets(nouv, Math.max(1, Math.round(opt.sectionMin * fps))), [tr.n]);
+  let global = 0;
+  for (let i = 0; i < chant.length; i++) global += chant[i];
+  global /= Math.max(1, chant.length);
+  const out = [];
+  for (let s = 0; s < bornes.length - 1; s++) {
+    const a = bornes[s], b = bornes[s + 1];
+    if (b <= a) continue;
+    let som = 0;
+    for (let i = a; i < b; i++) som += chant[i];
+    const moy = som / (b - a), r = global > 0 ? moy / global : 0;
+    const nom = r >= MT_REFRAIN_SEUIL ? "refrain" : r >= MT_COUPLET_SEUIL ? "couplet" : "instrumental";
+    const debut = a / fps, fin = (s === bornes.length - 2) ? duree : b / fps;
+    out.push({ debut: debut, fin: fin, duree: fin - debut, nom: nom, chant: moy });
+  }
+  return out;
+}
+function mtSectionA(sections, t) {
+  for (const s of sections) if (t >= s.debut && t < s.fin) return s;
+  return sections.length ? sections[sections.length - 1] : null;
+}
+
+// ——— Le montage : chaque coupe tombe sur un premier temps ———
+const MT_MESURES_PAR_PLAN = { refrain: 1, couplet: 2, instrumental: 2, defaut: 2 };
+function mtMontage(cfg) {
+  const grille = cfg.grille, sections = cfg.sections || [];
+  const debut = cfg.debut || 0, fin = cfg.fin;
+  const parPlan = cfg.mesuresParPlan || MT_MESURES_PAR_PLAN;
+  const planMin = cfg.planMin || 1.5, planMax = cfg.planMax || 8;
+  if (!grille) throw new Error("mtMontage : grille absente");
+  if (!(fin > debut)) throw new Error("mtMontage : fenêtre invalide");
+  const longMesure = grille.pasS * grille.parMesure;
+  const mes = (grille.mesures || []).filter(t => t >= debut - 1e-9 && t <= fin + 1e-9);
+  // Pas de grille exploitable (silence, tempo libre) : on coupe régulièrement
+  // plutôt que de ne rien produire.
+  if (!(longMesure > 0) || mes.length < 2) {
+    const cible = Math.min(planMax, Math.max(planMin, 4));
+    const nb = Math.max(1, Math.round((fin - debut) / cible)), pas = (fin - debut) / nb, out = [];
+    for (let i = 0; i < nb; i++) {
+      const a = debut + i * pas, b = (i === nb - 1) ? fin : a + pas;
+      out.push({ i: i, debut: a, fin: b, duree: b - a, section: (mtSectionA(sections, a) || {}).nom || "inconnu", mesures: 0, surTemps: false });
+    }
+    return out;
+  }
+  const out = [];
+  let c = 0, i = 0;
+  while (c < mes.length - 1) {
+    const a = mes[c];
+    const nom = (mtSectionA(sections, a) || {}).nom || "inconnu";
+    let n = Math.max(1, Math.round(parPlan[nom] != null ? parPlan[nom] : (parPlan.defaut != null ? parPlan.defaut : 2)));
+    while (n * longMesure < planMin && c + n < mes.length - 1) n++;
+    while (n > 1 && n * longMesure > planMax) n--;
+    let suivant = Math.min(c + n, mes.length - 1);
+    let b = mes[suivant];
+    if (fin - b < planMin) { suivant = mes.length - 1; b = fin; }
+    out.push({ i: i, debut: a, fin: b, duree: b - a, section: nom, mesures: Math.round((b - a) / longMesure), surTemps: true });
+    i++; c = suivant;
+    if (b >= fin - 1e-9) break;
+  }
+  if (!out.length) {
+    out.push({ i: 0, debut: debut, fin: fin, duree: fin - debut, section: (mtSectionA(sections, debut) || {}).nom || "inconnu", mesures: 0, surTemps: false });
+  } else {
+    const d = out[out.length - 1];
+    d.fin = fin; d.duree = fin - d.debut;
+  }
+  return out;
+}
+
+// ——— Routage : quel moteur pour quel plan, sans jamais refabriquer le visage
+// Rien ici ne nomme un fournisseur. « imageA » et « refA » sont les deux
+// portes du Moteur A ; « aleph » et « texteA » repeignent ou inventent un
+// visage et sont donc interdits dès qu'on le voit.
+const MT_MOTEURS = { imageA: "moteurA.image", refA: "moteurA.references", texteA: "moteurA.texte", aleph: "studio.aleph" };
+const MT_REPEINT = [MT_MOTEURS.texteA, MT_MOTEURS.aleph];
+const MT_CADRES = { serre: "gros plan", moyen: "plan moyen", large: "plan large", coupe: "plan de coupe" };
+function mtCadrage(plan, pos, opt) {
+  if (pos > 0 && pos % opt.coupeTous === 0) return MT_CADRES.coupe;
+  if (plan.section === "instrumental") return MT_CADRES.coupe;
+  if (plan.section === "refrain") return pos % 2 === 0 ? MT_CADRES.serre : MT_CADRES.moyen;
+  if (pos % opt.largeTous === 0) return MT_CADRES.large;
+  return MT_CADRES.moyen;
+}
+function mtRouter(plans, opt) {
+  opt = Object.assign({ refPhoto: "@Image1", refAudio: "@Audio1", coupeTous: 4, largeTous: 3, videoSource: false, refsDecor: [] }, opt || {});
+  // Object.assign écrase un défaut par une clé présente mais indéfinie :
+  // l'appelant qui transmet { refsDecor: undefined } doit retomber sur [].
+  if (!opt.refsDecor) opt.refsDecor = [];
+  return plans.map((plan, pos) => {
+    const cadre = plan.cadre || mtCadrage(plan, pos, opt);
+    const visage = cadre !== MT_CADRES.coupe;
+    let moteur, refs, source;
+    if (!visage) {
+      const d = opt.refsDecor.length ? opt.refsDecor[pos % opt.refsDecor.length] : null;
+      moteur = d ? MT_MOTEURS.imageA : MT_MOTEURS.texteA;
+      refs = d ? [d] : [];
+      source = null;
+    } else if (opt.videoSource && cadre === MT_CADRES.serre) {
+      moteur = MT_MOTEURS.aleph; refs = [opt.refVideo || "@Video1"]; source = opt.refVideo || "@Video1";
+    } else if (cadre === MT_CADRES.large) {
+      moteur = MT_MOTEURS.refA; refs = [opt.refPhoto, opt.refAudio]; source = opt.refPhoto;
+    } else {
+      moteur = MT_MOTEURS.imageA; refs = [opt.refPhoto]; source = opt.refPhoto;
+    }
+    if (opt.moteurForce && opt.moteurForce[cadre]) moteur = opt.moteurForce[cadre];
+    const lipsync = cadre === MT_CADRES.serre || cadre === MT_CADRES.moyen;
+    if (lipsync && refs.indexOf(opt.refAudio) === -1) refs = refs.concat([opt.refAudio]);
+    return Object.assign({}, plan, { cadre: cadre, visage: visage, moteur: moteur, source: source, refs: refs, lipsync: lipsync });
+  });
+}
+// Refuse tout plan où le visage se voit et où le moteur pourrait le refabriquer.
+function mtVerifVisage(plans, opt) {
+  const videoSource = !!(opt && opt.videoSource);
+  const fautes = [];
+  for (const p of plans) {
+    if (!p.visage) continue;
+    if (!p.source) { fautes.push({ i: p.i, motif: "visage visible sans image de départ" }); continue; }
+    if (MT_REPEINT.indexOf(p.moteur) !== -1 && !(videoSource && p.moteur === MT_MOTEURS.aleph))
+      fautes.push({ i: p.i, motif: "le moteur " + p.moteur + " refabriquerait le visage sur un " + p.cadre });
+    if (!p.refs || p.refs.indexOf(p.source) === -1)
+      fautes.push({ i: p.i, motif: "l'image de départ n'est pas citée dans le texte" });
+  }
+  return { ok: fautes.length === 0, fautes: fautes };
+}
+
+// ——— Le texte de chaque plan ———
+// Structure imposée : arrivée → scène → action, tout en anglais, aucune
+// formule de préservation du visage (elles font justement dériver le visage).
+const MT_INTERDITS = [
+  "preserve his face", "preserve her face", "preserve the face", "keep his face",
+  "keep her face", "keep the same face", "same face", "identical face",
+  "do not change the face", "maintain facial identity", "facial identity", "exact likeness"
+];
+const MT_LIMITE = { "studio.aleph": 1000, defaut: 2000 };
+const MT_CAMERAS = ["slow dolly in", "slow lateral tracking shot", "slow crane rise", "handheld slow push in", "slow arc around the subject"];
+function mtTexte(plan) {
+  if (!plan.tenue) throw new Error("mtTexte : tenue absente");
+  if (!plan.decor) throw new Error("mtTexte : décor absent");
+  if (!plan.action) throw new Error("mtTexte : action absente");
+  const bouts = [];
+  bouts.push("Arrival: " + plan.tenue + " enters the frame.");
+  bouts.push("Scene: " + plan.decor + ".");
+  bouts.push("Action: " + plan.action + ".");
+  if (plan.camera) bouts.push("Camera: " + plan.camera + ".");
+  if (plan.refs && plan.refs.length) bouts.push("Use " + plan.refs.join(" and ") + " as reference.");
+  return bouts.join(" ");
+}
+function mtVerifTexte(texte, opt) {
+  opt = opt || {};
+  const limite = MT_LIMITE[opt.moteur] != null ? MT_LIMITE[opt.moteur] : MT_LIMITE.defaut;
+  const noms = opt.noms || [], refs = opt.refs || [], fautes = [];
+  if (typeof texte !== "string" || !texte.trim()) return { ok: false, fautes: ["texte vide"], taille: 0, limite: limite };
+  const bas = texte.toLowerCase();
+  if (texte.length > limite) fautes.push("texte de " + texte.length + " signes, la limite de " + opt.moteur + " est " + limite);
+  for (const f of MT_INTERDITS) if (bas.indexOf(f) !== -1) fautes.push("formule de préservation du visage : « " + f + " »");
+  for (const nom of noms) { const n = String(nom).toLowerCase().trim(); if (n && bas.indexOf(n) !== -1) fautes.push("nom propre : « " + nom + " »"); }
+  for (const r of refs) if (texte.indexOf(r) === -1) fautes.push("référence non citée : " + r);
+  for (const m of [" le ", " la ", " les ", " dans ", " avec ", " une ", " des "]) if (bas.indexOf(m) !== -1) { fautes.push("le texte ne semble pas être en anglais"); break; }
+  return { ok: fautes.length === 0, fautes: fautes, taille: texte.length, limite: limite };
+}
+function mtHabiller(plans, opt) {
+  const decors = (opt.decors && opt.decors.length) ? opt.decors : ["an empty rooftop terrace at golden hour, city skyline behind"];
+  const actions = (opt.actions && opt.actions.length) ? opt.actions : ["the subject moves slowly and looks off camera"];
+  if (!opt.tenue) throw new Error("mtHabiller : tenue absente");
+  return plans.map((p, i) => {
+    const q = Object.assign({}, p, {
+      tenue: p.visage ? opt.tenue : "no person in frame",
+      decor: decors[i % decors.length],
+      action: p.visage ? actions[i % actions.length] : "the camera drifts across the empty space",
+      camera: p.cadre === MT_CADRES.large ? "slow crane rise" : MT_CAMERAS[i % MT_CAMERAS.length],
+    });
+    q.texte = mtTexte(q);
+    q.verif = mtVerifTexte(q.texte, { moteur: q.moteur, noms: opt.noms, refs: q.refs });
+    return q;
+  });
+}
+
+// ——— Assemblage complet, du fichier décodé au montage prêt ———
+function mtConstruire(ech, sr, opt) {
+  opt = opt || {};
+  const total = ech.length / sr;
+  const grille = opt.grille || mtGrille(ech, sr);
+  const sections = opt.sections || mtSections(ech, sr);
+  let debut = 0, fin = total;
+  if (opt.fenetre === "refrain") {
+    const r = mtRefrain(ech, sr, { duree: Math.min(opt.fenetreSec || 20, total) });
+    debut = r.debut; fin = r.fin;
+  }
+  const coupes = mtMontage({ grille: grille, sections: sections, debut: debut, fin: fin, planMin: opt.planMin, planMax: opt.planMax });
+  const routes = mtRouter(coupes, { refPhoto: opt.refPhoto || "@Image1", refAudio: opt.refAudio || "@Audio1", refsDecor: opt.refsDecor, videoSource: opt.videoSource, moteurForce: opt.moteurForce });
+  const secu = mtVerifVisage(routes, { videoSource: opt.videoSource });
+  if (!secu.ok) { const e = new Error("montage refusé : le visage serait refabriqué"); e.fautes = secu.fautes; throw e; }
+  const plans = mtHabiller(routes, opt);
+  return { grille: grille, sections: sections, fenetre: { debut: debut, fin: fin, duree: fin - debut }, plans: plans };
+}
+function mtCsvTexte(plans) {
+  const l = ["plan,debut,fin,duree,section,cadrage,moteur"];
+  for (const p of plans) l.push([p.i + 1, p.debut.toFixed(3), p.fin.toFixed(3), p.duree.toFixed(3), p.section, p.cadre, p.moteur].join(","));
+  return l.join("\n");
+}
+function mtMinutage(s) {
+  const m = Math.floor(s / 60), r = s - m * 60;
+  return String(m).padStart(2, "0") + ":" + r.toFixed(1).padStart(4, "0");
+}
+// ═══════════════ FIN NOYAU MONTAGE AUTO ═══════════════
+
+// ═══════════ MONTAGE AUTO · INTERFACE (v41.85) ═══════════
+// Tout le calcul est dans le noyau ci-dessus. Ici, uniquement le décodage du
+// fichier, l'affichage, et le passage d'un plan au Moteur A.
+let mtFichierAudio = null, mtFichierPhoto = null, mtEch = null, mtSr = 0;
+let mtDernier = null, mtFenetre = "tout";
+
+function mtLog(titre, obj) {
+  const z = document.getElementById("mtJournal");
+  if (!z) return;
+  const h = new Date().toLocaleTimeString("fr-FR");
+  z.textContent += "[" + h + "] " + titre + (obj !== undefined ? " → " + (typeof obj === "string" ? obj : JSON.stringify(obj)) : "") + "\n";
+  z.scrollTop = z.scrollHeight;
+}
+
+// Décodage + repli en mono à 8 kHz. La bande utile de la voix monte à 4 kHz :
+// garder 44 100 Hz multiplierait le calcul par cinq sans rien apporter.
+const MT_SR_TRAVAIL = 8000;
+async function mtDecoder(fichier) {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx();
+  try {
+    const buf = await fichier.arrayBuffer();
+    const audio = await ctx.decodeAudioData(buf);
+    const n = audio.length, canaux = [];
+    for (let c = 0; c < audio.numberOfChannels; c++) canaux.push(audio.getChannelData(c));
+    const mono = new Float64Array(n);
+    for (let i = 0; i < n; i++) { let s = 0; for (let c = 0; c < canaux.length; c++) s += canaux[c][i]; mono[i] = s / canaux.length; }
+    const ratio = audio.sampleRate / MT_SR_TRAVAIL;
+    if (ratio <= 1.01) return { ech: mono, sr: audio.sampleRate };
+    const sortie = new Float64Array(Math.floor(n / ratio));
+    for (let i = 0; i < sortie.length; i++) {
+      const a = Math.floor(i * ratio), b = Math.min(n, Math.floor((i + 1) * ratio));
+      let s = 0;
+      for (let k = a; k < b; k++) s += mono[k];
+      sortie[i] = b > a ? s / (b - a) : 0;
+    }
+    return { ech: sortie, sr: MT_SR_TRAVAIL };
+  } finally { if (ctx.close) ctx.close(); }
+}
+
+function mtMajBoutons() {
+  const a = document.getElementById("mtAnalyser");
+  if (a) a.disabled = !mtFichierAudio;
+  const c = document.getElementById("mtConstruire");
+  if (c) {
+    const pret = mtEch && mtFichierPhoto && (document.getElementById("mtTenue").value || "").trim();
+    c.disabled = !pret;
+    c.textContent = !mtEch ? "Analyse d'abord la chanson"
+      : !mtFichierPhoto ? "Choisis la photo du visage"
+      : !(document.getElementById("mtTenue").value || "").trim() ? "Décris la tenue"
+      : "Construire le montage";
+  }
+}
+
+function mtAfficherAnalyse(grille, sections, refrain) {
+  document.getElementById("mtAnalyseRes").classList.remove("hidden");
+  const bpm = grille.bpm > 0 ? Math.round(grille.bpm) + " BPM" : "tempo non trouvé";
+  document.getElementById("mtBpm").textContent = "♩ " + bpm + (grille.bpm > 0 ? " · mesure de " + grille.parMesure + " temps" : "");
+  document.getElementById("mtBpmNote").textContent = grille.bpm > 0
+    ? (grille.sur >= 0.3 ? "Tempo net — les coupes tomberont juste."
+       : "Tempo peu marqué (" + Math.round(grille.sur * 100) + " %) — vérifie le montage à l'oreille avant d'envoyer.")
+    : "Aucun tempo détecté : le montage coupera à intervalles réguliers.";
+  document.getElementById("mtRefrain").innerHTML = refrain && !refrain.repli
+    ? "🎤 Passage le plus chanté : <b>" + mtMinutage(refrain.debut) + " → " + mtMinutage(refrain.fin) + "</b>"
+    : "🎤 Chanson trop courte pour chercher un refrain : tout est retenu.";
+  document.getElementById("mtSections").innerHTML = "🧩 " + sections.map(s =>
+    s.nom + " " + mtMinutage(s.debut)).join(" · ");
+}
+
+function mtAfficherPlans(res) {
+  const z = document.getElementById("mtPlan");
+  const vide = document.getElementById("mtPlanVide");
+  if (vide) vide.classList.add("hidden");
+  const nomMoteur = {
+    "moteurA.image": "Moteur A · image→vidéo",
+    "moteurA.references": "Moteur A · références",
+    "moteurA.texte": "Moteur A · texte seul",
+    "studio.aleph": "Studio · Aleph",
+  };
+  z.innerHTML = res.plans.map(p => {
+    const alerte = p.verif.ok ? "" :
+      '<div class="hint" style="color:var(--err)">✗ ' + p.verif.fautes.join(" · ") + "</div>";
+    return '<div class="card" style="padding:10px 12px; margin-bottom:8px;">'
+      + '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">'
+      + '<b style="color:var(--gold)">Plan ' + (p.i + 1) + " · " + mtMinutage(p.debut) + " → " + mtMinutage(p.fin) + "</b>"
+      + '<span class="hint" style="margin:0;">' + p.duree.toFixed(1) + " s · " + p.mesures + " mesure(s)</span></div>"
+      + '<div class="hint" style="margin-top:2px;">' + p.section + " · " + p.cadre + " · " + (nomMoteur[p.moteur] || p.moteur)
+      + (p.lipsync ? " · lèvres synchronisées" : "") + (p.visage ? " · part de ta photo" : " · sans visage") + "</div>"
+      + '<div style="font-size:12px; opacity:.9; margin-top:6px;">' + p.texte.replace(/</g, "&lt;") + "</div>"
+      + alerte
+      + '<div class="chips" style="margin-top:8px;"><button class="chip" data-mtenvoi="' + p.i + '">→ Ouvrir dans le Moteur A</button></div>'
+      + "</div>";
+  }).join("");
+  document.getElementById("mtPlanActions").classList.remove("hidden");
+  const mauvais = res.plans.filter(p => !p.verif.ok).length;
+  const secondes = res.plans.reduce((t, p) => t + p.duree, 0);
+  document.getElementById("mtPlanNote").innerHTML = res.plans.length + " plans · "
+    + Math.round(secondes) + " s au total"
+    + (mauvais
+        ? ' · <span style="color:var(--err)">' + mauvais + ' texte(s) à corriger avant envoi</span>'
+        : ' · <span style="color:var(--ok)">tous les textes passent les règles</span>')
+    + "<br>Ce montage est un premier jet, à recouper à la main. Rien n'a encore été envoyé ni facturé.";
+  z.querySelectorAll("[data-mtenvoi]").forEach(b => {
+    b.onclick = () => mtVersMoteurA(res.plans[Number(b.getAttribute("data-mtenvoi"))]);
+  });
+}
+
+// Ouvre le plan choisi dans la page Moteur A, prérempli. On ne lance rien :
+// Papy relit, ajuste, et appuie lui-même.
+function mtVersMoteurA(plan) {
+  if (!plan.verif.ok) { alert("Ce texte ne passe pas les règles :\n\n" + plan.verif.fautes.join("\n")); return; }
+  if (plan.moteur === MT_MOTEURS.aleph) { alert("Ce plan vise Aleph, côté Studio — ouvre la page Aleph."); return; }
+  fsMode = plan.moteur === MT_MOTEURS.refA ? "ref" : (plan.moteur === MT_MOTEURS.texteA ? "texte" : "image");
+  document.querySelectorAll("[data-fsmode]").forEach(c => c.classList.toggle("on", c.getAttribute("data-fsmode") === fsMode));
+  document.getElementById("fsPrompt").value = plan.texte;
+  const d = document.getElementById("fsDuree");
+  if (d) {
+    const vise = Math.max(4, Math.min(15, Math.round(plan.duree)));
+    const dispo = Array.from(d.options).map(o => o.value);
+    d.value = dispo.indexOf(String(vise)) !== -1 ? String(vise) : (dispo.indexOf("auto") !== -1 ? "auto" : d.value);
+  }
+  if (fsMode === "image" && mtFichierPhoto) {
+    fsImage = mtFichierPhoto;
+    const nom = document.getElementById("fsImgNom");
+    if (nom) nom.innerHTML = "<span style='color:var(--ok)'>✓ " + mtFichierPhoto.name + "</span>";
+  }
+  if (fsMode === "ref" && mtFichierPhoto && !fsRefImages.some(x => x.fichier === mtFichierPhoto)) {
+    fsRefImages.push({ fichier: mtFichierPhoto, nom: mtFichierPhoto.name });
+    if (typeof fsMajListe === "function") fsMajListe();
+  }
+  if (typeof fsMajMode === "function") fsMajMode();
+  if (typeof fsRefresh === "function") fsRefresh();
+  admVue("fal");
+  mtLog("PLAN OUVERT DANS LE MOTEUR A", { plan: plan.i + 1, mode: fsMode });
+}
+
+(function mtBrancher() {
+  const bA = document.getElementById("mtAudBtn");
+  if (!bA) return;   // page absente : rien à brancher
+  bA.onclick = () => document.getElementById("mtAudInput").click();
+  document.getElementById("mtAudInput").onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    mtFichierAudio = f; mtEch = null; mtDernier = null;
+    document.getElementById("mtAudNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+    document.getElementById("mtAnalyseRes").classList.add("hidden");
+    mtMajBoutons();
+  };
+  document.getElementById("mtPhotoBtn").onclick = () => document.getElementById("mtPhotoInput").click();
+  document.getElementById("mtPhotoInput").onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    mtFichierPhoto = f;
+    document.getElementById("mtPhotoNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+    mtMajBoutons();
+  };
+  document.getElementById("mtTenue").addEventListener("input", mtMajBoutons);
+  document.querySelectorAll("[data-mtfen]").forEach(c => {
+    c.onclick = () => {
+      mtFenetre = c.getAttribute("data-mtfen");
+      document.querySelectorAll("[data-mtfen]").forEach(x => x.classList.toggle("on", x === c));
+    };
+  });
+
+  document.getElementById("mtAnalyser").onclick = async () => {
+    const etat = document.getElementById("mtAnalyseEtat");
+    try {
+      etat.textContent = "Décodage…";
+      const d = await mtDecoder(mtFichierAudio);
+      mtEch = d.ech; mtSr = d.sr;
+      mtLog("DÉCODÉ", { secondes: Math.round(mtEch.length / mtSr), hz: mtSr });
+      etat.textContent = "Recherche du tempo…";
+      await new Promise(r => setTimeout(r, 20));
+      const grille = mtGrille(mtEch, mtSr);
+      etat.textContent = "Découpage en sections…";
+      await new Promise(r => setTimeout(r, 20));
+      const sections = mtSections(mtEch, mtSr);
+      const refrain = mtRefrain(mtEch, mtSr, { duree: Math.min(20, mtEch.length / mtSr) });
+      mtLog("ANALYSE", { bpm: Math.round(grille.bpm), sections: sections.length, refrain: Math.round(refrain.debut) });
+      mtAfficherAnalyse(grille, sections, refrain);
+      etat.textContent = "";
+      mtMajBoutons();
+    } catch (err) {
+      etat.innerHTML = '<span class="err">✗ ' + err.message + "</span>";
+      mtLog("ERREUR ANALYSE", err.message);
+    }
+  };
+
+  document.getElementById("mtConstruire").onclick = () => {
+    const etat = document.getElementById("mtConstruireEtat");
+    try {
+      const lignes = (id) => (document.getElementById(id).value || "").split("\n").map(x => x.trim()).filter(Boolean);
+      const res = mtConstruire(mtEch, mtSr, {
+        fenetre: mtFenetre,
+        fenetreSec: Number(document.getElementById("mtFenSec").value) || 20,
+        planMin: Number(document.getElementById("mtPlanMin").value) || 2,
+        planMax: Number(document.getElementById("mtPlanMax").value) || 8,
+        tenue: (document.getElementById("mtTenue").value || "").trim(),
+        decors: lignes("mtDecors"),
+        actions: lignes("mtActions"),
+        noms: (document.getElementById("mtNoms").value || "").split(",").map(x => x.trim()).filter(Boolean),
+      });
+      mtDernier = res;
+      mtAfficherPlans(res);
+      etat.textContent = "";
+      mtLog("MONTAGE CONSTRUIT", { plans: res.plans.length, bpm: Math.round(res.grille.bpm) });
+    } catch (err) {
+      etat.innerHTML = '<span class="err">✗ ' + err.message + "</span>";
+      mtLog("ERREUR MONTAGE", err.message + (err.fautes ? " · " + JSON.stringify(err.fautes) : ""));
+    }
+  };
+
+  document.getElementById("mtCopier").onclick = () => {
+    if (!mtDernier) return;
+    const t = mtDernier.plans.map(p => "— Plan " + (p.i + 1) + " (" + mtMinutage(p.debut) + ", " + p.duree.toFixed(1) + " s)\n" + p.texte).join("\n\n");
+    navigator.clipboard.writeText(t).then(
+      () => { document.getElementById("mtPlanNote").innerHTML = "✓ Textes copiés."; },
+      () => { document.getElementById("mtPlanNote").innerHTML = "Copie refusée par le navigateur."; });
+  };
+  document.getElementById("mtCsv").onclick = () => {
+    if (!mtDernier) return;
+    const blob = new Blob([mtCsvTexte(mtDernier.plans)], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "montage-starclip.csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  };
+  mtMajBoutons();
+})();
+
+
+
 // Seedance impose une durée CUMULÉE d'audio : 30 s en 2.5, 15 s en 2.0.
 // Papy travaille avec des chansons entières — il ne doit pas avoir à
 // ouvrir un éditeur audio pour donner une référence. L'app coupe donc
@@ -8852,6 +9665,10 @@ const IDEES_PROMPTS = [
   {
     titre: "🎭 Duo — l'un chante, l'autre danse",
     texte: "A [description personne 1] stands at a microphone singing on a stage, while a [description personne 2] dances energetically beside [him/her]. The crowd cheers under [couleur] stage lights. The camera alternates smoothly between the singer and the dancer, cinematic movement, lively concert atmosphere.",
+  },
+  {
+    titre: "🎤 Chanter avec TA chanson — lèvres synchronisées",
+    texte: "@Image1 sings into the camera, singing in rhythm with @Audio1, mouth moving naturally with the lyrics, expressive confident face, subtle body movements to the beat. Same setting and lighting as the reference image. Smooth cinematic camera slowly pushing in.",
   },
   {
     titre: "🎵 Danse sur TA musique (mode références)",
