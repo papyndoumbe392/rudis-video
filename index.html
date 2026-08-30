@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.86 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.87 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1012,6 +1012,19 @@
              complet, chaque coupe tombant sur un temps fort. Le visage n'est
              jamais régénéré : il entre comme image de départ sur les plans où
              on le voit, et le routage refuse tout moteur qui le repeindrait. -->
+        <!-- v41.87 : création de chansons. Schéma relevé sur la page /api
+             officielle de fal.ai le 30 août 2026 (fal-ai/minimax-music/v2,
+             variante TextToMusic26Request). MiniMax sort en FLAC — c'est ce
+             qui décide : Lyria ne fait que du MP3, inutilisable pour
+             remastériser dans AutoMixPro. -->
+        <div class="card admCarte" id="admCarteChanson" style="border-color:#fb923c;">
+          <div class="admCarteIcone">🎵</div>
+          <h2 style="margin:0; color:#fb923c;">CRÉER UNE CHANSON</h2>
+          <div class="admCarteSous">STYLE · PAROLES · STRUCTURE</div>
+          <p class="sub" style="margin:10px 0 0;">« Je décris le style, j'écris ou je fais écrire les paroles, j'obtiens la chanson. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Balises [Intro] [Verse] [Chorus] comme tu les connais. Sortie <b>FLAC sans perte</b> pour les stems dans AutoMixPro.</p>
+          <div class="admCartePied">Jusqu'à 3500 signes de paroles · usage commercial</div>
+        </div>
         <div class="card admCarte" id="admCarteMontage" style="border-color:#f0abfc;">
           <div class="admCarteIcone">🎼</div>
           <h2 style="margin:0; color:#f0abfc;">MONTAGE AUTO</h2>
@@ -1036,6 +1049,75 @@
 
 
     <!-- ─────────── PAGE ADMIN 5 · MONTAGE AUTO (v41.85) ─────────── -->
+    <!-- ─────────── PAGE ADMIN · CRÉER UNE CHANSON ─────────── -->
+    <div id="admPageChanson" class="hidden">
+      <h2>🎵 CRÉER UNE CHANSON</h2>
+      <p class="sub">Décris le style, écris les paroles ou laisse-les s'écrire, et récupère la chanson chantée. Sortie <b>FLAC sans perte</b> : les stems se font ensuite dans AutoMixPro.</p>
+
+      <div class="card">
+        <div class="step">① LE STYLE</div>
+        <div class="hint">Genre, ambiance, tempo, type de voix, instruments. Écris dans la langue des paroles voulues. 10 à 2000 signes.</div>
+        <div class="chips" id="chStyleChips" style="margin-bottom:8px;"></div>
+        <textarea id="chStyle" rows="3" placeholder="Ex : Makossa moderne, 105 BPM, voix masculine chaude, guitare rythmique, basse ronde, cuivres, ambiance festive de concert."></textarea>
+        <div class="estimate" id="chStyleCpt"></div>
+      </div>
+
+      <div class="card">
+        <div class="step">② LES PAROLES</div>
+        <label style="display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; cursor:pointer;">
+          <input type="checkbox" id="chAutoParoles" style="margin-top:3px;">
+          <span class="hint" style="margin:0;"><b style="color:var(--gold)">Écrire les paroles automatiquement</b> à partir du style ci-dessus. Laisse le champ vide si tu coches.</span>
+        </label>
+        <div class="chips" id="chBalisesChips" style="margin-bottom:8px;"></div>
+        <textarea id="chParoles" rows="10" placeholder="[Intro]&#10;&#10;[Verse]&#10;Écris ici le premier couplet&#10;une ligne par vers&#10;&#10;[Chorus]&#10;Le refrain&#10;&#10;[Verse]&#10;&#10;[Outro]"></textarea>
+        <div class="estimate" id="chParolesCpt"></div>
+        <div class="hint">Balises disponibles : [Intro] [Verse] [Pre Chorus] [Chorus] [Post Chorus] [Hook] [Bridge] [Interlude] [Transition] [Build Up] [Break] [Inst] [Solo] [Outro] — 3500 signes maximum.</div>
+      </div>
+
+      <div class="card">
+        <div class="step">③ LE SON</div>
+        <div class="label">Format</div>
+        <div class="chips" id="chFormatChips">
+          <button class="chip on" data-chfmt="flac">FLAC — sans perte</button>
+          <button class="chip" data-chfmt="mp3">MP3</button>
+          <button class="chip" data-chfmt="wav">WAV</button>
+        </div>
+        <div class="hint" style="margin-top:4px;">Le <b>FLAC</b> garde toute la qualité pour extraire les stems dans AutoMixPro. Le MP3 perd de l'information.</div>
+        <div class="label" style="margin-top:10px;">Débit</div>
+        <div class="chips" id="chBitrateChips">
+          <button class="chip on" data-chbit="256000">256 kbit/s</button>
+          <button class="chip" data-chbit="128000">128 kbit/s</button>
+        </div>
+        <label style="display:flex; gap:8px; align-items:center; margin-top:12px;">
+          <input type="checkbox" id="chInstrumental">
+          <span>🎹 Instrumental seul, sans voix</span>
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="step">④ LANCER</div>
+        <button class="master" id="chGo" disabled>Décris d'abord le style</button>
+        <button class="chip" id="chNouvelle" style="margin-top:8px;">🔄 Tout effacer</button>
+        <div class="estimate" id="chCout" style="margin-top:8px;"></div>
+        <div class="rwRond hidden" id="chRond">
+          <div style="position:relative; width:132px; height:132px;">
+            <svg width="132" height="132" viewBox="0 0 132 132">
+              <circle class="piste" cx="66" cy="66" r="58"></circle>
+              <circle class="arc" id="chArc" cx="66" cy="66" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"></circle>
+            </svg>
+            <div class="rwRondTexte">
+              <div class="rwRondPct" id="chPct">0%</div>
+              <div class="rwRondChrono" id="chChrono">00:00</div>
+            </div>
+          </div>
+          <div class="rwRondEtape" id="chEtape">Préparation…</div>
+        </div>
+        <div class="status" id="chStatus" style="margin-top:12px;"><div id="chStatusText"></div><div class="bar"><div class="fill" id="chFill"></div></div></div>
+        <div id="chResult"></div>
+        <details style="margin-top:12px;"><summary class="hint">🔎 Journal technique</summary><pre id="chJournal" class="journal"></pre></details>
+      </div>
+    </div>
+
     <div id="admPageMontage" class="hidden">
       <h2>🎼 MONTAGE AUTO</h2>
       <p class="sub">Une chanson, une photo, et StarClip propose le montage entier : tempo, refrain, coupes sur les temps forts, un texte prêt par plan. Tout est calculé dans le navigateur — aucun crédit n'est dépensé tant que tu n'envoies pas un plan au moteur.</p>
@@ -1649,7 +1731,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.86</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.87</span>
 
   </footer>
 </div>
@@ -6729,6 +6811,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteFal").onclick   = () => admVue("fal");
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
+  document.getElementById("admCarteChanson").onclick = () => admVue("chanson");
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -6754,6 +6837,8 @@ function admVue(quoi) {
   if (pf) pf.classList.toggle("hidden", quoi !== "fal");
   if (pm) pm.classList.toggle("hidden", quoi !== "multi");
   if (pmo) pmo.classList.toggle("hidden", quoi !== "montage");
+  const pch = document.getElementById("admPageChanson");
+  if (pch) pch.classList.toggle("hidden", quoi !== "chanson");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
   document.getElementById("adminZone").scrollTop = 0;
@@ -8236,6 +8321,231 @@ function fsPortMaj() {
   }
 }
 
+
+// ═══════════════════════════════════════════════════════════════════
+//  v41.87 · CRÉER UNE CHANSON — fal-ai/minimax-music/v2
+// ═══════════════════════════════════════════════════════════════════
+// Champs relevés MOT POUR MOT sur la page /api officielle de fal.ai le
+// 30 août 2026, variante TextToMusic26Request :
+//   prompt            10 à 2000 signes  (style, ambiance, genre)
+//   lyrics            0 à 3500 signes   (balises [Verse] [Chorus]…)
+//   lyrics_optimizer  écrit les paroles si lyrics est vide
+//   is_instrumental   supprime la voix
+//   audio_setting     { sample_rate, bitrate, format }
+//
+// POURQUOI MINIMAX ET PAS LYRIA : Lyria ne sort qu'en MP3. MiniMax
+// propose le FLAC sans perte — indispensable pour extraire les stems
+// dans AutoMixPro sans traîner les artefacts de la compression.
+const CH_MODELE = "fal-ai/minimax-music/v2";
+const CH_STYLE_MIN = 10, CH_STYLE_MAX = 2000, CH_PAROLES_MAX = 3500;
+let chFormat = "flac", chBitrate = "256000";
+
+const CH_STYLES = [
+  { l: "🎺 Makossa", t: "Modern makossa, 105 BPM, warm male vocal, rhythmic guitar, round bass, brass section, festive concert atmosphere." },
+  { l: "🔥 Afrobeat", t: "Afrobeat, 100 BPM, layered percussion, groovy bassline, horn stabs, call-and-response vocals, energetic and danceable." },
+  { l: "💃 Coupé-décalé", t: "Coupé-décalé, 128 BPM, driving percussion, catchy synth hook, energetic male vocal, party atmosphere." },
+  { l: "❤️ Ballade", t: "Slow African ballad, 72 BPM, emotional male vocal, acoustic guitar, soft strings, intimate and heartfelt." },
+  { l: "🎷 Rumba", t: "Congolese rumba, 95 BPM, intertwined guitars, smooth male vocal, gentle percussion, nostalgic and elegant." },
+];
+const CH_BALISES = ["[Intro]", "[Verse]", "[Pre Chorus]", "[Chorus]", "[Hook]", "[Bridge]", "[Outro]"];
+
+function chLog(titre, obj) {
+  const z = document.getElementById("chJournal");
+  if (!z) return;
+  z.textContent += "[" + new Date().toLocaleTimeString("fr-FR") + "] " + titre + " → "
+    + (typeof obj === "string" ? obj : JSON.stringify(obj)) + "\n\n";
+  z.scrollTop = z.scrollHeight;
+}
+function chSetStatus(txt, pct) {
+  document.getElementById("chStatus").classList.add("on");
+  document.getElementById("chStatusText").innerHTML = txt;
+  document.getElementById("chFill").style.width = (pct > 0 ? pct : 0) + "%";
+  rwRondMaj("ch", pct, txt);
+}
+
+// Ce qui manque pour lancer. Chaîne vide = prêt.
+function chManque() {
+  const style = (document.getElementById("chStyle").value || "").trim();
+  if (style.length < CH_STYLE_MIN) return "Décris le style — " + CH_STYLE_MIN + " signes minimum";
+  if (style.length > CH_STYLE_MAX) return "Le style dépasse " + CH_STYLE_MAX + " signes (" + style.length + ")";
+  const paroles = (document.getElementById("chParoles").value || "").trim();
+  const auto = document.getElementById("chAutoParoles").checked;
+  const instru = document.getElementById("chInstrumental").checked;
+  if (paroles.length > CH_PAROLES_MAX) return "Les paroles dépassent " + CH_PAROLES_MAX + " signes (" + paroles.length + ")";
+  // Le schéma l'impose : des paroles sont requises sauf si l'écriture
+  // automatique est demandée, ou si le morceau est instrumental.
+  if (!instru && !auto && !paroles) return "Écris les paroles, ou coche l'écriture automatique";
+  return "";
+}
+
+function chPayload() {
+  const style = (document.getElementById("chStyle").value || "").trim();
+  const paroles = (document.getElementById("chParoles").value || "").trim();
+  const auto = document.getElementById("chAutoParoles").checked;
+  const instru = document.getElementById("chInstrumental").checked;
+  const p = { prompt: style };
+  if (paroles) p.lyrics = paroles;
+  if (auto && !paroles) p.lyrics_optimizer = true;
+  if (instru) p.is_instrumental = true;
+  // Le débit ne s'applique qu'aux formats compressés : en FLAC il n'a
+  // aucun sens et on ne l'envoie pas.
+  const reglage = { sample_rate: "44100", format: chFormat };
+  if (chFormat !== "flac") reglage.bitrate = chBitrate;
+  p.audio_setting = reglage;
+  return p;
+}
+
+function chRefresh() {
+  const manque = chManque();
+  const b = document.getElementById("chGo");
+  b.disabled = !!manque;
+  b.textContent = manque ? manque : "🎵 Créer la chanson";
+  const style = (document.getElementById("chStyle").value || "").trim();
+  const paroles = (document.getElementById("chParoles").value || "").trim();
+  const sc = document.getElementById("chStyleCpt");
+  if (sc) sc.innerHTML = style.length + " / " + CH_STYLE_MAX + " signes"
+    + (style.length && style.length < CH_STYLE_MIN ? " <span class='err'>— trop court</span>" : "");
+  const pc = document.getElementById("chParolesCpt");
+  if (pc) pc.innerHTML = paroles.length + " / " + CH_PAROLES_MAX + " signes";
+  const c = document.getElementById("chCout");
+  if (c) c.innerHTML = chFormat.toUpperCase()
+    + (chFormat === "flac" ? " <span style='color:var(--ok)'>sans perte</span>" : " · " + (parseInt(chBitrate) / 1000) + " kbit/s")
+    + " · 44,1 kHz"
+    + (document.getElementById("chInstrumental").checked ? " · sans voix" : "")
+    + " · <b style='color:var(--gold)'>débité de ton crédit Studio</b>";
+}
+
+
+// ─── Gestes du volet Créer une chanson ───
+(function chInit() {
+  const style = document.getElementById("chStyle");
+  if (!style) return;
+
+  // Styles prêts, adaptés aux musiques que Papy produit.
+  const boxS = document.getElementById("chStyleChips");
+  CH_STYLES.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = s.l;
+    b.onclick = () => { style.value = s.t; chRefresh(); style.focus(); };
+    boxS.appendChild(b);
+  });
+
+  // Balises insérées au curseur, pas en fin de texte : Papy structure
+  // ses paroles au fur et à mesure.
+  const paroles = document.getElementById("chParoles");
+  const boxB = document.getElementById("chBalisesChips");
+  CH_BALISES.forEach(t => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = t;
+    b.onclick = () => {
+      const d = paroles.selectionStart || 0, f = paroles.selectionEnd || 0;
+      const avant = paroles.value.slice(0, d), apres = paroles.value.slice(f);
+      const ajout = (avant && !avant.endsWith("\n") ? "\n" : "") + t + "\n";
+      paroles.value = avant + ajout + apres;
+      const pos = (avant + ajout).length;
+      paroles.setSelectionRange(pos, pos);
+      paroles.focus(); chRefresh();
+    };
+    boxB.appendChild(b);
+  });
+
+  style.addEventListener("input", chRefresh);
+  paroles.addEventListener("input", chRefresh);
+  document.getElementById("chAutoParoles").onchange = chRefresh;
+  document.getElementById("chInstrumental").onchange = chRefresh;
+
+  document.querySelectorAll("#chFormatChips .chip").forEach(c => c.onclick = () => {
+    document.querySelectorAll("#chFormatChips .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on"); chFormat = c.dataset.chfmt;
+    // Le débit n'a aucun sens en FLAC : on masque le choix.
+    const bb = document.getElementById("chBitrateChips");
+    if (bb) bb.parentElement.querySelectorAll(".label").forEach(() => {});
+    document.getElementById("chBitrateChips").style.display = chFormat === "flac" ? "none" : "";
+    chRefresh();
+  });
+  document.getElementById("chBitrateChips").style.display = "none";
+
+  document.querySelectorAll("#chBitrateChips .chip").forEach(c => c.onclick = () => {
+    document.querySelectorAll("#chBitrateChips .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on"); chBitrate = c.dataset.chbit; chRefresh();
+  });
+
+  document.getElementById("chNouvelle").onclick = () => {
+    if ((style.value || paroles.value).trim() && !confirm("Effacer le style, les paroles et le résultat ?")) return;
+    style.value = ""; paroles.value = "";
+    document.getElementById("chAutoParoles").checked = false;
+    document.getElementById("chInstrumental").checked = false;
+    ["chResult", "chJournal", "chStatusText"].forEach(id => {
+      const c = document.getElementById(id); if (c) c.innerHTML = "";
+    });
+    const st = document.getElementById("chStatus"); if (st) st.classList.remove("on");
+    rwRondMontrer("ch", false);
+    chRefresh();
+  };
+
+  document.getElementById("chGo").onclick = async () => {
+    const go = document.getElementById("chGo");
+    go.disabled = true;
+    document.getElementById("chResult").innerHTML = "";
+    let tic = null;
+    try {
+      const manque = chManque(); if (manque) throw new Error(manque);
+      rwRondMontrer("ch", true);
+      rwDepart = Date.now();
+      tic = setInterval(() => rwRondChrono("ch"), 1000);
+      rwRondChrono("ch");
+      const payload = chPayload();
+      chLog("DÉMARRAGE", { modele: CH_MODELE, format: chFormat,
+        style_signes: payload.prompt.length,
+        paroles_signes: (payload.lyrics || "").length,
+        ecriture_auto: !!payload.lyrics_optimizer, instrumental: !!payload.is_instrumental });
+      chSetStatus("Envoi au studio…", 10);
+      const job = await fsSubmit(CH_MODELE, payload);
+      chLog("TÂCHE CRÉÉE", { request_id: job.request_id || "?" });
+      const statusUrl = job.status_url || ("https://queue.fal.run/" + CH_MODELE + "/requests/" + job.request_id + "/status");
+      const responseUrl = job.response_url || ("https://queue.fal.run/" + CH_MODELE + "/requests/" + job.request_id);
+      for (let i = 0; i < 200; i++) {
+        await new Promise(r => setTimeout(r, 4000));
+        const s = await fsPoll(statusUrl);
+        if (s.status === "IN_QUEUE") chSetStatus("En file d'attente…", -1);
+        else if (s.status === "IN_PROGRESS") chSetStatus("Composition en cours… (1 à 3 min)", -1);
+        else if (s.status === "COMPLETED") break;
+        if (s.status === "FAILED" || s.status === "ERROR") {
+          chLog("ÉCHEC", s);
+          const rep = await fsPoll(responseUrl).catch(() => ({}));
+          chLog("RÉPONSE COMPLÈTE", rep);
+          const motif = rep.detail
+            ? (Array.isArray(rep.detail) ? rep.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(rep.detail))
+            : (rep.error || rep.message || "motif non précisé");
+          throw new Error("La création a été refusée : " + motif);
+        }
+      }
+      const data = await fsPoll(responseUrl);
+      const url = (data.audio && data.audio.url) || (data.response && data.response.audio && data.response.audio.url);
+      if (!url) { chLog("RÉPONSE SANS AUDIO", data); throw new Error("Chanson introuvable dans la réponse — voir le journal."); }
+      chLog("TERMINÉ", { url: String(url).slice(0, 60) + "…" });
+      if (tic) { clearInterval(tic); tic = null; }
+      rwRondChrono("ch"); rwRondFini("ch", "Chanson prête");
+      chSetStatus("<span class='okc'>✓ Chanson prête !</span>", 100);
+      document.getElementById("chResult").innerHTML =
+        '<audio controls style="width:100%; margin-top:12px;" src="' + url + '"></audio>'
+        + '<div class="chips" style="margin-top:8px;">'
+        + '<a class="chip" href="' + url + '" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger le ' + chFormat.toUpperCase() + '</a>'
+        + '</div>'
+        + '<div class="hint">Enregistre le fichier, puis ouvre-le dans AutoMixPro pour extraire les stems.</div>';
+    } catch (e) {
+      if (tic) { clearInterval(tic); tic = null; }
+      rwRondEchec("ch", e.message);
+      chSetStatus('<span class="err">✗ ' + e.message + "</span>", 0);
+      chLog("ERREUR", e.message);
+    } finally {
+      rwDepart = 0; chRefresh();
+    }
+  };
+
+  chRefresh();
+})();
+
 // ─── Initialisation et gestes du volet FAL Seedance 2.0 ───
 (function fsInit() {
   const d = document.getElementById("fsDuree");
@@ -8479,7 +8789,7 @@ function fsPortMaj() {
 
 
 
-// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.86) ═══════════════
+// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.87) ═══════════════
 // Bloc VOLONTAIREMENT sans DOM ni réseau : test-v41.85.js le découpe entre
 // ces deux bornes et l'exécute dans Node pour tester le vrai code, pas une
 // chaîne de caractères. Ne rien ajouter ici qui touche document ou fetch.
