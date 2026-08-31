@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.87 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.92 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1022,7 +1022,7 @@
           <h2 style="margin:0; color:#fb923c;">CRÉER UNE CHANSON</h2>
           <div class="admCarteSous">STYLE · PAROLES · STRUCTURE</div>
           <p class="sub" style="margin:10px 0 0;">« Je décris le style, j'écris ou je fais écrire les paroles, j'obtiens la chanson. »</p>
-          <p class="sub" style="margin:8px 0 0; opacity:.75;">Balises [Intro] [Verse] [Chorus] comme tu les connais. Sortie <b>FLAC sans perte</b> pour les stems dans AutoMixPro.</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Balises [Intro] [Verse] [Chorus] comme tu les connais. Sortie <b>WAV sans perte</b> pour les stems dans AutoMixPro.</p>
           <div class="admCartePied">Jusqu'à 3500 signes de paroles · usage commercial</div>
         </div>
         <div class="card admCarte" id="admCarteMontage" style="border-color:#f0abfc;">
@@ -1052,7 +1052,25 @@
     <!-- ─────────── PAGE ADMIN · CRÉER UNE CHANSON ─────────── -->
     <div id="admPageChanson" class="hidden">
       <h2>🎵 CRÉER UNE CHANSON</h2>
-      <p class="sub">Décris le style, écris les paroles ou laisse-les s'écrire, et récupère la chanson chantée. Sortie <b>FLAC sans perte</b> : les stems se font ensuite dans AutoMixPro.</p>
+      <p class="sub">Décris le style, écris les paroles ou laisse-les s'écrire, et récupère la chanson chantée. Sortie <b>WAV sans perte</b> : les stems se font ensuite dans AutoMixPro.</p>
+
+      <!-- v41.90 : deux façons de travailler. La reprise part d'une démo
+           existante — un fredonnement au téléphone suffit — et le moteur en
+           fait une version produite. Les paroles sont extraites de
+           l'enregistrement si on n'en écrit pas. -->
+      <div class="chips" style="margin-bottom:14px;">
+        <button class="chip on" data-chmode="creer">✍️ Créer à partir de rien</button>
+        <button class="chip" data-chmode="reprise">🎙️ Reprendre ma démo</button>
+      </div>
+
+      <div class="card hidden" id="chBoiteDemo" style="border-color:#fb923c;">
+        <div class="step">⓪ TA DÉMO</div>
+        <p class="sub" style="margin:0 0 10px;">Charge ton enregistrement, même fait au téléphone. Le moteur en refait une version produite, dans le style que tu décris ensuite.</p>
+        <button class="chip" id="chDemoBtn">🎙️ Choisir la démo</button>
+        <input type="file" id="chDemoInput" accept="audio/*" style="display:none;">
+        <div id="chDemoNom" class="hint"></div>
+        <div class="hint">MP3 ou WAV · entre <b>6 secondes et 6 minutes</b> · 50 Mo maximum. La démo doit contenir la voix.</div>
+      </div>
 
       <div class="card">
         <div class="step">① LE STYLE</div>
@@ -1064,9 +1082,15 @@
 
       <div class="card">
         <div class="step">② LES PAROLES</div>
+        <!-- v41.89 : sans champ dédié, l'écriture automatique partait du seul
+             style et produisait des paroles génériques. Papy raconte ici son
+             histoire, en français, et elle est jointe à la demande. -->
+        <div class="falNom">L'histoire de la chanson <span class="falType">en français, facultatif</span></div>
+        <textarea id="chHistoire" rows="3" placeholder="Ex : un homme quitte son village pour Douala, travaille dur, réussit, et revient montrer sa réussite à sa mère."></textarea>
+        <div class="hint" style="margin-bottom:10px;">Si tu remplis ce champ et que tu coches l'écriture automatique, les paroles parleront <b>de ton histoire</b> et non d'un thème inventé.</div>
         <label style="display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; cursor:pointer;">
           <input type="checkbox" id="chAutoParoles" style="margin-top:3px;">
-          <span class="hint" style="margin:0;"><b style="color:var(--gold)">Écrire les paroles automatiquement</b> à partir du style ci-dessus. Laisse le champ vide si tu coches.</span>
+          <span class="hint" style="margin:0;"><b style="color:var(--gold)">Écrire les paroles automatiquement</b> à partir de l'histoire ci-dessus, ou du style si tu n'as rien écrit.</span>
         </label>
         <div class="chips" id="chBalisesChips" style="margin-bottom:8px;"></div>
         <textarea id="chParoles" rows="10" placeholder="[Intro]&#10;&#10;[Verse]&#10;Écris ici le premier couplet&#10;une ligne par vers&#10;&#10;[Chorus]&#10;Le refrain&#10;&#10;[Verse]&#10;&#10;[Outro]"></textarea>
@@ -1078,11 +1102,10 @@
         <div class="step">③ LE SON</div>
         <div class="label">Format</div>
         <div class="chips" id="chFormatChips">
-          <button class="chip on" data-chfmt="flac">FLAC — sans perte</button>
+          <button class="chip on" data-chfmt="wav">WAV — sans perte</button>
           <button class="chip" data-chfmt="mp3">MP3</button>
-          <button class="chip" data-chfmt="wav">WAV</button>
         </div>
-        <div class="hint" style="margin-top:4px;">Le <b>FLAC</b> garde toute la qualité pour extraire les stems dans AutoMixPro. Le MP3 perd de l'information.</div>
+        <div class="hint" style="margin-top:4px;">Le <b>WAV</b> garde toute la qualité pour extraire les stems dans AutoMixPro. Le MP3 perd de l'information.</div>
         <div class="label" style="margin-top:10px;">Débit</div>
         <div class="chips" id="chBitrateChips">
           <button class="chip on" data-chbit="256000">256 kbit/s</button>
@@ -1145,12 +1168,35 @@
             <input type="file" id="mtPhotoInput" accept="image/*" style="display:none;">
             <div class="hint" id="mtPhotoNom">Aucun fichier.</div>
             <div class="hint" style="margin-top:6px; color:var(--ok);">✓ Cette photo sert d'image de DÉPART sur tous les plans où le visage se voit. Le moteur part d'elle : il ne redessine pas le visage.</div>
+            <!-- v41.91 : photos d'angles, FACULTATIVES. Sans elles, tout
+                 fonctionne comme avant. Avec elles, les plans où la tête
+                 tourne partent en mode références, où le moteur dispose
+                 d'une vraie image de chaque angle au lieu d'inventer le
+                 profil à partir d'une face. -->
+            <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,.12); padding-top:10px;">
+              <div class="falNom">Autres angles <span class="falType">facultatif · profil, trois-quarts, dos</span></div>
+              <button class="chip" id="mtAnglesBtn">➕ Ajouter un angle</button>
+              <input type="file" id="mtAnglesInput" accept="image/*" style="display:none;">
+              <div id="mtAnglesListe" class="hint"></div>
+              <div class="hint">Sans rien ajouter, tout marche comme avant. Avec 2 ou 3 angles, les plans où la tête tourne gardent le même visage. 8 angles maximum.</div>
+            </div>
           </div>
 
           <div class="falTitre" style="margin-top:16px;">③ Le clip</div>
           <div class="falChamp">
-            <div class="falNom">Tenue <span class="falType">décrite par les vêtements et les couleurs, jamais par un nom</span></div>
-            <input type="text" id="mtTenue" placeholder="a man in a white linen shirt and black trousers">
+            <div class="falNom">Tenues <span class="falType">une par ligne · décrites par les vêtements, jamais par un nom</span></div>
+            <textarea id="mtTenue" rows="3" placeholder="a man in a white linen shirt and black trousers&#10;a man in a black leather jacket and dark jeans"></textarea>
+            <div class="hint">Une seule ligne = même tenue du début à la fin. Plusieurs lignes = la tenue change <b>en même temps que le décor</b>, pour que le raccord reste logique.</div>
+          </div>
+          <!-- v41.89 : Papy raconte son histoire en français, et l'app en tire
+               les décors et les actions. Sans ça, il fallait tout écrire à la
+               main, en anglais, ligne par ligne. -->
+          <div class="falChamp" style="border-color:var(--gold);">
+            <div class="falNom">L'histoire du clip <span class="falType">en français · facultatif</span></div>
+            <textarea id="mtHistoire" rows="3" placeholder="Ex : il quitte son village au lever du jour, arrive à Douala, travaille dans la rue, réussit, et revient au village en voiture montrer sa réussite à sa mère."></textarea>
+            <button class="chip" id="mtHistoireGo" style="margin-top:8px;">✨ En tirer les décors et les actions</button>
+            <div class="estimate" id="mtHistoireEtat"></div>
+            <div class="hint">Écris l'histoire, touche le bouton : les deux champs ci-dessous se remplissent tout seuls, en anglais. Tu peux ensuite les corriger.</div>
           </div>
           <div class="falChamp">
             <div class="falNom">Décors <span class="falType">un par ligne, en anglais</span></div>
@@ -1176,6 +1222,29 @@
           <div class="falChamp">
             <div class="falNom">Longueur des plans</div>
             <div class="hint">de <input type="number" id="mtPlanMin" value="2" min="1" max="10" style="width:60px; display:inline-block;"> s à <input type="number" id="mtPlanMax" value="8" min="2" max="20" style="width:60px; display:inline-block;"> s · le refrain est coupé plus court que le couplet.</div>
+            <!-- v41.88 : le Moteur A plafonne à 15 s. Ce raccourci règle les
+                 deux bornes d'un coup pour couvrir la chanson en peu de plans. -->
+            <div class="chips" style="margin-top:8px;">
+              <button class="chip" id="mtPlans15">⏱️ Plans de 15 s — le moins de plans possible</button>
+              <button class="chip" id="mtPlansCourts">✂️ Plans courts — montage nerveux</button>
+            </div>
+          </div>
+          <div class="falChamp">
+            <div class="falNom">Format de sortie</div>
+            <div class="chips" id="mtFormatChips">
+              <button class="chip on" data-mtfmt="16:9">🖥️ 16:9 — écran</button>
+              <button class="chip" data-mtfmt="9:16">📱 9:16 — téléphone</button>
+              <button class="chip" data-mtfmt="1:1">◻️ 1:1 — réseaux</button>
+            </div>
+            <div class="hint">Le format est appliqué à chaque plan envoyé au moteur.</div>
+          </div>
+          <div class="falChamp">
+            <div class="falNom">Résolution</div>
+            <div class="chips" id="mtResChips">
+              <button class="chip" data-mtres="480p">480p — essai</button>
+              <button class="chip on" data-mtres="720p">720p</button>
+              <button class="chip" data-mtres="1080p">1080p</button>
+            </div>
           </div>
           <button class="master" id="mtConstruire" disabled style="margin-top:10px;">Construire le montage</button>
           <div class="estimate" id="mtConstruireEtat"></div>
@@ -1188,6 +1257,19 @@
           <div class="chips hidden" id="mtPlanActions" style="margin-top:12px;">
             <button class="chip" id="mtCopier">📋 Copier tous les textes</button>
             <button class="chip" id="mtCsv">📄 Exporter le minutage (CSV)</button>
+          </div>
+          <!-- v41.88 : génération enchaînée, par lots de 5. Le client peut
+               vérifier entre chaque lot et s'arrêter si le rendu ne lui
+               convient pas — plutôt que de payer 25 plans d'un coup. -->
+          <div class="card hidden" id="mtLotBoite" style="margin-top:14px; border-color:#f0abfc;">
+            <div class="falTitre">⑤ Générer les plans</div>
+            <div class="estimate" id="mtLotCout"></div>
+            <div class="chips" style="margin-top:8px;">
+              <button class="chip" id="mtLotGo">▶️ Générer les 5 prochains plans</button>
+              <button class="chip hidden" id="mtLotStop">⏹️ Arrêter après le plan en cours</button>
+            </div>
+            <div class="estimate" id="mtLotEtat" style="margin-top:8px;"></div>
+            <div id="mtLotListe" style="margin-top:10px;"></div>
           </div>
           <div class="hint" id="mtPlanNote" style="margin-top:10px;"></div>
           <div class="falTitre" style="margin-top:16px;">Journal</div>
@@ -1731,7 +1813,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.87</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.92</span>
 
   </footer>
 </div>
@@ -1750,6 +1832,12 @@ function nbModele() {
   return nbQualite === "pro" ? "fal-ai/nano-banana-pro/edit" : "fal-ai/nano-banana/edit";
 }
 function nbPrix() { return nbQualite === "pro" ? 0.15 : 0.039; }
+
+// v41.92 : déclaré ICI, avant tout usage. En v41.91 il était plus bas dans
+// le fichier que mtGenererUn() qui s'en sert — même famille de bug que la
+// v41.80, qui avait bloqué toute l'app. Détecté à l'audit avant déploiement.
+let mtAngles = [];   // angles supplémentaires, FACULTATIFS
+
 
 
 // ——— État ———
@@ -8336,9 +8424,16 @@ function fsPortMaj() {
 // POURQUOI MINIMAX ET PAS LYRIA : Lyria ne sort qu'en MP3. MiniMax
 // propose le FLAC sans perte — indispensable pour extraire les stems
 // dans AutoMixPro sans traîner les artefacts de la compression.
-const CH_MODELE = "fal-ai/minimax-music/v2";
+const CH_MODELE = "fal-ai/minimax-music/v2.6";        // création à partir de rien
+const CH_MODELE_COVER = "fal-ai/minimax-music/v2.6";  // reprise d'une démo
 const CH_STYLE_MIN = 10, CH_STYLE_MAX = 2000, CH_PAROLES_MAX = 3500;
-let chFormat = "flac", chBitrate = "256000";
+// La reprise a ses propres bornes, plus serrées.
+const CH_COVER_STYLE_MAX = 300, CH_COVER_PAROLES_MAX = 1000;
+// v2.6 ne propose PAS le FLAC : mp3, wav, pcm. Le WAV est sans perte,
+// c'est lui qui part dans AutoMixPro.
+let chFormat = "wav", chBitrate = "256000";
+let chMode = "creer";          // "creer" ou "reprise"
+let chDemoFichier = null;      // la démo chargée
 
 const CH_STYLES = [
   { l: "🎺 Makossa", t: "Modern makossa, 105 BPM, warm male vocal, rhythmic guitar, round bass, brass section, festive concert atmosphere." },
@@ -8366,6 +8461,14 @@ function chSetStatus(txt, pct) {
 // Ce qui manque pour lancer. Chaîne vide = prêt.
 function chManque() {
   const style = (document.getElementById("chStyle").value || "").trim();
+  if (chMode === "reprise") {
+    if (!chDemoFichier) return "Charge d'abord ta démo";
+    if (style.length < CH_STYLE_MIN) return "Décris le style voulu — " + CH_STYLE_MIN + " signes minimum";
+    if (style.length > CH_COVER_STYLE_MAX) return "En reprise, le style tient en " + CH_COVER_STYLE_MAX + " signes (" + style.length + ")";
+    const par = (document.getElementById("chParoles").value || "").trim();
+    if (par.length > CH_COVER_PAROLES_MAX) return "En reprise, les paroles tiennent en " + CH_COVER_PAROLES_MAX + " signes (" + par.length + ")";
+    return "";
+  }
   if (style.length < CH_STYLE_MIN) return "Décris le style — " + CH_STYLE_MIN + " signes minimum";
   if (style.length > CH_STYLE_MAX) return "Le style dépasse " + CH_STYLE_MAX + " signes (" + style.length + ")";
   const paroles = (document.getElementById("chParoles").value || "").trim();
@@ -8378,19 +8481,39 @@ function chManque() {
   return "";
 }
 
-function chPayload() {
+function chPayload(opts) {
   const style = (document.getElementById("chStyle").value || "").trim();
   const paroles = (document.getElementById("chParoles").value || "").trim();
   const auto = document.getElementById("chAutoParoles").checked;
   const instru = document.getElementById("chInstrumental").checked;
-  const p = { prompt: style };
+  const histoire = (document.getElementById("chHistoire").value || "").trim();
+  // Le schéma officiel n'a pas de champ « sujet » : l'histoire est jointe au
+  // prompt de style, seul endroit que le moteur lit pour écrire les paroles.
+  // On borne à 2000 signes, la limite du champ.
+  let sujet = style;
+  if (histoire && auto && !paroles) {
+    sujet = (style + " The song tells this story: " + histoire).slice(0, CH_STYLE_MAX);
+  }
+  // La reprise a son propre schéma (MusicCoverRequest) : audio_url
+  // obligatoire, prompt plus court, pas d'écriture automatique ni
+  // d'instrumental. Les paroles sont extraites de la démo si on n'en
+  // fournit pas.
+  if (chMode === "reprise") {
+    const c = { prompt: style.slice(0, CH_COVER_STYLE_MAX), audio_url: opts && opts.audio_url };
+    if (paroles) c.lyrics = paroles.slice(0, CH_COVER_PAROLES_MAX);
+    const rg = { sample_rate: "44100", format: chFormat };
+    if (chFormat !== "wav") rg.bitrate = chBitrate;
+    c.audio_setting = rg;
+    return c;
+  }
+  const p = { prompt: sujet };
   if (paroles) p.lyrics = paroles;
   if (auto && !paroles) p.lyrics_optimizer = true;
   if (instru) p.is_instrumental = true;
   // Le débit ne s'applique qu'aux formats compressés : en FLAC il n'a
   // aucun sens et on ne l'envoie pas.
   const reglage = { sample_rate: "44100", format: chFormat };
-  if (chFormat !== "flac") reglage.bitrate = chBitrate;
+  if (chFormat !== "wav") reglage.bitrate = chBitrate;
   p.audio_setting = reglage;
   return p;
 }
@@ -8409,7 +8532,7 @@ function chRefresh() {
   if (pc) pc.innerHTML = paroles.length + " / " + CH_PAROLES_MAX + " signes";
   const c = document.getElementById("chCout");
   if (c) c.innerHTML = chFormat.toUpperCase()
-    + (chFormat === "flac" ? " <span style='color:var(--ok)'>sans perte</span>" : " · " + (parseInt(chBitrate) / 1000) + " kbit/s")
+    + (chFormat === "wav" ? " <span style='color:var(--ok)'>sans perte</span>" : " · " + (parseInt(chBitrate) / 1000) + " kbit/s")
     + " · 44,1 kHz"
     + (document.getElementById("chInstrumental").checked ? " · sans voix" : "")
     + " · <b style='color:var(--gold)'>débité de ton crédit Studio</b>";
@@ -8460,7 +8583,7 @@ function chRefresh() {
     // Le débit n'a aucun sens en FLAC : on masque le choix.
     const bb = document.getElementById("chBitrateChips");
     if (bb) bb.parentElement.querySelectorAll(".label").forEach(() => {});
-    document.getElementById("chBitrateChips").style.display = chFormat === "flac" ? "none" : "";
+    document.getElementById("chBitrateChips").style.display = chFormat === "wav" ? "none" : "";
     chRefresh();
   });
   document.getElementById("chBitrateChips").style.display = "none";
@@ -8470,11 +8593,61 @@ function chRefresh() {
     c.classList.add("on"); chBitrate = c.dataset.chbit; chRefresh();
   });
 
+  // ── Bascule créer / reprise ──
+  document.querySelectorAll("[data-chmode]").forEach(c => c.onclick = () => {
+    document.querySelectorAll("[data-chmode]").forEach(x => x.classList.remove("on"));
+    c.classList.add("on");
+    chMode = c.dataset.chmode;
+    document.getElementById("chBoiteDemo").classList.toggle("hidden", chMode !== "reprise");
+    // En reprise, ces deux options n'existent pas dans le schéma.
+    const auto = document.getElementById("chAutoParoles").parentElement;
+    const instru = document.getElementById("chInstrumental").parentElement;
+    if (auto) auto.style.display = chMode === "reprise" ? "none" : "";
+    if (instru) instru.style.display = chMode === "reprise" ? "none" : "";
+    chRefresh();
+  });
+
+  // ── Chargement de la démo, avec contrôle de durée ──
+  // Le schéma impose 6 s à 6 min, 50 Mo. On le vérifie AVANT l'envoi :
+  // découvrir le refus après avoir payé l'hébergement serait absurde.
+  document.getElementById("chDemoBtn").onclick = () => document.getElementById("chDemoInput").click();
+  document.getElementById("chDemoInput").onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const nom = document.getElementById("chDemoNom");
+    if (f.size > 50 * 1024 * 1024) {
+      nom.innerHTML = "<span class='err'>Fichier trop lourd : " + Math.round(f.size / 1048576) + " Mo, maximum 50 Mo.</span>";
+      e.target.value = ""; return;
+    }
+    const a = new Audio(URL.createObjectURL(f));
+    a.onloadedmetadata = () => {
+      const d = a.duration;
+      if (d < 6) {
+        nom.innerHTML = "<span class='err'>Démo trop courte : " + d.toFixed(1) + " s, minimum 6 s.</span>";
+        chDemoFichier = null;
+      } else if (d > 360) {
+        nom.innerHTML = "<span class='err'>Démo trop longue : " + Math.round(d) + " s, maximum 6 minutes.</span>";
+        chDemoFichier = null;
+      } else {
+        chDemoFichier = f;
+        nom.innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + " · " + d.toFixed(1) + " s</span>";
+      }
+      chRefresh();
+    };
+    a.onerror = () => {
+      nom.innerHTML = "<span class='err'>Fichier audio illisible.</span>";
+      chDemoFichier = null; chRefresh();
+    };
+    e.target.value = "";
+  };
+
   document.getElementById("chNouvelle").onclick = () => {
     if ((style.value || paroles.value).trim() && !confirm("Effacer le style, les paroles et le résultat ?")) return;
     style.value = ""; paroles.value = "";
     document.getElementById("chAutoParoles").checked = false;
     document.getElementById("chInstrumental").checked = false;
+    chDemoFichier = null;
+    const dn = document.getElementById("chDemoNom"); if (dn) dn.innerHTML = "";
+    const di = document.getElementById("chDemoInput"); if (di) di.value = "";
     ["chResult", "chJournal", "chStatusText"].forEach(id => {
       const c = document.getElementById(id); if (c) c.innerHTML = "";
     });
@@ -8494,16 +8667,26 @@ function chRefresh() {
       rwDepart = Date.now();
       tic = setInterval(() => rwRondChrono("ch"), 1000);
       rwRondChrono("ch");
-      const payload = chPayload();
-      chLog("DÉMARRAGE", { modele: CH_MODELE, format: chFormat,
+      // En reprise, la démo doit d'abord être hébergée : le schéma attend
+      // une URL, pas un fichier.
+      let audioUrl = null;
+      if (chMode === "reprise") {
+        if (!chDemoFichier) throw new Error("Charge d'abord ta démo");
+        chSetStatus("Envoi de la démo…", 5);
+        audioUrl = await hebergerFichier(chDemoFichier, chDemoFichier.name || "demo.mp3");
+        chLog("DÉMO HÉBERGÉE", { fichier: chDemoFichier.name, octets: chDemoFichier.size });
+      }
+      const payload = chPayload({ audio_url: audioUrl });
+      chLog("DÉMARRAGE", { mode: chMode, modele: chMode === "reprise" ? CH_MODELE_COVER : CH_MODELE, format: chFormat,
         style_signes: payload.prompt.length,
         paroles_signes: (payload.lyrics || "").length,
         ecriture_auto: !!payload.lyrics_optimizer, instrumental: !!payload.is_instrumental });
       chSetStatus("Envoi au studio…", 10);
-      const job = await fsSubmit(CH_MODELE, payload);
+      const modele = chMode === "reprise" ? CH_MODELE_COVER : CH_MODELE;
+      const job = await fsSubmit(modele, payload);
       chLog("TÂCHE CRÉÉE", { request_id: job.request_id || "?" });
-      const statusUrl = job.status_url || ("https://queue.fal.run/" + CH_MODELE + "/requests/" + job.request_id + "/status");
-      const responseUrl = job.response_url || ("https://queue.fal.run/" + CH_MODELE + "/requests/" + job.request_id);
+      const statusUrl = job.status_url || ("https://queue.fal.run/" + modele + "/requests/" + job.request_id + "/status");
+      const responseUrl = job.response_url || ("https://queue.fal.run/" + modele + "/requests/" + job.request_id);
       for (let i = 0; i < 200; i++) {
         await new Promise(r => setTimeout(r, 4000));
         const s = await fsPoll(statusUrl);
@@ -8544,6 +8727,320 @@ function chRefresh() {
   };
 
   chRefresh();
+})();
+
+
+// ═══ v41.88 · FORMAT, RÉSOLUTION ET GÉNÉRATION PAR LOTS ═══
+// Papy : « plusieurs plans de 15 secondes qui découpent toute la chanson,
+// le format choisi par le client, et je préfère par lots de 5 pour que le
+// client puisse vérifier avant de continuer. »
+let mtFormat = "16:9", mtRes = "720p";
+const MT_LOT = 5;   // plans générés avant de rendre la main
+
+(function mtReglagesInit() {
+  const p15 = document.getElementById("mtPlans15");
+  if (!p15) return;
+
+  // Le Moteur A plafonne à 15 s : un plan plus long est impossible.
+  p15.onclick = () => {
+    document.getElementById("mtPlanMin").value = 12;
+    document.getElementById("mtPlanMax").value = 15;
+    if (typeof mtMajBoutons === "function") mtMajBoutons();
+  };
+  document.getElementById("mtPlansCourts").onclick = () => {
+    document.getElementById("mtPlanMin").value = 2;
+    document.getElementById("mtPlanMax").value = 8;
+    if (typeof mtMajBoutons === "function") mtMajBoutons();
+  };
+
+  document.querySelectorAll("#mtFormatChips .chip").forEach(c => c.onclick = () => {
+    document.querySelectorAll("#mtFormatChips .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on"); mtFormat = c.dataset.mtfmt;
+  });
+  document.querySelectorAll("#mtResChips .chip").forEach(c => c.onclick = () => {
+    document.querySelectorAll("#mtResChips .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on"); mtRes = c.dataset.mtres;
+  });
+})();
+
+// Prix réel, repris des tarifs officiels relevés le 26 août.
+// Avec une vidéo source la remise de 40 % s'applique ; ici on part d'une
+// PHOTO, donc plein tarif.
+function mtPrixPlan(secondes) {
+  const parSec = { "480p": 0.1517, "720p": 0.3034, "1080p": 0.682 }[mtRes] || 0.3034;
+  return parSec * secondes;
+}
+function mtPrixTotal(plans) {
+  return plans.reduce((s, p) => s + mtPrixPlan(p.duree || 10), 0);
+}
+
+
+// ═══ v41.88 · GÉNÉRATION PAR LOTS ═══
+// Un plan raté ou un rendu qui ne plaît pas ne doit pas coûter les 24 autres :
+// on avance par paquets de 5, le client regarde, puis relance.
+let mtEtatPlans = [];      // { i, statut, url, erreur }
+let mtLotEnCours = false;
+let mtLotArret = false;
+
+function mtLotMaj() {
+  const boite = document.getElementById("mtLotBoite");
+  if (!boite || !window.mtPlansCourants || !mtPlansCourants.length) return;
+  boite.classList.remove("hidden");
+
+  if (mtEtatPlans.length !== mtPlansCourants.length) {
+    mtEtatPlans = mtPlansCourants.map((p, i) => ({ i: i, statut: "attente", url: null, erreur: null }));
+  }
+  const faits = mtEtatPlans.filter(e => e.statut === "fait").length;
+  const rates = mtEtatPlans.filter(e => e.statut === "rate").length;
+  const restants = mtEtatPlans.filter(e => e.statut === "attente" || e.statut === "rate");
+
+  const cout = mtPrixTotal(mtPlansCourants);
+  const coutRestant = restants.reduce((s, e) => s + mtPrixPlan(mtPlansCourants[e.i].duree || 10), 0);
+  document.getElementById("mtLotCout").innerHTML =
+    mtPlansCourants.length + " plans · " + mtRes + " · " + mtFormat
+    + " · <b style='color:var(--gold)'>total ≈ " + cout.toFixed(2) + " $</b>"
+    + (faits ? " · déjà fait : " + faits : "")
+    + (restants.length ? " · reste ≈ " + coutRestant.toFixed(2) + " $" : "");
+
+  const go = document.getElementById("mtLotGo");
+  const prochains = restants.slice(0, MT_LOT);
+  go.disabled = mtLotEnCours || !prochains.length;
+  go.textContent = !prochains.length ? "✓ Tous les plans sont générés"
+    : mtLotEnCours ? "⏳ Génération en cours…"
+    : "▶️ Générer les " + prochains.length + " prochains plans (≈ "
+      + prochains.reduce((s, e) => s + mtPrixPlan(mtPlansCourants[e.i].duree || 10), 0).toFixed(2) + " $)";
+
+  document.getElementById("mtLotEtat").innerHTML =
+    faits + " / " + mtPlansCourants.length + " terminés"
+    + (rates ? " · <span class='err'>" + rates + " en échec</span>" : "");
+
+  document.getElementById("mtLotListe").innerHTML = mtEtatPlans.map(e => {
+    const p = mtPlansCourants[e.i];
+    const icone = { attente: "⬜", encours: "⏳", fait: "✅", rate: "❌" }[e.statut];
+    return '<div style="display:flex; align-items:center; gap:8px; margin-top:4px; font-size:13px;">'
+      + '<span>' + icone + '</span>'
+      + '<span style="flex:1;">Plan ' + (e.i + 1) + ' · ' + (p.duree || 0).toFixed(1) + ' s · ' + (p.cadre || "") + '</span>'
+      + (e.url ? '<a class="chip" style="padding:2px 10px;" href="' + e.url + '" target="_blank" rel="noopener noreferrer">▶️</a>' : "")
+      + (e.erreur ? '<span class="err" style="font-size:11px;">' + e.erreur.slice(0, 40) + '</span>' : "")
+      + '</div>';
+  }).join("");
+}
+
+// heberger() est déclaré à l'intérieur du gestionnaire du Moteur A : il n'est
+// pas accessible ici. On refait le même appel, avec la même route admin.
+async function mtHeberger(fichier, quoi) {
+  const u = await hebergerFichier(fichier, fichier.name || "photo.jpg");
+  mtLog("HÉBERGÉ · " + quoi, { fichier: fichier.name, octets: fichier.size });
+  return u;
+}
+
+async function mtGenererUn(idx) {
+  const plan = mtPlansCourants[idx];
+  const etat = mtEtatPlans[idx];
+  etat.statut = "encours"; etat.erreur = null; mtLotMaj();
+  try {
+    if (plan.verif && !plan.verif.ok)
+      throw new Error("texte refusé : " + (plan.verif.fautes[0] || "règle non respectée"));
+    // Le visage vient TOUJOURS d'une photo : c'est ce qui empêche le moteur
+    // de le refabriquer. Le routage du montage l'a déjà vérifié.
+    const url = await mtHeberger(mtFichierPhoto, "PHOTO PLAN " + (idx + 1));
+
+    // v41.91 · CHOIX DU MODE SELON LES ANGLES DISPONIBLES
+    // Sans angle : image→vidéo, comme avant — la photo EST la première
+    // image, fidélité maximale sur les gros plans.
+    // Avec des angles : les plans où la tête tourne (moyen, large) partent
+    // en mode références, où le moteur a une vraie image de chaque angle
+    // au lieu d'inventer un profil à partir d'une face.
+    // Les GROS PLANS restent en image→vidéo même avec des angles : c'est là
+    // que la fidélité compte le plus, et la tête y bouge peu.
+    const grosPlan = plan.cadre === MT_CADRES.serre;
+    const avecAngles = mtAngles.length > 0 && !grosPlan;
+
+    let endpoint, payload;
+    if (avecAngles) {
+      const urls = [url];
+      for (let a = 0; a < mtAngles.length; a++) {
+        urls.push(await mtHeberger(mtAngles[a], "ANGLE " + (a + 1)));
+      }
+      // En mode références, chaque image DOIT être citée dans le texte,
+      // sinon le moteur l'ignore purement et simplement.
+      const citations = urls.map((_, i) => "@Image" + (i + 1)).join(", ");
+      endpoint = FS_ENDPOINTS.ref;
+      payload = {
+        prompt: "The person shown in " + citations + " (same person, seen from different angles). "
+          + plan.texte,
+        image_urls: urls,
+        resolution: mtRes,
+        aspect_ratio: mtFormat,
+        duration: String(Math.min(15, Math.max(4, Math.round(plan.duree || 10)))),
+        generate_audio: false,
+      };
+    } else {
+      endpoint = FS_ENDPOINTS.image;
+      payload = {
+        prompt: plan.texte,
+        resolution: mtRes,
+        aspect_ratio: mtFormat,
+        duration: String(Math.min(15, Math.max(4, Math.round(plan.duree || 10)))),
+        generate_audio: false,
+        image_url: url,
+      };
+    }
+    mtLog("PLAN " + (idx + 1) + " · ENVOI", { mode: avecAngles ? "références" : "image",
+      images: avecAngles ? payload.image_urls.length : 1,
+      duree: payload.duration, format: mtFormat, res: mtRes });
+    const job = await fsSubmit(endpoint, payload);
+    const statusUrl = job.status_url || ("https://queue.fal.run/" + endpoint + "/requests/" + job.request_id + "/status");
+    const responseUrl = job.response_url || ("https://queue.fal.run/" + endpoint + "/requests/" + job.request_id);
+    for (let k = 0; k < 200; k++) {
+      await new Promise(r => setTimeout(r, 4000));
+      const s = await fsPoll(statusUrl);
+      if (s.status === "COMPLETED") break;
+      if (s.status === "FAILED" || s.status === "ERROR") {
+        const rep = await fsPoll(responseUrl).catch(() => ({}));
+        throw new Error(rep.error || rep.message || "refusé par le moteur");
+      }
+    }
+    const data = await fsPoll(responseUrl);
+    const v = (data.video && data.video.url) || (data.response && data.response.video && data.response.video.url);
+    if (!v) throw new Error("vidéo introuvable dans la réponse");
+    etat.statut = "fait"; etat.url = v;
+    mtLog("PLAN " + (idx + 1) + " · TERMINÉ", { url: String(v).slice(0, 50) + "…" });
+  } catch (e) {
+    etat.statut = "rate"; etat.erreur = e.message;
+    mtLog("PLAN " + (idx + 1) + " · ÉCHEC", e.message);
+  }
+  mtLotMaj();
+}
+
+(function mtLotInit() {
+  const go = document.getElementById("mtLotGo");
+  if (!go) return;
+  go.onclick = async () => {
+    const restants = mtEtatPlans.filter(e => e.statut === "attente" || e.statut === "rate").slice(0, MT_LOT);
+    if (!restants.length) return;
+    const cout = restants.reduce((s, e) => s + mtPrixPlan(mtPlansCourants[e.i].duree || 10), 0);
+    if (!confirm("Générer " + restants.length + " plans ?\n\nCoût estimé : " + cout.toFixed(2) + " $\nDurée : environ " + (restants.length * 3) + " minutes.\n\nTu pourras vérifier le résultat avant de continuer."))
+      return;
+    mtLotEnCours = true; mtLotArret = false;
+    document.getElementById("mtLotStop").classList.remove("hidden");
+    mtLotMaj();
+    for (const e of restants) {
+      if (mtLotArret) break;
+      await mtGenererUn(e.i);
+    }
+    mtLotEnCours = false;
+    document.getElementById("mtLotStop").classList.add("hidden");
+    mtLotMaj();
+  };
+  document.getElementById("mtLotStop").onclick = () => {
+    mtLotArret = true;
+    document.getElementById("mtLotEtat").innerHTML += " · <b style='color:var(--gold)'>arrêt demandé…</b>";
+  };
+})();
+
+
+// ═══ v41.89 · L'HISTOIRE DEVIENT DÉCORS ET ACTIONS ═══
+// Papy raconte en français, l'app en tire des décors et des actions en
+// anglais, prêts pour le moteur. Il garde la main : les champs restent
+// modifiables après remplissage.
+(function mtHistoireInit() {
+  const btn = document.getElementById("mtHistoireGo");
+  if (!btn) return;
+  btn.onclick = async () => {
+    const histoire = (document.getElementById("mtHistoire").value || "").trim();
+    const etat = document.getElementById("mtHistoireEtat");
+    if (histoire.length < 15) {
+      etat.innerHTML = "<span class='err'>Raconte l'histoire en quelques phrases d'abord.</span>";
+      return;
+    }
+    const libelle = btn.textContent;
+    btn.disabled = true; btn.textContent = "✨ En cours…";
+    etat.innerHTML = "Lecture de l'histoire…";
+    try {
+      const path = "fal-ai/any-llm";
+      const job = await apiSubmit(path, {
+        model: "google/gemini-2.5-flash",
+        system_prompt: "Tu reçois l'histoire d'un clip musical, en français. "
+          + "Découpe-la en LIEUX et en ACTIONS pour un tournage. "
+          + "Réponds EXACTEMENT dans ce format, sans rien d'autre :\n"
+          + "DECORS\n<un lieu par ligne, en anglais, 4 à 6 lignes, décor seul sans personne, avec l'heure du jour et la lumière>\n"
+          + "ACTIONS\n<une action par ligne, en anglais, 4 à 6 lignes, commençant par 'the subject'>\n"
+          + "RÈGLES ABSOLUES : aucun nom propre, aucun prénom, aucune marque. "
+          + "Ne décris JAMAIS le visage ni les vêtements. Chaque ligne fait moins de 20 mots. "
+          + "Les lieux suivent l'ordre de l'histoire.",
+        prompt: histoire,
+      });
+      const st = job.status_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id + "/status");
+      const rp = job.response_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id);
+      for (let i = 0; i < 25; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        const sj = await apiPoll(st);
+        if (sj.status === "COMPLETED") break;
+        if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("lecture impossible");
+      }
+      const data = await apiPoll(rp);
+      const out = (data.output || (data.response && data.response.output) || "").trim();
+      if (!out) throw new Error("réponse vide");
+
+      // Découpage de la réponse. Si le format n'est pas respecté, on le dit
+      // au lieu de remplir les champs avec n'importe quoi.
+      const iD = out.search(/DECORS/i), iA = out.search(/ACTIONS/i);
+      if (iD < 0 || iA < 0 || iA < iD) throw new Error("format inattendu — réessaie");
+      const propre = (t) => t.split("\n").map(l => l.replace(/^[-•*\d.\s]+/, "").trim())
+        .filter(l => l && !/^(DECORS|ACTIONS)$/i.test(l)).join("\n");
+      const decors = propre(out.slice(iD + 6, iA));
+      const actions = propre(out.slice(iA + 7));
+      if (!decors || !actions) throw new Error("découpage incomplet — réessaie");
+
+      document.getElementById("mtDecors").value = decors;
+      document.getElementById("mtActions").value = actions;
+      etat.innerHTML = "<span style='color:var(--ok)'>✓ "
+        + decors.split("\n").length + " décors et " + actions.split("\n").length
+        + " actions écrits. Relis-les et corrige si besoin.</span>";
+      if (typeof mtMajBoutons === "function") mtMajBoutons();
+    } catch (e) {
+      etat.innerHTML = "<span class='err'>Échec : " + e.message + ". Écris les décors à la main.</span>";
+    } finally {
+      btn.disabled = false; btn.textContent = libelle;
+    }
+  };
+})();
+
+
+// ═══ v41.91 · ANGLES SUPPLÉMENTAIRES (facultatifs) ═══
+// Le mode image→vidéo ne prend qu'UNE image de départ : sur un plan de
+// profil, le moteur invente le profil à partir d'une face. Avec plusieurs
+// angles, les plans où la tête tourne partent en mode références, où le
+// moteur dispose d'une vraie image de chaque angle.
+// Rien n'est obligatoire : sans angle ajouté, tout se comporte comme avant.
+(function mtAnglesInit() {
+  const btn = document.getElementById("mtAnglesBtn");
+  if (!btn) return;
+  const maj = () => {
+    const z = document.getElementById("mtAnglesListe");
+    if (!z) return;
+    if (!mtAngles.length) { z.innerHTML = ""; return; }
+    z.innerHTML = mtAngles.map((f, i) =>
+      '<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">'
+      + '<span style="flex:1;">🖼️ angle ' + (i + 1) + " · " + f.name + '</span>'
+      + '<button class="chip" data-mtangdel="' + i + '" style="padding:2px 10px;">✕</button></div>').join("")
+      + '<div style="margin-top:6px; color:var(--ok);">✓ ' + (mtAngles.length + 1)
+      + " photos au total — les plans où la tête tourne partiront en mode références.</div>";
+    z.querySelectorAll("[data-mtangdel]").forEach(b => b.onclick = () => {
+      mtAngles.splice(+b.dataset.mtangdel, 1);
+      const inp = document.getElementById("mtAnglesInput"); if (inp) inp.value = "";
+      maj();
+    });
+  };
+  btn.onclick = () => document.getElementById("mtAnglesInput").click();
+  document.getElementById("mtAnglesInput").onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    // 9 images au maximum côté moteur, photo principale comprise.
+    if (mtAngles.length >= 8) { alert("8 angles au maximum, en plus de la photo principale."); return; }
+    if (f.size > 30 * 1024 * 1024) { alert("Image trop lourde : 30 Mo maximum."); return; }
+    mtAngles.push(f); e.target.value = ""; maj();
+  };
 })();
 
 // ─── Initialisation et gestes du volet FAL Seedance 2.0 ───
@@ -8789,7 +9286,7 @@ function chRefresh() {
 
 
 
-// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.87) ═══════════════
+// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.92) ═══════════════
 // Bloc VOLONTAIREMENT sans DOM ni réseau : test-v41.85.js le découpe entre
 // ces deux bornes et l'exécute dans Node pour tester le vrai code, pas une
 // chaîne de caractères. Ne rien ajouter ici qui touche document ou fetch.
@@ -9227,10 +9724,18 @@ function mtHabiller(plans, opt) {
   const decors = (opt.decors && opt.decors.length) ? opt.decors : ["an empty rooftop terrace at golden hour, city skyline behind"];
   const actions = (opt.actions && opt.actions.length) ? opt.actions : ["the subject moves slowly and looks off camera"];
   if (!opt.tenue) throw new Error("mtHabiller : tenue absente");
+  // v41.88 : plusieurs tenues possibles. Le changement de tenue est CALÉ sur
+  // le changement de décor — changer de vêtements au milieu d'un même lieu
+  // donnerait un raccord incohérent au montage.
+  const tenues = Array.isArray(opt.tenue)
+    ? opt.tenue.filter(t => t && t.trim())
+    : String(opt.tenue).split("\n").map(t => t.trim()).filter(Boolean);
+  if (!tenues.length) throw new Error("mtHabiller : tenue absente");
   return plans.map((p, i) => {
+    const iDecor = i % decors.length;
     const q = Object.assign({}, p, {
-      tenue: p.visage ? opt.tenue : "no person in frame",
-      decor: decors[i % decors.length],
+      tenue: p.visage ? tenues[iDecor % tenues.length] : "no person in frame",
+      decor: decors[iDecor],
       action: p.visage ? actions[i % actions.length] : "the camera drifts across the empty space",
       camera: p.cadre === MT_CADRES.large ? "slow crane rise" : MT_CAMERAS[i % MT_CAMERAS.length],
     });
@@ -9342,6 +9847,11 @@ function mtAfficherPlans(res) {
   const z = document.getElementById("mtPlan");
   const vide = document.getElementById("mtPlanVide");
   if (vide) vide.classList.add("hidden");
+  // v41.88 : on publie les plans pour le bloc de génération par lots, et on
+  // remet le suivi à zéro — un nouveau montage n'hérite pas de l'ancien.
+  window.mtPlansCourants = res.plans;
+  mtEtatPlans = [];
+  if (typeof mtLotMaj === "function") mtLotMaj();
   const nomMoteur = {
     "moteurA.image": "Moteur A · image→vidéo",
     "moteurA.references": "Moteur A · références",
