@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.92 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.93 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1813,7 +1813,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.92</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.93</span>
 
   </footer>
 </div>
@@ -8492,7 +8492,21 @@ function chPayload(opts) {
   // On borne à 2000 signes, la limite du champ.
   let sujet = style;
   if (histoire && auto && !paroles) {
-    sujet = (style + " The song tells this story: " + histoire).slice(0, CH_STYLE_MAX);
+    // On protège le style : c'est lui qui porte le genre, le tempo et la
+    // voix. Si l'ensemble dépasse, c'est l'HISTOIRE qu'on raccourcit, et
+    // sur un espace pour ne pas couper un mot en deux.
+    const intro = " The song tells this story: ";
+    const place = CH_STYLE_MAX - style.length - intro.length;
+    if (place < 60) {
+      sujet = style;   // pas la place : le style seul, l'histoire est perdue
+    } else if (histoire.length <= place) {
+      sujet = style + intro + histoire;
+    } else {
+      let court = histoire.slice(0, place);
+      const esp = court.lastIndexOf(" ");
+      if (esp > place * 0.6) court = court.slice(0, esp);
+      sujet = style + intro + court;
+    }
   }
   // La reprise a son propre schéma (MusicCoverRequest) : audio_url
   // obligatoire, prompt plus court, pas d'écriture automatique ni
@@ -8501,8 +8515,9 @@ function chPayload(opts) {
   if (chMode === "reprise") {
     const c = { prompt: style.slice(0, CH_COVER_STYLE_MAX), audio_url: opts && opts.audio_url };
     if (paroles) c.lyrics = paroles.slice(0, CH_COVER_PAROLES_MAX);
-    const rg = { sample_rate: "44100", format: chFormat };
-    if (chFormat !== "wav") rg.bitrate = chBitrate;
+    // Nombres, PAS des textes : FAL refuse "44100" et attend 44100.
+    const rg = { sample_rate: 44100, format: chFormat };
+    if (chFormat !== "wav") rg.bitrate = Number(chBitrate);
     c.audio_setting = rg;
     return c;
   }
@@ -8512,8 +8527,9 @@ function chPayload(opts) {
   if (instru) p.is_instrumental = true;
   // Le débit ne s'applique qu'aux formats compressés : en FLAC il n'a
   // aucun sens et on ne l'envoie pas.
-  const reglage = { sample_rate: "44100", format: chFormat };
-  if (chFormat !== "wav") reglage.bitrate = chBitrate;
+  // Nombres, PAS des textes : FAL refuse "44100" et attend 44100.
+  const reglage = { sample_rate: 44100, format: chFormat };
+  if (chFormat !== "wav") reglage.bitrate = Number(chBitrate);
   p.audio_setting = reglage;
   return p;
 }
@@ -8526,8 +8542,22 @@ function chRefresh() {
   const style = (document.getElementById("chStyle").value || "").trim();
   const paroles = (document.getElementById("chParoles").value || "").trim();
   const sc = document.getElementById("chStyleCpt");
-  if (sc) sc.innerHTML = style.length + " / " + CH_STYLE_MAX + " signes"
-    + (style.length && style.length < CH_STYLE_MIN ? " <span class='err'>— trop court</span>" : "");
+  if (sc) {
+    const hist = (document.getElementById("chHistoire").value || "").trim();
+    const auto = document.getElementById("chAutoParoles").checked;
+    const par = (document.getElementById("chParoles").value || "").trim();
+    let sup = "";
+    // Prévenir AVANT de lancer, pas après : Papy doit savoir que son
+    // histoire ne tiendra pas entièrement.
+    if (hist && auto && !par) {
+      const place = CH_STYLE_MAX - style.length - 28;
+      if (place < 60) sup = " <span class='err'>— style trop long : l'histoire ne sera pas envoyée</span>";
+      else if (hist.length > place) sup = " <span class='err'>— histoire raccourcie à " + place + " signes</span>";
+      else sup = " <span style='color:var(--ok)'>— + histoire (" + hist.length + ")</span>";
+    }
+    sc.innerHTML = style.length + " / " + CH_STYLE_MAX + " signes"
+      + (style.length && style.length < CH_STYLE_MIN ? " <span class='err'>— trop court</span>" : "") + sup;
+  }
   const pc = document.getElementById("chParolesCpt");
   if (pc) pc.innerHTML = paroles.length + " / " + CH_PAROLES_MAX + " signes";
   const c = document.getElementById("chCout");
@@ -8575,6 +8605,7 @@ function chRefresh() {
   style.addEventListener("input", chRefresh);
   paroles.addEventListener("input", chRefresh);
   document.getElementById("chAutoParoles").onchange = chRefresh;
+  document.getElementById("chHistoire").addEventListener("input", chRefresh);
   document.getElementById("chInstrumental").onchange = chRefresh;
 
   document.querySelectorAll("#chFormatChips .chip").forEach(c => c.onclick = () => {
@@ -9286,7 +9317,7 @@ async function mtGenererUn(idx) {
 
 
 
-// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.92) ═══════════════
+// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.93) ═══════════════
 // Bloc VOLONTAIREMENT sans DOM ni réseau : test-v41.85.js le découpe entre
 // ces deux bornes et l'exécute dans Node pour tester le vrai code, pas une
 // chaîne de caractères. Ne rien ajouter ici qui touche document ou fetch.
