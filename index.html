@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.93 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.94 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1813,7 +1813,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.93</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.94</span>
 
   </footer>
 </div>
@@ -6972,7 +6972,9 @@ function rwEnvoyerFichier(f, zoneJournal, onProgres, quoi) {
     try {
       const r = await fetch(WORKER_URL + "/runway/upload-init", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin: admPin(), filename: f.name }),
+        // v41.94 : même assainissement que côté Moteur A. Une apostrophe ou
+        // un espace dans le nom casse l'URL une fois le fichier déposé.
+        body: JSON.stringify({ pin: admPin(), filename: nomSur(f.name) }),
       });
       dep = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(dep.error || ("Dépôt refusé (" + r.status + ")"));
@@ -7325,6 +7327,14 @@ async function rwAttendre(id, zoneJournal, setSt, minutes) {
           // chercher Papy au mauvais endroit le 24 août : quatre essais avec des
           // prompts différents, tous bloqués, car c'était l'image qui était visée.
           aide = " → La modération du FOURNISSEUR du moteur a bloqué le contenu. Cela peut venir de l'IMAGE, de la VIDÉO ou du texte — pas forcément du texte. Si le même contenu passe ailleurs, garde l'identifiant de tâche ci-dessus pour Papy.";
+        else if (/content_policy_violation|partner_validation_failed/i.test(code))
+          // v41.94 : cas nouveau, apparu le 1er septembre. Le moteur refuse
+          // les visages réels comme image de départ. Le verdict est
+          // DÉTERMINISTE : relancer donne exactement le même refus.
+          // La seule voie qui accepte encore ces images est Multi-Shot.
+          aide = " → <b style='color:var(--gold)'>Image de départ refusée par le moteur. NE RELANCE PAS</b> : le refus se reproduira à l'identique. "
+               + "Ce moteur n'accepte plus les visages réels en image de départ. "
+               + "Passe par <b>🎬 Multi-Shot Video</b> : son contrôle de contenu est distinct et accepte encore ces images.";
         else if (/SAFETY/i.test(code))
           aide = " → La modération a bloqué le contenu. Reformule ton texte.";
         // v41.50 : on affiche le coût RÉEL facturé, lu dans la réponse, au lieu
@@ -8059,6 +8069,31 @@ function fsLigneFichier(icone, tag, nom, detail, type, i) {
 function fsTotalFichiers() {
   return fsRefImages.length + fsRefVideos.length + fsRefAudios.length;
 }
+// v41.94 : les images du mode Photo peuvent maintenant être RETIRÉES.
+// Elles se remplaçaient déjà en rechargeant, mais rien ne permettait de
+// revenir à zéro sans tout effacer.
+function fsMajImgNom() {
+  const paires = [["fsImgNom", "fsImage"], ["fsImgFinNom", "fsImageFin"]];
+  paires.forEach(([zid, quoi]) => {
+    const z = document.getElementById(zid);
+    if (!z) return;
+    const f = quoi === "fsImage" ? fsImage : fsImageFin;
+    if (!f) { z.innerHTML = ""; return; }
+    z.innerHTML = '<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">'
+      + "<span style=\"flex:1; color:var(--ok)\">✓ " + f.name + "</span>"
+      + '<button class="chip" data-fsimgdel="' + quoi + '" style="padding:2px 10px;">✕</button></div>';
+    z.querySelectorAll("[data-fsimgdel]").forEach(b => b.onclick = () => {
+      if (b.dataset.fsimgdel === "fsImage") fsImage = null; else fsImageFin = null;
+      // Sans ce reset, recharger LE MÊME fichier ne déclencherait rien.
+      ["fsImgInput", "fsImgFinInput"].forEach(id => {
+        const c = document.getElementById(id); if (c) c.value = "";
+      });
+      fsMajImgNom(); fsRefresh();
+      if (typeof fsPortMaj === "function") fsPortMaj();
+    });
+  });
+}
+
 function fsMajListe() {
   const l = [];
   fsRefImages.forEach((x, i) => l.push(fsLigneFichier("🖼️", "Image", x.fichier.name, "", "img", i)));
@@ -9098,7 +9133,7 @@ async function mtGenererUn(idx) {
       alert("Image trop lourde : " + Math.round(f.size / 1048576) + " Mo, maximum " + FS_LIMITES.imageMo + " Mo."); return;
     }
     fsImage = f;
-    document.getElementById("fsImgNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+    fsMajImgNom();
     fsRefresh(); e.target.value = "";
   };
 
@@ -9110,7 +9145,7 @@ async function mtGenererUn(idx) {
       alert("Image trop lourde : maximum " + FS_LIMITES.imageMo + " Mo."); return;
     }
     fsImageFin = f;
-    document.getElementById("fsImgFinNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+    fsMajImgNom();
     fsRefresh(); e.target.value = "";
   };
   document.querySelectorAll("#fsBitrateChips .chip").forEach(c => c.onclick = () => {
@@ -9182,8 +9217,9 @@ async function mtGenererUn(idx) {
       .forEach(id => { const c = document.getElementById(id); if (c) c.value = ""; });
     // 3. Textes et aperçus
     ["fsPrompt", "fsPortPrompt"].forEach(id => { const c = document.getElementById(id); if (c) c.value = ""; });
-    ["fsImgNom", "fsImgFinNom", "fsRefListe", "fsResult", "fsJournal", "fsStatusText"]
+    ["fsRefListe", "fsResult", "fsJournal", "fsStatusText"]
       .forEach(id => { const c = document.getElementById(id); if (c) c.innerHTML = ""; });
+    fsMajImgNom();
     const ap = document.getElementById("fsPortApercu");
     if (ap) { ap.innerHTML = ""; delete ap.dataset.nom; }
     const vd = document.getElementById("fsPortVide"); if (vd) vd.classList.remove("hidden");
@@ -9282,6 +9318,19 @@ async function mtGenererUn(idx) {
           const motif = rep.detail
             ? (Array.isArray(rep.detail) ? rep.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(rep.detail))
             : (rep.error || rep.message || "motif non précisé");
+          // v41.94 : depuis le 1er septembre, ce moteur refuse les visages
+          // réels en image de départ. Le verdict est DÉTERMINISTE — relancer
+          // donne le même refus, à l'identique. Autant le dire tout de suite
+          // et indiquer la seule voie qui fonctionne encore.
+          const brut = JSON.stringify(rep);
+          if (/content_policy_violation|partner_validation_failed/i.test(brut)) {
+            const surImage = /"image_url"|image_urls/i.test(brut);
+            throw new Error(
+              (surImage ? "Image de départ refusée par le moteur. " : "Contenu refusé par le moteur. ")
+              + "NE RELANCE PAS : le refus se reproduira à l'identique. "
+              + "Ce moteur n'accepte plus les visages réels en image de départ. "
+              + "Passe par 🎬 Multi-Shot Video, dont le contrôle de contenu est distinct et accepte encore ces images.");
+          }
           throw new Error("Le Moteur A a refusé la génération : " + motif);
         }
       }
@@ -9317,7 +9366,7 @@ async function mtGenererUn(idx) {
 
 
 
-// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.93) ═══════════════
+// ═══════════════ MONTAGE AUTO · NOYAU DE CALCUL (v41.94) ═══════════════
 // Bloc VOLONTAIREMENT sans DOM ni réseau : test-v41.85.js le découpe entre
 // ces deux bornes et l'exécute dans Node pour tester le vrai code, pas une
 // chaîne de caractères. Ne rien ajouter ici qui touche document ou fetch.
@@ -10295,10 +10344,28 @@ document.getElementById("mvImgBtn").onclick = () => document.getElementById("mvI
 document.getElementById("mvImgInput").onchange = (e) => {
   const f = e.target.files[0]; if (!f) return;
   mvImage = f;
-  document.getElementById("mvImgNom").innerHTML = "<span style='color:var(--ok)'>✓ " + f.name + "</span>";
+  mvMajImgNom();
   e.target.value = "";
 };
 document.querySelectorAll("#mvModeChips .chip").forEach(c => c.onclick = () => { mvMode = c.dataset.mvmode; mvMajMode(); });
+// v41.94 : l'image de départ Multi-Shot peut être retirée. Cet onglet est
+// devenu la voie principale pour animer une photo d'artiste — le Moteur A
+// refuse les visages réels en image de départ depuis le 1er septembre.
+function mvMajImgNom() {
+  const z = document.getElementById("mvImgNom");
+  if (!z) return;
+  if (!mvImage) { z.innerHTML = ""; return; }
+  z.innerHTML = '<div style="display:flex; align-items:center; gap:8px;">'
+    + "<span style=\"flex:1; color:var(--ok)\">✓ " + mvImage.name + "</span>"
+    + '<button class="chip" id="mvImgDel" style="padding:2px 10px;">✕</button></div>';
+  document.getElementById("mvImgDel").onclick = () => {
+    mvImage = null;
+    // Sans ce reset, recharger LA MÊME image ne déclencherait rien.
+    const c = document.getElementById("mvImgInput"); if (c) c.value = "";
+    mvMajImgNom(); mvRefresh();
+  };
+}
+
 document.querySelectorAll("#mvDureeChips .chip").forEach(c => c.onclick = () => {
   document.querySelectorAll("#mvDureeChips .chip").forEach(x => x.classList.remove("on"));
   c.classList.add("on"); mvDuree = Number(c.dataset.mvduree); mvRefresh();
@@ -10371,7 +10438,7 @@ document.getElementById("mvGo").onclick = async () => {
       document.getElementById("mvResult").innerHTML = "";
       document.getElementById("mvPrompt").value = "";
       mvShots = [{ prompt: "", duree: 4 }, { prompt: "", duree: 3 }, { prompt: "", duree: 3 }];
-      mvImage = null; document.getElementById("mvImgNom").innerHTML = ""; document.getElementById("mvImgInput").value = "";
+      mvImage = null; document.getElementById("mvImgInput").value = ""; mvMajImgNom();
       if (mvMode === "custom") mvRendreShots();
       mvRefresh();
     };
