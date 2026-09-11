@@ -3,7 +3,11 @@
 // sinon les anciennes copies restent sur l'appareil des clients et ils ne voient
 // jamais les nouveautés. Les caches des versions précédentes sont supprimés
 // automatiquement à l'activation.
-const CACHE = "starclip-v41-98";
+const CACHE = "starclip-v41-100";
+// v41.99 : les vignettes des moteurs NE SONT PAS dans cette liste, volontairement.
+// addAll() échoue en bloc si UN SEUL fichier manque — et l'installation entière
+// du service worker est alors perdue. Les vignettes se chargent normalement à
+// l'affichage et entrent en cache à l'usage. Une image manquante ne casse rien.
 const FILES = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
