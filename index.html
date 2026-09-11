@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.96 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.97 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1813,7 +1813,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.96</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.97</span>
 
   </footer>
 </div>
@@ -7727,12 +7727,19 @@ const SD_MOTEURS = {
       "720p":  { "21:9": "1470:630",  "16:9": "1280:720",  "4:3": "1112:834",  "1:1": "960:960",   "3:4": "834:1112",  "9:16": "720:1280" },
       "1080p": { "21:9": "2206:946",  "16:9": "1920:1080", "4:3": "1664:1248", "1:1": "1440:1440", "3:4": "1248:1664", "9:16": "1080:1920" },
     },
-    // Tarifs non publiés séparément pour la 2.0 : on applique ceux de la
-    // 2.5, qui sont les plus élevés. Mieux vaut annoncer trop cher que
-    // pas assez — Papy voit le vrai coût estimé par Runway avant le clic.
-    crS:   { "480p": 20, "720p": 30, "1080p": 68 },
+    // v41.97 : tarifs RELEVÉS au portail le 11 septembre, sur la fiche
+    // Seedance 2.0 de /v1/video_to_video : « 36 credits per second at
+    // 480p/720p, 40 credits per second at 1080p (4 second minimum) ».
+    // Ils remplacent l'approximation prudente qui reprenait ceux de la 2.5 —
+    // laquelle SOUS-ESTIMAIT le 480p et le 720p (20 et 30 au lieu de 36).
+    // Le coût affiché avant le clic était donc trop bas sur ces deux paliers.
+    crS:   { "480p": 36, "720p": 36, "1080p": 40 },
+    // Aucun tarif distinct de vidéo de référence n'est annoncé pour la 2.0 :
+    // la ligne du portail ne mentionne que le prix à la seconde produite.
+    // On garde ceux de la 2.5 tant qu'une ligne officielle ne dit pas autre
+    // chose — mieux vaut annoncer un peu trop cher que pas assez.
     crRef: { "480p": 10, "720p": 15, "1080p": 34 },
-    crMin: 80,
+    crMin: 144,   // minimum 4 secondes × 36 crédits
   },
 };
 let sdModele = "seedance2_5";                  // moteur courant
