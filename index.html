@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.97 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.98 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -991,11 +991,28 @@
         </div>
         <div class="card admCarte admCarteViolet" id="admCarteSeed">
           <div class="admCarteIcone">✨</div>
-          <h2 style="margin:0; color:#b39cff;">SEEDANCE 2.5</h2>
+          <h2 style="margin:0; color:#b39cff;">SEEDANCE 2.5 · STUDIO</h2>
           <div class="admCarteSous">CRÉER · RECRÉER</div>
           <p class="sub" style="margin:10px 0 0;">« Je recrée une performance à partir de mes références. »</p>
-          <p class="sub" style="margin:8px 0 0; opacity:.75;">Photos de l'artiste, tenue, décor · chant et lip-sync · références gratuites.</p>
-          <div class="admCartePied">4 à 30 s · 480p / 720p / 1080p · dès 20 crédits/s</div>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Photos de l'artiste, tenue, décor · chant et lip-sync · références gratuites. Accepte les visages réels.</p>
+          <div class="admCartePied">4 à 30 s · 480p / 720p / 1080p · dès 20 crédits/s · crédits Studio</div>
+        </div>
+
+        <!-- v41.98 : SEEDANCE 2.0 CHEZ LE STUDIO. Il existait déjà dans le code
+             (SD_MOTEURS.seedance2, sélecteur en tête de la page Seedance), mais
+             AUCUNE carte ne l'annonçait : impossible de deviner depuis cet écran
+             qu'il se cachait derrière la carte 2.5. On lui donne sa propre porte,
+             qui ouvre la même page en pré-sélectionnant le moteur — aucun code
+             dupliqué. Distinction essentielle avec la carte verte : celle-ci
+             passe par le Studio et ACCEPTE les visages réels ; le Moteur A les
+             refuse (« partner_validation_failed », constaté le 11 septembre). -->
+        <div class="card admCarte admCarteViolet" id="admCarteSeed20">
+          <div class="admCarteIcone">🌟</div>
+          <h2 style="margin:0; color:#b39cff;">SEEDANCE 2.0 · STUDIO</h2>
+          <div class="admCarteSous">LA GÉNÉRATION PRÉCÉDENTE</div>
+          <p class="sub" style="margin:10px 0 0;">« Le même Seedance 2.0, mais par le Studio — donc les visages réels passent. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Prompt plus court, 15 s maximum, moins de références. Utile quand le Moteur A refuse une photo de visage.</p>
+          <div class="admCartePied">4 à 15 s · 480p / 720p / 1080p · 36 crédits/s (40 en 1080p) · crédits Studio</div>
         </div>
         <!-- v41.53 : Seedance 2.0 via FAL. Même moteur ByteDance, autre porte
              d'entrée. Runway a refusé sept fois par son API alors que son
@@ -1005,7 +1022,7 @@
           <h2 style="margin:0; color:#4ade80;">SEEDANCE 2.0 · MOTEUR A</h2>
           <div class="admCarteSous">MÊME MOTEUR · AUTRE PORTE</div>
           <p class="sub" style="margin:10px 0 0;">« Le même Seedance, mais en passant par le Moteur A au lieu du Studio. »</p>
-          <p class="sub" style="margin:8px 0 0; opacity:.75;">Photo → vidéo, ou références multiples (9 images, 3 vidéos, 3 audios) désignées dans le texte.</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Photo → vidéo, ou références multiples (9 images, 3 vidéos, 3 audios) désignées dans le texte.<br>⚠️ Refuse les photos de visages réels — pour celles-ci, prends la carte 🌟 Seedance 2.0 · Studio.</p>
           <div class="admCartePied">4 à 15 s · 480p / 720p · crédits StarClip</div>
         </div>
         <!-- v41.85 : MONTAGE AUTO. Une photo + une chanson = un premier montage
@@ -1813,7 +1830,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.97</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.98</span>
 
   </footer>
 </div>
@@ -6902,7 +6919,12 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   admMajBoutonsMemoire();
 
   document.getElementById("admCarteAleph").onclick = () => admVue("aleph");
-  document.getElementById("admCarteSeed").onclick  = () => admVue("seed");
+  // v41.98 : la carte 2.5 ouvre la page sur le moteur 2.5 ; la carte 2.0 ouvre
+  // LA MÊME page en pré-sélectionnant le moteur 2.0. Le sélecteur en tête de
+  // page reste utilisable : on peut toujours basculer une fois à l'intérieur.
+  document.getElementById("admCarteSeed").onclick  = () => { sdModele = "seedance2_5"; sdMajMoteur(); admVue("seed"); };
+  const c20 = document.getElementById("admCarteSeed20");
+  if (c20) c20.onclick = () => { sdModele = "seedance2"; sdMajMoteur(); admVue("seed"); };
   document.getElementById("admCarteFal").onclick   = () => admVue("fal");
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
