@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.100 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.101 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -279,28 +279,27 @@
                 display:flex; flex-direction:column; }
     .admCarte:hover { transform:translateY(-3px); }
     .admCarteIcone { font-size:38px; line-height:1; margin-bottom:8px; }
-    /* v41.100 — VIGNETTES DES MOTEURS. Images tirées des clips réellement
-       produits au studio : Richard Edima (concert, Ferrari, palace, salon) et
-       Ö Bia Tè (yacht). On montre du vrai travail, comme le fait Runway avec
-       ses propres rendus. À REMPLACER quand Beko et Richard seront terminés :
-       déposer un JPEG du même nom sur GitHub suffit, aucune version à refaire. Compressées à ~16 Ko pièce (114 Ko les sept) parce
-       que le studio travaille en partage 4G. Chargement différé : la page
-       s'affiche d'abord, les images arrivent ensuite.
-       Si un fichier manque, le dégradé de la carte reste visible et rien ne
-       casse — l'app fonctionne avec ou sans les images. */
-    .admCarteVignette { position:relative; width:100%; aspect-ratio:400/260;
-                        border-radius:10px; overflow:hidden; margin-bottom:12px;
-                        background:linear-gradient(135deg, rgba(255,255,255,.05), transparent); }
+    /* v41.101 — VIGNETTES : PETITE IMAGE À GAUCHE, TEXTE À CÔTÉ.
+       La v41.100 mettait une grande image au-dessus du texte : les cartes
+       devenaient énormes et il fallait faire défiler pour voir les sept.
+       Runway procède autrement — une petite vignette carrée à gauche, le titre
+       et la description à droite. On reprend cette disposition : la carte reste
+       compacte, et les sept tiennent à l'écran.
+       Images tirées des clips réellement produits au studio (Richard Edima,
+       Ö Bia Tè). À REMPLACER quand Beko et Richard seront terminés : déposer un
+       JPEG du même nom sur GitHub suffit, aucune version à refaire. */
+    .admCarteTete { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+    .admCarteVignette { position:relative; flex:0 0 88px; width:88px; height:88px;
+                        border-radius:10px; overflow:hidden;
+                        background:linear-gradient(135deg, rgba(255,255,255,.06), transparent); }
     .admCarteVignette img { width:100%; height:100%; object-fit:cover; display:block;
                             transition:transform .35s ease; }
-    .admCarte:hover .admCarteVignette img { transform:scale(1.05); }
-    /* Voile sombre en bas : le texte reste lisible quelle que soit l'image. */
-    .admCarteVignette::after { content:""; position:absolute; inset:0;
-                               background:linear-gradient(to top, rgba(15,13,23,.55), transparent 55%); }
-    .admCarteVignette .puce { position:absolute; top:8px; left:8px; z-index:2;
-                              font-size:22px; line-height:1;
-                              filter:drop-shadow(0 2px 4px rgba(0,0,0,.7)); }
-    @media (max-width:820px) { .admCarteVignette { aspect-ratio:16/7; } }
+    .admCarte:hover .admCarteVignette img { transform:scale(1.08); }
+    .admCarteVignette .puce { position:absolute; bottom:4px; right:5px; z-index:2;
+                              font-size:15px; line-height:1;
+                              filter:drop-shadow(0 1px 3px rgba(0,0,0,.85)); }
+    .admCarteTitres { min-width:0; }
+    @media (max-width:820px) { .admCarteVignette { flex:0 0 72px; width:72px; height:72px; } }
     .admCarteSous { font-size:12.5px; letter-spacing:1.5px; opacity:.65; margin-top:4px; }
     .admCartePied { margin-top:auto; padding-top:14px; font-size:12.5px; opacity:.6; }
     .admCarteOr { border-color:var(--gold);
@@ -1004,17 +1003,25 @@
            Deux couleurs distinctes pour les reconnaître d'un coup d'œil. -->
       <div class="admGrille">
         <div class="card admCarte admCarteOr" id="admCarteAleph">
+          <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🎞️</span><img src="vignette-aleph.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
-          <h2 style="margin:0; color:var(--gold);">ALEPH 2.0</h2>
-          <div class="admCarteSous">ÉDITER · CONSERVER</div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:var(--gold);">ALEPH 2.0</h2>
+              <div class="admCarteSous">ÉDITER · CONSERVER</div>
+            </div>
+          </div>
           <p class="sub" style="margin:10px 0 0;">« Je garde cette vidéo, je change son environnement. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Ta vidéo, sa danse, son cadrage et ses personnes restent — seul le décor change.</p>
           <div class="admCartePied">30 s max · 200 Mo · 28 crédits/s (min. 56)</div>
         </div>
         <div class="card admCarte admCarteViolet" id="admCarteSeed">
+          <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">✨</span><img src="vignette-seed25.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
-          <h2 style="margin:0; color:#b39cff;">SEEDANCE 2.5 · STUDIO</h2>
-          <div class="admCarteSous">CRÉER · RECRÉER</div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#b39cff;">SEEDANCE 2.5 · STUDIO</h2>
+              <div class="admCarteSous">CRÉER · RECRÉER</div>
+            </div>
+          </div>
           <p class="sub" style="margin:10px 0 0;">« Je recrée une performance à partir de mes références. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Photos de l'artiste, tenue, décor · chant et lip-sync · références gratuites. Accepte les visages réels.</p>
           <div class="admCartePied">4 à 30 s · 480p / 720p / 1080p · dès 20 crédits/s · crédits Studio</div>
@@ -1029,9 +1036,13 @@
              passe par le Studio et ACCEPTE les visages réels ; le Moteur A les
              refuse (« partner_validation_failed », constaté le 11 septembre). -->
         <div class="card admCarte admCarteViolet" id="admCarteSeed20">
+          <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🌟</span><img src="vignette-seed20.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
-          <h2 style="margin:0; color:#b39cff;">SEEDANCE 2.0 · STUDIO</h2>
-          <div class="admCarteSous">LA GÉNÉRATION PRÉCÉDENTE</div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#b39cff;">SEEDANCE 2.0 · STUDIO</h2>
+              <div class="admCarteSous">LA GÉNÉRATION PRÉCÉDENTE</div>
+            </div>
+          </div>
           <p class="sub" style="margin:10px 0 0;">« Le même Seedance 2.0, mais par le Studio — donc les visages réels passent. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Prompt plus court, 15 s maximum, moins de références. Utile quand le Moteur A refuse une photo de visage.</p>
           <div class="admCartePied">4 à 15 s · 480p / 720p / 1080p · 36 crédits/s (40 en 1080p) · crédits Studio</div>
@@ -1040,9 +1051,13 @@
              d'entrée. Runway a refusé sept fois par son API alors que son
              propre portail acceptait ; FAL est un troisième chemin à tester. -->
         <div class="card admCarte" id="admCarteFal" style="border-color:#4ade80;">
+          <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🌱</span><img src="vignette-moteur-a.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
-          <h2 style="margin:0; color:#4ade80;">SEEDANCE 2.0 · MOTEUR A</h2>
-          <div class="admCarteSous">MÊME MOTEUR · AUTRE PORTE</div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#4ade80;">SEEDANCE 2.0 · MOTEUR A</h2>
+              <div class="admCarteSous">MÊME MOTEUR · AUTRE PORTE</div>
+            </div>
+          </div>
           <p class="sub" style="margin:10px 0 0;">« Le même Seedance, mais en passant par le Moteur A au lieu du Studio. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Photo → vidéo, ou références multiples (9 images, 3 vidéos, 3 audios) désignées dans le texte.<br>⚠️ Refuse les photos de visages réels — pour celles-ci, prends la carte 🌟 Seedance 2.0 · Studio.</p>
           <div class="admCartePied">4 à 15 s · 480p / 720p · crédits StarClip</div>
@@ -1057,17 +1072,25 @@
              qui décide : Lyria ne fait que du MP3, inutilisable pour
              remastériser dans AutoMixPro. -->
         <div class="card admCarte" id="admCarteChanson" style="border-color:#fb923c;">
+          <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🎵</span><img src="vignette-chanson.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
-          <h2 style="margin:0; color:#fb923c;">CRÉER UNE CHANSON</h2>
-          <div class="admCarteSous">STYLE · PAROLES · STRUCTURE</div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#fb923c;">CRÉER UNE CHANSON</h2>
+              <div class="admCarteSous">STYLE · PAROLES · STRUCTURE</div>
+            </div>
+          </div>
           <p class="sub" style="margin:10px 0 0;">« Je décris le style, j'écris ou je fais écrire les paroles, j'obtiens la chanson. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Balises [Intro] [Verse] [Chorus] comme tu les connais. Sortie <b>WAV sans perte</b> pour les stems dans AutoMixPro.</p>
           <div class="admCartePied">Jusqu'à 3500 signes de paroles · usage commercial</div>
         </div>
         <div class="card admCarte" id="admCarteMontage" style="border-color:#f0abfc;">
+          <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🎼</span><img src="vignette-montage.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
-          <h2 style="margin:0; color:#f0abfc;">MONTAGE AUTO</h2>
-          <div class="admCarteSous">UNE PHOTO · UNE CHANSON · UN CLIP</div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#f0abfc;">MONTAGE AUTO</h2>
+              <div class="admCarteSous">UNE PHOTO · UNE CHANSON · UN CLIP</div>
+            </div>
+          </div>
           <p class="sub" style="margin:10px 0 0;">« Je donne la chanson et une photo, StarClip me sort le premier montage. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Tempo, refrain, découpage sur les temps forts, un texte prêt par plan. Le visage de la photo n'est jamais refabriqué.</p>
           <div class="admCartePied">Analyse locale · aucun crédit dépensé</div>
@@ -1076,9 +1099,13 @@
              officiel. Un seul prompt devient une vidéo à 5 plans, ou toi-même
              écris 3 à 5 plans avec leur durée. -->
         <div class="card admCarte" id="admCarteMulti" style="border-color:#60a5fa;">
+          <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🎬</span><img src="vignette-multi.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
-          <h2 style="margin:0; color:#60a5fa;">MULTI-SHOT VIDEO</h2>
-          <div class="admCarteSous">UNE HISTOIRE · PLUSIEURS PLANS</div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#60a5fa;">MULTI-SHOT VIDEO</h2>
+              <div class="admCarteSous">UNE HISTOIRE · PLUSIEURS PLANS</div>
+            </div>
+          </div>
           <p class="sub" style="margin:10px 0 0;">« Un seul texte, et le Studio le découpe en scène complète. »</p>
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Mode auto (5 plans automatiques) ou mode personnalisé (3 à 5 plans écrits par toi). Photo de référence optionnelle.</p>
           <div class="admCartePied">5, 10 ou 15 s · 6 formats · Studio</div>
@@ -1852,7 +1879,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.100</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.101</span>
 
   </footer>
 </div>
