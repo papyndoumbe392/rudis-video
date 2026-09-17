@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.102 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.103 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1691,6 +1691,9 @@
           <button class="chip" id="alPresetWatermark">🧹 Enlever un filigrane</button>
           <button class="chip" id="alPresetObjet">👥 Enlever des personnes / un objet</button>
           <button class="chip" id="alPresetDecor">🏙️ Remplacer le décor</button>
+          <!-- v41.103 : 4e raccourci. Même moteur Aleph, aucun coût de plus :
+               l'artiste se filme au téléphone, et seule la tenue change. -->
+          <button class="chip" id="alPresetTenue">👔 Changer la tenue</button>
         </div>
         <textarea id="alPrompt" rows="3" placeholder="Ex : remplace l'arrière-plan par une grande scène de concert avec public, garde les personnes et leurs mouvements identiques"></textarea>
         <div class="estimate" id="alPromptCpt"></div>
@@ -1899,7 +1902,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.102</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.103</span>
 
   </footer>
 </div>
@@ -7528,6 +7531,13 @@ const AL_PRESETS = {
     + "positions and camera framing. Every performer must stand physically ON the ground, feet in "
     + "realistic contact with the floor, with correct perspective, scale and contact shadows. "
     + "Change only the environment, never the performers. The original background must never reappear.",
+  // v41.103 · tenue → on change SEULEMENT les vêtements ; visage, mains, danse
+  // et décor restent. Le tissu doit suivre le mouvement (plis, ajustement).
+  tenue: "Change the outfit of the person into [décris ici la nouvelle tenue]. PRESERVE exactly: the "
+    + "person's face, identity, hair, skin tone, body proportions, hands and fingers, choreography, timing, "
+    + "camera framing and the entire background. The new clothes must fit the body and follow every "
+    + "movement naturally, with realistic fabric folds, lighting and shadows, consistent in every frame. "
+    + "Change only the clothing, nothing else.",
 };
 function alAppliquerPreset(cle) {
   const champ = document.getElementById("alPrompt");
@@ -7545,6 +7555,7 @@ function alAppliquerPreset(cle) {
 document.getElementById("alPresetWatermark").onclick = () => alAppliquerPreset("watermark");
 document.getElementById("alPresetObjet").onclick     = () => alAppliquerPreset("objet");
 document.getElementById("alPresetDecor").onclick     = () => alAppliquerPreset("decor");
+document.getElementById("alPresetTenue").onclick     = () => alAppliquerPreset("tenue");
 
 document.getElementById("alImportBtn").onclick = () => document.getElementById("alInput").click();
 document.getElementById("alInput").onchange = (e) => {
