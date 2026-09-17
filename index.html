@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.103 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.104 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -434,6 +434,42 @@
     <button class="btn" id="outfitGo" style="display:none; margin-top:12px;">👔 Transformer la tenue</button>
     <div class="estimate" id="outfitInfo">Le visage, la pose et le décor sont préservés au maximum — seuls les habits changent. Si le visage bouge un peu, le volet 🎯 « Recoller le vrai visage » le corrige.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT les habits.</b> · <i>This tool only changes the clothes.</i></div>
     <div id="outfitPreview"></div>
+  </section>
+
+  <!-- v41.104 — TENUE D'UNE VIDÉO : l'artiste se filme au téléphone, seule la tenue change.
+       Moteur fal decart/lucy-edit/pro (schéma officiel : prompt, video_url, resolution 720p).
+       Facturation par le Worker v5.21 : mêmes paliers que le décor vidéo (≤ 5 s = 1, ≤ 10 s = 2). -->
+  <section class="card" id="sec-tenuevid" style="border-color:var(--gold);">
+    <h2><span class="num">👔</span> Changer la tenue de ma vidéo</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Filme-toi au téléphone : ta vidéo garde <b>ton visage, ta danse et le décor</b> — <b>seuls tes vêtements changent</b>.
+      · <i>Only your clothes change — face, dance and background stay.</i>
+    </div>
+    <div class="estimate" style="margin-top:8px;">📱 <b>Pour un beau résultat :</b> vêtements simples et près du corps, bonne lumière de face, téléphone stable, corps entier visible.</div>
+
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:14px;">① QUELLE VIDÉO ?</div>
+    <div class="estimate" style="margin:0 0 6px;"><b>10 secondes maximum.</b> · <i>Max 10 seconds.</i></div>
+    <div class="chips">
+      <button class="chip" id="tvImportBtn">📂 Importer ma vidéo</button>
+      <button class="chip" id="tvUseDanse">🕺 Ma dernière danse</button>
+    </div>
+    <input type="file" id="tvInput" accept="video/*,.mp4,.mov,.m4v,.MOV,.MP4" style="display:none;">
+    <div class="estimate" id="tvNom"></div>
+
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:14px;">② QUELLE TENUE ?</div>
+    <div class="chips" id="tvExemples">
+      <button class="chip" data-tv="un costume trois pièces bleu nuit, chemise blanche et nœud papillon">🤵 Costume de soirée</button>
+      <button class="chip" data-tv="une tenue en pagne wax orange et bleu, coupe moderne et élégante">🌍 Tenue en pagne wax</button>
+      <button class="chip" data-tv="une robe de soirée longue dorée et scintillante">✨ Robe de soirée dorée</button>
+      <button class="chip" data-tv="un blouson en cuir noir, t-shirt blanc et jean noir, style star afrobeats">🎤 Style star afrobeats</button>
+    </div>
+    <textarea id="tvPrompt" rows="2" placeholder="Ou décris ta tenue · Ex : un boubou blanc brodé d'or"></textarea>
+
+    <div class="label" style="font-size:16px; font-weight:800; color:var(--gold); letter-spacing:.3px; margin-top:14px;">③ C'EST PARTI</div>
+    <div class="estimate" style="margin-top:6px;"><b>Coût : 1 crédit vidéo jusqu'à 5 s · 2 crédits de 5 à 10 s.</b> Le son d'origine n'est pas garanti : ta chanson se remet au montage. ⚠️ Tu es responsable des vidéos que tu importes.</div>
+    <button class="master" id="tvGo" disabled>⬆️ Étape ① : choisis d'abord ta vidéo</button>
+    <div class="estimate" id="tvInfo"></div>
+    <div id="tvResult"></div>
   </section>
 
   <!-- v35.1 — DÉCOR : change le lieu sans toucher à la personne -->
@@ -1902,7 +1938,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.103</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.104</span>
 
   </footer>
 </div>
@@ -5375,6 +5411,149 @@ document.getElementById("dvGo").onclick = async () => {
 };
 dvRefresh();
 
+// ═══════════ 👔 v41.104 : CHANGER LA TENUE D'UNE VIDÉO (decart/lucy-edit/pro) ═══════════
+// Même logique prudente que le décor vidéo : durée vérifiée AVANT l'envoi, prix
+// affiché sur le bouton, remboursement demandé au Worker si aucun résultat.
+const TV_MOTEUR = "decart/lucy-edit/pro";
+let tvVideo = null, tvDuree = 5, tvJob = null;
+function tvRefresh() {
+  const b = document.getElementById("tvGo");
+  const desc = document.getElementById("tvPrompt").value.trim();
+  b.disabled = !(tvVideo && desc);
+  const cr = dvCredits(tvDuree);
+  b.textContent = !tvVideo ? "⬆️ Étape ① : choisis d'abord ta vidéo"
+    : (!desc ? "⬆️ Étape ② : choisis ou décris une tenue"
+    : "👔 Changer la tenue (" + cr + " crédit" + (cr > 1 ? "s" : "") + " vidéo — " + Math.round(tvDuree) + " s)");
+}
+function tvLireVideo(src, nom, fichier) {
+  const v = document.createElement("video");
+  v.preload = "metadata";
+  v.onloadedmetadata = () => {
+    if (v.duration > DV_DUREE_MAX) {
+      document.getElementById("tvInfo").innerHTML = '<span class="err">Ta vidéo fait ' + v.duration.toFixed(1) + ' s — le maximum est 10 s. Coupe-la puis réimporte-la.</span>';
+      tvVideo = null; tvRefresh(); return;
+    }
+    tvDuree = v.duration;
+    tvVideo = fichier ? { file: fichier } : { url: src };
+    document.getElementById("tvNom").innerHTML = '<span style="color:var(--ok)">✓ ' + nom + " (" + v.duration.toFixed(1) + " s)</span>";
+    document.getElementById("tvInfo").textContent = "";
+    tvRefresh();
+  };
+  v.onerror = () => { document.getElementById("tvInfo").innerHTML = '<span class="err">Vidéo illisible — formats acceptés : mp4, mov.</span>'; };
+  v.src = src;
+}
+document.getElementById("tvImportBtn").onclick = () => document.getElementById("tvInput").click();
+document.getElementById("tvInput").onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  document.getElementById("tvImportBtn").classList.add("on");
+  document.getElementById("tvUseDanse").classList.remove("on");
+  tvLireVideo(URL.createObjectURL(f), f.name, f);
+};
+document.getElementById("tvUseDanse").onclick = () => {
+  if (!window.derniereDanseUrl) {
+    document.getElementById("tvInfo").innerHTML = '<span class="err">Aucune danse créée pour l\'instant — importe plutôt ta vidéo.</span>';
+    return;
+  }
+  document.getElementById("tvUseDanse").classList.add("on");
+  document.getElementById("tvImportBtn").classList.remove("on");
+  tvLireVideo(window.derniereDanseUrl, "ta dernière danse", null);
+};
+document.querySelectorAll("#tvExemples [data-tv]").forEach(c => c.onclick = () => {
+  document.getElementById("tvPrompt").value = c.dataset.tv;
+  document.querySelectorAll("#tvExemples .chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+  tvRefresh();
+});
+document.getElementById("tvPrompt").oninput = tvRefresh;
+// Traduction dédiée : rend SEULEMENT la description du vêtement, en anglais
+// (msTranslateOne, lui, fabrique une phrase d'action de plan — pas adapté ici).
+async function tvTraduire(fr) {
+  const src = fr.trim(); if (!src) return "";
+  try {
+    const path = "fal-ai/any-llm";
+    const job = await apiSubmit(path, {
+      model: "google/gemini-2.5-flash",
+      system_prompt: "Translate this clothing description into English. Return ONLY the outfit description as a short noun phrase (colors, fabric, cut, accessories), with no sentence, no person, no quotes.",
+      prompt: src,
+    });
+    const st = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+    for (let i = 0; i < 20; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      const sj = await apiPoll(st);
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") return src;
+    }
+    const data = await apiPoll(rp);
+    const out = String(data.output || (data.response && data.response.output) || "").trim().replace(/^["']|["'.]$/g, "");
+    return (out && out.length < 400) ? out : src;
+  } catch (e) { return src; }
+}
+async function tvRembourser() {
+  if (!tvJob) return "";
+  try {
+    const r = await fetch(WORKER_URL + "/refund", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: getCode(), request_id: tvJob }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok && !d.deja) return " Tes crédits t'ont été rendus automatiquement.";
+  } catch (_) {}
+  return "";
+}
+document.getElementById("tvGo").onclick = async () => {
+  const b = document.getElementById("tvGo"), info = document.getElementById("tvInfo");
+  b.disabled = true; tvJob = null;
+  document.getElementById("tvResult").innerHTML = "";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    const desc = document.getElementById("tvPrompt").value.trim();
+    if (!tvVideo || !desc) throw new Error("Choisis une vidéo et une tenue.");
+    info.textContent = "📤 Envoi de ta vidéo…";
+    const videoUrl = tvVideo.file ? await hebergerFichier(tvVideo.file, "video-tenue.mp4") : tvVideo.url;
+    info.textContent = "✍️ Préparation de la tenue…";
+    let tenue = desc;
+    try { tenue = (await tvTraduire(desc)) || desc; } catch (_) { tenue = desc; }
+    const prompt = ("Change only the clothing of the person into " + tenue + ". Keep exactly the same face, identity, "
+      + "skin tone, hair, body, hands, movements, timing, camera framing and background. The new clothes follow "
+      + "every movement naturally with realistic fabric folds and lighting.").slice(0, 1000);
+    const payload = { prompt, video_url: videoUrl, resolution: "720p" };
+    info.textContent = "👔 Changement de la tenue… (1 à 4 min, laisse l'app ouverte)";
+    const job = await apiSubmit(TV_MOTEUR, payload, { dance_seconds: Math.round(tvDuree * 10) / 10 });
+    tvJob = job.request_id || null;
+    const st = job.status_url || `https://queue.fal.run/decart/lucy-edit/requests/${job.request_id}/status`;
+    const rp = job.response_url || `https://queue.fal.run/decart/lucy-edit/requests/${job.request_id}`;
+    let statut = "";
+    for (let i = 0; i < 120; i++) {   // 6 minutes de patience
+      await new Promise(r => setTimeout(r, 3000));
+      const sj = await apiPoll(st);
+      statut = sj.status || statut;
+      info.textContent = "👔 Changement de la tenue — " + (statut === "IN_QUEUE" ? "en file d'attente" : "en cours") + "… (" + ((i + 1) * 3) + " s)";
+      if (sj.status === "COMPLETED") break;
+      if (sj.status === "FAILED" || sj.status === "ERROR") {
+        const det = pxlDetailErreur(sj);
+        throw new Error("Le changement de tenue a échoué" + (det ? " : " + det : ".") + (await tvRembourser()));
+      }
+    }
+    if (statut !== "COMPLETED")
+      throw new Error("Le moteur n'a pas terminé en 6 minutes. Attends un peu avant de relancer : le travail continue peut-être.");
+    const data = await apiPoll(rp);
+    const url = trouverUrlVideo(data);
+    if (!url || url === videoUrl)
+      throw new Error("Vidéo introuvable dans la réponse." + (await tvRembourser()) + " Réessaie.");
+    window.derniereTenueUrl = url;
+    info.innerHTML = '<span style="color:var(--ok)">✓ Nouvelle tenue appliquée ! Regarde et télécharge ta vidéo.</span>';
+    document.getElementById("tvResult").innerHTML = `
+      <video src="${url}" controls playsinline style="width:100%; border-radius:12px; margin-top:10px;"></video>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a class="btn small" href="${url}" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger</a>
+      </div>`;
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { b.disabled = false; tvRefresh(); }
+};
+tvRefresh();
+
 // ——— PWA : service worker ———
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 
@@ -6722,7 +6901,7 @@ fxRefresh();
   var MAP = {
     'sec-auto1':'accueil', 'sec-auto2':'accueil',
     'nav-photo':'photo', 'sec-auto3':'photo', 'sec-auto4':'photo', 'sec-auto5':'photo',
-    'nav-tenue':'look', 'nav-decor':'look', 'sec-auto6':'look',
+    'nav-tenue':'look', 'sec-tenuevid':'look', 'nav-decor':'look', 'sec-auto6':'look',
     'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
     'sec-auto9':'commander', 'sec-auto10':'commander',
