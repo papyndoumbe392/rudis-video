@@ -5178,7 +5178,7 @@ document.getElementById("dvConvertirBtn").onclick = async () => {
   const btn = document.getElementById("dvConvertirBtn");
   const garder = document.getElementById("dvGarderFormat");
   const setSt = (txt, pct) => {
-    document.getElementById("dvCvStatus").classList.add("on");
+    document.getElementById("dvCvStatus").classList.add("show");
     document.getElementById("dvCvStatusText").innerHTML = txt;
     document.getElementById("dvCvFill").style.width = (pct || 0) + "%";
   };
@@ -5981,7 +5981,7 @@ function rfFormatDe(l, h) {
 }
 
 function rfSetStatus(txt, pct) {
-  document.getElementById("rfStatus").classList.add("on");
+  document.getElementById("rfStatus").classList.add("show");
   document.getElementById("rfStatusText").innerHTML = txt;
   document.getElementById("rfFill").style.width = (pct || 0) + "%";
 }
@@ -7903,7 +7903,7 @@ document.getElementById("alRefInput").onchange = (e) => {
 document.getElementById("alGo").onclick = async () => {
   const go = document.getElementById("alGo"); go.disabled = true;
   const setSt = (t, p) => {
-    document.getElementById("alStatus").classList.add("on");
+    document.getElementById("alStatus").classList.add("show");
     const zt = document.getElementById("alStatusText");
     zt.dataset.brut = String(t).startsWith("<") ? "" : t;
     zt.innerHTML = (String(t).startsWith("<") ? "" : rwTempsTotal()) + t;
@@ -8338,7 +8338,7 @@ function fsLog(titre, obj) {
 // v41.53 : une seule fonction pilote la barre ET le grand cercle, pour que
 // les deux ne puissent jamais raconter des choses différentes.
 function fsSetStatus(txt, pct) {
-  document.getElementById("fsStatus").classList.add("on");
+  document.getElementById("fsStatus").classList.add("show");
   document.getElementById("fsStatusText").innerHTML = txt;
   document.getElementById("fsFill").style.width = (pct > 0 ? pct : 0) + "%";
   rwRondMaj("fs", pct, txt);
@@ -8865,7 +8865,7 @@ function chLog(titre, obj) {
   z.scrollTop = z.scrollHeight;
 }
 function chSetStatus(txt, pct) {
-  document.getElementById("chStatus").classList.add("on");
+  document.getElementById("chStatus").classList.add("show");
   document.getElementById("chStatusText").innerHTML = txt;
   document.getElementById("chFill").style.width = (pct > 0 ? pct : 0) + "%";
   rwRondMaj("ch", pct, txt);
@@ -9727,7 +9727,7 @@ async function mtGenererUn(idx) {
       document.getElementById("fsSaveBtn").onclick = () => saveVideo(out, document.getElementById("fsSaveHint"));
     } catch (err) {
       fsLog("ERREUR", err.message);
-      document.getElementById("fsStatus").classList.add("on");
+      document.getElementById("fsStatus").classList.add("show");
       document.getElementById("fsStatusText").innerHTML = '<span class="err">✗ ' + err.message + "</span>";
       document.getElementById("fsFill").style.width = "0%";
       rwRondEchec("fs", err.message);
@@ -10764,7 +10764,7 @@ document.getElementById("mvGo").onclick = async () => {
   document.getElementById("mvResult").innerHTML = "";
   let mvTic = null;
   const setSt = (txt, pct) => {
-    document.getElementById("mvStatus").classList.add("on");
+    document.getElementById("mvStatus").classList.add("show");
     document.getElementById("mvStatusText").innerHTML = txt;
     document.getElementById("mvFill").style.width = (pct > 0 ? pct : 0) + "%";
     rwRondMaj("mv", pct, txt);
@@ -10838,7 +10838,7 @@ document.getElementById("sdGo").onclick = async () => {
 
   const go = document.getElementById("sdGo"); go.disabled = true;
   const setSt = (t, p) => {
-    document.getElementById("sdStatus").classList.add("on");
+    document.getElementById("sdStatus").classList.add("show");
     const zt = document.getElementById("sdStatusText");
     zt.dataset.brut = String(t).startsWith("<") ? "" : t;
     zt.innerHTML = (String(t).startsWith("<") ? "" : rwTempsTotal()) + t;
