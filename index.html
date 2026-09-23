@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.108 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.110 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -590,6 +590,14 @@
     <div class="estimate" id="efName">Touche un carré pour choisir une photo. Le carré de droite sert à <b>/together</b> et <b>/transferoutfit</b>.</div>
 
     <div id="efFamilles"></div>
+
+    <div id="efTogBox" class="hidden" style="margin-top:10px; border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      <div class="label" style="margin-top:0;">/together — comment sont-ils ?</div>
+      <div class="chips" id="efPose"></div>
+      <div class="label">/together — où sont-ils ?</div>
+      <div class="chips" id="efLieu"></div>
+      <input id="efTogLieu" class="hidden" type="text" placeholder="Décris le lieu. Ex : terrasse d'un hôtel au bord du Wouri, le soir" style="width:100%; margin-top:8px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;">
+    </div>
 
     <div class="estimate" id="efChoix"></div>
 
@@ -1980,7 +1988,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.108</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.110</span>
 
   </footer>
 </div>
@@ -6397,7 +6405,7 @@ document.getElementById("rtGo").onclick = async () => {
 rtRefresh();
 
 
-// ═══════════ v41.108 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
+// ═══════════ v41.110 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
 // Même moteur que la retouche (nano-banana/edit), mais chaque effet porte son
 // anglais FIXE, relu mot à mot — aucune traduction aléatoire. Seule la
 // « précision » libre (lieu, métier) passe par la traduction ; les TEXTES à écrire
@@ -6419,7 +6427,7 @@ const EF = [
   ["Mise en scène", [
     ["/transfer", "Move the person into this new location: {D}. Matching light and shadows so they look really photographed there.", "d"],
     ["/métier", "Dress the person as a professional {D}, with the matching work outfit and setting.", "d"],
-    ["/together", "Create ONE natural photo showing TWO different people together: the person from the first image and the person from the second image, side by side, interacting naturally. {D} Person A keeps exactly the face, hairstyle, skin tone and clothing of the first image; person B keeps exactly the face, hairstyle, skin tone and clothing of the second image. They are two distinct people with two distinct faces: never copy one face onto the other, never merge them.", "2"],
+    ["/together", "Create ONE natural photo showing TWO different people together: the person from the first image and the person from the second image. {P} {L} {D} Person A keeps exactly the face, hairstyle, skin tone and clothing of the first image; person B keeps exactly the face, hairstyle, skin tone and clothing of the second image. They are two distinct people with two distinct faces: never copy one face onto the other, never merge them.", "2"],
     ["/transferoutfit", "Dress the person from the first image in exactly the outfit worn in the second image: same garments, colours, fabric, pattern and accessories. Keep the face, hairstyle, skin tone, body and pose of the person from the first image. The person from the second image must NOT appear in the result; only their outfit is used.", "2"],
     ["/fullbody", "Extend the image to show the person full body, from head to feet, same outfit continued naturally."],
   ]],
@@ -6464,6 +6472,44 @@ const EF = [
     ["/blackwhite", "Convert to artistic high-contrast black and white photography."],
   ]],
 ];
+// v41.110 : /together se décline — une POSE et un LIEU au choix, chacun avec son
+// anglais fixe. La case « Précision » reste libre pour tout le reste.
+const EF_POSES = [
+  ["💞 Complices", "They stand close together as an affectionate couple: one has an arm around the other's shoulder, they gently hold hands and smile at each other, both faces clearly visible."],
+  ["🧍 Côte à côte, sans se toucher", "They stand side by side as friends, a small space between them, NOT touching each other at all, both looking at the camera with friendly smiles."],
+  ["📸 Face caméra", "They stand side by side, both looking straight into the camera, relaxed friendly smiles."],
+  ["🤳 Selfie", "They take a selfie together, heads close, both looking at the camera, arm-length phone viewpoint."],
+  ["🤗 Enlacés", "They hug warmly, both faces turned toward the camera and fully visible."],
+  ["😄 Rient ensemble", "They laugh together, looking at each other, natural candid moment, both faces clearly visible."],
+  ["🚶 Marchent", "They walk side by side toward the camera, natural stride."],
+  ["🔙 Dos à dos", "They stand back to back, arms crossed, both looking at the camera, confident poster pose."],
+  ["💃 Dansent", "They dance together joyfully, both faces clearly visible."],
+  ["🪑 Assis", "They sit next to each other, relaxed, both looking at the camera."],
+];
+const EF_LIEUX = [
+  ["🥂 Salon lounge chic", "Setting: luxurious dark lounge at night with crystal chandeliers, warm gold ambient lighting, dark velvet sofas and a polished reflective floor."],
+  ["🖼️ Décor de la photo 1", ""],
+  ["✏️ Je décris le lieu", "{LIBRE}"],
+  ["⬜ Fond studio", "Setting: clean professional photo studio with a plain seamless backdrop."],
+  ["🚗 Dans une voiture", "Setting: inside a car, both seated in the front seats, seen through the windshield."],
+  ["🏖️ Plage", "Setting: tropical African beach at golden hour."],
+  ["🎤 Sur scène", "Setting: concert stage with colourful stage lights."],
+  ["🎙️ Studio d'enregistrement", "Setting: professional recording studio with microphone and mixing console."],
+  ["🍽️ Restaurant", "Setting: elegant restaurant table in warm evening light."],
+  ["🌆 Rue de Douala", "Setting: lively street in Douala, Cameroon, in daylight."],
+  ["💒 Mariage", "Setting: elegant wedding reception decor with flowers."],
+];
+let efPoseI = 0, efLieuI = 0;
+[["efPose", EF_POSES, v => efPoseI = v], ["efLieu", EF_LIEUX, v => efLieuI = v]].forEach(([id, liste, poser]) => {
+  const box = document.getElementById(id);
+  if (!box) return;
+  box.innerHTML = liste.map((x, i) => `<button class="chip ${i === 0 ? "on" : ""}" data-i="${i}">${x[0]}</button>`).join("");
+  box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    poser(parseInt(b.dataset.i));
+    box.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+    efRefresh();
+  });
+});
 const EF_TOUS = [].concat(...EF.map(f => f[1]));
 let efSource = null;
 let efSource2 = null;
@@ -6495,25 +6541,31 @@ function efRefresh() {
   document.getElementById("efDetailLbl").textContent = besoinD
     ? (effets.some(e => e[0] === "/métier") ? "Quel métier ? (obligatoire)" : "Quel lieu ? (obligatoire)")
     : (besoinT ? "Texte à écrire sur l'image (titre, date…)"
-    : (effets.some(e => e[0] === "/together") ? "Où sont-ils ? (optionnel) — ex : dans une voiture" : "Précision (optionnel)"));
+    : (effets.some(e => e[0] === "/together") ? "Autre précision (optionnel) — ex : tenues de soirée" : "Précision (optionnel)"));
   const besoin2 = effets.some(e => (e[2] || "").includes("2"));
   const deuxDiff = effets.filter(e => (e[2] || "").includes("2")).length > 1;
   const modeEns = effets.some(e => e[0] === "/together");
+  document.getElementById("efTogBox").classList.toggle("hidden", !modeEns);
+  const lieuLibre = modeEns && EF_LIEUX[efLieuI][1] === "{LIBRE}";
+  document.getElementById("efTogLieu").classList.toggle("hidden", !lieuLibre);
+  const lieuOk = !lieuLibre || document.getElementById("efTogLieu").value.trim().length > 2;
   const modeTenue = effets.some(e => e[0] === "/transferoutfit");
   document.getElementById("efLbl1").textContent = modeEns ? "Personne 1" : modeTenue ? "La tenue à copier" : "Ta photo";
   document.getElementById("efLbl2").textContent = modeEns ? "Personne 2" : modeTenue ? "La personne à habiller" : "Photo 2";
   const pret = !!efSource && effets.length > 0 && (!besoinD || detail.length > 1)
-    && (!besoin2 || !!efSource2) && !deuxDiff;
+    && (!besoin2 || !!efSource2) && !deuxDiff && lieuOk;
   const b = document.getElementById("efGo");
   b.disabled = !pret;
   b.textContent = !efSource ? "Choisis d'abord une image"
     : !effets.length ? "Touche un effet"
     : deuxDiff ? "/together et /transferoutfit : un seul à la fois"
     : (besoin2 && !efSource2) ? "Ajoute une photo dans le carré de droite"
+    : !lieuOk ? "Décris le lieu dans l'encadré doré"
     : (pret ? "✨ Appliquer l'effet (≈ 0,04 $)" : "Écris la précision demandée");
 }
 document.getElementById("efDetail").addEventListener("input", efRefresh);
-// v41.108 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
+document.getElementById("efTogLieu").addEventListener("input", efRefresh);
+// v41.110 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
 function efPose(n, url, nom) {
   const slot = document.getElementById(n === 1 ? "efSlot1" : "efSlot2");
   if (n === 1) efSource = url; else efSource2 = url;
@@ -6565,10 +6617,18 @@ document.getElementById("efGo").onclick = async () => {
     const images = tenue ? [efSource2, efSource] : deux ? [efSource, efSource2] : [efSource];
     // Précision : lieu / métier → traduite ; texte à écrire → gardé tel quel.
     let detailEn = "";
-    if (detail && drap.includes("d")) detailEn = await msTranslateOne(detail, 120).catch(() => detail);
-    let consignes = effets.map(e => e[1].replace("{D}", (detailEn || detail) ? "Setting: " + (detailEn || detail) + "." : "")).join(" ");
+    const ensembleD = effets.some(e => e[0] === "/together");
+    if (detail && (drap.includes("d") || ensembleD)) detailEn = await msTranslateOne(detail, 120).catch(() => detail);
+    let lieuTxt = EF_LIEUX[efLieuI][1];
+    if (lieuTxt === "{LIBRE}") {
+      const libre = document.getElementById("efTogLieu").value.trim();
+      lieuTxt = "Setting: " + await msTranslateOne(libre, 120).catch(() => libre) + ".";
+    }
+    let consignes = effets.map(e => e[1]
+      .replace("{P}", EF_POSES[efPoseI][1]).replace("{L}", lieuTxt)
+      .replace("{D}", (detailEn || detail) ? (e[0] === "/together" ? "Extra detail: " : "Setting: ") + (detailEn || detail) + "." : "")).join(" ");
     if (detail && avecTexte) consignes += ` The only text on the image must be exactly: "${detail}", spelled exactly like this.`;
-    else if (detail && !drap.includes("d")) consignes += " Extra detail: " + (await msTranslateOne(detail, 120).catch(() => detail)) + ".";
+    else if (detail && !drap.includes("d") && !ensembleD) consignes += " Extra detail: " + (await msTranslateOne(detail, 120).catch(() => detail)) + ".";
 
     const regle = ensemble
       ? "ABSOLUTE RULE: the result shows exactly TWO people, each with the face identical to their own source photo (same eyes, nose, mouth, beard, jawline, hairstyle, skin tone). "
