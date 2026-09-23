@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.105 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.107 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -187,6 +187,7 @@
   <nav id="tabbar" style="position:sticky; top:0; z-index:50; background:var(--bg,#0f0d17); border-bottom:1px solid var(--line); padding:8px 4px; margin:0 0 8px; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
     <a data-tab="accueil" class="qnav">🎬 Accueil<small>Home</small></a>
     <a data-tab="photo" class="qnav">📸 Ta photo<small>Your photo</small></a>
+    <a data-tab="traitement" class="qnav">✨ Traitement<small>Photo effects</small></a>
     <a data-tab="look" class="qnav">👔 Habillage &amp; Décor<small>Outfit &amp; scenery</small></a>
     <a data-tab="scenario" class="qnav">🎬 Scénario<small>Scenario</small></a>
     <a data-tab="finition" class="qnav">🎤 Finition<small>Finishing</small></a>
@@ -562,6 +563,46 @@
     <button class="btn" id="rtGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
     <div class="estimate" id="rtInfo" style="margin-top:8px;"></div>
     <div id="rtResult"></div>
+  </section>
+
+  <section class="card" id="sec-effets">
+    <h2><span class="num">✨</span> Effets photo en un geste</h2>
+    <div class="estimate" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:10px 12px;">
+      Choisis une image, touche <b>1 à 3 effets</b>, puis lance. Ton visage reste le même.
+      Exemples : <b>/4K</b> pour une photo plus nette, <b>/together</b> pour réunir deux personnes (« dans une voiture »), <b>/albumcover</b> pour une pochette.
+      À faire <b>avant</b> de créer ta vidéo.
+    </div>
+
+    <div class="chips" style="margin-top:10px;">
+      <button class="chip" id="efUsePhoto">Photo du volet 1</button>
+      <button class="chip" id="efImportBtn">📂 Importer une image</button>
+    </div>
+    <input type="file" id="efInput" accept="image/*" style="display:none;">
+    <div class="estimate" id="efName"></div>
+    <img id="efPreview" class="hidden" style="width:100%; border-radius:10px; margin-top:8px;">
+
+    <div id="efFamilles"></div>
+
+    <div id="efBloc2" class="hidden" style="margin-top:10px; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px;">
+      <div class="label" id="efLbl2" style="margin-top:0;">Photo 2</div>
+      <div class="chips"><button class="chip" id="efImport2">📂 Importer la photo 2</button></div>
+      <input type="file" id="efInput2" accept="image/*" style="display:none;">
+      <div class="estimate" id="efName2"></div>
+      <img id="efPreview2" class="hidden" style="width:60%; border-radius:10px; margin-top:6px;">
+    </div>
+    <div class="estimate" id="efChoix"></div>
+
+    <div class="label" id="efDetailLbl">Précision (optionnel)</div>
+    <input id="efDetail" type="text" placeholder="Ex : titre « Nuit à Bonapriso », ou : au bord du Wouri" style="width:100%; background:var(--up); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;">
+
+    <button class="btn" id="efGo" style="margin-top:12px;" disabled>Choisis d'abord une image</button>
+    <div class="estimate" id="efInfo" style="margin-top:8px;"></div>
+    <div id="efResult"></div>
+
+    <div class="estimate" style="margin-top:14px; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px;">
+      📘 <b>Guide gratuit</b> : tous les effets expliqués, avec exemples et exercices.
+      <div style="margin-top:8px;"><a class="btn small" href="guide-codes-images.pdf" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger le guide PDF</a></div>
+    </div>
   </section>
 
   <section class="card" id="sec-auto5">
@@ -1938,7 +1979,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.105</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.107</span>
 
   </footer>
 </div>
@@ -6354,6 +6395,269 @@ document.getElementById("rtGo").onclick = async () => {
 };
 rtRefresh();
 
+
+// ═══════════ v41.107 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
+// Même moteur que la retouche (nano-banana/edit), mais chaque effet porte son
+// anglais FIXE, relu mot à mot — aucune traduction aléatoire. Seule la
+// « précision » libre (lieu, métier) passe par la traduction ; les TEXTES à écrire
+// sur l'image (titres, dates) sont envoyés tels quels, entre guillemets.
+// Drapeaux : t = l'effet écrit du texte sur l'image · p = il ajoute des personnes ·
+// s = il change le style (pas photoréaliste) · d = une précision est OBLIGATOIRE.
+const EF = [
+  ["Qualité de l'image", [
+    ["/4K", "Upscale this photo to ultra-high 4K definition: sharper details, cleaner skin texture, crisp edges, no noise."],
+    ["/cinematic", "Give this photo a cinematic film look: improved definition, soft directional cinema lighting, gentle contrast, film colour grading."],
+    ["/repairhd", "Restore this old or damaged photo: remove scratches, stains, dust and blur, recover clean sharp details in high definition."],
+    ["/fullcolour", "Colorize this black and white photo with natural, realistic colours."],
+  ]],
+  ["Visage", [
+    ["/portrait", "Reframe as a professional portrait centred on the person, softly blurred background."],
+    ["/whiteteeth", "Whiten the teeth slightly, keeping them natural and realistic."],
+    ["/wrinkless", "Softly reduce wrinkles and crow's feet while keeping natural skin texture."],
+  ]],
+  ["Mise en scène", [
+    ["/transfer", "Move the person into this new location: {D}. Matching light and shadows so they look really photographed there.", "d"],
+    ["/métier", "Dress the person as a professional {D}, with the matching work outfit and setting.", "d"],
+    ["/together", "Create ONE natural photo showing TWO different people together: the person from the first image and the person from the second image, side by side, interacting naturally. {D} Person A keeps exactly the face, hairstyle, skin tone and clothing of the first image; person B keeps exactly the face, hairstyle, skin tone and clothing of the second image. They are two distinct people with two distinct faces: never copy one face onto the other, never merge them.", "2"],
+    ["/transferoutfit", "Dress the person from the first image in exactly the outfit worn in the second image: same garments, colours, fabric, pattern and accessories. Keep the face, hairstyle, skin tone, body and pose of the person from the first image. The person from the second image must NOT appear in the result; only their outfit is used.", "2"],
+    ["/fullbody", "Extend the image to show the person full body, from head to feet, same outfit continued naturally."],
+  ]],
+  ["Angles de caméra", [
+    ["/droneview", "Show the same scene from a high aerial drone viewpoint looking down at the person."],
+    ["/lowangle", "Show the same scene from a low camera angle looking up at the person, heroic look."],
+    ["/sideview", "Show the same person in side profile view."],
+    ["/wideangle", "Show the same scene with a wide-angle lens, more of the surroundings visible."],
+    ["/overtheshoulder", "Show the same scene from an over-the-shoulder candid viewpoint, like a spontaneous photo."],
+  ]],
+  ["Formats prêts à publier", [
+    ["/magazinecover", "Turn this photo into a glossy magazine cover with a bold masthead and cover lines.", "t"],
+    ["/ytthumbnail", "Turn this photo into an eye-catching YouTube thumbnail with bold short text and strong contrast.", "t"],
+    ["/albumcover", "Turn this photo into a square music album cover with artistic typography.", "t"],
+    ["/concertposter", "Turn this photo into a concert poster with bold typography for the event details.", "t"],
+  ]],
+  ["Lumière et ambiance", [
+    ["/goldenhour", "Relight the scene with warm golden-hour sunset light."],
+    ["/studiolight", "Relight with clean professional studio lighting, soft key light."],
+    ["/neon", "Add colourful neon lighting, pink and blue reflections on the person and scene."],
+    ["/night", "Turn the scene into night, with city lights glowing in the background."],
+    ["/rain", "Add falling rain and wet reflective ground, cinematic mood."],
+  ]],
+  ["Musique et scène", [
+    ["/stage", "Place the person performing on a concert stage with stage lights and a band set-up behind.", ""],
+    ["/crowd", "Add a large cheering crowd of fans in front of the person, seen from behind, blurred.", "p"],
+    ["/recordingstudio", "Place the person in a professional recording studio with microphone, mixing console and acoustic panels."],
+    ["/smoke", "Add light stage smoke and haze with beams of light around the person."],
+    ["/spotlight", "Light the person with a single dramatic spotlight on a dark background."],
+  ]],
+  ["Afrique chic", [
+    ["/wax", "Change the outfit into an elegant tailored outfit in colourful African wax print fabric."],
+    ["/beach", "Move the person onto a tropical African beach with palm trees and soft sea light."],
+    ["/rooftop", "Move the person onto a stylish city rooftop at dusk with the skyline behind."],
+    ["/luxury", "Move the person into an elegant luxury lounge with warm sophisticated decor."],
+  ]],
+  ["Style artistique", [
+    ["/cartoon", "Redraw the whole image as a colourful cartoon illustration, the person still recognisable.", "s"],
+    ["/oilpainting", "Repaint the whole image as a classic oil painting, the person still recognisable.", "s"],
+    ["/sketch", "Redraw the whole image as a detailed pencil sketch, the person still recognisable.", "s"],
+    ["/vintage", "Give the photo a 1970s vintage look with film grain and faded warm colours."],
+    ["/blackwhite", "Convert to artistic high-contrast black and white photography."],
+  ]],
+];
+const EF_TOUS = [].concat(...EF.map(f => f[1]));
+let efSource = null;
+let efSource2 = null;
+let efSel = [];
+
+(function initFx() {
+  const box = document.getElementById("efFamilles");
+  if (!box) return;
+  let i = 0;
+  box.innerHTML = EF.map(f => `<div class="label">${f[0]}</div><div class="chips">`
+    + f[1].map(e => `<button class="chip" data-fx="${i++}">${e[0]}</button>`).join("") + `</div>`).join("");
+  box.querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    const k = parseInt(b.dataset.fx);
+    if (efSel.includes(k)) efSel = efSel.filter(x => x !== k);
+    else if (efSel.length < 3) efSel.push(k);
+    else { document.getElementById("efChoix").textContent = "⚠️ 3 effets maximum à la fois."; return; }
+    box.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", efSel.includes(parseInt(c.dataset.fx))));
+    efRefresh();
+  });
+})();
+
+function efRefresh() {
+  const effets = efSel.map(k => EF_TOUS[k]);
+  const besoinD = effets.some(e => (e[2] || "").includes("d"));
+  const besoinT = effets.some(e => (e[2] || "").includes("t"));
+  const detail = document.getElementById("efDetail").value.trim();
+  document.getElementById("efChoix").textContent = effets.length
+    ? "Effets choisis : " + effets.map(e => e[0]).join(" + ") : "";
+  document.getElementById("efDetailLbl").textContent = besoinD
+    ? (effets.some(e => e[0] === "/métier") ? "Quel métier ? (obligatoire)" : "Quel lieu ? (obligatoire)")
+    : (besoinT ? "Texte à écrire sur l'image (titre, date…)"
+    : (effets.some(e => e[0] === "/together") ? "Où sont-ils ? (optionnel) — ex : dans une voiture" : "Précision (optionnel)"));
+  const besoin2 = effets.some(e => (e[2] || "").includes("2"));
+  const deuxDiff = effets.filter(e => (e[2] || "").includes("2")).length > 1;
+  document.getElementById("efBloc2").classList.toggle("hidden", !besoin2);
+  if (besoin2) document.getElementById("efLbl2").textContent = effets.some(e => e[0] === "/together")
+    ? "Photo 2 : la deuxième personne (une photo nette de son visage)"
+    : "Photo 2 : la tenue à copier";
+  const pret = !!efSource && effets.length > 0 && (!besoinD || detail.length > 1)
+    && (!besoin2 || !!efSource2) && !deuxDiff;
+  const b = document.getElementById("efGo");
+  b.disabled = !pret;
+  b.textContent = !efSource ? "Choisis d'abord une image"
+    : !effets.length ? "Touche un effet"
+    : deuxDiff ? "/together et /transferoutfit : un seul à la fois"
+    : (besoin2 && !efSource2) ? "Importe la photo 2"
+    : (pret ? "✨ Appliquer l'effet (≈ 0,04 $)" : "Écris la précision demandée");
+}
+document.getElementById("efDetail").addEventListener("input", efRefresh);
+document.getElementById("efImportBtn").onclick = () => document.getElementById("efInput").click();
+document.getElementById("efInput").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    efSource = c.toDataURL("image/jpeg", 0.92);
+    const pv = document.getElementById("efPreview");
+    pv.src = efSource; pv.classList.remove("hidden");
+    document.getElementById("efUsePhoto").classList.remove("on");
+    document.getElementById("efImportBtn").classList.add("on");
+    document.getElementById("efName").textContent = `✓ ${f.name}`;
+    efRefresh();
+  };
+  img.onerror = () => { document.getElementById("efName").textContent = "⚠️ Image illisible."; };
+  img.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+document.getElementById("efImport2").onclick = () => document.getElementById("efInput2").click();
+document.getElementById("efInput2").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    const sc = Math.min(1, 1600 / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    efSource2 = c.toDataURL("image/jpeg", 0.92);
+    const pv = document.getElementById("efPreview2");
+    pv.src = efSource2; pv.classList.remove("hidden");
+    document.getElementById("efImport2").classList.add("on");
+    document.getElementById("efName2").textContent = `✓ ${f.name}`;
+    efRefresh();
+  };
+  img.onerror = () => { document.getElementById("efName2").textContent = "⚠️ Image illisible."; };
+  img.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+document.getElementById("efUsePhoto").onclick = () => {
+  if (!photoDataUrl) { document.getElementById("efName").textContent = "⚠️ Aucune photo dans le volet 1."; return; }
+  efSource = stylePhotoUrl || photoDataUrl;
+  const pv = document.getElementById("efPreview");
+  pv.src = efSource; pv.classList.remove("hidden");
+  document.getElementById("efImportBtn").classList.remove("on");
+  document.getElementById("efUsePhoto").classList.add("on");
+  document.getElementById("efName").textContent = "✓ Photo du volet 1";
+  efRefresh();
+};
+document.getElementById("efGo").onclick = async () => {
+  const b = document.getElementById("efGo"), info = document.getElementById("efInfo");
+  b.disabled = true;
+  info.textContent = "⏳ Effet en cours… (20 à 60 s)";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
+    const effets = efSel.map(k => EF_TOUS[k]);
+    const drap = effets.map(e => e[2] || "").join("");
+    const detail = document.getElementById("efDetail").value.trim().replace(/"/g, "'");
+    const avecTexte = drap.includes("t"), ajoute = drap.includes("p"), style = drap.includes("s");
+    const deux = drap.includes("2");
+    const ensemble = effets.some(e => e[0] === "/together");
+    const images = deux ? [efSource, efSource2] : [efSource];
+    // Précision : lieu / métier → traduite ; texte à écrire → gardé tel quel.
+    let detailEn = "";
+    if (detail && drap.includes("d")) detailEn = await msTranslateOne(detail, 120).catch(() => detail);
+    let consignes = effets.map(e => e[1].replace("{D}", (detailEn || detail) ? "Setting: " + (detailEn || detail) + "." : "")).join(" ");
+    if (detail && avecTexte) consignes += ` The only text on the image must be exactly: "${detail}", spelled exactly like this.`;
+    else if (detail && !drap.includes("d")) consignes += " Extra detail: " + (await msTranslateOne(detail, 120).catch(() => detail)) + ".";
+
+    const regle = ensemble
+      ? "ABSOLUTE RULE: the result shows exactly TWO people, each with the face identical to their own source photo (same eyes, nose, mouth, beard, jawline, hairstyle, skin tone). "
+        + (ajoute ? "Any added people stay in the background. " : "Do NOT add any other person. ")
+      : "ABSOLUTE RULE: keep the same person or people, the same number of people, "
+      + "each face identical to the original (same eyes, nose, mouth, beard, jawline, hairstyle, skin tone). "
+      + (ajoute ? "The added people stay in the background and never cover the main person. "
+                : "Do NOT add any new person. ");
+    const fin = "Natural anatomy, correct hands with five fingers. "
+      + (style ? "" : "Photorealistic. ") + (avecTexte ? "" : "No text on the image.");
+    const lancer = async (txt) => {
+      const job = await apiSubmit(nbModele(), { prompt: txt, image_urls: images });
+      const st = job.status_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}/status`;
+      const rp = job.response_url || `https://queue.fal.run/fal-ai/nano-banana/requests/${job.request_id}`;
+      for (let i = 0; i < 60; i++) {
+        await new Promise(rs => setTimeout(rs, 3000));
+        const sj = await apiPoll(st);
+        if (sj.status === "COMPLETED") break;
+        if (sj.status === "FAILED" || sj.status === "ERROR") break;
+      }
+      return await apiPoll(rp);
+    };
+    let data = await lancer(regle + consignes + " " + fin);
+    let url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    if (!url) {
+      info.textContent = "⏳ Nouvelle tentative avec une consigne simplifiée…";
+      data = await lancer(consignes + (ensemble
+        ? " Two distinct people, each keeping the exact face of their own photo."
+        : " Keep the same person with the exact same face."));
+      url = data.images?.[0]?.url || data.response?.images?.[0]?.url;
+    }
+    if (!url) {
+      const brut = data.detail
+        ? (Array.isArray(data.detail) ? data.detail.map(x => x.msg || JSON.stringify(x)).join(" · ") : String(data.detail))
+        : (data.error || data.message || JSON.stringify(data).slice(0, 200));
+      throw new Error("Image introuvable. Détail serveur : « " + brut + " »");
+    }
+    info.innerHTML = `<span style="color:var(--ok)">✓ Effet appliqué !</span>`
+      + (avecTexte ? ` <span style="color:var(--dim)">Relis bien le texte écrit sur l'image.</span>` : "");
+    document.getElementById("efResult").innerHTML = `
+      <img src="${url}" style="width:100%; border-radius:12px; margin-top:10px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a class="btn small" href="${url}" target="_blank" rel="noopener" download style="text-decoration:none;">⬇️ Télécharger</a>
+        <button class="btn small pulse" id="efUse">✓ Utiliser comme photo de départ</button>
+        <button class="btn small" id="efAgain">➕ Ajouter un autre effet</button>
+      </div>`;
+    document.getElementById("efUse").onclick = () => {
+      photoDataUrl = url; stylePhotoUrl = null;
+      const slot = document.getElementById("photoSlot");
+      if (slot) { slot.style.backgroundImage = `url(${url})`; slot.textContent = ""; slot.classList.add("filled"); }
+      const lbl = document.getElementById("photoLabel");
+      if (lbl) lbl.textContent = "Image avec effet";
+      info.innerHTML = `<span style="color:var(--ok)">✓ Placée en photo de départ (volet 1).</span>`;
+      refresh();
+    };
+    document.getElementById("efAgain").onclick = () => {
+      efSource = url;
+      document.getElementById("efPreview").src = url;
+      document.getElementById("efName").textContent = "✓ Image avec effet (on repart de celle-ci)";
+      document.getElementById("efResult").innerHTML = "";
+      efSel = []; efSource2 = null;
+      document.getElementById("efPreview2").classList.add("hidden");
+      document.getElementById("efName2").textContent = "";
+      document.getElementById("efImport2").classList.remove("on");
+      document.querySelectorAll("#efFamilles .chip").forEach(c => c.classList.remove("on"));
+      document.getElementById("efDetail").value = "";
+      efRefresh();
+    };
+  } catch (err) {
+    info.innerHTML = `<span class="err">✗ ${err.message}</span>`;
+  } finally { efRefresh(); refresh(); }
+};
+efRefresh();
+
 // ═══════════ v37.3 : CHANGER LA POSTURE (nano-banana/edit) ═══════════
 // Volet séparé : les volets Tenue et Décor verrouillent désormais la pose,
 // c'est ici — et seulement ici — qu'on la modifie volontairement.
@@ -6900,7 +7204,7 @@ fxRefresh();
   // Correspondance : chaque section -> son onglet.
   var MAP = {
     'sec-auto1':'accueil', 'sec-auto2':'accueil',
-    'nav-photo':'photo', 'sec-auto3':'photo', 'sec-auto4':'photo', 'sec-auto5':'photo',
+    'nav-photo':'photo', 'sec-auto3':'photo', 'sec-auto4':'photo', 'sec-effets':'traitement', 'sec-auto5':'photo',
     'nav-tenue':'look', 'sec-tenuevid':'look', 'nav-decor':'look', 'sec-auto6':'look',
     'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
