@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.114 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.116 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -178,6 +178,7 @@
     <p class="sub">Ta photo + ta chanson → ton clip vidéo professionnel, créé par l'intelligence artificielle du studio. <span style="color:var(--gold); font-size:17px; font-weight:700; display:block; margin-top:6px;">Chante, danse, change de tenue — deviens la star de ton clip. ✨</span></p>
     <a href="guide.html" style="display:inline-block; margin-top:12px; padding:8px 16px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); text-decoration:none; font-size:13px; font-weight:600;">📖 Guide en BD — pour petits et grands</a>
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
+    <div><a class="pm-bouton-haut" id="pmBoutonHaut">👑 Admin Premium 5.0 — les moteurs pro (Seedance, Aleph, Multi-Shot)</a></div>
     <!-- v41.42 : l'accès admin remonte EN HAUT. Papy est seul à connaître le PIN,
          il n'y a donc plus de raison de le cacher tout en bas de page. -->
     <div><span id="admOuvre" style="display:inline-block; margin-top:12px; opacity:.35; font-size:12px; cursor:pointer; user-select:none;" title="Studio">◆ Studio</span></div>
@@ -192,6 +193,7 @@
     <a data-tab="scenario" class="qnav">🎬 Scénario<small>Scenario</small></a>
     <a data-tab="finition" class="qnav">🎤 Finition<small>Finishing</small></a>
     <a data-tab="commander" class="qnav">💳 Commander<small>Order</small></a>
+    <a data-tab="premium" class="qnav qnav-premium">👑 Admin Premium 5.0<small>Pour les pros · Pro tools</small></a>
     <a data-tab="prompts" class="qnav">📝 Prompts<small>Prompts</small></a>
     <a data-tab="idees" class="qnav">💡 Idées<small>Ideas</small></a>
     <a data-tab="tout" class="qnav">📜 Tout voir<small>See all</small></a>
@@ -204,6 +206,15 @@
       letter-spacing:.01em; margin-top:1px; }
     #tabbar .qnav.active small { opacity:.75; }
     #tabbar .qnav.active { background:var(--gold); color:#1a1726; border-color:var(--gold); }
+    /* v41.116 : 👑 Admin Premium 5.0 — onglet en couleur, bien visible (offre pro) */
+    #tabbar .qnav.qnav-premium { background:linear-gradient(135deg,#7c3aed 0%,#c026d3 50%,#f59e0b 100%); color:#fff; border:1.5px solid #fbbf24; box-shadow:0 0 14px rgba(192,38,211,.55); animation:pmBrille 2.6s ease-in-out infinite; }
+    #tabbar .qnav.qnav-premium small { opacity:.95; color:#fff7d6; }
+    #tabbar .qnav.qnav-premium:hover { color:#fff; border-color:#fff; filter:brightness(1.1); }
+    #tabbar .qnav.qnav-premium.active { background:linear-gradient(135deg,#f59e0b 0%,#c026d3 55%,#7c3aed 100%); color:#fff; border-color:#fff; box-shadow:0 0 22px rgba(245,158,11,.75); }
+    @keyframes pmBrille { 0%,100% { box-shadow:0 0 10px rgba(192,38,211,.45); } 50% { box-shadow:0 0 22px rgba(245,158,11,.8); } }
+    @media (prefers-reduced-motion: reduce) { #tabbar .qnav.qnav-premium { animation:none; } }
+    .pm-bouton-haut { display:inline-block; margin-top:10px; padding:10px 18px; border-radius:999px; text-decoration:none; font-size:14px; font-weight:800; color:#fff; cursor:pointer;
+      background:linear-gradient(135deg,#7c3aed 0%,#c026d3 50%,#f59e0b 100%); border:1.5px solid #fbbf24; box-shadow:0 0 16px rgba(192,38,211,.55); animation:pmBrille 2.6s ease-in-out infinite; }
 
     /* v41.43 — CERCLE DE PROGRESSION (façon Runway / Kling).
        Un anneau doré autour du pourcentage : rempli et précis pendant l'envoi
@@ -1030,7 +1041,31 @@
   <!-- v41.59 : ONGLET CLIENT « IDEES » - prompts d'exemple a copier-adapter.
        Simple lecture/copie : n'ouvre AUCUN acces a Multi-Shot Video, qui
        reste reserve a l'espace admin (credits Runway de Papy). -->
-  <section class="card" id="sec-idees" style="border-color:var(--gold);">
+  <section class="card"   <!-- v41.116 : 👑 ADMIN PREMIUM 5.0 — les moteurs Runway/fal ouverts aux
+       clients, payés sur un solde Premium en FCFA (même code STAR-XXXX que
+       le reste de l'app). Le prix, la durée et la résolution sont toujours
+       imposés par le Worker : ce qui s'affiche ici n'est qu'un aperçu. -->
+  <section class="card" id="sec-premium" style="border:2px solid #fbbf24; box-shadow:0 0 24px rgba(192,38,211,.35);">
+    <div style="margin:-4px -4px 12px; padding:14px 16px; border-radius:12px; background:linear-gradient(135deg,#7c3aed 0%,#c026d3 50%,#f59e0b 100%); color:#fff;">
+      <div style="font-size:12px; letter-spacing:.12em; font-weight:800; opacity:.95;">OFFRE PROFESSIONNELLE · PRO OFFER</div>
+      <div style="font-size:22px; font-weight:900; margin-top:2px;">👑 Admin Premium 5.0</div>
+      <div style="font-size:14px; margin-top:4px; opacity:.95;">Les moteurs utilisés par le studio, pour les artistes, réalisateurs et créateurs exigeants.</div>
+    </div>
+    <h2 class="sr-only" style="position:absolute; left:-9999px;">Admin Premium 5.0</h2>
+    <p class="sub" style="margin:0 0 10px;">
+      Les moteurs professionnels du studio (Seedance, Aleph, Multi-Shot, Chanson), à l'unité, payés sur ton <b>solde Premium</b>.<br>
+      <span style="opacity:.85">The studio's professional engines, one at a time, paid from your Premium balance.</span>
+    </p>
+    <div class="estimate" id="pmSolde" style="border-left:3px solid #7c6fd6; background:var(--up); border-radius:8px; padding:10px 12px;">
+      Entre ton code StarClip en haut de la page pour voir ton solde Premium.
+    </div>
+    <div class="estimate" style="margin-top:8px;">
+      Pas encore de solde Premium ? Commande un pack sur WhatsApp 👇 (en bas de la page « Commander »).
+    </div>
+    <div id="pmListe" style="margin-top:12px;"></div>
+  </section>
+
+id="sec-idees" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1a1204;">&#128161;</span> Idees de textes pour ta video</h2>
     <p class="sub" style="margin:0 0 12px;">Des exemples de descriptions qui fonctionnent bien pour une scene de danse ou de chant. <b>Copie, puis change quelques mots</b> pour ta propre scene &mdash; les vetements, le style de musique, le nombre de danseurs.<br><span style="opacity:.85">Example scene descriptions that work well. Copy, then change a few words for your own scene.</span></p>
 
@@ -1042,7 +1077,7 @@
     </div>
   </section>
 
-  <!-- v41.114 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
+  <!-- v41.116 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
        Le client choisit sa langue (français OU anglais), puis « Utiliser » ouvre
        le bon onglet, remplit la bonne case et l'amène dessus. -->
   <section class="card" id="sec-prompts" style="border-color:var(--gold);">
@@ -2006,7 +2041,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.114</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.116</span>
 
   </footer>
 </div>
@@ -2262,8 +2297,9 @@ async function checkCode() {
     // v36.8 : afficher aussi le solde de lip-sync Standard, désormais plafonné
     const lipTxt = (typeof d.lipLeft === "number") ? ` · ${d.lipLeft} lip-sync Standard` : "";
     info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}${badge}${imgTxt}${lipTxt}</span>`;
+    if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.116 : solde Admin Premium 5.0
     appliquerPlan();
-    if (d.essai && d.left > 0) essaiPreparer();   // v41.114 : Éco + 5 s pour l'essai
+    if (d.essai && d.left > 0) essaiPreparer();   // v41.116 : Éco + 5 s pour l'essai
   } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
   refresh();
 }
@@ -2271,7 +2307,7 @@ document.getElementById("saveCode").onclick = checkCode;
 codeInput.addEventListener("input", refresh);
 if (codeInput.value) checkCode();
 
-// ═══ v41.114 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
+// ═══ v41.116 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
 // À la toute première visite, sans code enregistré, l'app demande au Worker un
 // code d'essai (1 vidéo Éco de 5 s, 2 images, 1 lip-sync). Le Worker plafonne
 // le total (30 essais) : une fois épuisé, il répond « fini » et l'app se
@@ -4681,7 +4717,7 @@ async function hebergerFichier(source, nom) {
     + "). Ta connexion a coupé pendant l'envoi : rapproche ton téléphone de la fenêtre, garde son écran allumé, et réessaie.");
 }
 
-// v41.114 : ISOLER LA VOIX AVANT LE LIP-SYNC.
+// v41.116 : ISOLER LA VOIX AVANT LE LIP-SYNC.
 // Avec la chanson complète, le moteur fait aussi bouger les lèvres sur les
 // percussions et les cuivres. On envoie donc la VOIX SEULE (Demucs) au lip-sync,
 // puis on remet la chanson complète sur la vidéo finie (ffmpeg merge-audio-video).
@@ -4730,7 +4766,7 @@ async function runLipsync() {
         throw new Error("Hébergement des fichiers impossible (" + upErr.message + "). Vérifie ta connexion (Wi-Fi de préférence) puis réessaie.");
       vSrc = lipVideoSource; aSrc = lipAudioDataUrl; // Standard + petit fichier : envoi direct
     }
-    // v41.114 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
+    // v41.116 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
     const chansonComplete = aSrc;
     let audioLip = aSrc, voixIsolee = false;
     const isoler = document.getElementById("lipIsoler");
@@ -4799,7 +4835,7 @@ async function runLipsync() {
         : (data.error || data.message || JSON.stringify(data).slice(0, 220));
       throw new Error("Le serveur n'a pas produit de vidéo. Sa réponse exacte : « " + brut + " » — envoie ce message à Claude si ça se répète.");
     }
-    // v41.114 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
+    // v41.116 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
     let finalUrl = outUrl, avertMusique = "";
     if (voixIsolee) {
       try {
@@ -6546,7 +6582,7 @@ document.getElementById("rtGo").onclick = async () => {
 rtRefresh();
 
 
-// ═══════════ v41.114 : 📝 ONGLET PROMPTS ═══════════
+// ═══════════ v41.116 : 📝 ONGLET PROMPTS ═══════════
 // Pour chaque volet qui attend un texte : 3 prompts écrits par le studio, en
 // FRANÇAIS et en ANGLAIS. Le client choisit sa langue une fois (mémorisée).
 // « Utiliser » : ouvre l'onglet du volet, remplit la case, la met en évidence.
@@ -6646,7 +6682,7 @@ function prUtiliser(g, it) {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.style.outline = "3px solid var(--gold)";
     setTimeout(() => { el.style.outline = ""; }, 2500);
-    // v41.114 : rappel juste sous la case — le client peut réécrire le texte.
+    // v41.116 : rappel juste sous la case — le client peut réécrire le texte.
     let r = document.getElementById("prRappel");
     if (!r) { r = document.createElement("div"); r.id = "prRappel"; }
     r.className = "estimate";
@@ -6708,8 +6744,353 @@ document.querySelectorAll("#prLangue .chip").forEach(c => c.onclick = () => {
 });
 prAfficher();
 
+// ═══════════ v41.116 : 👑 ADMIN PREMIUM 5.0 (côté client) ═══════════
+// v41.116 : le bouton coloré du haut de page ouvre directement l'onglet Premium.
+(function () {
+  const b = document.getElementById("pmBoutonHaut");
+  if (!b) return;
+  b.onclick = () => {
+    const t = document.querySelector('#tabbar .qnav[data-tab="premium"]');
+    if (t) t.click();
+    setTimeout(() => { const sec = document.getElementById("sec-premium"); if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" }); }, 600);
+  };
+})();
+// Les moteurs Runway/fal, ouverts aux clients avec un solde Premium en FCFA.
+// Le PRIX AFFICHÉ ICI N'EST QU'UN APERÇU : le Worker recalcule et impose le
+// vrai prix, la vraie durée et la vraie résolution à chaque envoi — un
+// client qui bricolerait son navigateur ne peut rien changer côté serveur.
+const PM_MOTEURS = [
+  { id: "seedance2", nom: "🌱 Seedance 2.0", fournisseur: "fal",
+    desc: "Vidéo à partir d'une photo (ou d'un texte seul).",
+    durees: [5, 10, 15], prix: { 5: 3499, 10: 5499, 15: 8499 }, photo: true, photoFacultative: true },
+  { id: "seedance25", nom: "✨ Seedance 2.5", fournisseur: "runway",
+    desc: "Vidéo haut de gamme en 1080p, à partir d'une photo.",
+    durees: [5, 10], prix: { 5: 6499, 10: 12499 }, photo: true },
+  { id: "aleph", nom: "🎞️ Aleph 2.0", fournisseur: "runway",
+    desc: "Modifie une vidéo que tu as déjà — enlève un élément, change le décor — sans tout refaire.",
+    durees: [], video: true },
+  { id: "multishot", nom: "🎬 Multi-Shot Video", fournisseur: "runway",
+    desc: "Un mini-clip à plusieurs plans en une seule génération.",
+    durees: [5, 10, 15], prix: { 5: 1499, 10: 2499, 15: 4499 }, photo: true, photoFacultative: true },
+  { id: "chanson", nom: "🎵 Chanson", fournisseur: "fal",
+    desc: "Décris le style, écris (ou laisse écrire) les paroles — 2 versions.",
+    durees: [0], prix: { 0: 1499 }, chanson: true },
+];
+const PM_ALEPH_PRIX = { 5: 3499, 10: 5499 };
+let pmSel = {};   // { [id]: { duree, photo:File, video:File } }
+PM_MOTEURS.forEach(m => { pmSel[m.id] = { duree: m.durees.length ? m.durees[0] : null }; });
 
-// ═══════════ v41.114 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
+function pmPrix(m) {
+  if (m.id === "aleph") return PM_ALEPH_PRIX[pmSel.aleph.duree] || null;
+  return m.prix[pmSel[m.id].duree];
+}
+function pmFmt(fcfa) { return fcfa ? fcfa.toLocaleString("fr-FR") + " FCFA" : "…"; }
+
+function pmCarte(m) {
+  const dureesHtml = m.durees.length > 1
+    ? `<div class="chips" id="pmDur_${m.id}">` + m.durees.map(d =>
+        `<button class="chip${d === pmSel[m.id].duree ? " on" : ""}" data-pmd="${d}">${d} s · ${pmFmt(m.prix[d])}</button>`).join("") + `</div>`
+    : "";
+  const media = m.video
+    ? `<div class="chips"><button class="btn small" id="pmVidBtn_${m.id}">📂 Choisir la vidéo à modifier</button></div>
+       <input type="file" id="pmVidInput_${m.id}" accept="video/*" style="display:none;">
+       <div class="estimate" id="pmVidNom_${m.id}"></div>`
+    : m.photo
+    ? `<div class="chips"><button class="btn small" id="pmPhotoBtn_${m.id}">📂 ${m.photoFacultative ? "Photo de départ (optionnel)" : "Choisir une photo"}</button></div>
+       <input type="file" id="pmPhotoInput_${m.id}" accept="image/*" style="display:none;">
+       <div class="estimate" id="pmPhotoNom_${m.id}"></div>`
+    : "";
+  const texte = m.chanson
+    ? `<div class="label">Style (obligatoire)</div>
+       <textarea id="pmStyle_${m.id}" placeholder="Ex : Afrobeat, 100 BPM, voix masculine chaleureuse, cuivres, ambiance festive" style="width:100%; min-height:60px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>
+       <div class="label">Paroles (optionnel — laisse vide pour que l'IA les écrive)</div>
+       <textarea id="pmParoles_${m.id}" placeholder="[Verse] ..." style="width:100%; min-height:80px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>`
+    : `<div class="label">${m.id === "aleph" ? "Ce que tu veux changer" : "Décris ta scène"}</div>
+       <textarea id="pmPrompt_${m.id}" placeholder="${m.id === "aleph" ? "Ex : enlève le logo en bas à droite, garde tout le reste identique" : "Ex : je chante face caméra sur une terrasse au coucher du soleil"}" style="width:100%; min-height:70px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>`;
+  const avertRunway = m.fournisseur === "runway"
+    ? `<div class="estimate" style="color:var(--dim); margin-top:4px;">⚠️ Comme sur l'app Runway, un refus du moteur pendant la création n'est pas remboursé.</div>`
+    : "";
+  return `<div style="border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-top:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap;">
+      <b>${m.nom}</b><span style="color:#7c6fd6; font-weight:700;" id="pmPrix_${m.id}">${m.id === "aleph" ? "Choisis d'abord ta vidéo" : pmFmt(pmPrix(m))}</span>
+    </div>
+    <div class="estimate" style="margin:2px 0 8px;">${m.desc}</div>
+    ${dureesHtml}
+    ${media}
+    ${texte}
+    ${avertRunway}
+    <button class="btn" id="pmGo_${m.id}" style="margin-top:10px;" disabled>Prépare d'abord ce qu'il faut</button>
+    <div class="estimate" id="pmInfo_${m.id}" style="margin-top:6px;"></div>
+    <div id="pmResult_${m.id}"></div>
+  </div>`;
+}
+
+function pmAfficherSolde(d) {
+  const box = document.getElementById("pmSolde");
+  if (!box) return;
+  if (typeof d.premium !== "number") { box.textContent = "Entre ton code StarClip en haut de la page pour voir ton solde Premium."; return; }
+  box.innerHTML = `👑 Solde Admin Premium 5.0 : <b style="color:#7c6fd6;">${pmFmt(d.premium)}</b>`;
+}
+
+function pmMaj(id) {
+  const m = PM_MOTEURS.find(x => x.id === id);
+  const s = pmSel[id];
+  const btn = document.getElementById("pmGo_" + id);
+  const prixEl = document.getElementById("pmPrix_" + id);
+  let manque = "";
+  if (!getCode()) manque = "Entre d'abord ton code StarClip en haut de la page";
+  else if (m.video && !s.video) manque = "Choisis d'abord la vidéo à modifier";
+  else if (m.photo && !m.photoFacultative && !s.photo) manque = "Choisis d'abord une photo";
+  else if (m.chanson && (document.getElementById("pmStyle_" + id).value.trim().length < 10)) manque = "Décris le style en au moins 10 signes";
+  else if (!m.chanson && !m.video && (document.getElementById("pmPrompt_" + id).value.trim().length < 5)) manque = "Décris ta scène";
+  else if (m.id === "aleph" && !s.duree) manque = "";  // durée déduite de la vidéo, calculée après le choix du fichier
+  const prix = pmPrix(m);
+  if (prixEl) prixEl.textContent = prix ? pmFmt(prix) : (m.id === "aleph" ? "Choisis d'abord ta vidéo" : "…");
+  btn.disabled = !!manque || !prix;
+  btn.textContent = manque ? manque : `👑 Lancer — ${pmFmt(prix)}`;
+}
+
+async function pmChoisirVideo(id, f) {
+  pmSel[id].video = f;
+  document.getElementById("pmVidNom_" + id).textContent = "⏳ Lecture de la durée…";
+  const url = URL.createObjectURL(f);
+  const v = document.createElement("video");
+  v.preload = "metadata";
+  let fini = false;
+  const conclure = (sec) => {
+    if (fini) return; fini = true;
+    if (sec == null) {
+      // v41.116 : impossible de lire la durée dans ce navigateur — on ne bloque
+      // pas le client pour autant. On facture prudemment 10 s ; le vrai coût
+      // réel reste vérifié par le Worker à l'envoi (garde-fou anti-dépassement).
+      pmSel[id].duree = 10;
+      document.getElementById("pmVidNom_" + id).innerHTML = `✓ ${f.name} <span style="color:var(--dim)">(durée non lisible ici — facturée par prudence à 10 s)</span>`;
+    } else if (sec > 10.5) {
+      document.getElementById("pmVidNom_" + id).innerHTML = `⚠️ Cette vidéo fait ${sec.toFixed(1)} s — Aleph Premium accepte jusqu'à 10 s. Coupe-la puis réessaie.`;
+      pmSel[id].video = null;
+    } else {
+      pmSel[id].duree = sec <= 5.5 ? 5 : 10;
+      document.getElementById("pmVidNom_" + id).textContent = `✓ ${f.name} (${sec.toFixed(1)} s → facturé ${pmSel[id].duree} s)`;
+    }
+    try { URL.revokeObjectURL(url); } catch (_) {}
+    pmMaj(id);
+  };
+  v.onloadedmetadata = () => conclure(v.duration && isFinite(v.duration) ? v.duration : null);
+  v.onerror = () => conclure(null);
+  setTimeout(() => conclure(null), 6000);   // filet de sécurité si le navigateur ne répond jamais
+  v.src = url;
+}
+
+function pmDataUri(f) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error("Lecture du fichier impossible."));
+    r.readAsDataURL(f);
+  });
+}
+
+// Dépôt éphémère Runway pour un client Premium (vidéo Aleph, potentiellement lourde).
+function pmEnvoyerVideo(f, majPct) {
+  return new Promise(async (resolve, reject) => {
+    if (f.size > 200 * 1024 * 1024) return reject(new Error(f.name + " dépasse 200 Mo."));
+    let dep;
+    try {
+      const r = await fetch(WORKER_URL + "/premium/rwupload", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: getCode(), filename: (f.name || "video.mp4").replace(/[^a-zA-Z0-9.\-]/g, "_") }),
+      });
+      dep = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(dep.error || ("Dépôt refusé (" + r.status + ")"));
+    } catch (e) { return reject(e); }
+    const form = new FormData();
+    for (const [k, v] of Object.entries(dep.fields || {})) form.append(k, v);
+    form.append("file", f);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", dep.uploadUrl, true);
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable && majPct) majPct(Math.round(e.loaded / e.total * 100)); };
+    xhr.onload = () => { if (xhr.status >= 200 && xhr.status < 300) resolve(dep.runwayUri); else reject(new Error("L'envoi de la vidéo a échoué (" + xhr.status + "). Relance.")); };
+    xhr.onerror = () => reject(new Error("Connexion interrompue pendant l'envoi de la vidéo."));
+    xhr.send(form);
+  });
+}
+
+async function pmSubmit(moteur, duree, mode, payload) {
+  const r = await fetch(WORKER_URL + "/premium/submit", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: getCode(), moteur, duree, mode, payload }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || ("Envoi refusé (" + r.status + ")"));
+  return d;
+}
+async function pmStatusRunway(task_id) {
+  const r = await fetch(WORKER_URL + "/premium/rwstatus", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: getCode(), task_id }),
+  });
+  const t = await r.text();
+  try { return JSON.parse(t); } catch (_) { throw new Error("réponse illisible du serveur (" + r.status + ")"); }
+}
+async function pmAttendreRunway(task_id, info) {
+  for (let i = 0; i < 180; i++) {
+    await new Promise(r => setTimeout(r, 5000));
+    const t = await pmStatusRunway(task_id);
+    if (t.status === "SUCCEEDED") return t;
+    if (t.status === "FAILED" || t.status === "CANCELLED") {
+      const motif = t.failure || t.failureCode || "refusé par le moteur";
+      throw new Error("La génération a échoué : " + motif + ". Rappel : un refus n'est pas remboursé.");
+    }
+    info.textContent = t.status === "RUNNING" ? "Le moteur travaille… (quelques minutes)" : "En file d'attente…";
+  }
+  throw new Error("Le moteur met plus de temps que prévu. Réessaie plus tard, sans relancer tout de suite.");
+}
+
+async function pmLancer(id) {
+  const m = PM_MOTEURS.find(x => x.id === id);
+  const btn = document.getElementById("pmGo_" + id), info = document.getElementById("pmInfo_" + id), result = document.getElementById("pmResult_" + id);
+  btn.disabled = true; result.innerHTML = ""; info.textContent = "";
+  try {
+    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de la page.");
+    const s = pmSel[id];
+    const prompt = m.chanson ? "" : (document.getElementById("pmPrompt_" + id) || {}).value?.trim() || "";
+
+    if (id === "seedance2") {
+      const payload = { prompt, aspect_ratio: "9:16", generate_audio: false };
+      let mode = "texte";
+      if (s.photo) { mode = "image"; info.textContent = "Lecture de la photo…"; payload.image_url = await pmDataUri(s.photo); }
+      info.textContent = "Envoi au studio…";
+      const job = await pmSubmit("seedance2", s.duree, mode, payload);
+      const statusUrl = job.status_url || `https://queue.fal.run/x/requests/${job.request_id}/status`;
+      const responseUrl = job.response_url || `https://queue.fal.run/x/requests/${job.request_id}`;
+      for (let i = 0; i < 150; i++) {
+        await new Promise(r => setTimeout(r, 4000));
+        const sj = await apiPoll(statusUrl);
+        if (sj.status === "COMPLETED") break;
+        if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le moteur a refusé la création.");
+        info.textContent = sj.status === "IN_PROGRESS" ? "Seedance travaille… (2 à 6 min)" : "En file d'attente…";
+      }
+      const data = await apiPoll(responseUrl);
+      const out = data.video?.url || data.response?.video?.url || data.output?.video?.url;
+      if (!out) throw new Error("Vidéo introuvable dans la réponse.");
+      result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
+        <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
+
+    } else if (id === "seedance25") {
+      info.textContent = "Lecture de la photo…";
+      const uri = await pmDataUri(s.photo);
+      const payload = { promptImage: [{ uri }], promptText: prompt, ratio: "9:16", audio: false };
+      info.textContent = "Envoi au studio…";
+      const t = await pmSubmit("seedance25", s.duree, null, payload);
+      const fin = await pmAttendreRunway(t.id, info);
+      const out = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
+      if (!out) throw new Error("Vidéo introuvable dans la réponse.");
+      result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
+        <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
+
+    } else if (id === "aleph") {
+      if (!s.video) throw new Error("Choisis d'abord la vidéo à modifier.");
+      info.textContent = "Envoi de la vidéo… 0 %";
+      const runwayUri = await pmEnvoyerVideo(s.video, (p) => { info.textContent = "Envoi de la vidéo… " + p + " %"; });
+      const payload = { videoUri: runwayUri, promptText: prompt, contentModeration: { publicFigureThreshold: "low" } };
+      info.textContent = "Envoi au studio…";
+      const t = await pmSubmit("aleph", s.duree, null, payload);
+      const fin = await pmAttendreRunway(t.id, info);
+      const out = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
+      if (!out) throw new Error("Vidéo introuvable dans la réponse.");
+      result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
+        <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
+
+    } else if (id === "multishot") {
+      const payload = { mode: "auto", ratio: "9:16", audio: false, prompt };
+      if (s.photo) { info.textContent = "Lecture de la photo…"; payload.firstFrame = { uri: await pmDataUri(s.photo) }; }
+      info.textContent = "Envoi au studio…";
+      const t = await pmSubmit("multishot", s.duree, null, payload);
+      const fin = await pmAttendreRunway(t.id, info);
+      const out = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
+      if (!out) throw new Error("Vidéo introuvable dans la réponse.");
+      result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
+        <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Mini-clip prêt !</span>`;
+
+    } else if (id === "chanson") {
+      const style = document.getElementById("pmStyle_chanson").value.trim();
+      const paroles = document.getElementById("pmParoles_chanson").value.trim();
+      const payload = { prompt: style, lyrics_optimizer: !paroles };
+      if (paroles) payload.lyrics = paroles;
+      info.textContent = "Envoi au studio (2 versions)…";
+      const rep = await pmSubmit("chanson", 0, null, payload);
+      const jobs = rep.jobs || [];
+      if (!jobs.length) throw new Error("Aucune version n'a pu être lancée.");
+      const urls = [];
+      for (let idx = 0; idx < jobs.length; idx++) {
+        const job = jobs[idx];
+        const statusUrl = job.status_url || `https://queue.fal.run/x/requests/${job.request_id}/status`;
+        const responseUrl = job.response_url || `https://queue.fal.run/x/requests/${job.request_id}`;
+        info.textContent = `Composition de la version ${idx + 1}/${jobs.length}… (1 à 3 min)`;
+        for (let i = 0; i < 100; i++) {
+          await new Promise(r => setTimeout(r, 4000));
+          const sj = await apiPoll(statusUrl).catch(() => ({}));
+          if (sj.status === "COMPLETED") break;
+        }
+        const data = await apiPoll(responseUrl).catch(() => ({}));
+        const url = data.audio?.url || data.response?.audio?.url;
+        if (url) urls.push(url);
+      }
+      if (!urls.length) throw new Error("Chanson introuvable dans la réponse.");
+      result.innerHTML = urls.map((u, i) => `<div style="margin-top:10px;"><b>Version ${i + 1}</b>
+        <audio controls style="width:100%; margin-top:4px;" src="${u}"></audio>
+        <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a></div>`).join("");
+      info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`;
+    }
+  } catch (e) {
+    info.innerHTML = `<span class="err">✗ ${e.message}</span>`;
+  } finally {
+    pmMaj(id);
+  }
+}
+
+(function pmInit() {
+  const box = document.getElementById("pmListe");
+  if (!box) return;
+  box.innerHTML = PM_MOTEURS.map(pmCarte).join("");
+  PM_MOTEURS.forEach(m => {
+    const box2 = document.getElementById("pmDur_" + m.id);
+    if (box2) box2.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+      pmSel[m.id].duree = parseInt(c.dataset.pmd);
+      box2.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x === c));
+      pmMaj(m.id);
+    });
+    if (m.video) {
+      const btn = document.getElementById("pmVidBtn_" + m.id), inp = document.getElementById("pmVidInput_" + m.id);
+      btn.onclick = () => inp.click();
+      inp.onchange = (e) => { if (e.target.files[0]) pmChoisirVideo(m.id, e.target.files[0]); };
+    }
+    if (m.photo) {
+      const btn = document.getElementById("pmPhotoBtn_" + m.id), inp = document.getElementById("pmPhotoInput_" + m.id);
+      btn.onclick = () => inp.click();
+      inp.onchange = (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        pmSel[m.id].photo = f;
+        document.getElementById("pmPhotoNom_" + m.id).textContent = "✓ " + f.name;
+        pmMaj(m.id);
+      };
+    }
+    if (m.chanson) {
+      document.getElementById("pmStyle_" + m.id).addEventListener("input", () => pmMaj(m.id));
+      document.getElementById("pmParoles_" + m.id).addEventListener("input", () => pmMaj(m.id));
+    }
+    if (!m.chanson && !m.video) document.getElementById("pmPrompt_" + m.id).addEventListener("input", () => pmMaj(m.id));
+    document.getElementById("pmGo_" + m.id).onclick = () => pmLancer(m.id);
+    pmMaj(m.id);
+  });
+})();
+
+
+// ═══════════ v41.116 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
 // Même moteur que la retouche (nano-banana/edit), mais chaque effet porte son
 // anglais FIXE, relu mot à mot — aucune traduction aléatoire. Seule la
 // « précision » libre (lieu, métier) passe par la traduction ; les TEXTES à écrire
@@ -6776,7 +7157,7 @@ const EF = [
     ["/blackwhite", "Convert to artistic high-contrast black and white photography."],
   ]],
 ];
-// v41.114 : /together se décline — une POSE et un LIEU au choix, chacun avec son
+// v41.116 : /together se décline — une POSE et un LIEU au choix, chacun avec son
 // anglais fixe. La case « Précision » reste libre pour tout le reste.
 const EF_POSES = [
   ["💞 Complices", "They stand close together as an affectionate couple: one has an arm around the other's shoulder, they gently hold hands and smile at each other, both faces clearly visible."],
@@ -6869,7 +7250,7 @@ function efRefresh() {
 }
 document.getElementById("efDetail").addEventListener("input", efRefresh);
 document.getElementById("efTogLieu").addEventListener("input", efRefresh);
-// v41.114 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
+// v41.116 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
 function efPose(n, url, nom) {
   const slot = document.getElementById(n === 1 ? "efSlot1" : "efSlot2");
   if (n === 1) efSource = url; else efSource2 = url;
@@ -7553,7 +7934,7 @@ fxRefresh();
     'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
     'sec-auto9':'commander', 'sec-auto10':'commander',
-    'sec-idees':'idees', 'sec-prompts':'prompts'
+    'sec-idees':'idees', 'sec-prompts':'prompts', 'sec-premium':'premium'
   };
   var tabs = document.querySelectorAll('#tabbar .qnav');
 
