@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.124 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.125 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2171,7 +2171,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.124</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.125</span>
 
   </footer>
 </div>
@@ -7031,24 +7031,30 @@ const PM_MOTEURS = [
   { id: "chanson", nom: "🎵 Chanson", fournisseur: "fal",
     desc: "Décris le style, écris (ou laisse écrire) les paroles — 2 versions.",
     durees: [0], prix: { 0: 499 }, chanson: true },
-  { id: "chansonPro", nom: "⭐ Chanson Pro (ElevenLabs)", fournisseur: "elevenlabs",
+  { id: "chansonPro", nom: "⭐ Chanson Pro — qualité studio", fournisseur: "elevenlabs",
     desc: "Qualité studio, niveau Suno. 1 version : 2 min, 3 min ou 3 min 50.",
     durees: [2, 3, 4], prix: { 2: 999, 3: 1499, 4: 1999 }, chanson: true, pro: true,
     libDuree: { 2: "2 min", 3: "3 min", 4: "3 min 50" } },
+  { id: "demo", nom: "🎙️ Améliorer ma démo", fournisseur: "fal",
+    desc: "Envoie ta démo, même enregistrée au téléphone : on la produit comme en studio, ou on crée une nouvelle chanson dans son style.",
+    durees: [2, 3, 4], prix: { 2: 1999, 3: 2999, 4: 3999 }, libDuree: { 2: "2 min", 3: "3 min", 4: "3 min 50" },
+    chanson: true, demo: true },
   { id: "stems", nom: "🎚️ Extraire les stems", fournisseur: "fal",
     desc: "Sépare une chanson en pistes : voix, batterie, basse, instruments. En MP3, WAV ou les deux.",
     durees: [0], prix: { 0: 499 }, stems: true },
 ];
 // v41.123 : couleur du liseré de chaque carreau.
-const PM_COULEURS = { seedance2: "#22c55e", seedance25: "#f59e0b", aleph: "#60a5fa", multishot: "#a78bfa", chanson: "#f472b6", chansonPro: "#c026d3", stems: "#14b8a6" };
+const PM_COULEURS = { demo: "#fb923c", seedance2: "#22c55e", seedance25: "#f59e0b", aleph: "#60a5fa", multishot: "#a78bfa", chanson: "#f472b6", chansonPro: "#c026d3", stems: "#14b8a6" };
 const PM_ALEPH_PRIX = { 5: 3499, 10: 5499 };
 let pmSel = {};   // { [id]: { duree, photo:File, video:File } }
-const pmChChoix = { chanson: { genre: null, voix: null, langue: null, ambiance: null },
+const pmChChoix = { demo: { genre: null, voix: null, langue: null, ambiance: null },
+                     chanson: { genre: null, voix: null, langue: null, ambiance: null },
                      chansonPro: { genre: null, voix: null, langue: null, ambiance: null } };   // v41.123
 PM_MOTEURS.forEach(m => { pmSel[m.id] = { duree: m.durees.length ? m.durees[0] : null }; });
 
 function pmPrix(m) {
   if (m.id === "aleph") return PM_ALEPH_PRIX[pmSel.aleph.duree] || null;
+  if (m.demo && pmSel.demo.mode !== "reference") return 999;   // v41.125 : reprise
   return m.prix[pmSel[m.id].duree];
 }
 function pmFmt(fcfa) { return fcfa ? fcfa.toLocaleString("fr-FR") + " FCFA" : "…"; }
@@ -7058,7 +7064,22 @@ function pmCarte(m) {
     ? `<div class="chips" id="pmDur_${m.id}">` + m.durees.map(d =>
         `<button class="chip${d === pmSel[m.id].duree ? " on" : ""}" data-pmd="${d}">${m.libDuree ? m.libDuree[d] : d + " s"} · ${pmFmt(m.prix[d])}</button>`).join("") + `</div>`
     : "";
-  const media = m.stems
+  const media = m.demo
+    ? `<div class="label">Ce que tu veux</div>
+       <div class="chips" id="pmDemoMode">
+         <button class="chip on" data-mode="reprise">🎙️ Reprise — garde ta mélodie et tes paroles · 999 FCFA</button>
+         <button class="chip" data-mode="reference">✨ Référence — nouvelle chanson dans le style de ta démo · dès 1 999 FCFA</button>
+       </div>
+       <div class="estimate" id="pmDemoAide"></div>
+       <div class="chips"><button class="btn small" id="pmDemoBtn">📂 Choisir ta démo (MP3, WAV, M4A…)</button></div>
+       <input type="file" id="pmDemoInput" accept="audio/*" style="display:none;">
+       <div class="estimate" id="pmDemoNom"></div>
+       <div id="pmDemoRef" style="display:none;">
+         <div class="label">Extrait de référence (30 s) — à partir de la seconde</div>
+         <input type="number" id="pmDemoDebut" value="0" min="0" step="5" style="width:120px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:8px 10px;">
+         <div class="estimate">Choisis le passage le plus représentatif (souvent le refrain).</div>
+       </div>`
+    : m.stems
     ? `<div class="chips"><button class="btn small" id="pmAudBtn_${m.id}">📂 Choisir un fichier audio (MP3, WAV…)</button></div>
        <input type="file" id="pmAudInput_${m.id}" accept="audio/*" style="display:none;">
        <div class="estimate" id="pmAudNom_${m.id}">Ou touche « 🎚️ Extraire les stems » sous une chanson créée ici.</div>
@@ -7083,19 +7104,19 @@ function pmCarte(m) {
        <div class="estimate" id="pmPhotoNom_${m.id}"></div>`
     : "";
   const texte = m.stems ? "" : m.chanson
-    ? `<div class="estimate" style="border-left:3px solid ${m.pro ? "#7c3aed" : "#fbbf24"}; padding:6px 10px; margin-bottom:6px;">${m.pro ? "⭐ <b>Qualité studio (ElevenLabs)</b> — le même moteur que les apps professionnelles. 1 version, 2 minutes maximum." : "🎛️"} Choisis ton <b>genre</b>, ta <b>voix</b>, la <b>langue</b> et l'<b>ambiance</b> : notre Producteur IA écrit une consigne de studio détaillée pour un rendu pro.</div>
+    ? `<div class="estimate" style="border-left:3px solid ${m.pro ? "#7c3aed" : "#fbbf24"}; padding:6px 10px; margin-bottom:6px;">${m.demo ? "🎙️ <b>Ta démo, produite comme en studio.</b>" : m.pro ? "⭐ <b>Qualité studio</b> — notre moteur haut de gamme. 1 version : 2 min, 3 min ou 3 min 50." : "🎛️"} Choisis ton <b>genre</b>, ta <b>voix</b>, la <b>langue</b> et l'<b>ambiance</b> : notre Producteur IA écrit une consigne de studio détaillée pour un rendu pro.</div>
        <div class="label">Genre</div><div class="chips" id="pmChGenre_${m.id}"></div>
        <div class="label">Voix</div><div class="chips" id="pmChVoix_${m.id}"></div>
        <div class="label">Langue du chant</div><div class="chips" id="pmChLangue_${m.id}"></div>
        <div class="label">Ambiance</div><div class="chips" id="pmChAmb_${m.id}"></div>
        <div class="label">Tes précisions (optionnel, en français)</div>
        <textarea id="pmStyle_${m.id}" placeholder="Ex : chanson pour mon mariage, refrain très accrocheur, guitare douce, un peu de saxophone" style="width:100%; min-height:60px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>
-       <div class="label">Paroles (optionnel — laisse vide pour que l'IA les écrive${m.pro ? "" : ""})</div>
+       <div class="label">${m.demo ? "Paroles (optionnel — en Reprise, elles sont reprises de ta démo si tu laisses vide)" : "Paroles (optionnel — laisse vide pour que l'IA les écrive)"}</div>
        <textarea id="pmParoles_${m.id}" placeholder="[Verse] ..." style="width:100%; min-height:80px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>`
     : `<div class="label">${m.id === "aleph" ? "Ce que tu veux changer" : "Décris ta scène"}</div>
        <textarea id="pmPrompt_${m.id}" placeholder="${m.id === "aleph" ? "Ex : enlève le logo en bas à droite, garde tout le reste identique" : "Ex : je chante face caméra sur une terrasse au coucher du soleil"}" style="width:100%; min-height:70px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>`;
   const avertRunway = m.fournisseur === "runway"
-    ? `<div class="estimate" style="color:var(--dim); margin-top:4px;">⚠️ Comme sur l'app Runway, un refus du moteur pendant la création n'est pas remboursé.</div>`
+    ? `<div class="estimate" style="color:var(--dim); margin-top:4px;">⚠️ Un refus du moteur pendant la création n'est pas remboursé.</div>`
     : "";
   return `<div class="hidden pmPan" id="pmPan_${m.id}" style="border:1px solid var(--line); border-top:4px solid ${PM_COULEURS[m.id] || "#7c3aed"}; border-radius:14px; padding:12px 14px; margin-top:12px;">
     <button class="chip pmRetour" style="margin-bottom:10px;">← Tous les moteurs</button>
@@ -7121,7 +7142,7 @@ function pmCarte(m) {
 }
 
 function pmTuile(m) {
-  const vals = m.id === "aleph" ? Object.values(PM_ALEPH_PRIX) : Object.values(m.prix);
+  const vals = m.id === "aleph" ? Object.values(PM_ALEPH_PRIX) : m.demo ? [999, 1999, 3999] : Object.values(m.prix);
   const min = Math.min(...vals);
   const [ico, ...reste] = m.nom.split(" ");
   return `<div class="pmTuile" data-pmouvre="${m.id}" style="--pmc:${PM_COULEURS[m.id] || "#7c3aed"};">
@@ -7140,6 +7161,36 @@ function pmOuvrir(id) {
 function pmFermer() {
   document.querySelectorAll(".pmPan").forEach(p => p.classList.add("hidden"));
   document.getElementById("pmTuiles").classList.remove("hidden");
+}
+// v41.125 : plan de composition au format Music v2 / v2.5 (« chunks »).
+// Chaque morceau porte son texte ([Section] + paroles), sa durée et ses styles.
+function pmPlanV2(style, paroles, cibleMs, langueTxt) {
+  const phrases = style.split(/[.;]\s+|,\s+(?=[A-Z])/).map(x => x.trim()).filter(x => x.length > 2).map(x => x.slice(0, 180));
+  const avoidM = style.match(/Avoid:?\s*(.+)$/i);
+  const neg = (avoidM ? avoidM[1].split(/,\s*/).map(x => x.replace(/\.$/, "").trim()).filter(Boolean) : [])
+    .concat(["low quality", "muffled vocals", "off-key singing"]).slice(0, 12);
+  const pos = phrases.filter(x => !/^Avoid/i.test(x)).slice(0, 12);
+  const GAB = [["Intro", 8000, ["instrumental intro"]], ["Verse 1", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]],
+               ["Verse 2", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]], ["Bridge", 12000, ["bridge", "contrast"]],
+               ["Chorus", 16000, ["final chorus", "biggest energy"]], ["Outro", 8000, ["instrumental outro", "gentle ending"]]];
+  const base = GAB.reduce((n, g) => n + g[1], 0);
+  const blocs = String(paroles || "").split(/\n\s*\n/).map(b => b.replace(/^\[[^\]]+\]\s*/, "").trim()).filter(Boolean);
+  const refrain = blocs.find(b => blocs.indexOf(b) !== blocs.lastIndexOf(b)) || blocs[1] || blocs[0] || "";
+  const couplets = blocs.filter(b => b !== refrain);
+  let iv = 0;
+  const lignes = (t) => String(t || "").split("\n").map(l => l.trim()).filter(Boolean).slice(0, 8).join("\n");
+  const chante = langueTxt ? "{sung vocals, " + langueTxt + "}" : "{sung vocals}";
+  return GAB.map(([nom, dur, loc], i) => {
+    let txt = "";
+    if (nom === "Intro" || nom === "Outro") txt = "{instrumental}";
+    else if (!blocs.length) txt = chante;
+    else if (nom === "Chorus") txt = lignes(refrain);
+    else { txt = lignes(couplets[iv] || couplets[couplets.length - 1] || refrain); iv++; }
+    const ch = { text: "[" + nom + "]\n" + txt, duration_ms: Math.round(dur * cibleMs / base),
+                 positive_styles: i === 0 ? pos.concat(loc) : loc.concat(pos.slice(0, 3)), negative_styles: neg };
+    if (i > 0) ch.context_adherence = "high";
+    return ch;
+  });
 }
 // Envoie une chanson (lien ou fichier) vers le carreau Stems, et l'ouvre.
 function pmVersStems(source, nom) {
@@ -7166,6 +7217,7 @@ function pmMaj(id) {
   if (!getCode()) manque = "Entre d'abord ton code StarClip en haut de la page";
   else if (m.video && !s.video) manque = "Choisis d'abord la vidéo à modifier";
   else if (m.stems && !s.audio && !s.audioUrl) manque = "Choisis d'abord ta chanson";
+  else if (m.demo && !s.audio) manque = "Choisis d'abord ta démo";
   else if (m.photo && !m.photoFacultative && !s.photo) manque = "Choisis d'abord une photo";
   else if (m.chanson && !pmChChoix[id].genre && (document.getElementById("pmStyle_" + id).value.trim().length < 10)) manque = "Choisis un genre (ou décris ton style)";
   else if (!m.chanson && !m.video && !m.stems && (document.getElementById("pmPrompt_" + id).value.trim().length < 5)) manque = "Décris ta scène";
@@ -7342,6 +7394,75 @@ async function pmLancer(id) {
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
       info.innerHTML = `<span style="color:var(--ok)">✓ Mini-clip prêt !</span>`;
 
+    } else if (id === "demo") {
+      // v41.125 : 🎙️ AMÉLIORER MA DÉMO — Reprise (garde mélodie + paroles)
+      // ou Référence (nouvelle chanson dans le style d'un extrait de 30 s).
+      if (!s.audio) throw new Error("Choisis d'abord ta démo.");
+      const precis = document.getElementById("pmStyle_demo").value.trim();
+      const paroles = chpStructurer(document.getElementById("pmParoles_demo").value.trim());
+      info.textContent = "Envoi de ta démo…";
+      const url = await hebergerFichier(s.audio, s.audio.name || "demo.mp3");
+      info.textContent = "🎛️ Le Producteur IA prépare le style…";
+      const NOMS_LANG = { fr: "in French", en: "in English", mix: "in French and English", pidgin: "in Cameroonian Pidgin", duala: "in Duala and French" };
+      if (s.mode !== "reference") {
+        const style = await chpProducteur(pmChChoix.demo, precis, 300);
+        const payload = { prompt: style, audio_url: url };
+        if (paroles) payload.lyrics = paroles.slice(0, 1000);
+        info.textContent = "🎙️ Production de ta démo (2 versions)…";
+        const rep = await pmSubmit("demoReprise", 0, null, payload);
+        const jobs = rep.jobs || [];
+        if (!jobs.length) throw new Error("La reprise n'a pas pu être lancée.");
+        const urls = [];
+        for (let idx = 0; idx < jobs.length; idx++) {
+          const job = jobs[idx];
+          const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/minimax-music/requests/${job.request_id}/status`;
+          const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/minimax-music/requests/${job.request_id}`;
+          info.textContent = `🎙️ Production de la version ${idx + 1}/${jobs.length}… (1 à 3 min)`;
+          for (let k = 0; k < 100; k++) {
+            await new Promise(r => setTimeout(r, 4000));
+            const sj = await apiPoll(statusUrl).catch(() => ({}));
+            if (sj.status === "COMPLETED") break;
+            if (sj.status === "FAILED" || sj.status === "ERROR") break;
+          }
+          const data = await apiPoll(responseUrl).catch(() => ({}));
+          const u = data.audio?.url || data.response?.audio?.url;
+          if (u) urls.push(u);
+        }
+        if (!urls.length) throw new Error("La version produite est introuvable. Essaie avec une démo où la voix s'entend bien.");
+        result.innerHTML = urls.map((u, k) => `<div style="margin-top:10px;"><b>Version ${k + 1}</b>
+          <audio controls style="width:100%; margin-top:4px;" src="${u}"></audio>
+          <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>
+          <button class="chip" data-versstems="${k}" style="margin-top:6px;">🎚️ Extraire les stems</button></div>`).join("");
+        result.querySelectorAll("[data-versstems]").forEach(b => b.onclick = () => pmVersStems(urls[+b.dataset.versstems], "Version " + (+b.dataset.versstems + 1)));
+        info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`;
+      } else {
+        const style = await chpProducteur(pmChChoix.demo, precis, 1800);
+        const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[s.duree] || 115000;
+        const chunks = pmPlanV2(style, paroles, cibleMs, NOMS_LANG[pmChChoix.demo.langue] || "");
+        const debut = Math.max(0, parseInt(document.getElementById("pmDemoDebut").value) || 0);
+        info.textContent = "✨ Création dans le style de ta démo… (2 à 4 min, ne ferme pas la page)";
+        const rep = await pmSubmit("demoReference", s.duree, null, { audio_url: url, ref_start_ms: debut * 1000, chunks });
+        const statusUrl = rep.status_url || `https://queue.fal.run/elevenlabs/music/requests/${rep.request_id}/status`;
+        const responseUrl = rep.response_url || `https://queue.fal.run/elevenlabs/music/requests/${rep.request_id}`;
+        let fini = false;
+        for (let k = 0; k < 120; k++) {
+          await new Promise(r => setTimeout(r, 4000));
+          const sj = await apiPoll(statusUrl).catch(() => ({}));
+          if (sj.status === "COMPLETED") { fini = true; break; }
+          if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le moteur a refusé la création (le contrôle des droits d'auteur refuse les morceaux déjà publiés par d'autres).");
+        }
+        if (!fini) throw new Error("Le moteur met plus de temps que prévu. Réessaie plus tard.");
+        const data = await apiPoll(responseUrl).catch(() => ({}));
+        const u = data.audio?.url || data.response?.audio?.url;
+        if (!u) throw new Error("Chanson introuvable dans la réponse.");
+        result.innerHTML = `<div style="margin-top:10px;"><b>✨ Ta nouvelle chanson</b>
+          <audio controls style="width:100%; margin-top:4px;" src="${u}"></audio>
+          <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>
+          <button class="chip" id="pmDemoVersStems" style="margin-top:6px;">🎚️ Extraire les stems</button></div>`;
+        document.getElementById("pmDemoVersStems").onclick = () => pmVersStems(u, "Ta nouvelle chanson");
+        info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`;
+      }
+
     } else if (id === "stems") {
       // v41.123 : 🎚️ séparation des pistes (Demucs). La chanson est d'abord
       // hébergée si elle vient d'un fichier (ou d'une Chanson Pro).
@@ -7400,38 +7521,11 @@ async function pmLancer(id) {
         // v41.123 : ElevenLabs en DIRECT via /premium/musique (0,15 $/min).
         // La consigne est découpée en petites phrases de style (le format
         // « composition plan » d'ElevenLabs attend des listes courtes).
-        const phrases = style.split(/[.;]\s+|,\s+(?=[A-Z])/).map(x => x.trim()).filter(x => x.length > 2).slice(0, 12).map(x => x.slice(0, 180));
-        const avoidM = style.match(/Avoid:?\s*(.+)$/i);
-        const neg = (avoidM ? avoidM[1].split(/,\s*/).map(x => x.replace(/\.$/, "").trim()).filter(Boolean) : [])
-          .concat(["low quality", "muffled vocals", "off-key singing"]).slice(0, 10);
-        const pos = phrases.filter(x => !/^Avoid/i.test(x));
-        let payload;
-        if (paroles) {
-          const GABARIT = [["Intro", 8000, ["instrumental intro"]], ["Verse", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]],
-                           ["Verse", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]], ["Bridge", 12000, ["bridge", "contrast"]],
-                           ["Chorus", 16000, ["final chorus", "biggest energy"]], ["Outro", 8000, ["instrumental outro", "gentle ending"]]];
-          // v41.123 : durée visée selon le palier choisi (2 min, 3 min, 3 min 50).
-          const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[pmSel.chansonPro.duree] || 115000;
-          const baseMs = GABARIT.reduce((n, g) => n + g[1], 0);
-          GABARIT.forEach(g => { g[1] = Math.round(g[1] * cibleMs / baseMs); });
-          const blocs = paroles.split(/\n\s*\n/).map(b => b.replace(/^\[[^\]]+\]\s*/, "").trim()).filter(Boolean);
-          const refrain = blocs.find((b, k) => blocs.indexOf(b) !== blocs.lastIndexOf(b)) || blocs[1] || blocs[0] || "";
-          const couplets = blocs.filter(b => b !== refrain);
-          let iv = 0;
-          const lignes = (t) => String(t || "").split("\n").map(l => l.trim()).filter(Boolean).slice(0, 6);
-          payload = { composition_plan: {
-            positive_global_styles: pos.length ? pos : [style.slice(0, 180)],
-            negative_global_styles: neg,
-            sections: GABARIT.map(([nom, dur, loc]) => {
-              let texte = [];
-              if (nom === "Chorus") texte = lignes(refrain);
-              else if (nom === "Verse" || nom === "Bridge") { texte = lignes(couplets[iv] || couplets[couplets.length - 1] || refrain); iv++; }
-              return { section_name: nom, positive_local_styles: loc, negative_local_styles: [], duration_ms: dur, lines: texte };
-            }),
-          } };
-        } else {
-          payload = { prompt: style, music_length_ms: { 2: 115000, 3: 175000, 4: 228000 }[pmSel.chansonPro.duree] || 115000 };
-        }
+        // v41.125 : Music v2.5 — plan « chunks » (voir pmPlanV2).
+        const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[pmSel.chansonPro.duree] || 115000;
+        const payload = paroles
+          ? { composition_plan: { chunks: pmPlanV2(style, paroles, cibleMs) } }
+          : { prompt: style, music_length_ms: cibleMs };
         info.textContent = "⭐ Composition en cours… (1 à 3 min, ne ferme pas la page)";
         const rep = await fetch(WORKER_URL + "/premium/musique", {
           method: "POST", headers: { "Content-Type": "application/json" },
@@ -7593,6 +7687,7 @@ async function pmLancer(id) {
   const box = document.getElementById("pmListe");
   if (!box) return;
   pmSel.stems.six = false; pmSel.stems.formats = ["mp3"]; pmSel.stems.audio = null; pmSel.stems.audioUrl = null;
+  pmSel.demo.mode = "reprise"; pmSel.demo.audio = null;
   box.innerHTML = `<div class="pmTuiles" id="pmTuiles">` + PM_MOTEURS.map(pmTuile).join("") + `</div>` + PM_MOTEURS.map(pmCarte).join("");
   box.querySelectorAll("[data-pmouvre]").forEach(t => t.onclick = () => pmOuvrir(t.dataset.pmouvre));
   box.querySelectorAll(".pmRetour").forEach(b => b.onclick = pmFermer);
@@ -7626,6 +7721,30 @@ async function pmLancer(id) {
       chpPuces(document.getElementById("pmChAmb_" + m.id), CHP_AMBIANCES, pmChChoix[m.id], "ambiance", maj);
       document.getElementById("pmStyle_" + m.id).addEventListener("input", () => pmMaj(m.id));
       document.getElementById("pmParoles_" + m.id).addEventListener("input", () => pmMaj(m.id));
+    }
+    if (m.demo) {
+      const AIDES = {
+        reprise: "🎙️ <b>Reprise</b> : on garde <b>ta mélodie et tes paroles</b> et on en fait une version produite, dans le style choisi. 2 versions. Démo de 6 s à 6 min, avec la voix bien audible.",
+        reference: "✨ <b>Référence</b> : une <b>nouvelle chanson</b> qui reprend le son, les instruments et l'ambiance d'un extrait de 30 s de ta démo. Écris tes paroles ci-dessous (sinon le chant est improvisé). Uniquement ta propre musique : les morceaux déjà publiés par d'autres sont refusés.",
+      };
+      const majMode = () => {
+        document.querySelectorAll("#pmDemoMode .chip").forEach(x => x.classList.toggle("on", x.dataset.mode === pmSel.demo.mode));
+        document.getElementById("pmDemoAide").innerHTML = AIDES[pmSel.demo.mode];
+        document.getElementById("pmDemoRef").style.display = pmSel.demo.mode === "reference" ? "" : "none";
+        const dz = document.getElementById("pmDur_demo"); if (dz) dz.style.display = pmSel.demo.mode === "reference" ? "" : "none";
+        pmMaj("demo");
+      };
+      document.querySelectorAll("#pmDemoMode .chip").forEach(c => c.onclick = () => { pmSel.demo.mode = c.dataset.mode; majMode(); });
+      const b = document.getElementById("pmDemoBtn"), inp = document.getElementById("pmDemoInput");
+      b.onclick = () => inp.click();
+      inp.onchange = (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        if (f.size > 50 * 1024 * 1024) { document.getElementById("pmDemoNom").textContent = "⚠️ Démo trop lourde (50 Mo maximum)."; return; }
+        pmSel.demo.audio = f;
+        document.getElementById("pmDemoNom").textContent = "✓ " + f.name;
+        e.target.value = ""; pmMaj("demo");
+      };
+      majMode();
     }
     if (m.stems) {
       const b = document.getElementById("pmAudBtn_" + m.id), inp = document.getElementById("pmAudInput_" + m.id);
