@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.123 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.124 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1279,6 +1279,18 @@
         <!-- v41.123 : 🎟️ GESTION DES CODES — créer des codes STAR-XXXX (avec ou
              sans solde Premium) et recharger le Premium d'un code existant.
              Réservé à l'admin, comme les autres cartes de cet écran. -->
+        <div class="card admCarte" id="admCarteStems" style="border-color:#14b8a6;">
+          <div class="admCarteTete">
+          <div class="admCarteVignette"><span class="puce">🎚️</span></div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#14b8a6;">STEMS</h2>
+              <div class="admCarteSous">GRATUIT POUR LE STUDIO</div>
+            </div>
+          </div>
+          <p class="sub" style="margin:10px 0 0;">« Je sépare une chanson en pistes : voix, batterie, basse, guitare, piano, autres. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">4 ou 6 pistes · MP3, WAV ou les deux · aucun solde débité.</p>
+          <div class="admCartePied">Demucs · environ 1 à 3 min</div>
+        </div>
         <div class="card admCarte" id="admCarteCodes" style="border-color:#fbbf24;">
           <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🎟️</span></div>
@@ -1294,6 +1306,38 @@
       </div>
     </div>
 
+
+    <!-- ─────────── PAGE ADMIN · 🎚️ STEMS GRATUITS (v41.124) ─────────── -->
+    <div id="admPageStems" class="hidden">
+      <h2>🎚️ Stems — gratuit pour le studio</h2>
+      <p class="sub">Sépare n'importe quelle chanson en pistes. Rien n'est débité d'un solde client.</p>
+      <div class="card">
+        <div class="step">① LA CHANSON</div>
+        <button class="chip" id="asFichierBtn">📂 Choisir un fichier audio (MP3, WAV, FLAC…)</button>
+        <input type="file" id="asFichierInput" accept="audio/*" style="display:none;">
+        <div class="hint" id="asNom">Ou touche « 🎚️ Extraire les stems » sous une chanson créée dans « Créer une chanson ».</div>
+      </div>
+      <div class="card">
+        <div class="step">② LES RÉGLAGES</div>
+        <div class="label">Nombre de pistes</div>
+        <div class="chips" id="asPistes">
+          <button class="chip on" data-six="0">4 pistes · voix, batterie, basse, autres</button>
+          <button class="chip" data-six="1">6 pistes · + guitare, piano</button>
+        </div>
+        <div class="label">Format</div>
+        <div class="chips" id="asFormat">
+          <button class="chip on" data-fmt="mp3">MP3</button>
+          <button class="chip" data-fmt="wav">WAV (sans perte)</button>
+          <button class="chip" data-fmt="mp3,wav">MP3 + WAV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="step">③ LANCER</div>
+        <button class="master" id="asGo" disabled>Choisis d'abord ta chanson</button>
+        <div class="estimate" id="asInfo" style="margin-top:8px;"></div>
+        <div id="asResult"></div>
+      </div>
+    </div>
 
     <!-- ─────────── PAGE ADMIN · 🎟️ GESTION DES CODES (v41.123) ─────────── -->
     <div id="admPageCodes" class="hidden">
@@ -2127,7 +2171,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.123</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.124</span>
 
   </footer>
 </div>
@@ -8730,6 +8774,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
   document.getElementById("admCarteChanson").onclick = () => admVue("chanson");
   document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.123
+  document.getElementById("admCarteStems").onclick = () => admVue("stems");   // stems studio
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -8759,6 +8804,8 @@ function admVue(quoi) {
   if (pch) pch.classList.toggle("hidden", quoi !== "chanson");
   const pco = document.getElementById("admPageCodes");   // v41.123
   if (pco) pco.classList.toggle("hidden", quoi !== "codes");
+  const pst = document.getElementById("admPageStems");   // stems studio
+  if (pst) pst.classList.toggle("hidden", quoi !== "stems");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
   document.getElementById("adminZone").scrollTop = 0;
@@ -10777,7 +10824,9 @@ function chRefresh() {
         + '<div class="chips" style="margin-top:8px;">'
         + '<a class="chip" href="' + url + '" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger le ' + chFormat.toUpperCase() + '</a>'
         + '</div>'
-        + '<div class="hint">Enregistre le fichier, puis ouvre-le dans AutoMixPro pour extraire les stems.</div>';
+        + '<button class="chip" id="chVersStems" style="margin-top:8px;">🎚️ Extraire les stems (gratuit)</button>'
+        + '<div class="hint">Ou enregistre le fichier et ouvre-le dans AutoMixPro.</div>';
+      document.getElementById("chVersStems").onclick = () => admStemsDepuis(url, "Ta chanson");
     } catch (e) {
       if (tic) { clearInterval(tic); tic = null; }
       rwRondEchec("ch", e.message);
@@ -10791,6 +10840,91 @@ function chRefresh() {
   chRefresh();
 })();
 
+
+// ═══════════ v41.124 : 🎚️ STEMS GRATUITS DANS L'ESPACE STUDIO ═══════════
+// Même moteur que le carreau Premium (Demucs), lancé par la route admin
+// /falseed/submit (PIN) : aucun solde client débité.
+const asSt = { audio: null, url: null, six: false, formats: ["mp3"] };
+function asMaj() {
+  const b = document.getElementById("asGo"); if (!b) return;
+  const pret = !!(asSt.audio || asSt.url);
+  b.disabled = !pret;
+  b.textContent = pret ? "🎚️ Séparer les pistes — gratuit" : "Choisis d'abord ta chanson";
+}
+function admStemsDepuis(url, nom) {
+  asSt.url = url; asSt.audio = null;
+  document.getElementById("asNom").textContent = "✓ " + (nom || "Ta chanson") + " — prête à être séparée";
+  admVue("stems"); asMaj();
+}
+(function asInit() {
+  const btn = document.getElementById("asFichierBtn"); if (!btn) return;
+  const inp = document.getElementById("asFichierInput");
+  btn.onclick = () => inp.click();
+  inp.onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    asSt.audio = f; asSt.url = null;
+    document.getElementById("asNom").textContent = "✓ " + f.name;
+    e.target.value = ""; asMaj();
+  };
+  document.querySelectorAll("#asPistes .chip").forEach(c => c.onclick = () => {
+    asSt.six = c.dataset.six === "1";
+    document.querySelectorAll("#asPistes .chip").forEach(x => x.classList.toggle("on", x === c));
+  });
+  document.querySelectorAll("#asFormat .chip").forEach(c => c.onclick = () => {
+    asSt.formats = c.dataset.fmt.split(",");
+    document.querySelectorAll("#asFormat .chip").forEach(x => x.classList.toggle("on", x === c));
+  });
+  document.getElementById("asGo").onclick = async () => {
+    const go = document.getElementById("asGo"), info = document.getElementById("asInfo"), result = document.getElementById("asResult");
+    go.disabled = true; result.innerHTML = "";
+    try {
+      let url = asSt.url;
+      if (!url) {
+        info.textContent = "Envoi de la chanson…";
+        if (typeof getCode === "function" && getCode()) {
+          url = await hebergerFichier(asSt.audio, asSt.audio.name || "chanson.mp3");
+        } else if (asSt.audio.size <= 15 * 1024 * 1024) {
+          url = await pmDataUri(asSt.audio);   // petit fichier : envoyé directement
+        } else {
+          throw new Error("Pour un gros fichier, entre d'abord ton code StarClip en haut de la page (il sert à l'envoi).");
+        }
+      }
+      const NOMS = { vocals: "🎤 Voix", drums: "🥁 Batterie", bass: "🎸 Basse", guitar: "🎸 Guitare", piano: "🎹 Piano", other: "🎹 Autres instruments" };
+      let html = "";
+      for (let k = 0; k < asSt.formats.length; k++) {
+        const fmt = asSt.formats[k];
+        info.textContent = "🎚️ Séparation en " + fmt.toUpperCase() + "… (" + (k + 1) + "/" + asSt.formats.length + ", 1 à 3 min)";
+        const job = await fsSubmit("fal-ai/demucs", { audio_url: url, model: asSt.six ? "htdemucs_6s" : "htdemucs_ft", output_format: fmt });
+        const st = job.status_url || ("https://queue.fal.run/fal-ai/demucs/requests/" + job.request_id + "/status");
+        const rp = job.response_url || ("https://queue.fal.run/fal-ai/demucs/requests/" + job.request_id);
+        let fini = false;
+        for (let i = 0; i < 120; i++) {
+          await new Promise(r => setTimeout(r, 4000));
+          const sj = await fsPoll(st).catch(() => ({}));
+          if (sj.status === "COMPLETED") { fini = true; break; }
+          if (sj.status === "FAILED" || sj.status === "ERROR") break;
+        }
+        if (!fini) continue;
+        const data = await fsPoll(rp).catch(() => ({}));
+        const src = data.response || data;
+        let bloc = "";
+        Object.keys(NOMS).forEach(cle => {
+          const f = src[cle];
+          if (f && f.url) bloc += '<div style="margin-top:8px;"><b>' + NOMS[cle] + '</b>'
+            + '<audio controls preload="none" style="width:100%; margin-top:2px;" src="' + f.url + '"></audio>'
+            + '<a class="chip" href="' + f.url + '" download target="_blank" rel="noopener">⬇️ ' + fmt.toUpperCase() + '</a></div>';
+        });
+        if (bloc) html += '<div class="label" style="margin-top:12px;">Pistes en ' + fmt.toUpperCase() + '</div>' + bloc;
+      }
+      if (!html) throw new Error("Les pistes n'ont pas pu être récupérées.");
+      result.innerHTML = html + '<div class="hint" style="margin-top:8px;">Télécharge tes pistes maintenant : les liens expirent au bout de quelques jours.</div>';
+      info.innerHTML = '<span style="color:var(--ok)">✓ Pistes prêtes !</span>';
+    } catch (e) {
+      info.innerHTML = '<span class="err">✗ ' + e.message + '</span>';
+    } finally { asMaj(); }
+  };
+  asMaj();
+})();
 
 // ═══ v41.88 · FORMAT, RÉSOLUTION ET GÉNÉRATION PAR LOTS ═══
 // Papy : « plusieurs plans de 15 secondes qui découpent toute la chanson,
