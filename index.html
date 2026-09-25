@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.117 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.118 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -206,7 +206,7 @@
       letter-spacing:.01em; margin-top:1px; }
     #tabbar .qnav.active small { opacity:.75; }
     #tabbar .qnav.active { background:var(--gold); color:#1a1726; border-color:var(--gold); }
-    /* v41.117 : 👑 Admin Premium 5.0 — onglet en couleur, bien visible (offre pro) */
+    /* v41.118 : 👑 Admin Premium 5.0 — onglet en couleur, bien visible (offre pro) */
     #tabbar .qnav.qnav-premium { background:linear-gradient(135deg,#7c3aed 0%,#c026d3 50%,#f59e0b 100%); color:#fff; border:1.5px solid #fbbf24; box-shadow:0 0 14px rgba(192,38,211,.55); animation:pmBrille 2.6s ease-in-out infinite; }
     #tabbar .qnav.qnav-premium small { opacity:.95; color:#fff7d6; }
     #tabbar .qnav.qnav-premium:hover { color:#fff; border-color:#fff; filter:brightness(1.1); }
@@ -1041,7 +1041,7 @@
   <!-- v41.59 : ONGLET CLIENT « IDEES » - prompts d'exemple a copier-adapter.
        Simple lecture/copie : n'ouvre AUCUN acces a Multi-Shot Video, qui
        reste reserve a l'espace admin (credits Runway de Papy). -->
-  <!-- v41.117 : 👑 ADMIN PREMIUM 5.0 — les moteurs Runway/fal ouverts aux
+  <!-- v41.118 : 👑 ADMIN PREMIUM 5.0 — les moteurs Runway/fal ouverts aux
        clients, payés sur un solde Premium en FCFA (même code STAR-XXXX que
        le reste de l'app). Le prix, la durée et la résolution sont toujours
        imposés par le Worker : ce qui s'affiche ici n'est qu'un aperçu. -->
@@ -1077,7 +1077,7 @@
     </div>
   </section>
 
-  <!-- v41.117 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
+  <!-- v41.118 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
        Le client choisit sa langue (français OU anglais), puis « Utiliser » ouvre
        le bon onglet, remplit la bonne case et l'amène dessus. -->
   <section class="card" id="sec-prompts" style="border-color:var(--gold);">
@@ -1259,7 +1259,7 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Mode auto (5 plans automatiques) ou mode personnalisé (3 à 5 plans écrits par toi). Photo de référence optionnelle.</p>
           <div class="admCartePied">5, 10 ou 15 s · 6 formats · Studio</div>
         </div>
-        <!-- v41.117 : 🎟️ GESTION DES CODES — créer des codes STAR-XXXX (avec ou
+        <!-- v41.118 : 🎟️ GESTION DES CODES — créer des codes STAR-XXXX (avec ou
              sans solde Premium) et recharger le Premium d'un code existant.
              Réservé à l'admin, comme les autres cartes de cet écran. -->
         <div class="card admCarte" id="admCarteCodes" style="border-color:#fbbf24;">
@@ -1278,7 +1278,7 @@
     </div>
 
 
-    <!-- ─────────── PAGE ADMIN · 🎟️ GESTION DES CODES (v41.117) ─────────── -->
+    <!-- ─────────── PAGE ADMIN · 🎟️ GESTION DES CODES (v41.118) ─────────── -->
     <div id="admPageCodes" class="hidden">
       <h2>🎟️ Gestion des codes</h2>
       <p class="sub">Réservé à l'admin. Aucun client ne voit cet écran.</p>
@@ -2101,7 +2101,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.117</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.118</span>
 
   </footer>
 </div>
@@ -2357,9 +2357,9 @@ async function checkCode() {
     // v36.8 : afficher aussi le solde de lip-sync Standard, désormais plafonné
     const lipTxt = (typeof d.lipLeft === "number") ? ` · ${d.lipLeft} lip-sync Standard` : "";
     info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}${badge}${imgTxt}${lipTxt}</span>`;
-    if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.117 : solde Admin Premium 5.0
+    if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.118 : solde Admin Premium 5.0
     appliquerPlan();
-    if (d.essai && d.left > 0) essaiPreparer();   // v41.117 : Éco + 5 s pour l'essai
+    if (d.essai && d.left > 0) essaiPreparer();   // v41.118 : Éco + 5 s pour l'essai
   } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
   refresh();
 }
@@ -2367,7 +2367,7 @@ document.getElementById("saveCode").onclick = checkCode;
 codeInput.addEventListener("input", refresh);
 if (codeInput.value) checkCode();
 
-// ═══ v41.117 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
+// ═══ v41.118 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
 // À la toute première visite, sans code enregistré, l'app demande au Worker un
 // code d'essai (1 vidéo Éco de 5 s, 2 images, 1 lip-sync). Le Worker plafonne
 // le total (30 essais) : une fois épuisé, il répond « fini » et l'app se
@@ -4777,7 +4777,7 @@ async function hebergerFichier(source, nom) {
     + "). Ta connexion a coupé pendant l'envoi : rapproche ton téléphone de la fenêtre, garde son écran allumé, et réessaie.");
 }
 
-// v41.117 : ISOLER LA VOIX AVANT LE LIP-SYNC.
+// v41.118 : ISOLER LA VOIX AVANT LE LIP-SYNC.
 // Avec la chanson complète, le moteur fait aussi bouger les lèvres sur les
 // percussions et les cuivres. On envoie donc la VOIX SEULE (Demucs) au lip-sync,
 // puis on remet la chanson complète sur la vidéo finie (ffmpeg merge-audio-video).
@@ -4826,7 +4826,7 @@ async function runLipsync() {
         throw new Error("Hébergement des fichiers impossible (" + upErr.message + "). Vérifie ta connexion (Wi-Fi de préférence) puis réessaie.");
       vSrc = lipVideoSource; aSrc = lipAudioDataUrl; // Standard + petit fichier : envoi direct
     }
-    // v41.117 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
+    // v41.118 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
     const chansonComplete = aSrc;
     let audioLip = aSrc, voixIsolee = false;
     const isoler = document.getElementById("lipIsoler");
@@ -4895,7 +4895,7 @@ async function runLipsync() {
         : (data.error || data.message || JSON.stringify(data).slice(0, 220));
       throw new Error("Le serveur n'a pas produit de vidéo. Sa réponse exacte : « " + brut + " » — envoie ce message à Claude si ça se répète.");
     }
-    // v41.117 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
+    // v41.118 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
     let finalUrl = outUrl, avertMusique = "";
     if (voixIsolee) {
       try {
@@ -6642,7 +6642,7 @@ document.getElementById("rtGo").onclick = async () => {
 rtRefresh();
 
 
-// ═══════════ v41.117 : 📝 ONGLET PROMPTS ═══════════
+// ═══════════ v41.118 : 📝 ONGLET PROMPTS ═══════════
 // Pour chaque volet qui attend un texte : 3 prompts écrits par le studio, en
 // FRANÇAIS et en ANGLAIS. Le client choisit sa langue une fois (mémorisée).
 // « Utiliser » : ouvre l'onglet du volet, remplit la case, la met en évidence.
@@ -6742,7 +6742,7 @@ function prUtiliser(g, it) {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.style.outline = "3px solid var(--gold)";
     setTimeout(() => { el.style.outline = ""; }, 2500);
-    // v41.117 : rappel juste sous la case — le client peut réécrire le texte.
+    // v41.118 : rappel juste sous la case — le client peut réécrire le texte.
     let r = document.getElementById("prRappel");
     if (!r) { r = document.createElement("div"); r.id = "prRappel"; }
     r.className = "estimate";
@@ -6804,8 +6804,8 @@ document.querySelectorAll("#prLangue .chip").forEach(c => c.onclick = () => {
 });
 prAfficher();
 
-// ═══════════ v41.117 : 👑 ADMIN PREMIUM 5.0 (côté client) ═══════════
-// v41.117 : le bouton coloré du haut de page ouvre directement l'onglet Premium.
+// ═══════════ v41.118 : 👑 ADMIN PREMIUM 5.0 (côté client) ═══════════
+// v41.118 : le bouton coloré du haut de page ouvre directement l'onglet Premium.
 (function () {
   const b = document.getElementById("pmBoutonHaut");
   if (!b) return;
@@ -6920,7 +6920,7 @@ async function pmChoisirVideo(id, f) {
   const conclure = (sec) => {
     if (fini) return; fini = true;
     if (sec == null) {
-      // v41.117 : impossible de lire la durée dans ce navigateur — on ne bloque
+      // v41.118 : impossible de lire la durée dans ce navigateur — on ne bloque
       // pas le client pour autant. On facture prudemment 10 s ; le vrai coût
       // réel reste vérifié par le Worker à l'envoi (garde-fou anti-dépassement).
       pmSel[id].duree = 10;
@@ -7114,7 +7114,7 @@ async function pmLancer(id) {
 }
 
 
-// ═══════════ v41.117 : 🎟️ GESTION DES CODES (admin) ═══════════
+// ═══════════ v41.118 : 🎟️ GESTION DES CODES (admin) ═══════════
 // Créer des codes STAR-XXXX (avec ou sans solde Admin Premium 5.0) et
 // recharger le Premium d'un code existant, sans quitter l'app.
 (function acInit() {
@@ -7246,7 +7246,7 @@ async function pmLancer(id) {
 })();
 
 
-// ═══════════ v41.117 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
+// ═══════════ v41.118 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
 // Même moteur que la retouche (nano-banana/edit), mais chaque effet porte son
 // anglais FIXE, relu mot à mot — aucune traduction aléatoire. Seule la
 // « précision » libre (lieu, métier) passe par la traduction ; les TEXTES à écrire
@@ -7313,7 +7313,7 @@ const EF = [
     ["/blackwhite", "Convert to artistic high-contrast black and white photography."],
   ]],
 ];
-// v41.117 : /together se décline — une POSE et un LIEU au choix, chacun avec son
+// v41.118 : /together se décline — une POSE et un LIEU au choix, chacun avec son
 // anglais fixe. La case « Précision » reste libre pour tout le reste.
 const EF_POSES = [
   ["💞 Complices", "They stand close together as an affectionate couple: one has an arm around the other's shoulder, they gently hold hands and smile at each other, both faces clearly visible."],
@@ -7406,7 +7406,7 @@ function efRefresh() {
 }
 document.getElementById("efDetail").addEventListener("input", efRefresh);
 document.getElementById("efTogLieu").addEventListener("input", efRefresh);
-// v41.117 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
+// v41.118 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
 function efPose(n, url, nom) {
   const slot = document.getElementById(n === 1 ? "efSlot1" : "efSlot2");
   if (n === 1) efSource = url; else efSource2 = url;
@@ -8365,7 +8365,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
   document.getElementById("admCarteChanson").onclick = () => admVue("chanson");
-  document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.117
+  document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.118
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -8393,7 +8393,7 @@ function admVue(quoi) {
   if (pmo) pmo.classList.toggle("hidden", quoi !== "montage");
   const pch = document.getElementById("admPageChanson");
   if (pch) pch.classList.toggle("hidden", quoi !== "chanson");
-  const pco = document.getElementById("admPageCodes");   // v41.117
+  const pco = document.getElementById("admPageCodes");   // v41.118
   if (pco) pco.classList.toggle("hidden", quoi !== "codes");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
@@ -9374,9 +9374,29 @@ document.querySelectorAll("#sdModeChips .chip").forEach(c => {
 // Le spec autorise 30 images. Les deux boutons remplissent la MÊME liste :
 // changer de mode ne fait pas perdre les images déjà choisies.
 function sdMajListeImages() {
-  const html = sdRefs.map((x, i) => "🖼️ image " + (i + 1) + " · " + x.name).join("<br>");
+  // v41.118 : bouton ✕ pour retirer une image — manquait ici alors qu'il
+  // existe déjà pour Aleph (alMajRefListe) et le Moteur A (fsMajListe).
+  // Sans lui, une image ajoutée par erreur (ex. Naya) restait bloquée et
+  // faisait échouer toutes les générations suivantes sans recours.
+  const html = sdRefs.map((x, i) =>
+    '<div style="display:flex; align-items:center; gap:8px; margin-top:4px;">'
+    + '<span style="flex:1;">🖼️ image ' + (i + 1) + ' · ' + x.name + '</span>'
+    + '<button class="chip" data-sdrefdel="' + i + '" style="padding:2px 10px; flex-shrink:0;">✕</button>'
+    + '</div>').join("");
   document.getElementById("sdRefListe").innerHTML = html;
   document.getElementById("sdVRefListe").innerHTML = html;
+  [document.getElementById("sdRefListe"), document.getElementById("sdVRefListe")].forEach(z => {
+    z.querySelectorAll("[data-sdrefdel]").forEach(b => {
+      b.onclick = () => {
+        sdRefs.splice(+b.dataset.sdrefdel, 1);
+        // Sans ce reset, recharger LE MÊME fichier ensuite ne déclenche rien :
+        // le navigateur voit une valeur identique et n'émet pas d'événement.
+        const ri = document.getElementById("sdRefInput"); if (ri) ri.value = "";
+        const rv = document.getElementById("sdVRefInput"); if (rv) rv.value = "";
+        sdMajListeImages(); sdRefresh();
+      };
+    });
+  });
 }
 function sdAjouterImage(e) {
   const f = e.target.files[0]; if (!f) return;
