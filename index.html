@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.119 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.120 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -206,7 +206,7 @@
       letter-spacing:.01em; margin-top:1px; }
     #tabbar .qnav.active small { opacity:.75; }
     #tabbar .qnav.active { background:var(--gold); color:#1a1726; border-color:var(--gold); }
-    /* v41.119 : 👑 Admin Premium 5.0 — onglet en couleur, bien visible (offre pro) */
+    /* v41.120 : 👑 Admin Premium 5.0 — onglet en couleur, bien visible (offre pro) */
     #tabbar .qnav.qnav-premium { background:linear-gradient(135deg,#7c3aed 0%,#c026d3 50%,#f59e0b 100%); color:#fff; border:1.5px solid #fbbf24; box-shadow:0 0 14px rgba(192,38,211,.55); animation:pmBrille 2.6s ease-in-out infinite; }
     #tabbar .qnav.qnav-premium small { opacity:.95; color:#fff7d6; }
     #tabbar .qnav.qnav-premium:hover { color:#fff; border-color:#fff; filter:brightness(1.1); }
@@ -1041,7 +1041,7 @@
   <!-- v41.59 : ONGLET CLIENT « IDEES » - prompts d'exemple a copier-adapter.
        Simple lecture/copie : n'ouvre AUCUN acces a Multi-Shot Video, qui
        reste reserve a l'espace admin (credits Runway de Papy). -->
-  <!-- v41.119 : 👑 ADMIN PREMIUM 5.0 — les moteurs Runway/fal ouverts aux
+  <!-- v41.120 : 👑 ADMIN PREMIUM 5.0 — les moteurs Runway/fal ouverts aux
        clients, payés sur un solde Premium en FCFA (même code STAR-XXXX que
        le reste de l'app). Le prix, la durée et la résolution sont toujours
        imposés par le Worker : ce qui s'affiche ici n'est qu'un aperçu. -->
@@ -1077,7 +1077,7 @@
     </div>
   </section>
 
-  <!-- v41.119 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
+  <!-- v41.120 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
        Le client choisit sa langue (français OU anglais), puis « Utiliser » ouvre
        le bon onglet, remplit la bonne case et l'amène dessus. -->
   <section class="card" id="sec-prompts" style="border-color:var(--gold);">
@@ -1259,7 +1259,7 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Mode auto (5 plans automatiques) ou mode personnalisé (3 à 5 plans écrits par toi). Photo de référence optionnelle.</p>
           <div class="admCartePied">5, 10 ou 15 s · 6 formats · Studio</div>
         </div>
-        <!-- v41.119 : 🎟️ GESTION DES CODES — créer des codes STAR-XXXX (avec ou
+        <!-- v41.120 : 🎟️ GESTION DES CODES — créer des codes STAR-XXXX (avec ou
              sans solde Premium) et recharger le Premium d'un code existant.
              Réservé à l'admin, comme les autres cartes de cet écran. -->
         <div class="card admCarte" id="admCarteCodes" style="border-color:#fbbf24;">
@@ -1278,7 +1278,7 @@
     </div>
 
 
-    <!-- ─────────── PAGE ADMIN · 🎟️ GESTION DES CODES (v41.119) ─────────── -->
+    <!-- ─────────── PAGE ADMIN · 🎟️ GESTION DES CODES (v41.120) ─────────── -->
     <div id="admPageCodes" class="hidden">
       <h2>🎟️ Gestion des codes</h2>
       <p class="sub">Réservé à l'admin. Aucun client ne voit cet écran.</p>
@@ -2110,7 +2110,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.119</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.120</span>
 
   </footer>
 </div>
@@ -2366,9 +2366,9 @@ async function checkCode() {
     // v36.8 : afficher aussi le solde de lip-sync Standard, désormais plafonné
     const lipTxt = (typeof d.lipLeft === "number") ? ` · ${d.lipLeft} lip-sync Standard` : "";
     info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}${badge}${imgTxt}${lipTxt}</span>`;
-    if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.119 : solde Admin Premium 5.0
+    if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.120 : solde Admin Premium 5.0
     appliquerPlan();
-    if (d.essai && d.left > 0) essaiPreparer();   // v41.119 : Éco + 5 s pour l'essai
+    if (d.essai && d.left > 0) essaiPreparer();   // v41.120 : Éco + 5 s pour l'essai
   } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
   refresh();
 }
@@ -2376,7 +2376,7 @@ document.getElementById("saveCode").onclick = checkCode;
 codeInput.addEventListener("input", refresh);
 if (codeInput.value) checkCode();
 
-// ═══ v41.119 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
+// ═══ v41.120 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
 // À la toute première visite, sans code enregistré, l'app demande au Worker un
 // code d'essai (1 vidéo Éco de 5 s, 2 images, 1 lip-sync). Le Worker plafonne
 // le total (30 essais) : une fois épuisé, il répond « fini » et l'app se
@@ -4786,7 +4786,7 @@ async function hebergerFichier(source, nom) {
     + "). Ta connexion a coupé pendant l'envoi : rapproche ton téléphone de la fenêtre, garde son écran allumé, et réessaie.");
 }
 
-// v41.119 : ISOLER LA VOIX AVANT LE LIP-SYNC.
+// v41.120 : ISOLER LA VOIX AVANT LE LIP-SYNC.
 // Avec la chanson complète, le moteur fait aussi bouger les lèvres sur les
 // percussions et les cuivres. On envoie donc la VOIX SEULE (Demucs) au lip-sync,
 // puis on remet la chanson complète sur la vidéo finie (ffmpeg merge-audio-video).
@@ -4835,7 +4835,7 @@ async function runLipsync() {
         throw new Error("Hébergement des fichiers impossible (" + upErr.message + "). Vérifie ta connexion (Wi-Fi de préférence) puis réessaie.");
       vSrc = lipVideoSource; aSrc = lipAudioDataUrl; // Standard + petit fichier : envoi direct
     }
-    // v41.119 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
+    // v41.120 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
     const chansonComplete = aSrc;
     let audioLip = aSrc, voixIsolee = false;
     const isoler = document.getElementById("lipIsoler");
@@ -4904,7 +4904,7 @@ async function runLipsync() {
         : (data.error || data.message || JSON.stringify(data).slice(0, 220));
       throw new Error("Le serveur n'a pas produit de vidéo. Sa réponse exacte : « " + brut + " » — envoie ce message à Claude si ça se répète.");
     }
-    // v41.119 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
+    // v41.120 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
     let finalUrl = outUrl, avertMusique = "";
     if (voixIsolee) {
       try {
@@ -6651,7 +6651,7 @@ document.getElementById("rtGo").onclick = async () => {
 rtRefresh();
 
 
-// ═══════════ v41.119 : 📝 ONGLET PROMPTS ═══════════
+// ═══════════ v41.120 : 📝 ONGLET PROMPTS ═══════════
 // Pour chaque volet qui attend un texte : 3 prompts écrits par le studio, en
 // FRANÇAIS et en ANGLAIS. Le client choisit sa langue une fois (mémorisée).
 // « Utiliser » : ouvre l'onglet du volet, remplit la case, la met en évidence.
@@ -6751,7 +6751,7 @@ function prUtiliser(g, it) {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.style.outline = "3px solid var(--gold)";
     setTimeout(() => { el.style.outline = ""; }, 2500);
-    // v41.119 : rappel juste sous la case — le client peut réécrire le texte.
+    // v41.120 : rappel juste sous la case — le client peut réécrire le texte.
     let r = document.getElementById("prRappel");
     if (!r) { r = document.createElement("div"); r.id = "prRappel"; }
     r.className = "estimate";
@@ -6813,7 +6813,7 @@ document.querySelectorAll("#prLangue .chip").forEach(c => c.onclick = () => {
 });
 prAfficher();
 
-// ═══════════ v41.119 : 🎛️ PRODUCTEUR IA — CHANSONS DE NIVEAU PRO ═══════════
+// ═══════════ v41.120 : 🎛️ PRODUCTEUR IA — CHANSONS DE NIVEAU PRO ═══════════
 // Pourquoi : MiniMax Music 2.6 comprend surtout des descriptions DÉTAILLÉES
 // EN ANGLAIS (genre, tempo, batterie, basse, instruments, voix, mixage).
 // « afro pop » écrit seul, en français, lui laisse tout deviner — d'où des
@@ -6939,8 +6939,8 @@ function chpPuces(conteneur, liste, choix, cle, onChange) {
   });
 }
 
-// ═══════════ v41.119 : 👑 ADMIN PREMIUM 5.0 (côté client) ═══════════
-// v41.119 : le bouton coloré du haut de page ouvre directement l'onglet Premium.
+// ═══════════ v41.120 : 👑 ADMIN PREMIUM 5.0 (côté client) ═══════════
+// v41.120 : le bouton coloré du haut de page ouvre directement l'onglet Premium.
 (function () {
   const b = document.getElementById("pmBoutonHaut");
   if (!b) return;
@@ -6970,10 +6970,14 @@ const PM_MOTEURS = [
   { id: "chanson", nom: "🎵 Chanson", fournisseur: "fal",
     desc: "Décris le style, écris (ou laisse écrire) les paroles — 2 versions.",
     durees: [0], prix: { 0: 1499 }, chanson: true },
+  { id: "chansonPro", nom: "⭐ Chanson Pro (ElevenLabs)", fournisseur: "fal",
+    desc: "Qualité studio, niveau Suno. 1 version, jusqu'à 2 minutes.",
+    durees: [0], prix: { 0: 2499 }, chanson: true, pro: true },
 ];
 const PM_ALEPH_PRIX = { 5: 3499, 10: 5499 };
 let pmSel = {};   // { [id]: { duree, photo:File, video:File } }
-const pmChChoix = { genre: null, voix: null, langue: null, ambiance: null };   // v41.119
+const pmChChoix = { chanson: { genre: null, voix: null, langue: null, ambiance: null },
+                     chansonPro: { genre: null, voix: null, langue: null, ambiance: null } };   // v41.120
 PM_MOTEURS.forEach(m => { pmSel[m.id] = { duree: m.durees.length ? m.durees[0] : null }; });
 
 function pmPrix(m) {
@@ -6997,14 +7001,14 @@ function pmCarte(m) {
        <div class="estimate" id="pmPhotoNom_${m.id}"></div>`
     : "";
   const texte = m.chanson
-    ? `<div class="estimate" style="border-left:3px solid #fbbf24; padding:6px 10px; margin-bottom:6px;">🎛️ Choisis ton <b>genre</b>, ta <b>voix</b>, la <b>langue</b> et l'<b>ambiance</b> : notre Producteur IA écrit une consigne de studio détaillée pour un rendu pro.</div>
-       <div class="label">Genre</div><div class="chips" id="pmChGenre"></div>
-       <div class="label">Voix</div><div class="chips" id="pmChVoix"></div>
-       <div class="label">Langue du chant</div><div class="chips" id="pmChLangue"></div>
-       <div class="label">Ambiance</div><div class="chips" id="pmChAmb"></div>
+    ? `<div class="estimate" style="border-left:3px solid ${m.pro ? "#7c3aed" : "#fbbf24"}; padding:6px 10px; margin-bottom:6px;">${m.pro ? "⭐ <b>Qualité studio (ElevenLabs)</b> — le même moteur que les apps professionnelles. 1 version, 2 minutes maximum." : "🎛️"} Choisis ton <b>genre</b>, ta <b>voix</b>, la <b>langue</b> et l'<b>ambiance</b> : notre Producteur IA écrit une consigne de studio détaillée pour un rendu pro.</div>
+       <div class="label">Genre</div><div class="chips" id="pmChGenre_${m.id}"></div>
+       <div class="label">Voix</div><div class="chips" id="pmChVoix_${m.id}"></div>
+       <div class="label">Langue du chant</div><div class="chips" id="pmChLangue_${m.id}"></div>
+       <div class="label">Ambiance</div><div class="chips" id="pmChAmb_${m.id}"></div>
        <div class="label">Tes précisions (optionnel, en français)</div>
        <textarea id="pmStyle_${m.id}" placeholder="Ex : chanson pour mon mariage, refrain très accrocheur, guitare douce, un peu de saxophone" style="width:100%; min-height:60px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>
-       <div class="label">Paroles (optionnel — laisse vide pour que l'IA les écrive)</div>
+       <div class="label">Paroles (optionnel — laisse vide pour que l'IA les écrive${m.pro ? "" : ""})</div>
        <textarea id="pmParoles_${m.id}" placeholder="[Verse] ..." style="width:100%; min-height:80px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>`
     : `<div class="label">${m.id === "aleph" ? "Ce que tu veux changer" : "Décris ta scène"}</div>
        <textarea id="pmPrompt_${m.id}" placeholder="${m.id === "aleph" ? "Ex : enlève le logo en bas à droite, garde tout le reste identique" : "Ex : je chante face caméra sur une terrasse au coucher du soleil"}" style="width:100%; min-height:70px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>`;
@@ -7042,7 +7046,7 @@ function pmMaj(id) {
   if (!getCode()) manque = "Entre d'abord ton code StarClip en haut de la page";
   else if (m.video && !s.video) manque = "Choisis d'abord la vidéo à modifier";
   else if (m.photo && !m.photoFacultative && !s.photo) manque = "Choisis d'abord une photo";
-  else if (m.chanson && !pmChChoix.genre && (document.getElementById("pmStyle_" + id).value.trim().length < 10)) manque = "Choisis un genre (ou décris ton style)";
+  else if (m.chanson && !pmChChoix[id].genre && (document.getElementById("pmStyle_" + id).value.trim().length < 10)) manque = "Choisis un genre (ou décris ton style)";
   else if (!m.chanson && !m.video && (document.getElementById("pmPrompt_" + id).value.trim().length < 5)) manque = "Décris ta scène";
   else if (m.id === "aleph" && !s.duree) manque = "";  // durée déduite de la vidéo, calculée après le choix du fichier
   const prix = pmPrix(m);
@@ -7061,7 +7065,7 @@ async function pmChoisirVideo(id, f) {
   const conclure = (sec) => {
     if (fini) return; fini = true;
     if (sec == null) {
-      // v41.119 : impossible de lire la durée dans ce navigateur — on ne bloque
+      // v41.120 : impossible de lire la durée dans ce navigateur — on ne bloque
       // pas le client pour autant. On facture prudemment 10 s ; le vrai coût
       // réel reste vérifié par le Worker à l'envoi (garde-fou anti-dépassement).
       pmSel[id].duree = 10;
@@ -7217,11 +7221,62 @@ async function pmLancer(id) {
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
       info.innerHTML = `<span style="color:var(--ok)">✓ Mini-clip prêt !</span>`;
 
-    } else if (id === "chanson") {
-      const precis = document.getElementById("pmStyle_chanson").value.trim();
-      const paroles = chpStructurer(document.getElementById("pmParoles_chanson").value.trim());
+    } else if (id === "chanson" || id === "chansonPro") {
+      const precis = document.getElementById("pmStyle_" + id).value.trim();
+      const paroles = chpStructurer(document.getElementById("pmParoles_" + id).value.trim());
       info.textContent = "🎛️ Le Producteur IA prépare ta chanson…";
-      const style = await chpProducteur(pmChChoix, precis, 1800);
+      const style = await chpProducteur(pmChChoix[id], precis, 1800);
+
+      if (id === "chansonPro") {
+        // v41.120 : ⭐ Chanson Pro (ElevenLabs) — 1 seule version, DURÉE
+        // TOUJOURS BORNÉE (≈ 1 min 55, sous le seuil des 2 min facturées) afin
+        // que le coût réel reste connu d'avance, quelle que soit la longueur
+        // des paroles collées par le client (le Worker reborne aussi, par
+        // sécurité). Sans paroles : mode simple, l'IA compose tout elle-même.
+        let payload;
+        if (paroles) {
+          const GABARIT = [["Intro", 8000], ["Verse", 20000], ["Chorus", 16000], ["Verse", 20000], ["Chorus", 16000], ["Bridge", 12000], ["Chorus", 16000], ["Outro", 8000]];
+          const blocs = paroles.split(/\n\s*\n/).map(b => b.replace(/^\[[^\]]+\]\s*/, "").trim()).filter(Boolean);
+          const lignesDe = (i) => (blocs[i] || blocs[blocs.length - 1] || "").split("\n").map(l => l.trim()).filter(Boolean).slice(0, 6);
+          const neg = ["low quality", "muffled vocals", "off-key singing", "amateur recording"];
+          payload = {
+            output_format: "mp3_44100_128",
+            respect_sections_durations: true,
+            composition_plan: {
+              positive_global_styles: [style],
+              negative_global_styles: neg,
+              sections: GABARIT.map(([nom, dur], i) => ({
+                section_name: nom + (i > 1 && nom === "Chorus" ? " " + i : ""),
+                positive_local_styles: [style],
+                negative_local_styles: neg,
+                duration_ms: dur,
+                lines: nom === "Intro" || nom === "Outro" ? [] : lignesDe(i),
+              })),
+            },
+          };
+        } else {
+          payload = { prompt: style, music_length_ms: 115000, force_instrumental: false, output_format: "mp3_44100_128" };
+        }
+        info.textContent = "⭐ Composition en cours… (2 à 4 min)";
+        const rep = await pmSubmit("chansonPro", 0, null, payload);
+        const statusUrl = rep.status_url || `https://queue.fal.run/x/requests/${rep.request_id}/status`;
+        const responseUrl = rep.response_url || `https://queue.fal.run/x/requests/${rep.request_id}`;
+        for (let i = 0; i < 100; i++) {
+          await new Promise(r => setTimeout(r, 4000));
+          const sj = await apiPoll(statusUrl).catch(() => ({}));
+          if (sj.status === "COMPLETED") break;
+          if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le moteur a refusé la création.");
+        }
+        const data = await apiPoll(responseUrl).catch(() => ({}));
+        const url = data.audio?.url || data.response?.audio?.url;
+        if (!url) throw new Error("Chanson introuvable dans la réponse.");
+        result.innerHTML = `<div style="margin-top:10px;"><b>⭐ Ta chanson</b>
+          <audio controls style="width:100%; margin-top:4px;" src="${url}"></audio>
+          <a class="btn small" href="${url}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a></div>`;
+        info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`;
+        return;
+      }
+
       const payload = { prompt: style, lyrics_optimizer: !paroles };
       if (paroles) payload.lyrics = paroles;
       info.textContent = "Envoi au studio (2 versions)…";
@@ -7257,7 +7312,7 @@ async function pmLancer(id) {
 }
 
 
-// ═══════════ v41.119 : 🎟️ GESTION DES CODES (admin) ═══════════
+// ═══════════ v41.120 : 🎟️ GESTION DES CODES (admin) ═══════════
 // Créer des codes STAR-XXXX (avec ou sans solde Admin Premium 5.0) et
 // recharger le Premium d'un code existant, sans quitter l'app.
 (function acInit() {
@@ -7380,10 +7435,10 @@ async function pmLancer(id) {
     }
     if (m.chanson) {
       const maj = () => pmMaj(m.id);
-      chpPuces(document.getElementById("pmChGenre"), CHP_GENRES, pmChChoix, "genre", maj);
-      chpPuces(document.getElementById("pmChVoix"), CHP_VOIX, pmChChoix, "voix", maj);
-      chpPuces(document.getElementById("pmChLangue"), CHP_LANGUES, pmChChoix, "langue", maj);
-      chpPuces(document.getElementById("pmChAmb"), CHP_AMBIANCES, pmChChoix, "ambiance", maj);
+      chpPuces(document.getElementById("pmChGenre_" + m.id), CHP_GENRES, pmChChoix[m.id], "genre", maj);
+      chpPuces(document.getElementById("pmChVoix_" + m.id), CHP_VOIX, pmChChoix[m.id], "voix", maj);
+      chpPuces(document.getElementById("pmChLangue_" + m.id), CHP_LANGUES, pmChChoix[m.id], "langue", maj);
+      chpPuces(document.getElementById("pmChAmb_" + m.id), CHP_AMBIANCES, pmChChoix[m.id], "ambiance", maj);
       document.getElementById("pmStyle_" + m.id).addEventListener("input", () => pmMaj(m.id));
       document.getElementById("pmParoles_" + m.id).addEventListener("input", () => pmMaj(m.id));
     }
@@ -7394,7 +7449,7 @@ async function pmLancer(id) {
 })();
 
 
-// ═══════════ v41.119 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
+// ═══════════ v41.120 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
 // Même moteur que la retouche (nano-banana/edit), mais chaque effet porte son
 // anglais FIXE, relu mot à mot — aucune traduction aléatoire. Seule la
 // « précision » libre (lieu, métier) passe par la traduction ; les TEXTES à écrire
@@ -7461,7 +7516,7 @@ const EF = [
     ["/blackwhite", "Convert to artistic high-contrast black and white photography."],
   ]],
 ];
-// v41.119 : /together se décline — une POSE et un LIEU au choix, chacun avec son
+// v41.120 : /together se décline — une POSE et un LIEU au choix, chacun avec son
 // anglais fixe. La case « Précision » reste libre pour tout le reste.
 const EF_POSES = [
   ["💞 Complices", "They stand close together as an affectionate couple: one has an arm around the other's shoulder, they gently hold hands and smile at each other, both faces clearly visible."],
@@ -7554,7 +7609,7 @@ function efRefresh() {
 }
 document.getElementById("efDetail").addEventListener("input", efRefresh);
 document.getElementById("efTogLieu").addEventListener("input", efRefresh);
-// v41.119 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
+// v41.120 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
 function efPose(n, url, nom) {
   const slot = document.getElementById(n === 1 ? "efSlot1" : "efSlot2");
   if (n === 1) efSource = url; else efSource2 = url;
@@ -8513,7 +8568,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
   document.getElementById("admCarteChanson").onclick = () => admVue("chanson");
-  document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.119
+  document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.120
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -8541,7 +8596,7 @@ function admVue(quoi) {
   if (pmo) pmo.classList.toggle("hidden", quoi !== "montage");
   const pch = document.getElementById("admPageChanson");
   if (pch) pch.classList.toggle("hidden", quoi !== "chanson");
-  const pco = document.getElementById("admPageCodes");   // v41.119
+  const pco = document.getElementById("admPageCodes");   // v41.120
   if (pco) pco.classList.toggle("hidden", quoi !== "codes");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
@@ -9522,7 +9577,7 @@ document.querySelectorAll("#sdModeChips .chip").forEach(c => {
 // Le spec autorise 30 images. Les deux boutons remplissent la MÊME liste :
 // changer de mode ne fait pas perdre les images déjà choisies.
 function sdMajListeImages() {
-  // v41.119 : bouton ✕ pour retirer une image — manquait ici alors qu'il
+  // v41.120 : bouton ✕ pour retirer une image — manquait ici alors qu'il
   // existe déjà pour Aleph (alMajRefListe) et le Moteur A (fsMajListe).
   // Sans lui, une image ajoutée par erreur (ex. Naya) restait bloquée et
   // faisait échouer toutes les générations suivantes sans recours.
@@ -10213,7 +10268,7 @@ const CH_STYLES = [
 ];
 const CH_BALISES = ["[Intro]", "[Verse]", "[Pre Chorus]", "[Chorus]", "[Hook]", "[Bridge]", "[Outro]"];
 
-// v41.119 : choix du Producteur IA pour la page admin.
+// v41.120 : choix du Producteur IA pour la page admin.
 const chpChoixAdmin = { genre: null, voix: null, langue: null, ambiance: null };
 let chpAdminProduit = false;
 async function chpAdminProduire() {
@@ -10363,7 +10418,7 @@ function chRefresh() {
   const style = document.getElementById("chStyle");
   if (!style) return;
 
-  // v41.119 : genre + voix + langue + ambiance → consigne de producteur
+  // v41.120 : genre + voix + langue + ambiance → consigne de producteur
   // détaillée en anglais (voir le module 🎛️ PRODUCTEUR IA).
   const majStyleLocal = () => {
     style.value = chpComposerLocal(chpChoixAdmin, "", chMode === "reprise" ? CH_COVER_STYLE_MAX : CH_STYLE_MAX);
@@ -10510,7 +10565,7 @@ function chRefresh() {
         audioUrl = await hebergerFichier(chDemoFichier, chDemoFichier.name || "demo.mp3");
         chLog("DÉMO HÉBERGÉE", { fichier: chDemoFichier.name, octets: chDemoFichier.size });
       }
-      // v41.119 : style de producteur + paroles structurées, AVANT l'envoi.
+      // v41.120 : style de producteur + paroles structurées, AVANT l'envoi.
       if (!chpAdminProduit) {
         chSetStatus("🎛️ Le Producteur IA prépare le style…", 7);
         try { await chpAdminProduire(); } catch (e) {}
