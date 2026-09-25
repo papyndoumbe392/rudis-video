@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.125 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.127 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1074,8 +1074,17 @@
       <span style="opacity:.85">The studio's professional engines, one at a time, paid from your Premium balance.</span>
     </p>
     <div class="estimate" id="pmSolde" style="border-left:3px solid #7c6fd6; background:var(--up); border-radius:8px; padding:10px 12px;">
-      Entre ton code StarClip en haut de la page pour voir ton solde Premium.
+      Entre ton code StarClip ci-dessous pour voir ton solde Premium.
     </div>
+    <!-- v41.127 : le code se tape AUSSI ici — un client qui arrive directement
+         sur l'onglet Premium n'a pas à retourner sur l'Accueil. C'est le même
+         code partout : il est mémorisé et utilisé dans tous les onglets. -->
+    <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+      <input type="text" id="pmCode" placeholder="Ton code STAR-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false"
+        style="flex:1; min-width:180px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; text-transform:uppercase;">
+      <button class="btn small" id="pmCodeOk">OK</button>
+    </div>
+    <div class="estimate" id="pmCodeInfo" style="margin-top:4px;"></div>
     <div class="estimate" style="margin-top:8px;">
       Pas encore de solde Premium ? Commande un pack sur WhatsApp 👇 (en bas de la page « Commander »).
     </div>
@@ -1296,12 +1305,12 @@
           <div class="admCarteVignette"><span class="puce">🎟️</span></div>
             <div class="admCarteTitres">
   <h2 style="margin:0; color:#fbbf24;">GESTION DES CODES</h2>
-              <div class="admCarteSous">CRÉER · RECHARGER LE PREMIUM</div>
+              <div class="admCarteSous">OUVRE « STARCLIP ADMINISTRATION »</div>
             </div>
           </div>
-          <p class="sub" style="margin:10px 0 0;">« Je crée des codes clients, et je recharge le solde Admin Premium 5.0 d'un code. »</p>
-          <p class="sub" style="margin:8px 0 0; opacity:.75;">Codes Éco/Pro classiques, avec un solde Premium optionnel dès la création.</p>
-          <div class="admCartePied">STAR-XXXX · solde Premium en FCFA</div>
+          <p class="sub" style="margin:10px 0 0;">« Je crée et je recharge les codes de mes clients. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">La même page que ton raccourci StarClip Administrator : créer, recharger le Premium, passer en Pro, voir tous les codes.</p>
+          <div class="admCartePied">admin.html · s'ouvre dans un nouvel onglet</div>
         </div>
       </div>
     </div>
@@ -2171,7 +2180,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.125</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.127</span>
 
   </footer>
 </div>
@@ -7054,7 +7063,7 @@ PM_MOTEURS.forEach(m => { pmSel[m.id] = { duree: m.durees.length ? m.durees[0] :
 
 function pmPrix(m) {
   if (m.id === "aleph") return PM_ALEPH_PRIX[pmSel.aleph.duree] || null;
-  if (m.demo && pmSel.demo.mode !== "reference") return 999;   // v41.125 : reprise
+  if (m.demo && pmSel.demo.mode !== "reference") return 999;   // v41.126 : reprise
   return m.prix[pmSel[m.id].duree];
 }
 function pmFmt(fcfa) { return fcfa ? fcfa.toLocaleString("fr-FR") + " FCFA" : "…"; }
@@ -7134,6 +7143,19 @@ function pmCarte(m) {
       </div>
       <div class="pmDroite">
         <div class="label" style="margin-top:0;">Résultat</div>
+        <div class="rwRond hidden" id="pm_${m.id}Rond">
+          <div style="position:relative; width:110px; height:110px; margin:0 auto;">
+            <svg width="110" height="110" viewBox="0 0 132 132">
+              <circle class="piste" cx="66" cy="66" r="58"></circle>
+              <circle class="arc" id="pm_${m.id}Arc" cx="66" cy="66" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"></circle>
+            </svg>
+            <div class="rwRondTexte">
+              <div class="rwRondPct" id="pm_${m.id}Pct">0%</div>
+              <div class="rwRondChrono" id="pm_${m.id}Chrono">00:00</div>
+            </div>
+          </div>
+          <div class="rwRondEtape" id="pm_${m.id}Etape" style="text-align:center;">Préparation…</div>
+        </div>
         <div class="estimate" id="pmInfo_${m.id}" style="margin-top:6px;"></div>
         <div id="pmResult_${m.id}"><div class="estimate" style="opacity:.7;">Ton résultat s'affichera ici.</div></div>
       </div>
@@ -7162,7 +7184,7 @@ function pmFermer() {
   document.querySelectorAll(".pmPan").forEach(p => p.classList.add("hidden"));
   document.getElementById("pmTuiles").classList.remove("hidden");
 }
-// v41.125 : plan de composition au format Music v2 / v2.5 (« chunks »).
+// v41.126 : plan de composition au format Music v2 / v2.5 (« chunks »).
 // Chaque morceau porte son texte ([Section] + paroles), sa durée et ses styles.
 function pmPlanV2(style, paroles, cibleMs, langueTxt) {
   const phrases = style.split(/[.;]\s+|,\s+(?=[A-Z])/).map(x => x.trim()).filter(x => x.length > 2).map(x => x.slice(0, 180));
@@ -7204,6 +7226,8 @@ function pmVersStems(source, nom) {
 function pmAfficherSolde(d) {
   const box = document.getElementById("pmSolde");
   if (!box) return;
+  const pc = document.getElementById("pmCode");
+  if (pc && document.activeElement !== pc) pc.value = getCode();
   if (typeof d.premium !== "number") { box.textContent = "Entre ton code StarClip en haut de la page pour voir ton solde Premium."; return; }
   box.innerHTML = `👑 Solde Admin Premium 5.0 : <b style="color:#7c6fd6;">${pmFmt(d.premium)}</b>`;
 }
@@ -7327,7 +7351,12 @@ async function pmAttendreRunway(task_id, info) {
 async function pmLancer(id) {
   const m = PM_MOTEURS.find(x => x.id === id);
   const btn = document.getElementById("pmGo_" + id), info = document.getElementById("pmInfo_" + id), result = document.getElementById("pmResult_" + id);
-  btn.disabled = true; result.innerHTML = ""; info.textContent = "";
+  const pfx = "pm_" + id;
+  const maj = (t) => { info.textContent = t; rwRondMaj(pfx, -1, t); };
+  btn.disabled = true; result.innerHTML = ""; maj("");
+  rwRondMontrer(pfx, true); rwRondMaj(pfx, -1, "Préparation…");
+  rwDepart = Date.now();
+  const pmTic = setInterval(() => rwRondChrono(pfx), 1000);
   try {
     if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de la page.");
     const s = pmSel[id];
@@ -7336,8 +7365,8 @@ async function pmLancer(id) {
     if (id === "seedance2") {
       const payload = { prompt, aspect_ratio: "9:16", generate_audio: false };
       let mode = "texte";
-      if (s.photo) { mode = "image"; info.textContent = "Lecture de la photo…"; payload.image_url = await pmDataUri(s.photo); }
-      info.textContent = "Envoi au studio…";
+      if (s.photo) { mode = "image"; maj("Lecture de la photo…"); payload.image_url = await pmDataUri(s.photo); }
+      maj("Envoi au studio…");
       const job = await pmSubmit("seedance2", s.duree, mode, payload);
       const statusUrl = job.status_url || `https://queue.fal.run/x/requests/${job.request_id}/status`;
       const responseUrl = job.response_url || `https://queue.fal.run/x/requests/${job.request_id}`;
@@ -7346,69 +7375,69 @@ async function pmLancer(id) {
         const sj = await apiPoll(statusUrl);
         if (sj.status === "COMPLETED") break;
         if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le moteur a refusé la création.");
-        info.textContent = sj.status === "IN_PROGRESS" ? "Seedance travaille… (2 à 6 min)" : "En file d'attente…";
+        maj(sj.status === "IN_PROGRESS" ? "Seedance travaille… (2 à 6 min)" : "En file d'attente…");
       }
       const data = await apiPoll(responseUrl);
       const out = data.video?.url || data.response?.video?.url || data.output?.video?.url;
       if (!out) throw new Error("Vidéo introuvable dans la réponse.");
       result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
-      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`; rwRondFini(pfx, "✓ Vidéo prête !");
 
     } else if (id === "seedance25") {
-      info.textContent = "Lecture de la photo…";
+      maj("Lecture de la photo…");
       const uri = await pmDataUri(s.photo);
       const payload = { promptImage: [{ uri }], promptText: prompt, ratio: "9:16", audio: false };
-      info.textContent = "Envoi au studio…";
+      maj("Envoi au studio…");
       const t = await pmSubmit("seedance25", s.duree, null, payload);
       const fin = await pmAttendreRunway(t.id, info);
       const out = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
       if (!out) throw new Error("Vidéo introuvable dans la réponse.");
       result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
-      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`; rwRondFini(pfx, "✓ Vidéo prête !");
 
     } else if (id === "aleph") {
       if (!s.video) throw new Error("Choisis d'abord la vidéo à modifier.");
-      info.textContent = "Envoi de la vidéo… 0 %";
-      const runwayUri = await pmEnvoyerVideo(s.video, (p) => { info.textContent = "Envoi de la vidéo… " + p + " %"; });
+      maj("Envoi de la vidéo… 0 %");
+      const runwayUri = await pmEnvoyerVideo(s.video, (p) => { maj("Envoi de la vidéo… " + p + " %"); });
       const payload = { videoUri: runwayUri, promptText: prompt, contentModeration: { publicFigureThreshold: "low" } };
-      info.textContent = "Envoi au studio…";
+      maj("Envoi au studio…");
       const t = await pmSubmit("aleph", s.duree, null, payload);
       const fin = await pmAttendreRunway(t.id, info);
       const out = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
       if (!out) throw new Error("Vidéo introuvable dans la réponse.");
       result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
-      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`; rwRondFini(pfx, "✓ Vidéo prête !");
 
     } else if (id === "multishot") {
       const payload = { mode: "auto", ratio: "9:16", audio: false, prompt };
-      if (s.photo) { info.textContent = "Lecture de la photo…"; payload.firstFrame = { uri: await pmDataUri(s.photo) }; }
-      info.textContent = "Envoi au studio…";
+      if (s.photo) { maj("Lecture de la photo…"); payload.firstFrame = { uri: await pmDataUri(s.photo) }; }
+      maj("Envoi au studio…");
       const t = await pmSubmit("multishot", s.duree, null, payload);
       const fin = await pmAttendreRunway(t.id, info);
       const out = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
       if (!out) throw new Error("Vidéo introuvable dans la réponse.");
       result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
-      info.innerHTML = `<span style="color:var(--ok)">✓ Mini-clip prêt !</span>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Mini-clip prêt !</span>`; rwRondFini(pfx, "✓ Mini-clip prêt !");
 
     } else if (id === "demo") {
-      // v41.125 : 🎙️ AMÉLIORER MA DÉMO — Reprise (garde mélodie + paroles)
+      // v41.126 : 🎙️ AMÉLIORER MA DÉMO — Reprise (garde mélodie + paroles)
       // ou Référence (nouvelle chanson dans le style d'un extrait de 30 s).
       if (!s.audio) throw new Error("Choisis d'abord ta démo.");
       const precis = document.getElementById("pmStyle_demo").value.trim();
       const paroles = chpStructurer(document.getElementById("pmParoles_demo").value.trim());
-      info.textContent = "Envoi de ta démo…";
+      maj("Envoi de ta démo…");
       const url = await hebergerFichier(s.audio, s.audio.name || "demo.mp3");
-      info.textContent = "🎛️ Le Producteur IA prépare le style…";
+      maj("🎛️ Le Producteur IA prépare le style…");
       const NOMS_LANG = { fr: "in French", en: "in English", mix: "in French and English", pidgin: "in Cameroonian Pidgin", duala: "in Duala and French" };
       if (s.mode !== "reference") {
         const style = await chpProducteur(pmChChoix.demo, precis, 300);
         const payload = { prompt: style, audio_url: url };
         if (paroles) payload.lyrics = paroles.slice(0, 1000);
-        info.textContent = "🎙️ Production de ta démo (2 versions)…";
+        maj("🎙️ Production de ta démo (2 versions)…");
         const rep = await pmSubmit("demoReprise", 0, null, payload);
         const jobs = rep.jobs || [];
         if (!jobs.length) throw new Error("La reprise n'a pas pu être lancée.");
@@ -7417,7 +7446,7 @@ async function pmLancer(id) {
           const job = jobs[idx];
           const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/minimax-music/requests/${job.request_id}/status`;
           const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/minimax-music/requests/${job.request_id}`;
-          info.textContent = `🎙️ Production de la version ${idx + 1}/${jobs.length}… (1 à 3 min)`;
+          maj(`🎙️ Production de la version ${idx + 1}/${jobs.length}… (1 à 3 min)`);
           for (let k = 0; k < 100; k++) {
             await new Promise(r => setTimeout(r, 4000));
             const sj = await apiPoll(statusUrl).catch(() => ({}));
@@ -7434,13 +7463,13 @@ async function pmLancer(id) {
           <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>
           <button class="chip" data-versstems="${k}" style="margin-top:6px;">🎚️ Extraire les stems</button></div>`).join("");
         result.querySelectorAll("[data-versstems]").forEach(b => b.onclick = () => pmVersStems(urls[+b.dataset.versstems], "Version " + (+b.dataset.versstems + 1)));
-        info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`;
+        info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`; rwRondFini(pfx, "✓ ${urls.length} version(s) prête(s) !");
       } else {
         const style = await chpProducteur(pmChChoix.demo, precis, 1800);
         const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[s.duree] || 115000;
         const chunks = pmPlanV2(style, paroles, cibleMs, NOMS_LANG[pmChChoix.demo.langue] || "");
         const debut = Math.max(0, parseInt(document.getElementById("pmDemoDebut").value) || 0);
-        info.textContent = "✨ Création dans le style de ta démo… (2 à 4 min, ne ferme pas la page)";
+        maj("✨ Création dans le style de ta démo… (2 à 4 min, ne ferme pas la page)");
         const rep = await pmSubmit("demoReference", s.duree, null, { audio_url: url, ref_start_ms: debut * 1000, chunks });
         const statusUrl = rep.status_url || `https://queue.fal.run/elevenlabs/music/requests/${rep.request_id}/status`;
         const responseUrl = rep.response_url || `https://queue.fal.run/elevenlabs/music/requests/${rep.request_id}`;
@@ -7460,7 +7489,7 @@ async function pmLancer(id) {
           <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>
           <button class="chip" id="pmDemoVersStems" style="margin-top:6px;">🎚️ Extraire les stems</button></div>`;
         document.getElementById("pmDemoVersStems").onclick = () => pmVersStems(u, "Ta nouvelle chanson");
-        info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`;
+        info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`; rwRondFini(pfx, "✓ Chanson prête !");
       }
 
     } else if (id === "stems") {
@@ -7469,10 +7498,10 @@ async function pmLancer(id) {
       let url = s.audioUrl;
       if (!url) {
         if (!s.audio) throw new Error("Choisis d'abord ta chanson.");
-        info.textContent = "Envoi de ta chanson…";
+        maj("Envoi de ta chanson…");
         url = await hebergerFichier(s.audio, s.audio.name || "chanson.mp3");
       }
-      info.textContent = "🎚️ Séparation des pistes… (1 à 3 min, ne ferme pas la page)";
+      maj("🎚️ Séparation des pistes… (1 à 3 min, ne ferme pas la page)");
       const rep = await pmSubmit("stems", 0, null, { audio_url: url, six: !!s.six, formats: s.formats || ["mp3"] });
       const jobs = rep.jobs || [];
       if (!jobs.length) throw new Error("La séparation n'a pas pu être lancée.");
@@ -7482,7 +7511,7 @@ async function pmLancer(id) {
         const job = jobs[k], fmt = String(job.format || "mp3").toUpperCase();
         const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/demucs/requests/${job.request_id}/status`;
         const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/demucs/requests/${job.request_id}`;
-        info.textContent = `🎚️ Séparation en ${fmt}… (${k + 1}/${jobs.length})`;
+        maj(`🎚️ Séparation en ${fmt}… (${k + 1}/${jobs.length})`);
         let fini = false;
         for (let i = 0; i < 120; i++) {
           await new Promise(r => setTimeout(r, 4000));
@@ -7504,12 +7533,12 @@ async function pmLancer(id) {
       }
       if (!html) throw new Error("Les pistes n'ont pas pu être récupérées.");
       result.innerHTML = html + `<div class="estimate" style="margin-top:8px;">Télécharge tes pistes maintenant : les liens expirent au bout de quelques jours.</div>`;
-      info.innerHTML = `<span style="color:var(--ok)">✓ Pistes prêtes !</span>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Pistes prêtes !</span>`; rwRondFini(pfx, "✓ Pistes prêtes !");
 
     } else if (id === "chanson" || id === "chansonPro") {
       const precis = document.getElementById("pmStyle_" + id).value.trim();
       const paroles = chpStructurer(document.getElementById("pmParoles_" + id).value.trim());
-      info.textContent = "🎛️ Le Producteur IA prépare ta chanson…";
+      maj("🎛️ Le Producteur IA prépare ta chanson…");
       const style = await chpProducteur(pmChChoix[id], precis, 1800);
 
       if (id === "chansonPro") {
@@ -7521,12 +7550,12 @@ async function pmLancer(id) {
         // v41.123 : ElevenLabs en DIRECT via /premium/musique (0,15 $/min).
         // La consigne est découpée en petites phrases de style (le format
         // « composition plan » d'ElevenLabs attend des listes courtes).
-        // v41.125 : Music v2.5 — plan « chunks » (voir pmPlanV2).
+        // v41.126 : Music v2.5 — plan « chunks » (voir pmPlanV2).
         const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[pmSel.chansonPro.duree] || 115000;
         const payload = paroles
           ? { composition_plan: { chunks: pmPlanV2(style, paroles, cibleMs) } }
           : { prompt: style, music_length_ms: cibleMs };
-        info.textContent = "⭐ Composition en cours… (1 à 3 min, ne ferme pas la page)";
+        maj("⭐ Composition en cours… (1 à 3 min, ne ferme pas la page)");
         const rep = await fetch(WORKER_URL + "/premium/musique", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code: getCode(), payload, duree: pmSel.chansonPro.duree }),
@@ -7547,13 +7576,13 @@ async function pmLancer(id) {
           <button class="chip" id="pmVersStemsPro" style="margin-top:8px;">🎚️ Extraire les stems de cette chanson</button></div>`;
         const fichierPro = new File([blob], "StarClip-Chanson-Pro.mp3", { type: "audio/mpeg" });
         document.getElementById("pmVersStemsPro").onclick = () => pmVersStems(fichierPro, "Ta Chanson Pro");
-        info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`;
+        info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`; rwRondFini(pfx, "✓ Chanson prête !");
         return;
       }
 
       const payload = { prompt: style, lyrics_optimizer: !paroles };
       if (paroles) payload.lyrics = paroles;
-      info.textContent = "Envoi au studio (2 versions)…";
+      maj("Envoi au studio (2 versions)…");
       const rep = await pmSubmit("chanson", 0, null, payload);
       const jobs = rep.jobs || [];
       if (!jobs.length) throw new Error("Aucune version n'a pu être lancée.");
@@ -7562,7 +7591,7 @@ async function pmLancer(id) {
         const job = jobs[idx];
         const statusUrl = job.status_url || `https://queue.fal.run/x/requests/${job.request_id}/status`;
         const responseUrl = job.response_url || `https://queue.fal.run/x/requests/${job.request_id}`;
-        info.textContent = `Composition de la version ${idx + 1}/${jobs.length}… (1 à 3 min)`;
+        maj(`Composition de la version ${idx + 1}/${jobs.length}… (1 à 3 min)`);
         for (let i = 0; i < 100; i++) {
           await new Promise(r => setTimeout(r, 4000));
           const sj = await apiPoll(statusUrl).catch(() => ({}));
@@ -7578,11 +7607,12 @@ async function pmLancer(id) {
         <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>
         <button class="chip" data-versstems="${i}" style="margin-top:6px;">🎚️ Extraire les stems</button></div>`).join("");
       result.querySelectorAll("[data-versstems]").forEach(b => b.onclick = () => pmVersStems(urls[+b.dataset.versstems], "Version " + (+b.dataset.versstems + 1)));
-      info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`; rwRondFini(pfx, "✓ ${urls.length} version(s) prête(s) !");
     }
   } catch (e) {
-    info.innerHTML = `<span class="err">✗ ${e.message}</span>`;
+    info.innerHTML = `<span class="err">✗ ${e.message}</span>`; rwRondEchec(pfx, e.message);
   } finally {
+    clearInterval(pmTic); rwDepart = 0;
     pmMaj(id);
   }
 }
@@ -7688,6 +7718,27 @@ async function pmLancer(id) {
   if (!box) return;
   pmSel.stems.six = false; pmSel.stems.formats = ["mp3"]; pmSel.stems.audio = null; pmSel.stems.audioUrl = null;
   pmSel.demo.mode = "reprise"; pmSel.demo.audio = null;
+  // v41.127 : même code que sur l'Accueil — on remplit la case principale et
+  // on lance la vérification habituelle (mémorisation + solde partout).
+  const pc = document.getElementById("pmCode"), pok = document.getElementById("pmCodeOk");
+  if (pc && pok) {
+    pc.value = getCode();
+    const valider = async () => {
+      const v = (pc.value || "").trim().toUpperCase();
+      const zi = document.getElementById("pmCodeInfo");
+      if (!v) { zi.textContent = "Tape ton code, puis OK."; return; }
+      codeInput.value = v;
+      zi.textContent = "Vérification…";
+      await checkCode();
+      const txt = (document.getElementById("codeInfo") || {}).textContent || "";
+      zi.innerHTML = /Code valide/.test(txt)
+        ? '<span style="color:var(--ok)">✓ Code reconnu — il est retenu pour toute l\'app.</span>'
+        : '<span class="err">' + (txt.replace(/^✗\s*/, "") || "Code inconnu.") + '</span>';
+      PM_MOTEURS.forEach(m => pmMaj(m.id));
+    };
+    pok.onclick = valider;
+    pc.addEventListener("keydown", (e) => { if (e.key === "Enter") valider(); });
+  }
   box.innerHTML = `<div class="pmTuiles" id="pmTuiles">` + PM_MOTEURS.map(pmTuile).join("") + `</div>` + PM_MOTEURS.map(pmCarte).join("");
   box.querySelectorAll("[data-pmouvre]").forEach(t => t.onclick = () => pmOuvrir(t.dataset.pmouvre));
   box.querySelectorAll(".pmRetour").forEach(b => b.onclick = pmFermer);
@@ -8892,7 +8943,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
   document.getElementById("admCarteChanson").onclick = () => admVue("chanson");
-  document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.123
+  document.getElementById("admCarteCodes").onclick = () => window.open("admin.html", "_blank");   // v41.127 : une seule page d'admin   // v41.123
   document.getElementById("admCarteStems").onclick = () => admVue("stems");   // stems studio
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.

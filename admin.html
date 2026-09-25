@@ -21,13 +21,18 @@
   td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
   .ok{color:var(--ok)}.err{color:var(--err)}.dim{color:var(--dim)}
   #msg{margin-top:10px;font-size:13.5px;line-height:1.5}
+  .packs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .packs button{width:auto;margin-top:0;padding:8px 12px;font-size:13px;font-weight:600;background:transparent;border:1px solid var(--line);color:var(--text)}
+  .packs button:hover{border-color:var(--gold);color:var(--gold)}
+  .prem{color:#c9a7ff;font-weight:700}
+  .version{color:var(--dim);font-size:12px;text-align:center;margin-top:24px}
 </style>
 <script src="config.js"></script>
 </head>
 <body>
 <div class="wrap">
   <h1>⭐ Star<span>Clip</span> — Administration</h1>
-  <p class="sub">Réservé au patron du studio. Crée ici les codes que tu vends sur WhatsApp.</p>
+  <p class="sub">Réservé au patron du studio. <b>C'est ici, et seulement ici, que tu gères les codes de tes clients</b> : créer, recharger le Premium, passer en Pro, tout voir. Tape ton PIN une fois ci-dessous : il sert pour toute la page.</p>
 
   <div class="card">
     <label>Ton PIN d'administrateur</label>
@@ -41,9 +46,31 @@
     <input type="number" id="videos" value="1" min="1" max="100">
     <label>Nombre de codes à créer</label>
     <input type="number" id="count" value="1" min="1" max="20">
+    <label>👑 Solde Premium à mettre dans le code (FCFA, optionnel)</label>
+    <input type="number" id="premium" value="0" min="0" step="499">
+    <div class="packs" data-cible="premium">
+      <button type="button" data-v="0">Aucun</button>
+      <button type="button" data-v="10499">Découverte · 10 499</button>
+      <button type="button" data-v="27499">Créateur · 27 499 (payé 24 999)</button>
+      <button type="button" data-v="57499">Studio · 57 499 (payé 49 999)</button>
+    </div>
     <button id="create">🎟️ Créer le(s) code(s)</button>
     <div id="msg"></div>
     <div class="codes" id="newCodes"></div>
+  </div>
+
+  <div class="card">
+    <label>👑 Recharger le Premium d'un code existant</label>
+    <input type="text" id="rcCode" placeholder="Ex : STAR-7K3M" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false">
+    <label>Montant à ajouter (FCFA — un nombre négatif retire, pour corriger une erreur)</label>
+    <input type="number" id="rcMontant" value="10499" step="499">
+    <div class="packs" data-cible="rcMontant">
+      <button type="button" data-v="10499">Découverte · 10 499</button>
+      <button type="button" data-v="27499">Créateur · 27 499 (payé 24 999)</button>
+      <button type="button" data-v="57499">Studio · 57 499 (payé 49 999)</button>
+    </div>
+    <button id="recharger">👑 Recharger ce code</button>
+    <div id="rcMsg" style="margin-top:10px; font-size:13.5px; line-height:1.5;"></div>
   </div>
 
   <div class="card">
@@ -65,6 +92,7 @@
     <button class="ghost" id="list">📋 Voir tous les codes et leurs soldes</button>
     <div id="listOut"></div>
   </div>
+  <p class="version">StarClip Administration · v41.127</p>
 </div>
 <script>
 const $ = id => document.getElementById(id);
@@ -87,9 +115,11 @@ $("savekey").onclick = async () => {
 $("create").onclick = async () => {
   $("msg").innerHTML = "Création…"; $("newCodes").innerHTML = "";
   try {
-    const d = await api("/admin/create", { pin: $("pin").value.trim(), videos: $("videos").value, count: $("count").value, plan: $("plan").value });
+    const premium = parseInt($("premium").value) || 0;
+    const d = await api("/admin/create", { pin: $("pin").value.trim(), videos: $("videos").value, count: $("count").value, plan: $("plan").value, premium });
     const nomPlan = d.plan === "pro" ? "PRO" : "Éco";
-    $("msg").innerHTML = `<span class="ok">✓ ${d.codes.length} code(s) <b>${nomPlan}</b> créé(s) — ${d.videos} vidéo(s) chacun. Envoie-le(s) au client sur WhatsApp :</span>`;
+    const txtPrem = premium > 0 ? ` + <span class="prem">${premium.toLocaleString("fr-FR")} FCFA de Premium</span>` : "";
+    $("msg").innerHTML = `<span class="ok">✓ ${d.codes.length} code(s) <b>${nomPlan}</b> créé(s) — ${d.videos} vidéo(s) chacun${txtPrem}. Envoie-le(s) au client sur WhatsApp :</span>`;
     d.codes.forEach(c => { const b = document.createElement("div"); b.className = "codebox"; b.textContent = c; $("newCodes").appendChild(b); });
   } catch (e) { $("msg").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
 };
@@ -102,6 +132,22 @@ async function changerPlan(plan) {
     $("upMsg").innerHTML = `<span class="ok">✓ Le code ${d.code} est maintenant un pack <b>${d.plan === "pro" ? "PRO" : "Éco"}</b>.</span>`;
   } catch (e) { $("upMsg").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
 }
+// v41.127 : boutons de pack → remplissent le montant correspondant.
+document.querySelectorAll(".packs").forEach(z => z.querySelectorAll("button").forEach(b => {
+  b.onclick = () => { $(z.dataset.cible).value = b.dataset.v; };
+}));
+// v41.127 : recharger le solde Premium d'un code existant.
+$("recharger").onclick = async () => {
+  const code = $("rcCode").value.trim().toUpperCase();
+  const montant = parseInt($("rcMontant").value);
+  if (!code) { $("rcMsg").innerHTML = `<span class="err">Entre d'abord le code du client.</span>`; return; }
+  if (!montant) { $("rcMsg").innerHTML = `<span class="err">Entre un montant.</span>`; return; }
+  $("rcMsg").innerHTML = "Recharge…";
+  try {
+    const d = await api("/admin/premium", { pin: $("pin").value.trim(), code, montant });
+    $("rcMsg").innerHTML = `<span class="ok">✓ ${d.code} — nouveau solde Premium : <b>${Number(d.premium).toLocaleString("fr-FR")} FCFA</b></span>`;
+  } catch (e) { $("rcMsg").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
+};
 $("toPro").onclick = () => changerPlan("pro");
 $("toEco").onclick = () => changerPlan("eco");
 
@@ -109,8 +155,8 @@ $("list").onclick = async () => {
   $("listOut").innerHTML = "Chargement…";
   try {
     const d = await api("/admin/list", { pin: $("pin").value.trim() });
-    let h = "<table><tr><th>Code</th><th>Pack</th><th>Restantes</th><th>Images</th></tr>";
-    d.codes.forEach(c => h += `<tr><td><b>${c.code}</b></td><td class="${c.plan==='pro'?'ok':'dim'}">${c.plan==='pro'?'PRO':'Éco'}</td><td class="${c.left>0?'ok':'dim'}">${c.left}/${c.total}</td><td>${c.imgUsed||0}</td></tr>`);
+    let h = "<table><tr><th>Code</th><th>Pack</th><th>Vidéos</th><th>Images</th><th>👑 Premium</th></tr>";
+    d.codes.forEach(c => h += `<tr><td><b>${c.code}</b></td><td class="${c.plan==='pro'?'ok':'dim'}">${c.plan==='pro'?'PRO':'Éco'}</td><td class="${c.left>0?'ok':'dim'}">${c.left}/${c.total}</td><td>${c.imgUsed||0}</td><td class="${c.premium>0?'prem':'dim'}">${(c.premium||0).toLocaleString("fr-FR")}</td></tr>`);
     $("listOut").innerHTML = h + "</table>";
   } catch (e) { $("listOut").innerHTML = `<span class="err">✗ ${e.message}</span>`; }
 };
