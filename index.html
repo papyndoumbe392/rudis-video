@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.122 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.123 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -206,7 +206,7 @@
       letter-spacing:.01em; margin-top:1px; }
     #tabbar .qnav.active small { opacity:.75; }
     #tabbar .qnav.active { background:var(--gold); color:#1a1726; border-color:var(--gold); }
-    /* v41.122 : 👑 Admin Premium 5.0 — onglet en couleur, bien visible (offre pro) */
+    /* v41.123 : 👑 Admin Premium 5.0 — onglet en couleur, bien visible (offre pro) */
     #tabbar .qnav.qnav-premium { background:linear-gradient(135deg,#7c3aed 0%,#c026d3 50%,#f59e0b 100%); color:#fff; border:1.5px solid #fbbf24; box-shadow:0 0 14px rgba(192,38,211,.55); animation:pmBrille 2.6s ease-in-out infinite; }
     #tabbar .qnav.qnav-premium small { opacity:.95; color:#fff7d6; }
     #tabbar .qnav.qnav-premium:hover { color:#fff; border-color:#fff; filter:brightness(1.1); }
@@ -287,6 +287,23 @@
        Chaque moteur a sa couleur : doré pour Aleph (éditer), violet pour Seedance
        (créer). On les distingue sans lire. */
     .admGrille { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; }
+    /* v41.123 : 👑 Premium en carreaux (comme l'espace Studio), panneau 2 colonnes sur ordinateur */
+    body.tab-premium .cards-area { grid-template-columns:1fr; }
+    .pmTuiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin-top:12px; }
+    .pmTuiles.hidden, .pmPan.hidden { display:none; }
+    .pmTuile { cursor:pointer; border:1px solid var(--line); border-top:4px solid var(--pmc,#7c3aed); border-radius:14px; padding:14px 16px;
+      background:var(--up); transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; display:flex; flex-direction:column; gap:6px; min-height:150px; }
+    .pmTuile:hover { transform:translateY(-3px); box-shadow:0 10px 26px rgba(124,58,237,.35); border-color:var(--pmc,#7c3aed); }
+    .pmTuile .pmIco { font-size:30px; line-height:1; }
+    .pmTuile .pmNom { font-weight:800; font-size:16px; color:var(--text); }
+    .pmTuile .pmDesc { font-size:13px; color:var(--dim); flex:1; line-height:1.4; }
+    .pmTuile .pmDes { font-weight:800; color:#fbbf24; font-size:14px; }
+    .pmPanneau { display:grid; grid-template-columns:1fr; gap:16px; }
+    .pmDroite { border:1px dashed var(--line); border-radius:12px; padding:12px 14px; min-height:120px; }
+    @media (min-width:900px) {
+      .pmPanneau { grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); align-items:start; }
+      .pmDroite { position:sticky; top:90px; }
+    }
     @media (max-width:820px) { .admGrille { grid-template-columns:1fr; } }
     .admCarte { cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
                 display:flex; flex-direction:column; }
@@ -1041,7 +1058,7 @@
   <!-- v41.59 : ONGLET CLIENT « IDEES » - prompts d'exemple a copier-adapter.
        Simple lecture/copie : n'ouvre AUCUN acces a Multi-Shot Video, qui
        reste reserve a l'espace admin (credits Runway de Papy). -->
-  <!-- v41.122 : 👑 ADMIN PREMIUM 5.0 — les moteurs Runway/fal ouverts aux
+  <!-- v41.123 : 👑 ADMIN PREMIUM 5.0 — les moteurs Runway/fal ouverts aux
        clients, payés sur un solde Premium en FCFA (même code STAR-XXXX que
        le reste de l'app). Le prix, la durée et la résolution sont toujours
        imposés par le Worker : ce qui s'affiche ici n'est qu'un aperçu. -->
@@ -1077,7 +1094,7 @@
     </div>
   </section>
 
-  <!-- v41.122 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
+  <!-- v41.123 : 📝 PROMPTS — des textes prêts à l'emploi pour essayer chaque volet.
        Le client choisit sa langue (français OU anglais), puis « Utiliser » ouvre
        le bon onglet, remplit la bonne case et l'amène dessus. -->
   <section class="card" id="sec-prompts" style="border-color:var(--gold);">
@@ -1259,7 +1276,7 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Mode auto (5 plans automatiques) ou mode personnalisé (3 à 5 plans écrits par toi). Photo de référence optionnelle.</p>
           <div class="admCartePied">5, 10 ou 15 s · 6 formats · Studio</div>
         </div>
-        <!-- v41.122 : 🎟️ GESTION DES CODES — créer des codes STAR-XXXX (avec ou
+        <!-- v41.123 : 🎟️ GESTION DES CODES — créer des codes STAR-XXXX (avec ou
              sans solde Premium) et recharger le Premium d'un code existant.
              Réservé à l'admin, comme les autres cartes de cet écran. -->
         <div class="card admCarte" id="admCarteCodes" style="border-color:#fbbf24;">
@@ -1278,7 +1295,7 @@
     </div>
 
 
-    <!-- ─────────── PAGE ADMIN · 🎟️ GESTION DES CODES (v41.122) ─────────── -->
+    <!-- ─────────── PAGE ADMIN · 🎟️ GESTION DES CODES (v41.123) ─────────── -->
     <div id="admPageCodes" class="hidden">
       <h2>🎟️ Gestion des codes</h2>
       <p class="sub">Réservé à l'admin. Aucun client ne voit cet écran.</p>
@@ -2110,7 +2127,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.122</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.123</span>
 
   </footer>
 </div>
@@ -2366,9 +2383,9 @@ async function checkCode() {
     // v36.8 : afficher aussi le solde de lip-sync Standard, désormais plafonné
     const lipTxt = (typeof d.lipLeft === "number") ? ` · ${d.lipLeft} lip-sync Standard` : "";
     info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}${badge}${imgTxt}${lipTxt}</span>`;
-    if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.122 : solde Admin Premium 5.0
+    if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.123 : solde Admin Premium 5.0
     appliquerPlan();
-    if (d.essai && d.left > 0) essaiPreparer();   // v41.122 : Éco + 5 s pour l'essai
+    if (d.essai && d.left > 0) essaiPreparer();   // v41.123 : Éco + 5 s pour l'essai
   } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
   refresh();
 }
@@ -2376,7 +2393,7 @@ document.getElementById("saveCode").onclick = checkCode;
 codeInput.addEventListener("input", refresh);
 if (codeInput.value) checkCode();
 
-// ═══ v41.122 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
+// ═══ v41.123 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
 // À la toute première visite, sans code enregistré, l'app demande au Worker un
 // code d'essai (1 vidéo Éco de 5 s, 2 images, 1 lip-sync). Le Worker plafonne
 // le total (30 essais) : une fois épuisé, il répond « fini » et l'app se
@@ -4786,7 +4803,7 @@ async function hebergerFichier(source, nom) {
     + "). Ta connexion a coupé pendant l'envoi : rapproche ton téléphone de la fenêtre, garde son écran allumé, et réessaie.");
 }
 
-// v41.122 : ISOLER LA VOIX AVANT LE LIP-SYNC.
+// v41.123 : ISOLER LA VOIX AVANT LE LIP-SYNC.
 // Avec la chanson complète, le moteur fait aussi bouger les lèvres sur les
 // percussions et les cuivres. On envoie donc la VOIX SEULE (Demucs) au lip-sync,
 // puis on remet la chanson complète sur la vidéo finie (ffmpeg merge-audio-video).
@@ -4835,7 +4852,7 @@ async function runLipsync() {
         throw new Error("Hébergement des fichiers impossible (" + upErr.message + "). Vérifie ta connexion (Wi-Fi de préférence) puis réessaie.");
       vSrc = lipVideoSource; aSrc = lipAudioDataUrl; // Standard + petit fichier : envoi direct
     }
-    // v41.122 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
+    // v41.123 : voix seule pour le lip-sync, chanson complète gardée pour la fin.
     const chansonComplete = aSrc;
     let audioLip = aSrc, voixIsolee = false;
     const isoler = document.getElementById("lipIsoler");
@@ -4904,7 +4921,7 @@ async function runLipsync() {
         : (data.error || data.message || JSON.stringify(data).slice(0, 220));
       throw new Error("Le serveur n'a pas produit de vidéo. Sa réponse exacte : « " + brut + " » — envoie ce message à Claude si ça se répète.");
     }
-    // v41.122 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
+    // v41.123 : remettre la chanson complète (la vidéo sortie ne contient que la voix).
     let finalUrl = outUrl, avertMusique = "";
     if (voixIsolee) {
       try {
@@ -6651,7 +6668,7 @@ document.getElementById("rtGo").onclick = async () => {
 rtRefresh();
 
 
-// ═══════════ v41.122 : 📝 ONGLET PROMPTS ═══════════
+// ═══════════ v41.123 : 📝 ONGLET PROMPTS ═══════════
 // Pour chaque volet qui attend un texte : 3 prompts écrits par le studio, en
 // FRANÇAIS et en ANGLAIS. Le client choisit sa langue une fois (mémorisée).
 // « Utiliser » : ouvre l'onglet du volet, remplit la case, la met en évidence.
@@ -6751,7 +6768,7 @@ function prUtiliser(g, it) {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.style.outline = "3px solid var(--gold)";
     setTimeout(() => { el.style.outline = ""; }, 2500);
-    // v41.122 : rappel juste sous la case — le client peut réécrire le texte.
+    // v41.123 : rappel juste sous la case — le client peut réécrire le texte.
     let r = document.getElementById("prRappel");
     if (!r) { r = document.createElement("div"); r.id = "prRappel"; }
     r.className = "estimate";
@@ -6813,7 +6830,7 @@ document.querySelectorAll("#prLangue .chip").forEach(c => c.onclick = () => {
 });
 prAfficher();
 
-// ═══════════ v41.122 : 🎛️ PRODUCTEUR IA — CHANSONS DE NIVEAU PRO ═══════════
+// ═══════════ v41.123 : 🎛️ PRODUCTEUR IA — CHANSONS DE NIVEAU PRO ═══════════
 // Pourquoi : MiniMax Music 2.6 comprend surtout des descriptions DÉTAILLÉES
 // EN ANGLAIS (genre, tempo, batterie, basse, instruments, voix, mixage).
 // « afro pop » écrit seul, en français, lui laisse tout deviner — d'où des
@@ -6939,8 +6956,8 @@ function chpPuces(conteneur, liste, choix, cle, onChange) {
   });
 }
 
-// ═══════════ v41.122 : 👑 ADMIN PREMIUM 5.0 (côté client) ═══════════
-// v41.122 : le bouton coloré du haut de page ouvre directement l'onglet Premium.
+// ═══════════ v41.123 : 👑 ADMIN PREMIUM 5.0 (côté client) ═══════════
+// v41.123 : le bouton coloré du haut de page ouvre directement l'onglet Premium.
 (function () {
   const b = document.getElementById("pmBoutonHaut");
   if (!b) return;
@@ -6974,11 +6991,16 @@ const PM_MOTEURS = [
     desc: "Qualité studio, niveau Suno. 1 version : 2 min, 3 min ou 3 min 50.",
     durees: [2, 3, 4], prix: { 2: 999, 3: 1499, 4: 1999 }, chanson: true, pro: true,
     libDuree: { 2: "2 min", 3: "3 min", 4: "3 min 50" } },
+  { id: "stems", nom: "🎚️ Extraire les stems", fournisseur: "fal",
+    desc: "Sépare une chanson en pistes : voix, batterie, basse, instruments. En MP3, WAV ou les deux.",
+    durees: [0], prix: { 0: 499 }, stems: true },
 ];
+// v41.123 : couleur du liseré de chaque carreau.
+const PM_COULEURS = { seedance2: "#22c55e", seedance25: "#f59e0b", aleph: "#60a5fa", multishot: "#a78bfa", chanson: "#f472b6", chansonPro: "#c026d3", stems: "#14b8a6" };
 const PM_ALEPH_PRIX = { 5: 3499, 10: 5499 };
 let pmSel = {};   // { [id]: { duree, photo:File, video:File } }
 const pmChChoix = { chanson: { genre: null, voix: null, langue: null, ambiance: null },
-                     chansonPro: { genre: null, voix: null, langue: null, ambiance: null } };   // v41.122
+                     chansonPro: { genre: null, voix: null, langue: null, ambiance: null } };   // v41.123
 PM_MOTEURS.forEach(m => { pmSel[m.id] = { duree: m.durees.length ? m.durees[0] : null }; });
 
 function pmPrix(m) {
@@ -6992,7 +7014,22 @@ function pmCarte(m) {
     ? `<div class="chips" id="pmDur_${m.id}">` + m.durees.map(d =>
         `<button class="chip${d === pmSel[m.id].duree ? " on" : ""}" data-pmd="${d}">${m.libDuree ? m.libDuree[d] : d + " s"} · ${pmFmt(m.prix[d])}</button>`).join("") + `</div>`
     : "";
-  const media = m.video
+  const media = m.stems
+    ? `<div class="chips"><button class="btn small" id="pmAudBtn_${m.id}">📂 Choisir un fichier audio (MP3, WAV…)</button></div>
+       <input type="file" id="pmAudInput_${m.id}" accept="audio/*" style="display:none;">
+       <div class="estimate" id="pmAudNom_${m.id}">Ou touche « 🎚️ Extraire les stems » sous une chanson créée ici.</div>
+       <div class="label">Nombre de pistes</div>
+       <div class="chips" id="pmStPistes">
+         <button class="chip on" data-six="0">4 pistes · voix, batterie, basse, autres</button>
+         <button class="chip" data-six="1">6 pistes · + guitare, piano</button>
+       </div>
+       <div class="label">Format</div>
+       <div class="chips" id="pmStFormat">
+         <button class="chip on" data-fmt="mp3">MP3</button>
+         <button class="chip" data-fmt="wav">WAV (sans perte)</button>
+         <button class="chip" data-fmt="mp3,wav">MP3 + WAV</button>
+       </div>`
+    : m.video
     ? `<div class="chips"><button class="btn small" id="pmVidBtn_${m.id}">📂 Choisir la vidéo à modifier</button></div>
        <input type="file" id="pmVidInput_${m.id}" accept="video/*" style="display:none;">
        <div class="estimate" id="pmVidNom_${m.id}"></div>`
@@ -7001,7 +7038,7 @@ function pmCarte(m) {
        <input type="file" id="pmPhotoInput_${m.id}" accept="image/*" style="display:none;">
        <div class="estimate" id="pmPhotoNom_${m.id}"></div>`
     : "";
-  const texte = m.chanson
+  const texte = m.stems ? "" : m.chanson
     ? `<div class="estimate" style="border-left:3px solid ${m.pro ? "#7c3aed" : "#fbbf24"}; padding:6px 10px; margin-bottom:6px;">${m.pro ? "⭐ <b>Qualité studio (ElevenLabs)</b> — le même moteur que les apps professionnelles. 1 version, 2 minutes maximum." : "🎛️"} Choisis ton <b>genre</b>, ta <b>voix</b>, la <b>langue</b> et l'<b>ambiance</b> : notre Producteur IA écrit une consigne de studio détaillée pour un rendu pro.</div>
        <div class="label">Genre</div><div class="chips" id="pmChGenre_${m.id}"></div>
        <div class="label">Voix</div><div class="chips" id="pmChVoix_${m.id}"></div>
@@ -7016,19 +7053,57 @@ function pmCarte(m) {
   const avertRunway = m.fournisseur === "runway"
     ? `<div class="estimate" style="color:var(--dim); margin-top:4px;">⚠️ Comme sur l'app Runway, un refus du moteur pendant la création n'est pas remboursé.</div>`
     : "";
-  return `<div style="border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-top:12px;">
+  return `<div class="hidden pmPan" id="pmPan_${m.id}" style="border:1px solid var(--line); border-top:4px solid ${PM_COULEURS[m.id] || "#7c3aed"}; border-radius:14px; padding:12px 14px; margin-top:12px;">
+    <button class="chip pmRetour" style="margin-bottom:10px;">← Tous les moteurs</button>
     <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap;">
-      <b>${m.nom}</b><span style="color:#7c6fd6; font-weight:700;" id="pmPrix_${m.id}">${m.id === "aleph" ? "Choisis d'abord ta vidéo" : pmFmt(pmPrix(m))}</span>
+      <b style="font-size:18px;">${m.nom}</b><span style="color:#fbbf24; font-weight:800;" id="pmPrix_${m.id}">${m.id === "aleph" ? "Choisis d'abord ta vidéo" : pmFmt(pmPrix(m))}</span>
     </div>
-    <div class="estimate" style="margin:2px 0 8px;">${m.desc}</div>
-    ${dureesHtml}
-    ${media}
-    ${texte}
-    ${avertRunway}
-    <button class="btn" id="pmGo_${m.id}" style="margin-top:10px;" disabled>Prépare d'abord ce qu'il faut</button>
-    <div class="estimate" id="pmInfo_${m.id}" style="margin-top:6px;"></div>
-    <div id="pmResult_${m.id}"></div>
+    <div class="estimate" style="margin:2px 0 10px;">${m.desc}</div>
+    <div class="pmPanneau">
+      <div class="pmGauche">
+        ${dureesHtml}
+        ${media}
+        ${texte}
+        ${avertRunway}
+        <button class="btn" id="pmGo_${m.id}" style="margin-top:10px;" disabled>Prépare d'abord ce qu'il faut</button>
+      </div>
+      <div class="pmDroite">
+        <div class="label" style="margin-top:0;">Résultat</div>
+        <div class="estimate" id="pmInfo_${m.id}" style="margin-top:6px;"></div>
+        <div id="pmResult_${m.id}"><div class="estimate" style="opacity:.7;">Ton résultat s'affichera ici.</div></div>
+      </div>
+    </div>
   </div>`;
+}
+
+function pmTuile(m) {
+  const vals = m.id === "aleph" ? Object.values(PM_ALEPH_PRIX) : Object.values(m.prix);
+  const min = Math.min(...vals);
+  const [ico, ...reste] = m.nom.split(" ");
+  return `<div class="pmTuile" data-pmouvre="${m.id}" style="--pmc:${PM_COULEURS[m.id] || "#7c3aed"};">
+    <div class="pmIco">${ico}</div>
+    <div class="pmNom">${reste.join(" ")}</div>
+    <div class="pmDesc">${m.desc}</div>
+    <div class="pmDes">${vals.length > 1 ? "dès " : ""}${pmFmt(min)}</div>
+  </div>`;
+}
+function pmOuvrir(id) {
+  document.getElementById("pmTuiles").classList.add("hidden");
+  document.querySelectorAll(".pmPan").forEach(p => p.classList.toggle("hidden", p.id !== "pmPan_" + id));
+  pmMaj(id);
+  try { document.getElementById("sec-premium").scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) {}
+}
+function pmFermer() {
+  document.querySelectorAll(".pmPan").forEach(p => p.classList.add("hidden"));
+  document.getElementById("pmTuiles").classList.remove("hidden");
+}
+// Envoie une chanson (lien ou fichier) vers le carreau Stems, et l'ouvre.
+function pmVersStems(source, nom) {
+  if (typeof source === "string") { pmSel.stems.audioUrl = source; pmSel.stems.audio = null; }
+  else { pmSel.stems.audio = source; pmSel.stems.audioUrl = null; }
+  const z = document.getElementById("pmAudNom_stems");
+  if (z) z.textContent = "✓ " + (nom || "Ta chanson") + " — prête à être séparée";
+  pmOuvrir("stems");
 }
 
 function pmAfficherSolde(d) {
@@ -7046,9 +7121,10 @@ function pmMaj(id) {
   let manque = "";
   if (!getCode()) manque = "Entre d'abord ton code StarClip en haut de la page";
   else if (m.video && !s.video) manque = "Choisis d'abord la vidéo à modifier";
+  else if (m.stems && !s.audio && !s.audioUrl) manque = "Choisis d'abord ta chanson";
   else if (m.photo && !m.photoFacultative && !s.photo) manque = "Choisis d'abord une photo";
   else if (m.chanson && !pmChChoix[id].genre && (document.getElementById("pmStyle_" + id).value.trim().length < 10)) manque = "Choisis un genre (ou décris ton style)";
-  else if (!m.chanson && !m.video && (document.getElementById("pmPrompt_" + id).value.trim().length < 5)) manque = "Décris ta scène";
+  else if (!m.chanson && !m.video && !m.stems && (document.getElementById("pmPrompt_" + id).value.trim().length < 5)) manque = "Décris ta scène";
   else if (m.id === "aleph" && !s.duree) manque = "";  // durée déduite de la vidéo, calculée après le choix du fichier
   const prix = pmPrix(m);
   if (prixEl) prixEl.textContent = prix ? pmFmt(prix) : (m.id === "aleph" ? "Choisis d'abord ta vidéo" : "…");
@@ -7066,7 +7142,7 @@ async function pmChoisirVideo(id, f) {
   const conclure = (sec) => {
     if (fini) return; fini = true;
     if (sec == null) {
-      // v41.122 : impossible de lire la durée dans ce navigateur — on ne bloque
+      // v41.123 : impossible de lire la durée dans ce navigateur — on ne bloque
       // pas le client pour autant. On facture prudemment 10 s ; le vrai coût
       // réel reste vérifié par le Worker à l'envoi (garde-fou anti-dépassement).
       pmSel[id].duree = 10;
@@ -7222,6 +7298,49 @@ async function pmLancer(id) {
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
       info.innerHTML = `<span style="color:var(--ok)">✓ Mini-clip prêt !</span>`;
 
+    } else if (id === "stems") {
+      // v41.123 : 🎚️ séparation des pistes (Demucs). La chanson est d'abord
+      // hébergée si elle vient d'un fichier (ou d'une Chanson Pro).
+      let url = s.audioUrl;
+      if (!url) {
+        if (!s.audio) throw new Error("Choisis d'abord ta chanson.");
+        info.textContent = "Envoi de ta chanson…";
+        url = await hebergerFichier(s.audio, s.audio.name || "chanson.mp3");
+      }
+      info.textContent = "🎚️ Séparation des pistes… (1 à 3 min, ne ferme pas la page)";
+      const rep = await pmSubmit("stems", 0, null, { audio_url: url, six: !!s.six, formats: s.formats || ["mp3"] });
+      const jobs = rep.jobs || [];
+      if (!jobs.length) throw new Error("La séparation n'a pas pu être lancée.");
+      const NOMS = { vocals: "🎤 Voix", drums: "🥁 Batterie", bass: "🎸 Basse", guitar: "🎸 Guitare", piano: "🎹 Piano", other: "🎹 Autres instruments" };
+      let html = "";
+      for (let k = 0; k < jobs.length; k++) {
+        const job = jobs[k], fmt = String(job.format || "mp3").toUpperCase();
+        const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/demucs/requests/${job.request_id}/status`;
+        const responseUrl = job.response_url || `https://queue.fal.run/fal-ai/demucs/requests/${job.request_id}`;
+        info.textContent = `🎚️ Séparation en ${fmt}… (${k + 1}/${jobs.length})`;
+        let fini = false;
+        for (let i = 0; i < 120; i++) {
+          await new Promise(r => setTimeout(r, 4000));
+          const sj = await apiPoll(statusUrl).catch(() => ({}));
+          if (sj.status === "COMPLETED") { fini = true; break; }
+          if (sj.status === "FAILED" || sj.status === "ERROR") break;
+        }
+        if (!fini) continue;
+        const data = await apiPoll(responseUrl).catch(() => ({}));
+        const src = data.response || data;
+        let bloc = "";
+        Object.keys(NOMS).forEach(cle => {
+          const f = src[cle];
+          if (f && f.url) bloc += `<div style="margin-top:8px;"><b>${NOMS[cle]}</b>
+            <audio controls preload="none" style="width:100%; margin-top:2px;" src="${f.url}"></audio>
+            <a class="btn small" href="${f.url}" download target="_blank" rel="noopener" style="display:inline-block; text-decoration:none;">⬇️ ${fmt}</a></div>`;
+        });
+        if (bloc) html += `<div class="label" style="margin-top:12px;">Pistes en ${fmt}</div>` + bloc;
+      }
+      if (!html) throw new Error("Les pistes n'ont pas pu être récupérées.");
+      result.innerHTML = html + `<div class="estimate" style="margin-top:8px;">Télécharge tes pistes maintenant : les liens expirent au bout de quelques jours.</div>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Pistes prêtes !</span>`;
+
     } else if (id === "chanson" || id === "chansonPro") {
       const precis = document.getElementById("pmStyle_" + id).value.trim();
       const paroles = chpStructurer(document.getElementById("pmParoles_" + id).value.trim());
@@ -7229,12 +7348,12 @@ async function pmLancer(id) {
       const style = await chpProducteur(pmChChoix[id], precis, 1800);
 
       if (id === "chansonPro") {
-        // v41.122 : ⭐ Chanson Pro (ElevenLabs) — 1 seule version, DURÉE
+        // v41.123 : ⭐ Chanson Pro (ElevenLabs) — 1 seule version, DURÉE
         // TOUJOURS BORNÉE (≈ 1 min 55, sous le seuil des 2 min facturées) afin
         // que le coût réel reste connu d'avance, quelle que soit la longueur
         // des paroles collées par le client (le Worker reborne aussi, par
         // sécurité). Sans paroles : mode simple, l'IA compose tout elle-même.
-        // v41.122 : ElevenLabs en DIRECT via /premium/musique (0,15 $/min).
+        // v41.123 : ElevenLabs en DIRECT via /premium/musique (0,15 $/min).
         // La consigne est découpée en petites phrases de style (le format
         // « composition plan » d'ElevenLabs attend des listes courtes).
         const phrases = style.split(/[.;]\s+|,\s+(?=[A-Z])/).map(x => x.trim()).filter(x => x.length > 2).slice(0, 12).map(x => x.slice(0, 180));
@@ -7247,7 +7366,7 @@ async function pmLancer(id) {
           const GABARIT = [["Intro", 8000, ["instrumental intro"]], ["Verse", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]],
                            ["Verse", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]], ["Bridge", 12000, ["bridge", "contrast"]],
                            ["Chorus", 16000, ["final chorus", "biggest energy"]], ["Outro", 8000, ["instrumental outro", "gentle ending"]]];
-          // v41.122 : durée visée selon le palier choisi (2 min, 3 min, 3 min 50).
+          // v41.123 : durée visée selon le palier choisi (2 min, 3 min, 3 min 50).
           const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[pmSel.chansonPro.duree] || 115000;
           const baseMs = GABARIT.reduce((n, g) => n + g[1], 0);
           GABARIT.forEach(g => { g[1] = Math.round(g[1] * cibleMs / baseMs); });
@@ -7286,7 +7405,10 @@ async function pmLancer(id) {
         result.innerHTML = `<div style="margin-top:10px;"><b>⭐ Ta chanson</b>
           <audio controls style="width:100%; margin-top:4px;" src="${url}"></audio>
           <a class="btn small" href="${url}" download="StarClip-Chanson-Pro.mp3" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger le MP3</a>
-          <div class="estimate" style="margin-top:4px;">Télécharge-la maintenant : elle n'est pas gardée sur le serveur.</div></div>`;
+          <div class="estimate" style="margin-top:4px;">Télécharge-la maintenant : elle n'est pas gardée sur le serveur.</div>
+          <button class="chip" id="pmVersStemsPro" style="margin-top:8px;">🎚️ Extraire les stems de cette chanson</button></div>`;
+        const fichierPro = new File([blob], "StarClip-Chanson-Pro.mp3", { type: "audio/mpeg" });
+        document.getElementById("pmVersStemsPro").onclick = () => pmVersStems(fichierPro, "Ta Chanson Pro");
         info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`;
         return;
       }
@@ -7315,7 +7437,9 @@ async function pmLancer(id) {
       if (!urls.length) throw new Error("Chanson introuvable dans la réponse.");
       result.innerHTML = urls.map((u, i) => `<div style="margin-top:10px;"><b>Version ${i + 1}</b>
         <audio controls style="width:100%; margin-top:4px;" src="${u}"></audio>
-        <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a></div>`).join("");
+        <a class="btn small" href="${u}" download target="_blank" rel="noopener" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>
+        <button class="chip" data-versstems="${i}" style="margin-top:6px;">🎚️ Extraire les stems</button></div>`).join("");
+      result.querySelectorAll("[data-versstems]").forEach(b => b.onclick = () => pmVersStems(urls[+b.dataset.versstems], "Version " + (+b.dataset.versstems + 1)));
       info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`;
     }
   } catch (e) {
@@ -7326,7 +7450,7 @@ async function pmLancer(id) {
 }
 
 
-// ═══════════ v41.122 : 🎟️ GESTION DES CODES (admin) ═══════════
+// ═══════════ v41.123 : 🎟️ GESTION DES CODES (admin) ═══════════
 // Créer des codes STAR-XXXX (avec ou sans solde Admin Premium 5.0) et
 // recharger le Premium d'un code existant, sans quitter l'app.
 (function acInit() {
@@ -7424,7 +7548,10 @@ async function pmLancer(id) {
 (function pmInit() {
   const box = document.getElementById("pmListe");
   if (!box) return;
-  box.innerHTML = PM_MOTEURS.map(pmCarte).join("");
+  pmSel.stems.six = false; pmSel.stems.formats = ["mp3"]; pmSel.stems.audio = null; pmSel.stems.audioUrl = null;
+  box.innerHTML = `<div class="pmTuiles" id="pmTuiles">` + PM_MOTEURS.map(pmTuile).join("") + `</div>` + PM_MOTEURS.map(pmCarte).join("");
+  box.querySelectorAll("[data-pmouvre]").forEach(t => t.onclick = () => pmOuvrir(t.dataset.pmouvre));
+  box.querySelectorAll(".pmRetour").forEach(b => b.onclick = pmFermer);
   PM_MOTEURS.forEach(m => {
     const box2 = document.getElementById("pmDur_" + m.id);
     if (box2) box2.querySelectorAll(".chip").forEach(c => c.onclick = () => {
@@ -7456,14 +7583,33 @@ async function pmLancer(id) {
       document.getElementById("pmStyle_" + m.id).addEventListener("input", () => pmMaj(m.id));
       document.getElementById("pmParoles_" + m.id).addEventListener("input", () => pmMaj(m.id));
     }
-    if (!m.chanson && !m.video) document.getElementById("pmPrompt_" + m.id).addEventListener("input", () => pmMaj(m.id));
+    if (m.stems) {
+      const b = document.getElementById("pmAudBtn_" + m.id), inp = document.getElementById("pmAudInput_" + m.id);
+      b.onclick = () => inp.click();
+      inp.onchange = (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        if (f.size > 100 * 1024 * 1024) { document.getElementById("pmAudNom_" + m.id).textContent = "⚠️ Fichier trop lourd (100 Mo maximum)."; return; }
+        pmSel.stems.audio = f; pmSel.stems.audioUrl = null;
+        document.getElementById("pmAudNom_" + m.id).textContent = "✓ " + f.name;
+        pmMaj(m.id);
+      };
+      document.querySelectorAll("#pmStPistes .chip").forEach(c => c.onclick = () => {
+        pmSel.stems.six = c.dataset.six === "1";
+        document.querySelectorAll("#pmStPistes .chip").forEach(x => x.classList.toggle("on", x === c));
+      });
+      document.querySelectorAll("#pmStFormat .chip").forEach(c => c.onclick = () => {
+        pmSel.stems.formats = c.dataset.fmt.split(",");
+        document.querySelectorAll("#pmStFormat .chip").forEach(x => x.classList.toggle("on", x === c));
+      });
+    }
+    if (!m.chanson && !m.video && !m.stems) document.getElementById("pmPrompt_" + m.id).addEventListener("input", () => pmMaj(m.id));
     document.getElementById("pmGo_" + m.id).onclick = () => pmLancer(m.id);
     pmMaj(m.id);
   });
 })();
 
 
-// ═══════════ v41.122 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
+// ═══════════ v41.123 : EFFETS PHOTO EN UN GESTE (codes /4K, /cinematic…) ═══════════
 // Même moteur que la retouche (nano-banana/edit), mais chaque effet porte son
 // anglais FIXE, relu mot à mot — aucune traduction aléatoire. Seule la
 // « précision » libre (lieu, métier) passe par la traduction ; les TEXTES à écrire
@@ -7530,7 +7676,7 @@ const EF = [
     ["/blackwhite", "Convert to artistic high-contrast black and white photography."],
   ]],
 ];
-// v41.122 : /together se décline — une POSE et un LIEU au choix, chacun avec son
+// v41.123 : /together se décline — une POSE et un LIEU au choix, chacun avec son
 // anglais fixe. La case « Précision » reste libre pour tout le reste.
 const EF_POSES = [
   ["💞 Complices", "They stand close together as an affectionate couple: one has an arm around the other's shoulder, they gently hold hands and smile at each other, both faces clearly visible."],
@@ -7623,7 +7769,7 @@ function efRefresh() {
 }
 document.getElementById("efDetail").addEventListener("input", efRefresh);
 document.getElementById("efTogLieu").addEventListener("input", efRefresh);
-// v41.122 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
+// v41.123 : deux carrés côte à côte. Gauche = photo principale, droite = 2e photo.
 function efPose(n, url, nom) {
   const slot = document.getElementById(n === 1 ? "efSlot1" : "efSlot2");
   if (n === 1) efSource = url; else efSource2 = url;
@@ -8344,6 +8490,7 @@ fxRefresh();
     numeroter(tab === 'tout');
     // v40.3 : marque l'onglet actif sur le body (utilisé par le CSS pour la mise en page).
     document.body.classList.toggle('tab-scenario', tab === 'scenario');
+    document.body.classList.toggle('tab-premium', tab === 'premium');   // v41.123
     // v40.5 : le bouton « Générer », la barre de statut et le résultat n'appartiennent
     // à aucun volet. Ils ne concernent QUE la génération vidéo : on les affiche donc
     // uniquement dans l'onglet Scénario et dans « Tout voir » — ailleurs ils créaient
@@ -8582,7 +8729,7 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
   document.getElementById("admCarteChanson").onclick = () => admVue("chanson");
-  document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.122
+  document.getElementById("admCarteCodes").onclick = () => admVue("codes");   // v41.123
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
   zone.addEventListener("click", admGeste);
@@ -8610,7 +8757,7 @@ function admVue(quoi) {
   if (pmo) pmo.classList.toggle("hidden", quoi !== "montage");
   const pch = document.getElementById("admPageChanson");
   if (pch) pch.classList.toggle("hidden", quoi !== "chanson");
-  const pco = document.getElementById("admPageCodes");   // v41.122
+  const pco = document.getElementById("admPageCodes");   // v41.123
   if (pco) pco.classList.toggle("hidden", quoi !== "codes");
   // Le bouton Retour n'a de sens que dans un espace de travail.
   ret.classList.toggle("hidden", quoi === "choix");
@@ -9591,7 +9738,7 @@ document.querySelectorAll("#sdModeChips .chip").forEach(c => {
 // Le spec autorise 30 images. Les deux boutons remplissent la MÊME liste :
 // changer de mode ne fait pas perdre les images déjà choisies.
 function sdMajListeImages() {
-  // v41.122 : bouton ✕ pour retirer une image — manquait ici alors qu'il
+  // v41.123 : bouton ✕ pour retirer une image — manquait ici alors qu'il
   // existe déjà pour Aleph (alMajRefListe) et le Moteur A (fsMajListe).
   // Sans lui, une image ajoutée par erreur (ex. Naya) restait bloquée et
   // faisait échouer toutes les générations suivantes sans recours.
@@ -10282,7 +10429,7 @@ const CH_STYLES = [
 ];
 const CH_BALISES = ["[Intro]", "[Verse]", "[Pre Chorus]", "[Chorus]", "[Hook]", "[Bridge]", "[Outro]"];
 
-// v41.122 : choix du Producteur IA pour la page admin.
+// v41.123 : choix du Producteur IA pour la page admin.
 const chpChoixAdmin = { genre: null, voix: null, langue: null, ambiance: null };
 let chpAdminProduit = false;
 async function chpAdminProduire() {
@@ -10432,7 +10579,7 @@ function chRefresh() {
   const style = document.getElementById("chStyle");
   if (!style) return;
 
-  // v41.122 : genre + voix + langue + ambiance → consigne de producteur
+  // v41.123 : genre + voix + langue + ambiance → consigne de producteur
   // détaillée en anglais (voir le module 🎛️ PRODUCTEUR IA).
   const majStyleLocal = () => {
     style.value = chpComposerLocal(chpChoixAdmin, "", chMode === "reprise" ? CH_COVER_STYLE_MAX : CH_STYLE_MAX);
@@ -10579,7 +10726,7 @@ function chRefresh() {
         audioUrl = await hebergerFichier(chDemoFichier, chDemoFichier.name || "demo.mp3");
         chLog("DÉMO HÉBERGÉE", { fichier: chDemoFichier.name, octets: chDemoFichier.size });
       }
-      // v41.122 : style de producteur + paroles structurées, AVANT l'envoi.
+      // v41.123 : style de producteur + paroles structurées, AVANT l'envoi.
       if (!chpAdminProduit) {
         chSetStatus("🎛️ Le Producteur IA prépare le style…", 7);
         try { await chpAdminProduire(); } catch (e) {}
