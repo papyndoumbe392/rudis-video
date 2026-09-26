@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.137 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.138 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2200,7 +2200,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.137</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.138</span>
 
   </footer>
 </div>
@@ -4883,6 +4883,29 @@ async function hebergerFichier(source, nom) {
   }
   throw new Error("Envoi du fichier impossible après 3 tentatives (" + dernier
     + "). Ta connexion a coupé pendant l'envoi : rapproche ton téléphone de la fenêtre, garde son écran allumé, et réessaie.");
+}
+// v41.138 : même chose, mais authentifiée par le PIN admin (espace Studio),
+// sans code client — pour les fichiers volumineux (ex. Chanson Pro en WAV,
+// bien au-delà de la limite d'un envoi en data URI).
+async function hebergerFichierAdmin(source, nom) {
+  nom = nomSur(nom);
+  const type = source.type || "application/octet-stream";
+  const init = await fetch(WORKER_URL + "/admin/upload-init", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin: admPin(), content_type: type, file_name: nom }),
+  });
+  const d = await init.json().catch(() => ({}));
+  if (!init.ok || !d.upload_url) throw new Error(d.error || "Hébergement refusé.");
+  let dernier = "";
+  for (let essai = 1; essai <= 3; essai++) {
+    try {
+      const put = await fetch(d.upload_url, { method: "PUT", headers: { "Content-Type": type }, body: source });
+      if (put.ok) return d.file_url;
+      dernier = "code " + put.status;
+    } catch (e) { dernier = e.message; }
+    if (essai < 3) await new Promise(r => setTimeout(r, 1200));
+  }
+  throw new Error("Envoi du fichier impossible (" + dernier + "). Vérifie ta connexion et réessaie.");
 }
 
 // v41.123 : ISOLER LA VOIX AVANT LE LIP-SYNC.
@@ -7721,13 +7744,18 @@ async function pmLancer(id) {
       }
 
     } else if (id === "stems") {
-      // v41.123 : 🎚️ séparation des pistes (Demucs). La chanson est d'abord
-      // hébergée si elle vient d'un fichier (ou d'une Chanson Pro).
+      // v41.138 : 🎚️ séparation des pistes (Demucs). La chanson est d'abord
+      // hébergée si elle vient d'un fichier (ou d'une Chanson Pro). Sans code
+      // client actif (ex. Chanson Pro générée en mode Studio, via le PIN),
+      // hebergerFichier échouait ("Code inconnu") — repli en data URI pour
+      // les fichiers de moins de 15 Mo, comme le fait déjà le Studio.
       let url = s.audioUrl;
       if (!url) {
         if (!s.audio) throw new Error("Choisis d'abord ta chanson.");
         maj("Envoi de ta chanson…");
-        url = await hebergerFichier(s.audio, s.audio.name || "chanson.mp3");
+        if (getCode()) url = await hebergerFichier(s.audio, s.audio.name || "chanson.mp3");
+        else if (s.audio.size <= 15 * 1024 * 1024) url = await pmDataUri(s.audio);
+        else throw new Error("Pour un gros fichier, entre d'abord ton code StarClip en haut de la page (il sert à l'envoi).");
       }
       maj("🎚️ Séparation des pistes… (1 à 3 min, ne ferme pas la page)");
       const rep = await pmSubmit("stems", 0, null, { audio_url: url, six: !!s.six, formats: s.formats || ["mp3"] });
@@ -7843,7 +7871,12 @@ async function pmLancer(id) {
           <div id="${zoneMp3Id}" style="margin-top:6px;">${formatAudio === "wav" ? '<span class="dim" style="font-size:13px;">🎧 Préparation d\u2019un MP3 rapide…</span>' : ''}</div>
           <button class="chip" id="pmVersStemsPro" style="margin-top:8px;">🎚️ Extraire les stems de cette chanson</button></div>`;
         const fichierPro = new File([blob], nomFichier, { type: mime });
-        document.getElementById("pmVersStemsPro").onclick = () => pmVersStems(fichierPro, "Ta Chanson Pro");
+        // v41.138 : en mode Studio → panneau Stems gratuit (PIN) ; sinon,
+        // parcours client habituel (payant, 499 FCFA).
+        document.getElementById("pmVersStemsPro").onclick = () => {
+          if (pmModeStudio) admStemsDepuisFichier(fichierPro, "Ta Chanson Pro");
+          else pmVersStems(fichierPro, "Ta Chanson Pro");
+        };
         info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`; rwRondFini(pfx, "✓ Chanson prête !");
         // v41.129 : fabrique le MP3 rapide EN PLUS du WAV, dans le navigateur
         // (aucun coût, aucune nouvelle génération — voir wavVersMp3 plus haut).
@@ -11373,6 +11406,16 @@ function admStemsDepuis(url, nom) {
   document.getElementById("asNom").textContent = "✓ " + (nom || "Ta chanson") + " — prête à être séparée";
   admVue("stems"); asMaj();
 }
+// v41.138 : même chose, mais depuis un fichier local (ex. Chanson Pro générée
+// en mode Studio) — rouvre l'écran Studio (replié pour Chanson Pro) et
+// affiche le panneau Stems avec ce fichier déjà choisi.
+function admStemsDepuisFichier(fichier, nom) {
+  asSt.audio = fichier; asSt.url = null;
+  const z = document.getElementById("adminZone");
+  if (z) { z.classList.remove("hidden"); document.body.style.overflow = "hidden"; }
+  document.getElementById("asNom").textContent = "✓ " + (nom || fichier.name || "Ta chanson") + " — prête à être séparée";
+  admVue("stems"); asMaj();
+}
 (function asInit() {
   const btn = document.getElementById("asFichierBtn"); if (!btn) return;
   const inp = document.getElementById("asFichierInput");
@@ -11398,7 +11441,11 @@ function admStemsDepuis(url, nom) {
       let url = asSt.url;
       if (!url) {
         info.textContent = "Envoi de la chanson…";
-        if (typeof getCode === "function" && getCode()) {
+        // v41.138 : PIN admin d'abord (aucune limite de taille, ex. WAV de
+        // Chanson Pro) ; repli data URI seulement si le PIN n'est pas dispo.
+        if (typeof admPin === "function" && admPin()) {
+          url = await hebergerFichierAdmin(asSt.audio, asSt.audio.name || "chanson.mp3");
+        } else if (typeof getCode === "function" && getCode()) {
           url = await hebergerFichier(asSt.audio, asSt.audio.name || "chanson.mp3");
         } else if (asSt.audio.size <= 15 * 1024 * 1024) {
           url = await pmDataUri(asSt.audio);   // petit fichier : envoyé directement
