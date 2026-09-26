@@ -7580,16 +7580,26 @@ async function pmLancer(id) {
           const d = await rep.json().catch(() => ({}));
           throw new Error(d.error || ("Le studio a refusé (" + rep.status + ")"));
         }
+        // v41.128 : le Worker renvoie soit un vrai WAV (qualité studio),
+        // soit un MP3 de secours si le compte ElevenLabs n'a pas encore
+        // le forfait qui débloque le WAV — indiqué par X-Audio-Format.
+        const formatAudio = (rep.headers.get("X-Audio-Format") || (/wav/i.test(typ) ? "wav" : "mp3")).toLowerCase();
+        const ext = formatAudio === "wav" ? "wav" : "mp3";
+        const mime = formatAudio === "wav" ? "audio/wav" : "audio/mpeg";
+        const nomFichier = "StarClip-Chanson-Pro." + ext;
         const blob = await rep.blob();
         const url = URL.createObjectURL(blob);
         const soldeTxt = rep.headers.get("X-Premium-Solde");
         if (soldeTxt && typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: Number(soldeTxt) });
+        const noteFormat = formatAudio === "wav" ? "" :
+          `<div class="estimate" style="margin-top:4px; color:var(--dim);">⚠️ Livrée en MP3 cette fois : le compte ElevenLabs du studio n'est pas encore au forfait qui débloque le WAV.</div>`;
         result.innerHTML = `<div style="margin-top:10px;"><b>⭐ Ta chanson</b>
           <audio controls style="width:100%; margin-top:4px;" src="${url}"></audio>
-          <a class="btn small" href="${url}" download="StarClip-Chanson-Pro.mp3" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger le MP3</a>
+          <a class="btn small" href="${url}" download="${nomFichier}" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger le ${ext.toUpperCase()}</a>
           <div class="estimate" style="margin-top:4px;">Télécharge-la maintenant : elle n'est pas gardée sur le serveur.</div>
+          ${noteFormat}
           <button class="chip" id="pmVersStemsPro" style="margin-top:8px;">🎚️ Extraire les stems de cette chanson</button></div>`;
-        const fichierPro = new File([blob], "StarClip-Chanson-Pro.mp3", { type: "audio/mpeg" });
+        const fichierPro = new File([blob], nomFichier, { type: mime });
         document.getElementById("pmVersStemsPro").onclick = () => pmVersStems(fichierPro, "Ta Chanson Pro");
         info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`; rwRondFini(pfx, "✓ Chanson prête !");
         return;
