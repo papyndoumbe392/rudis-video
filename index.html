@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.128 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.129 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2180,12 +2180,17 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.128</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.129</span>
 
   </footer>
 </div>
 
 <script src="config.js"></script>
+<!-- v41.129 : encodeur MP3 pur JavaScript (aucune donnée envoyée nulle part) —
+     sert à fabriquer le "MP3 rapide" de Chanson Pro à partir du WAV déjà
+     généré, sans redemander une chanson à ElevenLabs (donc sans nouveau coût,
+     et surtout sans risque d'obtenir une chanson DIFFÉRENTE de celle du WAV). -->
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
 <script>
 // ═══ v41.77 · QUALITÉ DES RETOUCHES D'IMAGE ═══
 // Deux moteurs Google, mêmes champs, qualités et prix différents :
@@ -6997,6 +7002,42 @@ async function chpProducteur(choix, precisions, maxLen, moteurCible) {
   } catch (e) { return base; }
 }
 
+// v41.129 : ⚡ MP3 RAPIDE — dérivé du WAV déjà reçu, dans le navigateur du
+// client, avec lamejs (encodeur MP3 pur JavaScript). AUCUN appel serveur,
+// donc AUCUN coût ElevenLabs supplémentaire, et surtout : c'est EXACTEMENT
+// la même performance que le WAV (pas une nouvelle génération, qui donnerait
+// une chanson différente — le modèle n'est pas déterministe).
+async function wavVersMp3(blobWav) {
+  const tampon = await blobWav.arrayBuffer();
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx();
+  let audioBuf;
+  try { audioBuf = await ctx.decodeAudioData(tampon.slice(0)); }
+  finally { try { ctx.close(); } catch (_) {} }
+  const canaux = audioBuf.numberOfChannels;
+  const versInt16 = (f32) => {
+    const i16 = new Int16Array(f32.length);
+    for (let i = 0; i < f32.length; i++) {
+      const s = Math.max(-1, Math.min(1, f32[i]));
+      i16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+    return i16;
+  };
+  const gauche = versInt16(audioBuf.getChannelData(0));
+  const droite = canaux > 1 ? versInt16(audioBuf.getChannelData(1)) : null;
+  const encodeur = new lamejs.Mp3Encoder(canaux, audioBuf.sampleRate, 128);
+  const morceaux = [];
+  const taille = 1152; // taille de bloc imposée par lamejs
+  for (let i = 0; i < gauche.length; i += taille) {
+    const segG = gauche.subarray(i, i + taille);
+    const buf = droite ? encodeur.encodeBuffer(segG, droite.subarray(i, i + taille)) : encodeur.encodeBuffer(segG);
+    if (buf.length > 0) morceaux.push(buf);
+  }
+  const fin = encodeur.flush();
+  if (fin.length > 0) morceaux.push(fin);
+  return new Blob(morceaux, { type: "audio/mpeg" });
+}
+
 // Paroles sans balises → structure [Intro] / [Verse] / [Chorus] / [Outro].
 // Le bloc qui revient (ou, à défaut, le 2e bloc) devient le refrain : sans
 // structure, le moteur chante tout d'un bloc, sans vrai refrain.
@@ -7593,15 +7634,33 @@ async function pmLancer(id) {
         if (soldeTxt && typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: Number(soldeTxt) });
         const noteFormat = formatAudio === "wav" ? "" :
           `<div class="estimate" style="margin-top:4px; color:var(--dim);">⚠️ Livrée en MP3 cette fois : le compte ElevenLabs du studio n'est pas encore au forfait qui débloque le WAV.</div>`;
+        // v41.129 : emplacement du MP3 rapide — rempli en tâche de fond juste
+        // après (voir plus bas), sans retarder l'affichage de la chanson.
+        const zoneMp3Id = "pmMp3Zone_" + id;
         result.innerHTML = `<div style="margin-top:10px;"><b>⭐ Ta chanson</b>
           <audio controls style="width:100%; margin-top:4px;" src="${url}"></audio>
           <a class="btn small" href="${url}" download="${nomFichier}" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger le ${ext.toUpperCase()}</a>
           <div class="estimate" style="margin-top:4px;">Télécharge-la maintenant : elle n'est pas gardée sur le serveur.</div>
           ${noteFormat}
+          <div id="${zoneMp3Id}" style="margin-top:6px;">${formatAudio === "wav" ? '<span class="dim" style="font-size:13px;">🎧 Préparation d\u2019un MP3 rapide…</span>' : ''}</div>
           <button class="chip" id="pmVersStemsPro" style="margin-top:8px;">🎚️ Extraire les stems de cette chanson</button></div>`;
         const fichierPro = new File([blob], nomFichier, { type: mime });
         document.getElementById("pmVersStemsPro").onclick = () => pmVersStems(fichierPro, "Ta Chanson Pro");
         info.innerHTML = `<span style="color:var(--ok)">✓ Chanson prête !</span>`; rwRondFini(pfx, "✓ Chanson prête !");
+        // v41.129 : fabrique le MP3 rapide EN PLUS du WAV, dans le navigateur
+        // (aucun coût, aucune nouvelle génération — voir wavVersMp3 plus haut).
+        // Amateurs pressés / partage rapide : ils n'ont pas besoin du WAV.
+        if (formatAudio === "wav") {
+          wavVersMp3(blob).then(mp3Blob => {
+            const zone = document.getElementById(zoneMp3Id);
+            if (!zone) return;
+            const urlMp3 = URL.createObjectURL(mp3Blob);
+            zone.innerHTML = `<a class="btn small" href="${urlMp3}" download="StarClip-Chanson-Pro.mp3" style="display:inline-block; text-decoration:none;">🎧 Télécharger le MP3 rapide (pour écouter/partager vite)</a>`;
+          }).catch(() => {
+            const zone = document.getElementById(zoneMp3Id);
+            if (zone) zone.innerHTML = "";
+          });
+        }
         return;
       }
 
