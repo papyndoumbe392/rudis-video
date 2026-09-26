@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.135 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.136 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2200,7 +2200,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.135</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.136</span>
 
   </footer>
 </div>
@@ -7815,6 +7815,9 @@ async function pmLancer(id) {
         // soit un MP3 de secours si le compte ElevenLabs n'a pas encore
         // le forfait qui débloque le WAV — indiqué par X-Audio-Format.
         const formatAudio = (rep.headers.get("X-Audio-Format") || (/wav/i.test(typ) ? "wav" : "mp3")).toLowerCase();
+        // v41.136 : quel moteur a réellement composé (music_v2_5 ou music_v2 de repli).
+        const moteurUtilise = rep.headers.get("X-Music-Model") || "";
+        const repliMoteur = rep.headers.get("X-Music-Fallback") || "";
         const ext = formatAudio === "wav" ? "wav" : "mp3";
         const mime = formatAudio === "wav" ? "audio/wav" : "audio/mpeg";
         const nomFichier = "StarClip-Chanson-Pro." + ext;
@@ -7824,6 +7827,10 @@ async function pmLancer(id) {
         if (soldeTxt && typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: Number(soldeTxt) });
         const noteFormat = formatAudio === "wav" ? "" :
           `<div class="estimate" style="margin-top:4px; color:var(--dim);">⚠️ Livrée en MP3 cette fois : le compte ElevenLabs du studio n'est pas encore au forfait qui débloque le WAV.</div>`;
+        // v41.136 : signale un repli sur l'ancien moteur (music_v2), avec le motif exact.
+        const noteMoteur = (moteurUtilise === "music_v2" && repliMoteur)
+          ? `<div class="estimate" style="margin-top:4px; color:var(--dim);">⚠️ Composée avec l'ancien moteur (music_v2) : le nouveau (v2.5) a refusé — ${repliMoteur.replace(/[<>&]/g, "")}</div>`
+          : "";
         // v41.129 : emplacement du MP3 rapide — rempli en tâche de fond juste
         // après (voir plus bas), sans retarder l'affichage de la chanson.
         const zoneMp3Id = "pmMp3Zone_" + id;
@@ -7832,6 +7839,7 @@ async function pmLancer(id) {
           <a class="btn small" href="${url}" download="${nomFichier}" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger le ${ext.toUpperCase()}</a>
           <div class="estimate" style="margin-top:4px;">Télécharge-la maintenant : elle n'est pas gardée sur le serveur.</div>
           ${noteFormat}
+          ${noteMoteur}
           <div id="${zoneMp3Id}" style="margin-top:6px;">${formatAudio === "wav" ? '<span class="dim" style="font-size:13px;">🎧 Préparation d\u2019un MP3 rapide…</span>' : ''}</div>
           <button class="chip" id="pmVersStemsPro" style="margin-top:8px;">🎚️ Extraire les stems de cette chanson</button></div>`;
         const fichierPro = new File([blob], nomFichier, { type: mime });
