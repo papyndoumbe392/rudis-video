@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.136 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.137 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2200,7 +2200,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.136</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.137</span>
 
   </footer>
 </div>
@@ -9190,7 +9190,18 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
 
   // ◆ en pied de page : ouvre l'écran de saisie (jamais l'espace directement).
   ouvre.onclick = () => {
-    if (admSession) { admFermerSession(""); return; }
+    // v41.137 : distinguer « replié le temps de lancer Chanson Pro » (session
+    // encore valide, écran caché) de « vraiment ouvert ». Avant, une session
+    // active fermait toujours le PIN au clic — même si l'écran était déjà
+    // replié, ce qui rendait impossible d'y revenir sans retaper le PIN.
+    if (admSession && !zone.classList.contains("hidden")) { admFermerSession(""); return; }
+    if (admSession) {
+      zone.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      admVue("choix");
+      zone.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
     zone.classList.remove("hidden");
     // v41.52 : si cet appareil a mémorisé le PIN il y a moins de 24 h, on
     // ouvre directement l'espace — c'est tout l'intérêt de l'option.
@@ -9248,9 +9259,16 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   // v41.135 : ⭐ Chanson Pro du Studio → ouvre le panneau Chanson Pro en mode Studio
   const cPro = document.getElementById("admCarteChansonPro");
   if (cPro) cPro.onclick = () => {
+    // v41.137 : l'espace Studio est un plein écran (position:fixed, au-dessus
+    // de tout) — changer d'onglet EN DESSOUS ne se voyait pas, l'utilisateur
+    // avait l'impression que rien ne s'ouvrait. On replie juste l'écran du
+    // Studio (sans fermer la session : le PIN reste mémorisé pour le lancement).
+    const z = document.getElementById("adminZone");
+    if (z) z.classList.add("hidden");
+    document.body.style.overflow = "";
     const t = document.querySelector('#tabbar .qnav[data-tab="premium"]');
     if (t) t.click();
-    setTimeout(() => { pmOuvrir("chansonPro"); pmModeStudio = true; pmStudioMaj(); }, 500);
+    setTimeout(() => { pmOuvrir("chansonPro"); pmModeStudio = true; pmStudioMaj(); }, 200);
   };
   document.getElementById("admCarteCodes").onclick = () => window.open("admin.html", "_blank");   // v41.127 : une seule page d'admin   // v41.123
   document.getElementById("admCarteStems").onclick = () => admVue("stems");   // stems studio
