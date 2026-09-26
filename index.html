@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.133 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.135 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1258,6 +1258,18 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">Balises [Intro] [Verse] [Chorus] comme tu les connais. Sortie <b>WAV sans perte</b> pour les stems dans AutoMixPro.</p>
           <div class="admCartePied">Jusqu'à 3500 signes de paroles · usage commercial</div>
         </div>
+        <!-- v41.135 : ⭐ Chanson Pro dans l'espace Studio (ElevenLabs Music v2.5, gratuit via le PIN) -->
+        <div class="card admCarte" id="admCarteChansonPro" style="border-color:#c026d3;">
+          <div class="admCarteTete">
+          <div class="admCarteVignette"><span class="puce">⭐</span></div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#c026d3;">CHANSON PRO</h2>
+              <div class="admCarteSous">ELEVENLABS MUSIC V2.5 · WAV</div>
+            </div>
+          </div>
+          <p class="sub" style="margin:10px 0 0;">Le moteur haut de gamme des clients, <b>gratuit pour le studio</b> (ton PIN). Vrai WAV + MP3 rapide, intros adaptées au genre, « Copier le style d'une chanson ».</p>
+          <div class="admCartePied">2 min · 3 min · 3 min 50 · seul coût : ElevenLabs (~0,15 $/min)</div>
+        </div>
         <div class="card admCarte" id="admCarteMontage" style="border-color:#f0abfc;">
           <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🎼</span><img src="vignette-montage.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
@@ -1428,6 +1440,14 @@
         <div class="chips" id="chLangueChips" style="margin-bottom:6px;"></div>
         <div class="label">Ambiance</div>
         <div class="chips" id="chAmbChips" style="margin-bottom:8px;"></div>
+        <!-- v41.134 : 🎧 copier le style d'une chanson, aussi dans l'espace Studio -->
+        <div style="border:1px dashed var(--line); border-radius:10px; padding:8px 10px; margin:6px 0 8px;">
+          <b>🎧 Copier le style d'une chanson</b>
+          <div class="hint" style="margin-top:2px;">Envoie une chanson modèle : l'IA écoute et écrit son <b>style</b> (genre, tempo, instruments, intro, voix, mixage) dans la case ci-dessous. On reprend le style, jamais la mélodie ni les paroles.</div>
+          <button class="chip" id="chRefStyleBtn" style="margin-top:6px;">📂 Choisir la chanson modèle</button>
+          <input type="file" id="chRefStyleInput" accept="audio/*" style="display:none;">
+          <div class="estimate" id="chRefStyleInfo"></div>
+        </div>
         <textarea id="chStyle" rows="5" placeholder="Choisis un genre ci-dessus, ou décris ton style (ex : afro pop romantique, voix de femme, guitare douce, refrain très accrocheur)."></textarea>
         <button class="chip" id="chProdBtn" style="margin-top:8px;">✨ Producteur IA — rendre le style pro maintenant</button>
         <div class="estimate" id="chProdInfo"></div>
@@ -2180,7 +2200,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.133</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.135</span>
 
   </footer>
 </div>
@@ -7085,14 +7105,21 @@ async function telechargerPistesZip(pistes, nomZip, bouton) {
 // n'est jamais envoyée au générateur, donc ni sa mélodie ni ses paroles ne
 // peuvent être recopiées — on copie la « recette », pas le plat.
 // Coût : quelques centimes de centime ; rien n'est débité au client.
-async function chpCopierStyle(fichier, maj) {
-  if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de la page.");
+async function chpCopierStyle(fichier, maj, studio) {
+  // v41.134 : studio = true → espace Studio : passe par le PIN admin
+  // (fsSubmit/fsPoll), comme les autres moteurs du Studio. Sinon : code client.
+  if (!studio && !getCode()) throw new Error("Entre d'abord ton code StarClip en haut de la page.");
   if (fichier.size > 60 * 1024 * 1024) throw new Error("Fichier trop lourd (60 Mo max). Envoie plutôt un MP3.");
   maj("Envoi de la chanson modèle…");
-  const url = await hebergerFichier(fichier, fichier.name || "modele.mp3");
+  let url;
+  if (getCode()) url = await hebergerFichier(fichier, fichier.name || "modele.mp3");
+  else if (fichier.size <= 15 * 1024 * 1024) url = await pmDataUri(fichier);
+  else throw new Error("Pour un gros fichier, entre d'abord ton code StarClip en haut de la page (il sert à l'envoi), ou envoie un MP3 plus léger.");
   maj("🎧 L'IA écoute la chanson et décrit son style… (20 s à 1 min)");
   const path = "openrouter/router/audio";
-  const job = await apiSubmit(path, {
+  const envoi = studio ? fsSubmit : apiSubmit;
+  const suivi = studio ? fsPoll : apiPoll;
+  const job = await envoi(path, {
     audio_url: url,
     model: "google/gemini-2.5-flash",
     system_prompt:
@@ -7107,12 +7134,12 @@ async function chpCopierStyle(fichier, maj) {
   let fini = false;
   for (let i = 0; i < 45; i++) {
     await new Promise(r => setTimeout(r, 2000));
-    const sj = await apiPoll(st).catch(() => ({}));
+    const sj = await suivi(st).catch(() => ({}));
     if (sj.status === "COMPLETED") { fini = true; break; }
     if (sj.status === "FAILED" || sj.status === "ERROR") break;
   }
   if (!fini) throw new Error("L'analyse n'a pas abouti. Réessaie, ou avec un extrait plus court.");
-  const data = await apiPoll(rp);
+  const data = await suivi(rp);
   const out = String(data.output || data.response?.output || "").trim().replace(/^["'«]+|["'»]+$/g, "");
   if (out.length < 60) throw new Error("L'IA n'a pas pu décrire ce style. Essaie une autre chanson.");
   return out.slice(0, 1200);
@@ -7272,6 +7299,7 @@ function pmCarte(m) {
     : "";
   return `<div class="hidden pmPan" id="pmPan_${m.id}" style="border:1px solid var(--line); border-top:4px solid ${PM_COULEURS[m.id] || "#7c3aed"}; border-radius:14px; padding:12px 14px; margin-top:12px;">
     <button class="chip pmRetour" style="margin-bottom:10px;">← Tous les moteurs</button>
+    ${m.id === "chansonPro" ? `<div id="pmStudioBandeau" class="hidden" style="border:1px solid #c026d3; background:rgba(192,38,211,.12); border-radius:10px; padding:8px 10px; margin-bottom:10px;">◆ <b>Mode Studio</b> — gratuit, via ton PIN admin. Rien n'est débité, aucun code client n'est utilisé.</div>` : ""}
     <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap;">
       <b style="font-size:18px;">${m.nom}</b><span style="color:#fbbf24; font-weight:800;" id="pmPrix_${m.id}">${m.id === "aleph" ? "Choisis d'abord ta vidéo" : pmFmt(pmPrix(m))}</span>
     </div>
@@ -7317,7 +7345,17 @@ function pmTuile(m) {
     <div class="pmDes">${vals.length > 1 ? "dès " : ""}${pmFmt(min)}</div>
   </div>`;
 }
+// v41.135 : ◆ mode Studio de la Chanson Pro (gratuit, via le PIN admin).
+// Activé uniquement par la carte ⭐ Chanson Pro de l'espace Studio ; toute
+// ouverture normale depuis les tuiles clients le remet à zéro.
+let pmModeStudio = false;
+function pmStudioMaj() {
+  const b = document.getElementById("pmStudioBandeau");
+  if (b) b.classList.toggle("hidden", !pmModeStudio);
+  if (document.getElementById("pmGo_chansonPro")) pmMaj("chansonPro");
+}
 function pmOuvrir(id) {
+  pmModeStudio = false; pmStudioMaj();
   document.getElementById("pmTuiles").classList.add("hidden");
   document.querySelectorAll(".pmPan").forEach(p => p.classList.toggle("hidden", p.id !== "pmPan_" + id));
   pmMaj(id);
@@ -7420,7 +7458,9 @@ function pmMaj(id) {
   const btn = document.getElementById("pmGo_" + id);
   const prixEl = document.getElementById("pmPrix_" + id);
   let manque = "";
-  if (!getCode()) manque = "Entre d'abord ton code StarClip en haut de la page";
+  const studioPro = pmModeStudio && id === "chansonPro";   // v41.135
+  if (studioPro && !admPin()) manque = "Rouvre l'espace Studio (◆) avec ton PIN";
+  else if (!studioPro && !getCode()) manque = "Entre d'abord ton code StarClip en haut de la page";
   else if (m.video && !s.video) manque = "Choisis d'abord la vidéo à modifier";
   else if (m.stems && !s.audio && !s.audioUrl) manque = "Choisis d'abord ta chanson";
   else if (m.demo && !s.audio) manque = "Choisis d'abord ta démo";
@@ -7432,6 +7472,10 @@ function pmMaj(id) {
   if (prixEl) prixEl.textContent = prix ? pmFmt(prix) : (m.id === "aleph" ? "Choisis d'abord ta vidéo" : "…");
   btn.disabled = !!manque || !prix;
   btn.textContent = manque ? manque : `👑 Lancer — ${pmFmt(prix)}`;
+  if (studioPro) {   // v41.135
+    if (prixEl) prixEl.textContent = "Gratuit (Studio)";
+    if (!manque) btn.textContent = "◆ Lancer — gratuit (Studio)";
+  }
 }
 
 async function pmChoisirVideo(id, f) {
@@ -7540,7 +7584,9 @@ async function pmLancer(id) {
   rwDepart = Date.now();
   const pmTic = setInterval(() => rwRondChrono(pfx), 1000);
   try {
-    if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de la page.");
+    const studioPro = pmModeStudio && id === "chansonPro";   // v41.135
+    if (!studioPro && !getCode()) throw new Error("Entre d'abord ton code StarClip en haut de la page.");
+    if (studioPro && !admPin()) throw new Error("Rouvre l'espace Studio (◆) avec ton PIN.");
     const s = pmSel[id];
     const prompt = m.chanson ? "" : (document.getElementById("pmPrompt_" + id) || {}).value?.trim() || "";
 
@@ -7750,10 +7796,16 @@ async function pmLancer(id) {
         // souvent par la batterie. Sans paroles, le chant est improvisé.
         const payload = { composition_plan: { chunks: pmPlanV2(style, paroles, cibleMs, "", precis) } };
         maj("⭐ Composition en cours… (1 à 3 min, ne ferme pas la page)");
-        const rep = await fetch(WORKER_URL + "/premium/musique", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: getCode(), payload, duree: pmSel.chansonPro.duree }),
-        });
+        // v41.135 : en mode Studio → /studio/musique (PIN, rien débité).
+        const rep = studioPro
+          ? await fetch(WORKER_URL + "/studio/musique", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ pin: admPin(), payload, duree: pmSel.chansonPro.duree }),
+            })
+          : await fetch(WORKER_URL + "/premium/musique", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code: getCode(), payload, duree: pmSel.chansonPro.duree }),
+            });
         const typ = rep.headers.get("Content-Type") || "";
         if (!rep.ok || !/audio/i.test(typ)) {
           const d = await rep.json().catch(() => ({}));
@@ -8004,7 +8056,7 @@ async function pmLancer(id) {
           const inf = document.getElementById("pmRefStyleInfo_" + m.id);
           bRef.disabled = true;
           try {
-            const style = await chpCopierStyle(f, t => { inf.textContent = t; });
+            const style = await chpCopierStyle(f, t => { inf.textContent = t; }, pmModeStudio && m.id === "chansonPro");   // v41.135
             const zone = document.getElementById("pmStyle_" + m.id);
             zone.value = style + (zone.value.trim() ? "\n" + zone.value.trim() : "");
             inf.innerHTML = `<span style="color:var(--ok)">✓ Style de « ${f.name.replace(/[<>&"]/g, "")} » copié dans tes précisions ci-dessous.</span> Tu peux le modifier ou ajouter tes idées.`;
@@ -9185,6 +9237,13 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
   document.getElementById("admCarteMulti").onclick = () => admVue("multi");
   document.getElementById("admCarteMontage").onclick = () => admVue("montage");
   document.getElementById("admCarteChanson").onclick = () => admVue("chanson");
+  // v41.135 : ⭐ Chanson Pro du Studio → ouvre le panneau Chanson Pro en mode Studio
+  const cPro = document.getElementById("admCarteChansonPro");
+  if (cPro) cPro.onclick = () => {
+    const t = document.querySelector('#tabbar .qnav[data-tab="premium"]');
+    if (t) t.click();
+    setTimeout(() => { pmOuvrir("chansonPro"); pmModeStudio = true; pmStudioMaj(); }, 500);
+  };
   document.getElementById("admCarteCodes").onclick = () => window.open("admin.html", "_blank");   // v41.127 : une seule page d'admin   // v41.123
   document.getElementById("admCarteStems").onclick = () => admVue("stems");   // stems studio
   document.getElementById("admRetour").onclick     = () => admVue("choix");
@@ -11051,6 +11110,26 @@ function chRefresh() {
   chpPuces(document.getElementById("chLangueChips"), CHP_LANGUES, chpChoixAdmin, "langue", majStyleLocal);
   chpPuces(document.getElementById("chAmbChips"), CHP_AMBIANCES, chpChoixAdmin, "ambiance", majStyleLocal);
   style.addEventListener("input", () => { chpAdminProduit = false; });
+  // v41.134 : 🎧 copier le style d'une chanson modèle (espace Studio, PIN admin)
+  const bRefS = document.getElementById("chRefStyleBtn"), iRefS = document.getElementById("chRefStyleInput");
+  if (bRefS && iRefS) {
+    bRefS.onclick = () => iRefS.click();
+    iRefS.onchange = async () => {
+      const f = iRefS.files && iRefS.files[0]; iRefS.value = "";
+      if (!f) return;
+      const inf = document.getElementById("chRefStyleInfo");
+      bRefS.disabled = true;
+      try {
+        const txt = await chpCopierStyle(f, t => { inf.textContent = t; }, true);
+        style.value = txt;
+        chpAdminProduit = false;
+        inf.innerHTML = '<span style="color:var(--ok)">✓ Style de « ' + f.name.replace(/[<>&"]/g, "") + ' » copié dans la case ci-dessous.</span> Modifie-le si tu veux, puis lance.';
+        chRefresh();
+      } catch (e) {
+        inf.innerHTML = '<span class="err">✗ ' + e.message + '</span>';
+      } finally { bRefS.disabled = false; }
+    };
+  }
   document.getElementById("chProdBtn").onclick = async () => {
     const b = document.getElementById("chProdBtn"), info = document.getElementById("chProdInfo");
     b.disabled = true; info.textContent = "⏳ Le Producteur IA travaille… (10 à 20 s)";
