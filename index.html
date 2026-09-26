@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.129 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.133 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2180,7 +2180,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.129</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.133</span>
 
   </footer>
 </div>
@@ -2191,6 +2191,10 @@
      généré, sans redemander une chanson à ElevenLabs (donc sans nouveau coût,
      et surtout sans risque d'obtenir une chanson DIFFÉRENTE de celle du WAV). -->
 <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+<!-- v41.130 : JSZip — assemble les pistes séparées (voix, batterie…) en un
+     seul fichier .zip téléchargé d'un coup, au lieu d'un fichier par fichier
+     (et sans jamais ouvrir un nouvel onglet). -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 // ═══ v41.77 · QUALITÉ DES RETOUCHES D'IMAGE ═══
 // Deux moteurs Google, mêmes champs, qualités et prix différents :
@@ -6973,7 +6977,10 @@ async function chpProducteur(choix, precisions, maxLen, moteurCible) {
         "at most " + Math.min(limite, 1500) + " characters, that the generator can follow precisely. Include, in this order: exact genre and sub-genre, BPM, groove and drum/percussion pattern, bass, lead and rhythm instruments, harmony/chord colour, vocal (gender, timbre, delivery, language of the lyrics), backing vocals, song arc (intro, verses, chorus, bridge, outro), production and mix quality (modern, radio-ready, punchy, wide). " +
         "Stay 100% faithful to the chosen genre and to its authentic African/Caribbean roots: never turn it into generic Western pop, EDM, rock, or European chanson/ballad crooning. " +
         "If the lyrics are in French, explicitly require a West/Central African French vocal delivery and accent typical of Afropop/Afrobeats artists — never a Parisian chanson française tone, cabaret crooner phrasing, or accordion. " +
-        "Keep the language of the lyrics exactly as requested. Integrate the artist's extra notes (translate them). End with a short 'Avoid:' clause listing elements foreign to this genre, and, whenever the lyrics are in French, always include French chanson/variété, cabaret, crooner and accordion in that Avoid clause. " +
+        "Always write the intro as its own sentence beginning with 'Intro:' that follows exactly what the artist asked for the intro (instruments, melody, mood); if the artist did not ask for drums in the intro, add that drums and percussion enter only after the intro. Likewise write the ending as its own sentence beginning with 'Outro:'. Keep these two sentences even if you must shorten others. " +
+        "Keep the language of the lyrics exactly as requested. Integrate the artist's extra notes (translate them). " +
+        "Describe the INTRO in its own separate sentence that starts with 'Intro:'. If the artist described the intro, follow it exactly. Otherwise invent an intro that truly fits THIS genre and THIS song (for example a melodic guitar, keyboard or horn motif, a vocal chant or hum, a sparse or filtered groove building up, a signature riff of the genre) — drums and percussion can be part of it, but never a generic drums-and-percussion-only intro. Describe the ending in its own sentence that starts with 'Outro:'. Never merge the intro into a general song-arc sentence. " +
+        "End with a short 'Avoid:' clause listing elements foreign to this genre, and, whenever the lyrics are in French, always include French chanson/variété, cabaret, crooner and accordion in that Avoid clause. " +
         "Never write lyrics, never name real artists or songs. Reply with the paragraph only, no quotes, no title."
       : "You are a senior music producer who writes style prompts for the MiniMax Music 2.6 song generator. " +
         "You receive a draft style description (sometimes with notes in French). Rewrite it as ONE dense paragraph IN ENGLISH, " +
@@ -7036,6 +7043,79 @@ async function wavVersMp3(blobWav) {
   const fin = encodeur.flush();
   if (fin.length > 0) morceaux.push(fin);
   return new Blob(morceaux, { type: "audio/mpeg" });
+}
+
+// v41.130 : 📦 TOUT EN ZIP — regroupe toutes les pistes séparées (voix,
+// batterie, basse…) en un seul fichier .zip, téléchargé d'un coup vers le
+// dossier de téléchargements du navigateur, comme n'importe quel fichier.
+// Avant : chaque piste ouvrait une nouvelle page au lieu de se télécharger
+// (des liens distants, sur certains navigateurs, s'ouvrent au lieu de se
+// sauvegarder) — en récupérant chaque piste nous-mêmes puis en les
+// assemblant, le fichier final se télécharge toujours correctement.
+async function telechargerPistesZip(pistes, nomZip, bouton) {
+  const texteDepart = bouton ? bouton.textContent : "";
+  try {
+    if (bouton) { bouton.disabled = true; bouton.textContent = "📦 Préparation du ZIP…"; }
+    const zip = new JSZip();
+    let ok = 0;
+    for (const p of pistes) {
+      try {
+        const r = await fetch(p.url);
+        if (!r.ok) continue;
+        zip.file(p.nom, await r.blob());
+        ok++;
+      } catch (_) { /* piste ignorée, les autres continuent */ }
+    }
+    if (!ok) throw new Error("Aucune piste n'a pu être récupérée pour le ZIP.");
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = nomZip; document.body.appendChild(a); a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 4000);
+  } catch (e) {
+    alert("Le ZIP n'a pas pu être créé (" + e.message + "). Télécharge les pistes une par une ci-dessus.");
+  } finally {
+    if (bouton) { bouton.disabled = false; bouton.textContent = texteDepart; }
+  }
+}
+
+// v41.133 : 🎧 COPIER LE STYLE D'UNE CHANSON — une IA qui ÉCOUTE (Gemini, via
+// fal « openrouter/router/audio ») décrit le style de la chanson modèle en
+// texte. Seul ce TEXTE part ensuite au moteur de musique : la chanson modèle
+// n'est jamais envoyée au générateur, donc ni sa mélodie ni ses paroles ne
+// peuvent être recopiées — on copie la « recette », pas le plat.
+// Coût : quelques centimes de centime ; rien n'est débité au client.
+async function chpCopierStyle(fichier, maj) {
+  if (!getCode()) throw new Error("Entre d'abord ton code StarClip en haut de la page.");
+  if (fichier.size > 60 * 1024 * 1024) throw new Error("Fichier trop lourd (60 Mo max). Envoie plutôt un MP3.");
+  maj("Envoi de la chanson modèle…");
+  const url = await hebergerFichier(fichier, fichier.name || "modele.mp3");
+  maj("🎧 L'IA écoute la chanson et décrit son style… (20 s à 1 min)");
+  const path = "openrouter/router/audio";
+  const job = await apiSubmit(path, {
+    audio_url: url,
+    model: "google/gemini-2.5-flash",
+    system_prompt:
+      "You are a senior music producer. Listen to the song and write a STYLE description that another producer could use to make a completely NEW original song in the same style. " +
+      "One dense paragraph in English, at most 900 characters, in this order: precise genre and sub-genre with its region of origin, BPM, groove and drum/percussion pattern, bass, lead and rhythm instruments and how they are played, harmony colour, how the INTRO starts (instruments, feel), vocal gender, timbre, delivery, language and accent, backing vocals, production and mix character. " +
+      "Then a sentence starting with 'Intro:' describing the intro, and end with 'Avoid:' plus elements foreign to this style. " +
+      "Never transcribe or quote lyrics, never describe the melody note by note, never name the artist, the song or any real person. Reply with the paragraph only.",
+    prompt: "Describe the musical style of this song.",
+  });
+  const st = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
+  const rp = job.response_url || `https://queue.fal.run/${path}/requests/${job.request_id}`;
+  let fini = false;
+  for (let i = 0; i < 45; i++) {
+    await new Promise(r => setTimeout(r, 2000));
+    const sj = await apiPoll(st).catch(() => ({}));
+    if (sj.status === "COMPLETED") { fini = true; break; }
+    if (sj.status === "FAILED" || sj.status === "ERROR") break;
+  }
+  if (!fini) throw new Error("L'analyse n'a pas abouti. Réessaie, ou avec un extrait plus court.");
+  const data = await apiPoll(rp);
+  const out = String(data.output || data.response?.output || "").trim().replace(/^["'«]+|["'»]+$/g, "");
+  if (out.length < 60) throw new Error("L'IA n'a pas pu décrire ce style. Essaie une autre chanson.");
+  return out.slice(0, 1200);
 }
 
 // Paroles sans balises → structure [Intro] / [Verse] / [Chorus] / [Outro].
@@ -7174,6 +7254,13 @@ function pmCarte(m) {
        <div class="label">Voix</div><div class="chips" id="pmChVoix_${m.id}"></div>
        <div class="label">Langue du chant</div><div class="chips" id="pmChLangue_${m.id}"></div>
        <div class="label">Ambiance</div><div class="chips" id="pmChAmb_${m.id}"></div>
+       ${m.demo ? "" : `<div style="border:1px dashed var(--line); border-radius:10px; padding:8px 10px; margin-top:8px;">
+         <b>🎧 Copier le style d'une chanson</b>
+         <div class="estimate" style="margin-top:2px;">Envoie une chanson que tu aimes : l'IA écoute et décrit son <b>style</b> (genre, tempo, instruments, intro, voix, mixage). Ta chanson sera <b>nouvelle</b> : on reprend le style, jamais la mélodie ni les paroles.</div>
+         <div class="chips" style="margin-top:6px;"><button class="btn small" id="pmRefStyleBtn_${m.id}">📂 Choisir la chanson modèle</button></div>
+         <input type="file" id="pmRefStyleInput_${m.id}" accept="audio/*" style="display:none;">
+         <div class="estimate" id="pmRefStyleInfo_${m.id}"></div>
+       </div>`}
        <div class="label">Tes précisions (optionnel, en français)</div>
        <textarea id="pmStyle_${m.id}" placeholder="Ex : chanson pour mon mariage, refrain très accrocheur, guitare douce, un peu de saxophone" style="width:100%; min-height:60px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;"></textarea>
        <div class="label">${m.demo ? "Paroles (optionnel — en Reprise, elles sont reprises de ta démo si tu laisses vide)" : "Paroles (optionnel — laisse vide pour que l'IA les écrive)"}</div>
@@ -7242,12 +7329,31 @@ function pmFermer() {
 }
 // v41.126 : plan de composition au format Music v2 / v2.5 (« chunks »).
 // Chaque morceau porte son texte ([Section] + paroles), sa durée et ses styles.
-function pmPlanV2(style, paroles, cibleMs, langueTxt) {
+function pmPlanV2(style, paroles, cibleMs, langueTxt, notesClient) {
   const phrases = style.split(/[.;]\s+|,\s+(?=[A-Z])/).map(x => x.trim()).filter(x => x.length > 2).map(x => x.slice(0, 180));
   const avoidM = style.match(/Avoid:?\s*(.+)$/i);
   const neg = (avoidM ? avoidM[1].split(/,\s*/).map(x => x.replace(/\.$/, "").trim()).filter(Boolean) : [])
     .concat(["low quality", "muffled vocals", "off-key singing"]).slice(0, 12);
-  const pos = phrases.filter(x => !/^Avoid/i.test(x)).slice(0, 12);
+  // v41.131 : l'INTRO suit ce que le client a demandé. Avant, toutes les
+  // phrases de style (batterie, percussions, groove…) étaient collées sur
+  // l'intro, et la phrase qui décrivait l'intro, placée en fin de liste,
+  // était souvent coupée : toutes les chansons démarraient par la batterie.
+  // Désormais : la phrase d'intro passe EN TÊTE de l'intro (v41.133 : la
+  // batterie reste permise ; seule l'intro « batterie seule » est évitée),
+  // et idem pour la conclusion.
+  const sansEtiquette = x => x.replace(/^(intro(duction)?|outro|conclusion|ending)\s*:\s*/i, "");
+  const estIntro = x => /^intro(duction)?\b/i.test(x) || (/\bintro(duction)?\b/i.test(x) && !/\b(verse|chorus|couplet|refrain)\b/i.test(x));
+  const estOutro = x => /^(outro|ending|conclusion)\b/i.test(x) || (/\b(outro|conclusion)\b/i.test(x) && !/\b(verse|chorus|couplet|refrain)\b/i.test(x));
+  const estRythme = x => /\b(drums?|percussions?|kick|snare|hi-?hats?|congas?|shakers?|log.?drum|groove|beat|batterie|maracas|rimshots?)\b/i.test(x);
+  const tout = phrases.filter(x => !/^Avoid/i.test(x));
+  // v41.132 : les mots du CLIENT sur l'intro passent en premier (le
+  // Producteur IA peut les résumer ou les fondre dans une phrase générale).
+  const phrasesClient = String(notesClient || "").split(/[.;\n]\s*/).map(x => x.trim()).filter(x => x.length > 4).map(x => x.slice(0, 180));
+  const introClient = phrasesClient.filter(estIntro).map(sansEtiquette).slice(0, 2);
+  const introPh = introClient.concat(tout.filter(estIntro).map(sansEtiquette)).slice(0, 3);
+  const outroPh = tout.filter(x => !estIntro(x) && estOutro(x)).map(sansEtiquette).slice(0, 3);
+  const pos = tout.filter(x => !estIntro(x) && !estOutro(x)).slice(0, 12);
+  const introDemandeRythme = introPh.some(estRythme);
   const GAB = [["Intro", 8000, ["instrumental intro"]], ["Verse 1", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]],
                ["Verse 2", 20000, ["verse", "lead vocal"]], ["Chorus", 16000, ["catchy chorus", "full energy"]], ["Bridge", 12000, ["bridge", "contrast"]],
                ["Chorus", 16000, ["final chorus", "biggest energy"]], ["Outro", 8000, ["instrumental outro", "gentle ending"]]];
@@ -7264,8 +7370,28 @@ function pmPlanV2(style, paroles, cibleMs, langueTxt) {
     else if (!blocs.length) txt = chante;
     else if (nom === "Chorus") txt = lignes(refrain);
     else { txt = lignes(couplets[iv] || couplets[couplets.length - 1] || refrain); iv++; }
+    let positifs, negatifs = neg;
+    if (nom === "Intro") {
+      // Ce que le client a demandé d'abord, puis le genre et les instruments
+      // SANS les phrases de rythme (sauf s'il a lui-même voulu de la batterie).
+      // v41.133 : la batterie N'EST PAS interdite. Ce qui est évité, c'est
+      // l'intro « batterie + percussions seules » que le moteur fait par
+      // réflexe. L'intro suit la demande du client, ou à défaut une idée
+      // mélodique propre au genre ; la batterie peut y jouer.
+      positifs = introPh.concat(introPh.length ? [] : ["intro that fits this genre and this song, built on a melodic element"],
+        loc, pos).slice(0, 14);
+      if (!introDemandeRythme)
+        negatifs = neg.slice(0, 12).concat(["drum-only intro", "generic percussion loop intro"]);
+    } else if (nom === "Verse 1") {
+      // La batterie et le groove complet entrent ici.
+      positifs = loc.concat(pos).slice(0, 14);
+    } else if (nom === "Outro") {
+      positifs = outroPh.concat(loc, pos.slice(0, 3)).slice(0, 10);
+    } else {
+      positifs = loc.concat(pos.slice(0, 3));
+    }
     const ch = { text: "[" + nom + "]\n" + txt, duration_ms: Math.round(dur * cibleMs / base),
-                 positive_styles: i === 0 ? pos.concat(loc) : loc.concat(pos.slice(0, 3)), negative_styles: neg };
+                 positive_styles: positifs, negative_styles: negatifs };
     if (i > 0) ch.context_adherence = "high";
     return ch;
   });
@@ -7521,9 +7647,9 @@ async function pmLancer(id) {
         result.querySelectorAll("[data-versstems]").forEach(b => b.onclick = () => pmVersStems(urls[+b.dataset.versstems], "Version " + (+b.dataset.versstems + 1)));
         info.innerHTML = `<span style="color:var(--ok)">✓ ${urls.length} version(s) prête(s) !</span>`; rwRondFini(pfx, "✓ ${urls.length} version(s) prête(s) !");
       } else {
-        const style = await chpProducteur(pmChChoix.demo, precis, 1800);
+        const style = await chpProducteur(pmChChoix.demo, precis, 1800, "elevenlabs");   // v41.131 : Référence = moteur ElevenLabs
         const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[s.duree] || 115000;
-        const chunks = pmPlanV2(style, paroles, cibleMs, NOMS_LANG[pmChChoix.demo.langue] || "");
+        const chunks = pmPlanV2(style, paroles, cibleMs, NOMS_LANG[pmChChoix.demo.langue] || "", precis);
         const debut = Math.max(0, parseInt(document.getElementById("pmDemoDebut").value) || 0);
         maj("✨ Création dans le style de ta démo… (2 à 4 min, ne ferme pas la page)");
         const rep = await pmSubmit("demoReference", s.duree, null, { audio_url: url, ref_start_ms: debut * 1000, chunks });
@@ -7562,7 +7688,9 @@ async function pmLancer(id) {
       const jobs = rep.jobs || [];
       if (!jobs.length) throw new Error("La séparation n'a pas pu être lancée.");
       const NOMS = { vocals: "🎤 Voix", drums: "🥁 Batterie", bass: "🎸 Basse", guitar: "🎸 Guitare", piano: "🎹 Piano", other: "🎹 Autres instruments" };
+      const NOMS_FICHIER = { vocals: "Voix", drums: "Batterie", bass: "Basse", guitar: "Guitare", piano: "Piano", other: "Autres" };
       let html = "";
+      const pistesZip = [];   // v41.130 : pour le bouton "Tout télécharger en ZIP"
       for (let k = 0; k < jobs.length; k++) {
         const job = jobs[k], fmt = String(job.format || "mp3").toUpperCase();
         const statusUrl = job.status_url || `https://queue.fal.run/fal-ai/demucs/requests/${job.request_id}/status`;
@@ -7581,14 +7709,23 @@ async function pmLancer(id) {
         let bloc = "";
         Object.keys(NOMS).forEach(cle => {
           const f = src[cle];
-          if (f && f.url) bloc += `<div style="margin-top:8px;"><b>${NOMS[cle]}</b>
-            <audio controls preload="none" style="width:100%; margin-top:2px;" src="${f.url}"></audio>
-            <a class="btn small" href="${f.url}" download target="_blank" rel="noopener" style="display:inline-block; text-decoration:none;">⬇️ ${fmt}</a></div>`;
+          if (f && f.url) {
+            bloc += `<div style="margin-top:8px;"><b>${NOMS[cle]}</b>
+              <audio controls preload="none" style="width:100%; margin-top:2px;" src="${f.url}"></audio>
+              <a class="btn small" href="${f.url}" download target="_blank" rel="noopener" style="display:inline-block; text-decoration:none;">⬇️ ${fmt}</a></div>`;
+            pistesZip.push({ nom: NOMS_FICHIER[cle] + (jobs.length > 1 ? "-" + fmt : "") + "." + fmt.toLowerCase(), url: f.url });
+          }
         });
         if (bloc) html += `<div class="label" style="margin-top:12px;">Pistes en ${fmt}</div>` + bloc;
       }
       if (!html) throw new Error("Les pistes n'ont pas pu être récupérées.");
-      result.innerHTML = html + `<div class="estimate" style="margin-top:8px;">Télécharge tes pistes maintenant : les liens expirent au bout de quelques jours.</div>`;
+      const boutonZipId = "pmStemsZip_" + id;
+      const blocZip = pistesZip.length
+        ? `<button class="chip" id="${boutonZipId}" style="margin-top:12px;">📦 Tout télécharger en ZIP (${pistesZip.length} pistes)</button>`
+        : "";
+      result.innerHTML = html + blocZip + `<div class="estimate" style="margin-top:8px;">Télécharge tes pistes maintenant : les liens expirent au bout de quelques jours.</div>`;
+      const btnZip = document.getElementById(boutonZipId);
+      if (btnZip) btnZip.onclick = () => telechargerPistesZip(pistesZip, "StarClip-Pistes.zip", btnZip);
       info.innerHTML = `<span style="color:var(--ok)">✓ Pistes prêtes !</span>`; rwRondFini(pfx, "✓ Pistes prêtes !");
 
     } else if (id === "chanson" || id === "chansonPro") {
@@ -7608,9 +7745,10 @@ async function pmLancer(id) {
         // « composition plan » d'ElevenLabs attend des listes courtes).
         // v41.126 : Music v2.5 — plan « chunks » (voir pmPlanV2).
         const cibleMs = { 2: 115000, 3: 175000, 4: 228000 }[pmSel.chansonPro.duree] || 115000;
-        const payload = paroles
-          ? { composition_plan: { chunks: pmPlanV2(style, paroles, cibleMs) } }
-          : { prompt: style, music_length_ms: cibleMs };
+        // v41.132 : TOUJOURS un plan par sections, même sans paroles — sinon
+        // (prompt simple) on ne contrôle pas l'intro et le moteur démarre
+        // souvent par la batterie. Sans paroles, le chant est improvisé.
+        const payload = { composition_plan: { chunks: pmPlanV2(style, paroles, cibleMs, "", precis) } };
         maj("⭐ Composition en cours… (1 à 3 min, ne ferme pas la page)");
         const rep = await fetch(WORKER_URL + "/premium/musique", {
           method: "POST", headers: { "Content-Type": "application/json" },
@@ -7856,6 +7994,26 @@ async function pmLancer(id) {
       chpPuces(document.getElementById("pmChAmb_" + m.id), CHP_AMBIANCES, pmChChoix[m.id], "ambiance", maj);
       document.getElementById("pmStyle_" + m.id).addEventListener("input", () => pmMaj(m.id));
       document.getElementById("pmParoles_" + m.id).addEventListener("input", () => pmMaj(m.id));
+      // v41.133 : 🎧 copier le style d'une chanson modèle
+      const bRef = document.getElementById("pmRefStyleBtn_" + m.id), iRef = document.getElementById("pmRefStyleInput_" + m.id);
+      if (bRef && iRef) {
+        bRef.onclick = () => iRef.click();
+        iRef.onchange = async () => {
+          const f = iRef.files && iRef.files[0]; iRef.value = "";
+          if (!f) return;
+          const inf = document.getElementById("pmRefStyleInfo_" + m.id);
+          bRef.disabled = true;
+          try {
+            const style = await chpCopierStyle(f, t => { inf.textContent = t; });
+            const zone = document.getElementById("pmStyle_" + m.id);
+            zone.value = style + (zone.value.trim() ? "\n" + zone.value.trim() : "");
+            inf.innerHTML = `<span style="color:var(--ok)">✓ Style de « ${f.name.replace(/[<>&"]/g, "")} » copié dans tes précisions ci-dessous.</span> Tu peux le modifier ou ajouter tes idées.`;
+            pmMaj(m.id);
+          } catch (e) {
+            inf.innerHTML = `<span class="err">✗ ${e.message}</span>`;
+          } finally { bRef.disabled = false; }
+        };
+      }
     }
     if (m.demo) {
       const AIDES = {
@@ -11144,7 +11302,9 @@ function admStemsDepuis(url, nom) {
         }
       }
       const NOMS = { vocals: "🎤 Voix", drums: "🥁 Batterie", bass: "🎸 Basse", guitar: "🎸 Guitare", piano: "🎹 Piano", other: "🎹 Autres instruments" };
+      const NOMS_FICHIER = { vocals: "Voix", drums: "Batterie", bass: "Basse", guitar: "Guitare", piano: "Piano", other: "Autres" };
       let html = "";
+      const pistesZip = [];   // v41.130 : pour le bouton "Tout télécharger en ZIP"
       for (let k = 0; k < asSt.formats.length; k++) {
         const fmt = asSt.formats[k];
         info.textContent = "🎚️ Séparation en " + fmt.toUpperCase() + "… (" + (k + 1) + "/" + asSt.formats.length + ", 1 à 3 min)";
@@ -11164,14 +11324,23 @@ function admStemsDepuis(url, nom) {
         let bloc = "";
         Object.keys(NOMS).forEach(cle => {
           const f = src[cle];
-          if (f && f.url) bloc += '<div style="margin-top:8px;"><b>' + NOMS[cle] + '</b>'
-            + '<audio controls preload="none" style="width:100%; margin-top:2px;" src="' + f.url + '"></audio>'
-            + '<a class="chip" href="' + f.url + '" download target="_blank" rel="noopener">⬇️ ' + fmt.toUpperCase() + '</a></div>';
+          if (f && f.url) {
+            bloc += '<div style="margin-top:8px;"><b>' + NOMS[cle] + '</b>'
+              + '<audio controls preload="none" style="width:100%; margin-top:2px;" src="' + f.url + '"></audio>'
+              + '<a class="chip" href="' + f.url + '" download target="_blank" rel="noopener">⬇️ ' + fmt.toUpperCase() + '</a></div>';
+            pistesZip.push({ nom: NOMS_FICHIER[cle] + (asSt.formats.length > 1 ? "-" + fmt.toUpperCase() : "") + "." + fmt.toLowerCase(), url: f.url });
+          }
         });
         if (bloc) html += '<div class="label" style="margin-top:12px;">Pistes en ' + fmt.toUpperCase() + '</div>' + bloc;
       }
       if (!html) throw new Error("Les pistes n'ont pas pu être récupérées.");
-      result.innerHTML = html + '<div class="hint" style="margin-top:8px;">Télécharge tes pistes maintenant : les liens expirent au bout de quelques jours.</div>';
+      const boutonZipId = "asStemsZip";
+      const blocZip = pistesZip.length
+        ? '<button class="chip" id="' + boutonZipId + '" style="margin-top:12px;">📦 Tout télécharger en ZIP (' + pistesZip.length + ' pistes)</button>'
+        : "";
+      result.innerHTML = html + blocZip + '<div class="hint" style="margin-top:8px;">Télécharge tes pistes maintenant : les liens expirent au bout de quelques jours.</div>';
+      const btnZip = document.getElementById(boutonZipId);
+      if (btnZip) btnZip.onclick = () => telechargerPistesZip(pistesZip, "StarClip-Pistes.zip", btnZip);
       info.innerHTML = '<span style="color:var(--ok)">✓ Pistes prêtes !</span>';
     } catch (e) {
       info.innerHTML = '<span class="err">✗ ' + e.message + '</span>';
