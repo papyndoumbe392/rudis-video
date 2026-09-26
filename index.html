@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.127 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.128 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2180,7 +2180,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.127</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.128</span>
 
   </footer>
 </div>
@@ -6949,21 +6949,36 @@ function chpComposerLocal(choix, precisions, maxLen) {
 // Le « producteur » : un modèle de langage réécrit le tout en consigne de
 // studio détaillée, en anglais, fidèle au genre choisi. En cas de souci
 // réseau ou sans code client, on garde la version locale — jamais de blocage.
-async function chpProducteur(choix, precisions, maxLen) {
+async function chpProducteur(choix, precisions, maxLen, moteurCible) {
   const base = chpComposerLocal(choix, precisions, maxLen);
   const limite = maxLen || 1800;
   try {
     if (typeof getCode !== "function" || !getCode()) return base;
     const path = "fal-ai/any-llm";
-    const job = await apiSubmit(path, {
-      model: "google/gemini-2.5-flash",
-      system_prompt:
-        "You are a senior music producer who writes style prompts for the MiniMax Music 2.6 song generator. " +
+    // v41.128 : Chanson Pro (ElevenLabs) a sa PROPRE consigne. L'ancienne
+    // consigne, écrite pour MiniMax, ne prévenait pas le rendu « chanson
+    // française / crooner » qu'ElevenLabs applique par défaut dès qu'il
+    // entend des paroles en français — d'où des Afropop qui sonnaient trop
+    // françaises. On insiste ici explicitement sur l'accent et la production
+    // africaine, et on interdit noir sur blanc le style variété française.
+    const estElevenLabs = moteurCible === "elevenlabs";
+    const systemPrompt = estElevenLabs
+      ? "You are a senior music producer who writes style prompts for the ElevenLabs Music generator (Eleven Music). " +
+        "You receive a draft style description (sometimes with notes in French). Rewrite it as ONE dense paragraph IN ENGLISH, " +
+        "at most " + Math.min(limite, 1500) + " characters, that the generator can follow precisely. Include, in this order: exact genre and sub-genre, BPM, groove and drum/percussion pattern, bass, lead and rhythm instruments, harmony/chord colour, vocal (gender, timbre, delivery, language of the lyrics), backing vocals, song arc (intro, verses, chorus, bridge, outro), production and mix quality (modern, radio-ready, punchy, wide). " +
+        "Stay 100% faithful to the chosen genre and to its authentic African/Caribbean roots: never turn it into generic Western pop, EDM, rock, or European chanson/ballad crooning. " +
+        "If the lyrics are in French, explicitly require a West/Central African French vocal delivery and accent typical of Afropop/Afrobeats artists — never a Parisian chanson française tone, cabaret crooner phrasing, or accordion. " +
+        "Keep the language of the lyrics exactly as requested. Integrate the artist's extra notes (translate them). End with a short 'Avoid:' clause listing elements foreign to this genre, and, whenever the lyrics are in French, always include French chanson/variété, cabaret, crooner and accordion in that Avoid clause. " +
+        "Never write lyrics, never name real artists or songs. Reply with the paragraph only, no quotes, no title."
+      : "You are a senior music producer who writes style prompts for the MiniMax Music 2.6 song generator. " +
         "You receive a draft style description (sometimes with notes in French). Rewrite it as ONE dense paragraph IN ENGLISH, " +
         "at most " + Math.min(limite, 1500) + " characters, that the generator can follow precisely. Include, in this order: exact genre and sub-genre, BPM, groove and drum/percussion pattern, bass, lead and rhythm instruments, harmony/chord colour, vocal (gender, timbre, delivery, language of the lyrics), backing vocals, song arc (intro, verses, chorus, bridge, outro), production and mix quality (modern, radio-ready, punchy, wide). " +
         "Stay 100% faithful to the chosen genre and to its authentic African/Caribbean roots: never turn it into generic Western pop, EDM or rock. " +
         "Keep the language of the lyrics exactly as requested. Integrate the artist's extra notes (translate them). End with a short 'Avoid:' clause listing elements foreign to this genre. " +
-        "Never write lyrics, never name real artists or songs. Reply with the paragraph only, no quotes, no title.",
+        "Never write lyrics, never name real artists or songs. Reply with the paragraph only, no quotes, no title.";
+    const job = await apiSubmit(path, {
+      model: "google/gemini-2.5-flash",
+      system_prompt: systemPrompt,
       prompt: base,
     });
     const st = job.status_url || `https://queue.fal.run/${path}/requests/${job.request_id}/status`;
@@ -7539,7 +7554,7 @@ async function pmLancer(id) {
       const precis = document.getElementById("pmStyle_" + id).value.trim();
       const paroles = chpStructurer(document.getElementById("pmParoles_" + id).value.trim());
       maj("🎛️ Le Producteur IA prépare ta chanson…");
-      const style = await chpProducteur(pmChChoix[id], precis, 1800);
+      const style = await chpProducteur(pmChChoix[id], precis, 1800, id === "chansonPro" ? "elevenlabs" : "minimax");
 
       if (id === "chansonPro") {
         // v41.123 : ⭐ Chanson Pro (ElevenLabs) — 1 seule version, DURÉE
