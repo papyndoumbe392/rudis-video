@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.138 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.139 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -191,6 +191,7 @@
     <a data-tab="traitement" class="qnav">✨ Traitement<small>Photo effects</small></a>
     <a data-tab="look" class="qnav">👔 Habillage &amp; Décor<small>Outfit &amp; scenery</small></a>
     <a data-tab="scenario" class="qnav">🎬 Scénario<small>Scenario</small></a>
+    <a data-tab="miniseries" class="qnav">🎞️ Mini-séries IA<small>AI mini-series</small></a>
     <a data-tab="finition" class="qnav">🎤 Finition<small>Finishing</small></a>
     <a data-tab="commander" class="qnav">💳 Commander<small>Order</small></a>
     <a data-tab="premium" class="qnav qnav-premium">👑 Admin Premium 5.0<small>Pour les pros · Pro tools</small></a>
@@ -1089,6 +1090,18 @@
       Pas encore de solde Premium ? Commande un pack sur WhatsApp 👇 (en bas de la page « Commander »).
     </div>
     <div id="pmListe" style="margin-top:12px;"></div>
+  </section>
+
+  <!-- v41.139 : 🎞️ MINI-SÉRIES IA — épisode pilote de 30 à 60 s, validé à chaque étape. -->
+  <section class="card" id="sec-msr" style="border-color:var(--gold);">
+    <h2><span class="num" style="background:var(--gold); color:#1a1204;">&#127902;</span> Mini-séries IA &mdash; ton épisode pilote</h2>
+    <p class="sub" style="margin:0 0 12px;">Raconte ton idée : StarClip écrit un <b>épisode pilote de 30 à 60 secondes</b>, découpé en scènes de 5 ou 10 secondes. <b>Tu valides chaque étape</b> avant que la moindre vidéo soit créée, et chaque scène est lancée une par une, avec ta confirmation.</p>
+    <div id="msrBarre"></div>
+    <div id="msrEtapes"></div>
+    <div id="msrMsg" class="estimate" style="min-height:0;"></div>
+    <div id="msrCorps"></div>
+    <input type="file" id="msrFichier" accept="image/*" class="hidden">
+    <div class="estimate" style="margin-top:14px;">&#9888;&#65039; Les visages ne sont jamais parfaitement identiques d'une scène à l'autre : utilise des images de référence nettes et vérifie chaque scène. Ton projet est gardé sur cet appareil.</div>
   </section>
 
   <section class="card" id="sec-idees" style="border-color:var(--gold);">
@@ -2200,7 +2213,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.138</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.139</span>
 
   </footer>
 </div>
@@ -8991,6 +9004,29 @@ fxRefresh();
 .vign span { position:absolute; left:0; right:0; bottom:0; padding:4px 6px; font-size:11px; font-weight:700; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.85)); text-align:left; }
 .vign.on { border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset; }
 
+/* v41.139 — 🎞️ Mini-séries IA (tout est préfixé .msr-) */
+#sec-msr .msr-barre { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+#sec-msr .msr-barre select { flex:1 1 160px; min-width:0; }
+#sec-msr .msr-etapes { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; }
+#sec-msr .msr-etapes .chip { flex:0 0 auto; }
+#sec-msr .msr-etapes .chip:disabled { opacity:.35; cursor:default; }
+#sec-msr .msr-titre { margin:16px 0 8px; font-weight:800; color:var(--gold); }
+#sec-msr .msr-bloc { border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--up); }
+#sec-msr .msr-bloc input[type=text], #sec-msr .msr-bloc textarea, #sec-msr .msr-bloc select { width:100%; box-sizing:border-box; }
+#sec-msr .msr-ligne { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+#sec-msr .msr-case { display:inline-flex; gap:6px; align-items:center; font-size:13px; cursor:pointer; margin:4px 10px 4px 0; }
+#sec-msr .msr-case input { width:auto; }
+#sec-msr .msr-imgs { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+#sec-msr .msr-imgcase { position:relative; }
+#sec-msr .msr-img { width:92px; height:92px; object-fit:cover; border-radius:10px; border:1px solid var(--line); display:block; }
+#sec-msr .msr-vide { display:flex; align-items:center; justify-content:center; border-style:dashed; color:var(--dim); font-size:24px; }
+#sec-msr .msr-x { position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%; border:1px solid var(--line); background:var(--bg,#0f0d17); color:var(--text); font-size:11px; cursor:pointer; padding:0; }
+#sec-msr .msr-badge { font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid var(--line); color:var(--dim); white-space:nowrap; }
+#sec-msr .msr-b-ok { border-color:var(--ok); color:var(--ok); }
+#sec-msr .msr-b-rate { border-color:var(--err); color:var(--err); }
+#sec-msr .msr-b-cours { border-color:var(--gold); color:var(--gold); }
+#sec-msr select { background:var(--up); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; }
+#sec-msr .msr-ligne[style*="flex-wrap"] { justify-content:flex-start; }
 </style>
 <script>
 (function(){
@@ -9002,7 +9038,7 @@ fxRefresh();
     'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
     'sec-auto9':'commander', 'sec-auto10':'commander',
-    'sec-idees':'idees', 'sec-prompts':'prompts', 'sec-premium':'premium'
+    'sec-msr':'miniseries', 'sec-idees':'idees', 'sec-prompts':'prompts', 'sec-premium':'premium'
   };
   var tabs = document.querySelectorAll('#tabbar .qnav');
 
@@ -13489,6 +13525,859 @@ const SCENARIO_EXEMPLES = [
   console.log("[StarClip] glisser-déposer actif sur " + zones + " zones");
 })();
 
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+//  v41.139 · 🎞️ MINI-SÉRIES IA — épisode pilote de 30 à 60 s
+//  Nouveau module AUTONOME : tous les noms commencent par « msr », rien
+//  d'existant n'est modifié. Il réutilise : apiSubmit / apiPoll (serveur
+//  StarClip), hebergerFichier, nbModele, MODELS, clientPlan, getCode,
+//  WORKER_URL et JSZip. Si ce module plante, le reste de l'app continue.
+//
+//  RÈGLES DE CE VOLET
+//  - Le client valide chaque étape (scénario, références, chaque scène).
+//  - AUCUNE génération en série : une scène = une confirmation = un envoi.
+//  - La cohérence des visages n'est JAMAIS garantie : images de référence
+//    + vérification scène par scène par le client.
+//  - Le projet vit dans le navigateur (localStorage) : seulement des
+//    liens et du texte, jamais de données lourdes.
+// ═══════════════════════════════════════════════════════════════════════
+(function msrModule() {
+  "use strict";
+  try {
+    const racine = document.getElementById("sec-msr");
+    if (!racine) return;
+
+    const CLE = "starclip_msr_projets";
+    const CLE_ACTIF = "starclip_msr_actif";
+    const MAX_PROJETS = 6;
+    // Assemblage de l'épisode en UN fichier : nécessite que le Worker autorise
+    // « fal-ai/ffmpeg-api/merge-videos ». Laisser false tant que ce n'est pas fait.
+    const ASSEMBLAGE_SERVEUR = false;
+
+    const RATIOS = ["9:16", "16:9"];
+    const MODELES = {
+      ref: { label: "⭐ Visage stable (Kling 3.0)", depart: false, pro: false },
+      pro: { label: "Pro (Kling 3.0 Turbo)", depart: true, pro: true },
+      eco: { label: "Éco (Kling 2.1)", depart: true, pro: false },
+    };
+    const ETAPES = [["1", "Idée"], ["2", "Scénario"], ["3", "Références"], ["4", "Scènes"], ["5", "Export"]];
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    let compteur = 0;
+    const uid = (p) => p + Date.now().toString(36) + (compteur++).toString(36);
+    const estPro = () => (typeof clientPlan !== "undefined" && clientPlan === "pro");
+    const pluriel = (n, mot) => n + " " + mot + (n > 1 ? "s" : "");
+
+    let projets = [];
+    let actif = null;
+    let vue = 1;
+    let enCours = false;        // une seule génération à la fois
+    let cibleFichier = null;    // { type, id } pour le sélecteur d'image
+    let minuterie = null;
+
+    // ─────────────── Stockage ───────────────
+    function charger() {
+      try { projets = JSON.parse(localStorage.getItem(CLE) || "[]"); } catch (_) { projets = []; }
+      if (!Array.isArray(projets)) projets = [];
+      const id = localStorage.getItem(CLE_ACTIF);
+      actif = projets.find((p) => p.id === id) || projets[0] || null;
+    }
+    function sauver() {
+      try {
+        localStorage.setItem(CLE, JSON.stringify(projets));
+        if (actif) localStorage.setItem(CLE_ACTIF, actif.id);
+      } catch (_) {
+        info("<span class='err'>⚠️ Mémoire de l'appareil pleine : ce projet n'a pas pu être enregistré. Exporte tes scènes maintenant.</span>");
+      }
+    }
+    function sauverTard() { clearTimeout(minuterie); minuterie = setTimeout(sauver, 500); }
+    function info(html) { const z = $("msrMsg"); if (z) z.innerHTML = html || ""; }
+
+    function nouveauProjet() {
+      return {
+        id: uid("p"), cree: Date.now(), maj: Date.now(), titre: "", idee: "", format: "9:16", duree: 45,
+        modele: "ref", resume: "", personnages: [], decors: [], scenes: [],
+        valide: { scenario: false, refs: false }, episodeUrl: "",
+      };
+    }
+    function nouvelleScene(o) {
+      return Object.assign({
+        id: uid("s"), duree: 5, decorId: "", persoIds: [], action: "", dialogue: "",
+        pret: false, depart: "", modele: null, statut: "attente", url: "", job: null,
+        erreur: "", tentatives: 0, visage: null, valide: false,
+      }, o || {});
+    }
+
+    // ─────────────── Calculs ───────────────
+    const nbScenes = (T) => Math.max(Math.ceil(T / 10), Math.min(Math.floor(T / 5), Math.round(T / 7.5)));
+    const total = (p) => p.scenes.reduce((s, x) => s + x.duree, 0);
+    // Règle de crédits appliquée aux autres outils vidéo de l'app : ≤ 5 s = 1, jusqu'à 10 s = 2.
+    // C'est une ESTIMATION : le serveur reste seul juge du débit réel.
+    const credits = (s) => (s.duree <= 5 ? 1 : 2);
+    const modeleDe = (p, s) => s.modele || p.modele;
+    const dureeGen = (s) => (s.duree <= 5 ? 5 : 10);
+    function couper(t, max) {
+      if (t.length <= max) return t;
+      let c = t.slice(0, max - 1);
+      const sp = c.lastIndexOf(" ");
+      if (sp > max * 0.6) c = c.slice(0, sp);
+      return c.trim();
+    }
+    function ajusterDurees(scenes, cible) {
+      const n = scenes.length;
+      if (!n) return;
+      const ordre = scenes.map((_, i) => i).sort((a, b) => (scenes[b].d0 || 0) - (scenes[a].d0 || 0));
+      const k = Math.max(0, Math.min(n, Math.round((cible - 5 * n) / 5)));
+      scenes.forEach((s) => { s.duree = 5; });
+      ordre.slice(0, k).forEach((i) => { scenes[i].duree = 10; });
+      scenes.forEach((s) => { delete s.d0; });
+    }
+
+    // ─────────────── Assistant d'écriture (même mécanisme que l'assistant scénario) ───────────────
+    async function llm(system, prompt) {
+      const path = "fal-ai/any-llm";
+      const job = await apiSubmit(path, { model: "google/gemini-2.5-flash", system_prompt: system, prompt: prompt });
+      const st = job.status_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id + "/status");
+      const rp = job.response_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id);
+      let ok = false;
+      for (let i = 0; i < 45; i++) {
+        await sleep(2000);
+        const sj = await apiPoll(st);
+        if (sj.status === "COMPLETED") { ok = true; break; }
+        if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("l'écriture a échoué côté serveur");
+      }
+      if (!ok) throw new Error("l'écriture prend trop de temps");
+      const data = await apiPoll(rp);
+      const out = (data.output || (data.response && data.response.output) || "").trim();
+      if (!out) throw new Error("réponse vide");
+      return out;
+    }
+    function systemScenario(T, N) {
+      return "Tu es scénariste de mini-séries verticales. À partir de l'idée du client (en français), écris l'ÉPISODE PILOTE. "
+        + "Réponds UNIQUEMENT avec un objet JSON valide, sans aucun texte autour et sans balises de code, au format exact : "
+        + '{"titre":"...","resume":"... (en français, 3 à 5 phrases)",'
+        + '"personnages":[{"nom":"prénom fictif court","role":"in English, 2 to 4 words, e.g. the young nurse","description":"in English, visual only: age range, build, hair, skin tone, outfit; no brand and no real person\'s name"}],'
+        + '"decors":[{"nom":"nom court en français","description":"in English: place, time of day, lighting, atmosphere; NO people"}],'
+        + '"scenes":[{"duree":5,"decor":1,"personnages":[1],"action":"in English, ONE simple visible action plus the camera, 25 to 45 words, name the characters by their nom","dialogue":"réplique courte en français, ou chaîne vide"}]}. '
+        + "RÈGLES : 1 à 3 personnages ; 1 à 3 décors ; EXACTEMENT " + N + " scènes ; chaque duree vaut 5 ou 10 ; total proche de " + T + " secondes ; "
+        + "decor et personnages sont des numéros qui commencent à 1 ; une seule action simple par scène (pas de gestes de mains compliqués) ; "
+        + "aucune marque, aucune personnalité réelle ; l'épisode a une accroche, un tournant et une fin qui donne envie de voir la suite.";
+    }
+    function extraireJSON(t) {
+      t = t.replace(/```json|```/gi, "");
+      const a = t.indexOf("{"), b = t.lastIndexOf("}");
+      if (a < 0 || b < a) throw new Error("réponse inattendue");
+      return JSON.parse(t.slice(a, b + 1));
+    }
+    function normaliser(p, j) {
+      const persos = (Array.isArray(j.personnages) ? j.personnages : []).slice(0, 3).map((x) => ({
+        id: uid("c"), nom: String(x.nom || "").trim(), role: String(x.role || "").trim(),
+        desc: String(x.description || "").trim(), refs: [], valide: false,
+      })).filter((x) => x.nom);
+      const decors = (Array.isArray(j.decors) ? j.decors : []).slice(0, 3).map((x) => ({
+        id: uid("d"), nom: String(x.nom || "").trim(), desc: String(x.description || "").trim(), refUrl: "", valide: false,
+      })).filter((x) => x.nom);
+      const scenes = (Array.isArray(j.scenes) ? j.scenes : []).map((x) => {
+        const di = Math.max(1, Math.min(decors.length, parseInt(x.decor, 10) || 1)) - 1;
+        const ids = (Array.isArray(x.personnages) ? x.personnages : [])
+          .map((n) => persos[(parseInt(n, 10) || 0) - 1]).filter(Boolean).map((c) => c.id);
+        return nouvelleScene({
+          d0: Number(x.duree) || 5, decorId: decors[di] ? decors[di].id : "", persoIds: ids,
+          action: String(x.action || "").trim(), dialogue: String(x.dialogue || "").trim(),
+        });
+      }).filter((s) => s.action);
+      if (!persos.length || !decors.length || !scenes.length) throw new Error("scénario incomplet");
+      ajusterDurees(scenes, p.duree);
+      p.titre = String(j.titre || "").trim().slice(0, 80);
+      p.resume = String(j.resume || "").trim();
+      p.personnages = persos; p.decors = decors; p.scenes = scenes;
+      p.valide = { scenario: false, refs: false }; p.episodeUrl = "";
+    }
+    async function proposer(btn) {
+      const p = actif, idee = (p.idee || "").trim();
+      if (idee.length < 20) { info("<span class='err'>Écris ton idée en une ou deux phrases au moins.</span>"); return; }
+      if (p.scenes.length) {
+        const perdues = p.scenes.filter((s) => s.url).length;
+        if (!confirm("Un scénario existe déjà pour ce projet. Le remplacer par une nouvelle proposition ?"
+          + (perdues ? "\n\n" + pluriel(perdues, "scène terminée") + " ne sera plus rattachée à ce projet : télécharge-la d'abord si tu la veux." : ""))) return;
+      }
+      const T = p.duree, N = nbScenes(T);
+      btn.disabled = true;
+      info("✍️ Écriture du scénario en cours (20 à 60 s). Aucune vidéo n'est générée à cette étape.");
+      try {
+        const sortie = await llm(systemScenario(T, N), "Idée du client : " + idee);
+        let j;
+        try { j = extraireJSON(sortie); } catch (_) { throw new Error("réponse illisible — réessaie"); }
+        normaliser(p, j);
+        p.maj = Date.now(); vue = 2; sauver(); render();
+        info("<span class='okc'>✓ Scénario proposé. Relis-le, modifie ce que tu veux, puis valide-le.</span>");
+      } catch (e) {
+        info("<span class='err'>✗ " + esc(e.message) + ". Réessaie, ou précise ton idée.</span>");
+      } finally { btn.disabled = false; }
+    }
+
+    // ─────────────── Validation du scénario ───────────────
+    function problemesScenario(p) {
+      const l = [];
+      if (!p.personnages.length) l.push("ajoute au moins un personnage");
+      if (!p.decors.length) l.push("ajoute au moins un décor");
+      if (!p.scenes.length) l.push("ajoute au moins une scène");
+      p.personnages.forEach((c) => { if (!c.nom.trim() || c.desc.trim().length < 8) l.push("personnage « " + (c.nom || "?") + " » : nom et description requis"); });
+      p.decors.forEach((d) => { if (!d.nom.trim() || d.desc.trim().length < 8) l.push("décor « " + (d.nom || "?") + " » : nom et description requis"); });
+      p.scenes.forEach((s, i) => {
+        if (s.action.trim().length < 15) l.push("scène " + (i + 1) + " : action trop courte");
+        if (!p.decors.some((d) => d.id === s.decorId)) l.push("scène " + (i + 1) + " : choisis un décor");
+      });
+      const t = total(p);
+      if (t < 30 || t > 60) l.push("la durée totale est de " + t + " s : elle doit rester entre 30 et 60 s");
+      return l;
+    }
+
+    // ─────────────── Images (import, création IA) ───────────────
+    function redim(file, max) {
+      return new Promise((res) => {
+        const u = URL.createObjectURL(file), im = new Image();
+        im.onload = () => {
+          try {
+            const r = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+            const c = document.createElement("canvas");
+            c.width = Math.round(im.naturalWidth * r); c.height = Math.round(im.naturalHeight * r);
+            c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+            c.toBlob((b) => { URL.revokeObjectURL(u); res(b || file); }, "image/jpeg", 0.9);
+          } catch (_) { URL.revokeObjectURL(u); res(file); }
+        };
+        im.onerror = () => { URL.revokeObjectURL(u); res(file); };
+        im.src = u;
+      });
+    }
+    async function importerImage(file, cible) {
+      if (!getCode()) { info("<span class='err'>Entre d'abord ton code StarClip en haut de l'app.</span>"); return; }
+      info("⏳ Envoi de l'image…");
+      try {
+        const blob = await redim(file, 1536);
+        const url = await hebergerFichier(blob, "serie-" + cible.type + ".jpg");
+        poser(cible, url);
+        info("<span class='okc'>✓ Image ajoutée. Vérifie-la, puis valide-la.</span>");
+      } catch (e) { info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
+    }
+    function poser(cible, url) {
+      const p = actif;
+      if (cible.type === "perso") { const c = p.personnages.find((x) => x.id === cible.id); if (c) { c.refs.push(url); c.valide = false; } }
+      else if (cible.type === "decor") { const d = p.decors.find((x) => x.id === cible.id); if (d) { d.refUrl = url; d.valide = false; } }
+      else if (cible.type === "depart") { const s = p.scenes.find((x) => x.id === cible.id); if (s) { s.depart = url; s.pret = false; } }
+      p.maj = Date.now(); sauver(); render();
+    }
+    async function imageIA(prompt, images, ratio) {
+      if (!estPro()) throw new Error("La création d'images par IA est réservée aux packs Pro. Importe plutôt ta propre image.");
+      let path, payload;
+      if (images.length) { path = nbModele(); payload = { prompt: prompt, image_urls: images, num_images: 1 }; }
+      else { path = "fal-ai/nano-banana"; payload = { prompt: prompt, num_images: 1, aspect_ratio: ratio }; }
+      const job = await apiSubmit(path, payload);
+      const st = job.status_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id + "/status");
+      const rp = job.response_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id);
+      let ok = false;
+      for (let i = 0; i < 40; i++) {
+        await sleep(3000);
+        const sj = await apiPoll(st);
+        if (sj.status === "COMPLETED") { ok = true; break; }
+        if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("la création de l'image a échoué");
+        info("🎨 Création de l'image… (" + (i + 1) * 3 + " s)");
+      }
+      if (!ok) throw new Error("la création de l'image prend trop de temps");
+      const data = await apiPoll(rp);
+      const url = (data.images && data.images[0] && data.images[0].url)
+        || (data.response && data.response.images && data.response.images[0] && data.response.images[0].url);
+      if (!url) throw new Error("image introuvable dans la réponse");
+      return url;
+    }
+    async function creerImage(cible) {
+      const p = actif;
+      if (enCours) { info("<span class='err'>Une création est déjà en cours. Attends qu'elle se termine.</span>"); return; }
+      let prompt, images = [], ratio;
+      if (cible.type === "perso") {
+        const c = p.personnages.find((x) => x.id === cible.id);
+        prompt = "Photorealistic half-body portrait of " + c.desc + ". Front-facing, neutral expression, looking at the camera, plain neutral studio background, soft even light, face fully visible, natural skin texture.";
+        ratio = "3:4";
+      } else if (cible.type === "decor") {
+        const d = p.decors.find((x) => x.id === cible.id);
+        prompt = "A photorealistic cinematic establishing shot of " + d.desc + ". Empty scene with no people, " + p.format + " framing.";
+        ratio = p.format;
+      } else {
+        const s = p.scenes.find((x) => x.id === cible.id);
+        const d = p.decors.find((x) => x.id === s.decorId);
+        const persos = s.persoIds.map((id) => p.personnages.find((x) => x.id === id)).filter(Boolean);
+        if (!d || !d.refUrl) { info("<span class='err'>Ajoute d'abord l'image du décor (étape 3).</span>"); return; }
+        images = [d.refUrl].concat(persos.map((c) => c.refs[0]).filter(Boolean));
+        prompt = "Create one photorealistic cinematic still frame. The location comes from the first input image. The people come from the following input images, each keeping their exact face, skin tone, hairstyle and outfit. Scene: "
+          + s.action + " Same location, natural lighting, " + p.format + " framing.";
+        ratio = p.format;
+      }
+      if (!confirm("Créer cette image par IA ?\n\nElle utilise 1 image du quota d'images de ton code (estimation).\nLe résultat n'est jamais garanti : tu pourras le refuser.")) return;
+      enCours = true; render();
+      info("🎨 Création de l'image… (10 à 40 s)");
+      try {
+        const url = await imageIA(prompt, images, ratio);
+        enCours = false;
+        poser(cible, url);
+        info("<span class='okc'>✓ Image créée. Vérifie-la, puis valide-la.</span>");
+      } catch (e) { enCours = false; render(); info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
+    }
+
+    // ─────────────── Construction de la requête d'une scène ───────────────
+    function construire(p, s, m) {
+      const decor = p.decors.find((d) => d.id === s.decorId);
+      const persos = s.persoIds.map((id) => p.personnages.find((c) => c.id === id)).filter(Boolean);
+      const dg = String(dureeGen(s));
+      let action = s.action;
+      persos.forEach((c, i) => {
+        if (!c.nom) return;
+        const re = new RegExp("(^|[^\\p{L}])" + c.nom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\p{L}])", "giu");
+        action = action.replace(re, (t, a) => a + (m === "ref" ? "@Element" + (i + 1) : (c.role || "the person")));
+      });
+      action = action.replace(/[.\s]+$/, "");
+      if (m === "pro" && !estPro()) throw new Error("Le modèle Pro est réservé aux packs Pro.");
+      if (m === "ref") {
+        const els = [];
+        persos.forEach((c) => {
+          const r = c.refs.filter(Boolean);
+          if (!r.length) throw new Error("il manque l'image de référence de « " + c.nom + " »");
+          els.push({ frontal_image_url: r[0], reference_image_urls: r.length > 1 ? r.slice(1) : [r[0]] });
+        });
+        const base = s.depart || (decor && decor.refUrl);
+        if (!base) throw new Error("il manque l'image du décor pour cette scène");
+        let pre = s.depart ? "Take @Image1 as the start frame. " : "@Image1 shows the location of this scene: keep this place and its atmosphere. ";
+        if (persos.length) {
+          pre += persos.map((c, i) => "@Element" + (i + 1) + " is " + (c.role || "a person")).join(", ")
+            + ". Keep each person's exact face, skin tone, hairstyle and outfit from their own references, never swap the people and never replace anyone with a lookalike. ";
+        }
+        const txt = couper(pre + (decor ? "Setting: " + decor.desc.replace(/[,;.]?\s*(with\s+)?no\s+(people|persons?|humans?)\.?/gi, "").replace(/[.\s]+$/, "") + ". " : "") + action
+          + ". Cinematic photorealistic shot, smooth natural camera and body motion, faces fully visible, eyes open, clean frame.", 2400);
+        const payload = { prompt: txt, image_urls: [base], duration: dg, aspect_ratio: p.format, generate_audio: false };
+        if (els.length) payload.elements = els;
+        return { path: MODELS.ref.path, payload: payload, dg: Number(dg) };
+      }
+      if (!s.depart) throw new Error("ce modèle a besoin d'une image de départ pour la scène");
+      return {
+        path: MODELS[m].path, dg: Number(dg),
+        payload: {
+          prompt: couper(action + ". Cinematic photorealistic shot, smooth natural motion, faces fully visible, eyes open.", 2400),
+          image_url: s.depart, duration: dg,
+          negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, text, subtitles, low quality",
+        },
+      };
+    }
+
+    // ─────────────── Génération d'UNE scène (toujours avec confirmation) ───────────────
+    function majEtat(s, txt) { const z = $("msr-etat-" + s.id); if (z) z.textContent = txt; }
+    async function rembourser(id) {
+      try {
+        const r = await fetch(WORKER_URL + "/refund", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: getCode(), request_id: id }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok && !d.deja) return " Tes crédits t'ont été rendus automatiquement.";
+      } catch (_) { /* silencieux */ }
+      return "";
+    }
+    async function suivreJob(s) {
+      const t0 = Date.now();
+      let fini = false;
+      for (let i = 0; i < 150; i++) {
+        await sleep(4000);
+        const sj = await apiPoll(s.job.st);
+        const sec = Math.round((Date.now() - t0) / 1000);
+        if (sj.status === "IN_QUEUE") majEtat(s, "En file d'attente (position " + (sj.queue_position != null ? sj.queue_position : "…") + ") · " + sec + " s");
+        else majEtat(s, "Le studio crée ta scène… (1 à 5 min) · " + sec + " s");
+        if (sj.status === "COMPLETED") { fini = true; break; }
+        if (sj.status === "FAILED" || sj.status === "ERROR") {
+          const rep = await apiPoll(s.job.rp).catch(() => ({}));
+          const detail = JSON.stringify(rep.detail || rep.error || rep.message || "").slice(0, 160);
+          const rb = await rembourser(s.job.id);
+          const e = new Error("le moteur a refusé ou échoué" + (detail && detail !== '""' ? " (" + detail + ")" : "") + "." + rb);
+          e.definitif = true; throw e;
+        }
+      }
+      if (!fini) { const e = new Error("Le rendu prend plus de temps que prévu. Touche « Reprendre le suivi » dans quelques minutes."); e.attente = true; throw e; }
+      const data = await apiPoll(s.job.rp);
+      const v = (data.video && data.video.url) || (data.response && data.response.video && data.response.video.url);
+      if (!v) throw new Error("vidéo introuvable dans la réponse");
+      s.statut = "fait"; s.url = v; s.erreur = ""; s.job.fini = true;
+    }
+    async function generer(id) {
+      const p = actif, s = p.scenes.find((x) => x.id === id);
+      if (!s || enCours) return;
+      const idx = p.scenes.indexOf(s), m = modeleDe(p, s);
+      if (!s.pret) { info("<span class='err'>Valide d'abord le texte de la scène (case à cocher).</span>"); return; }
+      let req;
+      try { req = construire(p, s, m); } catch (e) { info("<span class='err'>Scène " + (idx + 1) + " : " + esc(e.message) + ".</span>"); return; }
+      const c = credits(s);
+      const msg = "Générer la scène " + (idx + 1) + " ?\n\n"
+        + "Modèle : " + MODELES[m].label + "\n"
+        + "Durée générée : " + req.dg + " s\n"
+        + "Coût estimé : " + pluriel(c, "crédit") + " vidéo (estimation)\n"
+        + (s.tentatives ? "\nCette scène a déjà été lancée " + pluriel(s.tentatives, "fois") + " : chaque relance est facturée.\n" : "")
+        + "\nAucune autre scène ne sera lancée.";
+      if (!confirm(msg)) return;
+      enCours = true;
+      s.statut = "encours"; s.erreur = ""; s.tentatives += 1; s.url = ""; s.visage = null; s.valide = false; s.job = null;
+      p.maj = Date.now(); sauver(); render();
+      try {
+        const job = await apiSubmit(req.path, req.payload);
+        s.job = {
+          id: job.request_id, path: req.path,
+          st: job.status_url || ("https://queue.fal.run/" + req.path + "/requests/" + job.request_id + "/status"),
+          rp: job.response_url || ("https://queue.fal.run/" + req.path + "/requests/" + job.request_id),
+        };
+        sauver();
+        await suivreJob(s);
+      } catch (e) {
+        if (e.attente) { s.statut = "encours"; s.erreur = e.message; }
+        else { s.statut = "rate"; s.erreur = e.message; }
+      }
+      enCours = false; p.maj = Date.now(); sauver(); render();
+    }
+    async function reprendre(id) {
+      const p = actif, s = p.scenes.find((x) => x.id === id);
+      if (!s || !s.job || enCours) return;
+      enCours = true; s.erreur = ""; render();
+      try { await suivreJob(s); }
+      catch (e) { if (e.attente) { s.erreur = e.message; } else { s.statut = "rate"; s.erreur = e.message; } }
+      enCours = false; p.maj = Date.now(); sauver(); render();
+    }
+
+    // ─────────────── Export ───────────────
+    async function sauverFichier(url, nom, hint) {
+      try {
+        hint.textContent = "⏳ Préparation du fichier…";
+        const r = await fetch(url);
+        if (!r.ok) throw new Error("code " + r.status);
+        const blob = await r.blob();
+        const f = new File([blob], nom, { type: blob.type || "video/mp4" });
+        if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [f] }))) {
+          try { await navigator.share({ files: [f] }); hint.textContent = "Dans le menu : touche « Enregistrer la vidéo »."; return; }
+          catch (e) { if (e && e.name === "AbortError") { hint.textContent = ""; return; } }
+        }
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(f); a.download = nom; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        hint.textContent = "✓ Téléchargée.";
+      } catch (e) {
+        hint.innerHTML = "⚠️ Téléchargement impossible (" + esc(e.message) + "). Appuie longuement sur la vidéo → « Enregistrer la vidéo ».";
+      }
+    }
+    function texteProjet(p) {
+      const l = [p.titre || "Mini-série", "", p.resume, ""];
+      p.scenes.forEach((s, i) => {
+        l.push("Scène " + (i + 1) + " · " + s.duree + " s" + (s.valide ? " · validée" : " · non validée"));
+        l.push(s.action); if (s.dialogue) l.push("Réplique / voix off : " + s.dialogue); l.push("");
+      });
+      return l.join("\n");
+    }
+    async function zipper(btn) {
+      const p = actif, faites = p.scenes.filter((s) => s.statut === "fait" && s.url);
+      if (!faites.length) return;
+      if (typeof JSZip === "undefined") { info("<span class='err'>Le module ZIP n'est pas chargé. Télécharge les scènes une par une.</span>"); return; }
+      const avant = btn.textContent; btn.disabled = true; btn.textContent = "📦 Préparation du ZIP…";
+      try {
+        const zip = new JSZip(); let ok = 0;
+        for (const s of faites) {
+          try {
+            const r = await fetch(s.url); if (!r.ok) continue;
+            zip.file("scene-" + String(p.scenes.indexOf(s) + 1).padStart(2, "0") + ".mp4", await r.blob()); ok++;
+          } catch (_) { /* on continue avec les autres */ }
+        }
+        if (!ok) throw new Error("aucune scène récupérable (liens expirés ?)");
+        zip.file("scenario.txt", texteProjet(p));
+        const blob = await zip.generateAsync({ type: "blob" });
+        const nom = "mini-serie-" + ((p.titre || "episode-pilote").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "episode") + ".zip";
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nom; document.body.appendChild(a); a.click();
+        setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 4000);
+        info("<span class='okc'>✓ ZIP prêt (" + pluriel(ok, "scène") + " + scenario.txt).</span>");
+      } catch (e) { info("<span class='err'>✗ ZIP impossible : " + esc(e.message) + ". Télécharge les scènes une par une.</span>"); }
+      finally { btn.disabled = false; btn.textContent = avant; }
+    }
+    function lireEnchaine() {
+      const p = actif, urls = p.scenes.filter((s) => s.statut === "fait" && s.url).map((s) => s.url);
+      if (!urls.length) return;
+      const z = $("msrLecteur"); if (!z) return;
+      z.innerHTML = '<video id="msrV" controls playsinline style="width:100%;background:#000;border-radius:12px;max-height:70vh;"></video><div class="estimate" id="msrVi"></div>';
+      const v = $("msrV"); let i = 0;
+      const go = () => { v.src = urls[i]; v.play().catch(() => {}); $("msrVi").textContent = "Scène " + (i + 1) + " / " + urls.length; };
+      v.onended = () => { if (i < urls.length - 1) { i++; go(); } };
+      go();
+    }
+    async function assembler(btn) {
+      const p = actif;
+      const urls = p.scenes.filter((s) => s.statut === "fait" && s.url).map((s) => s.url);
+      if (urls.length < 2 || enCours) return;
+      if (!confirm("Assembler " + urls.length + " scènes en un seul fichier ?\n\nCoût estimé : 1 crédit vidéo (estimation).\nUne seule opération sera lancée.")) return;
+      enCours = true; btn.disabled = true; info("🎞️ Assemblage en cours…");
+      try {
+        const path = "fal-ai/ffmpeg-api/merge-videos";
+        const job = await apiSubmit(path, { video_urls: urls });
+        const st = job.status_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id + "/status");
+        const rp = job.response_url || ("https://queue.fal.run/" + path + "/requests/" + job.request_id);
+        let ok = false;
+        for (let i = 0; i < 60; i++) {
+          await sleep(4000);
+          const sj = await apiPoll(st);
+          if (sj.status === "COMPLETED") { ok = true; break; }
+          if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("l'assemblage a échoué" + (await rembourser(job.request_id)));
+        }
+        if (!ok) throw new Error("l'assemblage prend trop de temps");
+        const data = await apiPoll(rp);
+        const v = (data.video && data.video.url) || (data.response && data.response.video && data.response.video.url);
+        if (!v) throw new Error("vidéo introuvable dans la réponse");
+        p.episodeUrl = v; sauver(); info("<span class='okc'>✓ Épisode assemblé.</span>");
+      } catch (e) { info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
+      enCours = false; render();
+    }
+
+    // ─────────────── Affichage ───────────────
+    function accessible(n) {
+      const p = actif;
+      if (n === 1) return true;
+      if (!p) return false;
+      if (n === 2) return p.scenes.length > 0;
+      if (n === 3) return p.valide.scenario;
+      if (n === 4) return p.valide.scenario && p.valide.refs;
+      if (n === 5) return p.scenes.some((s) => s.statut === "fait");
+      return false;
+    }
+    function etapeFaite(n) {
+      const p = actif;
+      if (n === 1) return p.scenes.length > 0;
+      if (n === 2) return p.valide.scenario;
+      if (n === 3) return p.valide.refs;
+      if (n === 4) return p.scenes.length > 0 && p.scenes.every((s) => s.valide);
+      return false;
+    }
+    function renderBarre() {
+      const opts = projets.map((p) => '<option value="' + p.id + '"' + (actif && p.id === actif.id ? " selected" : "") + ">"
+        + esc(p.titre || (p.idee || "").slice(0, 28) || "Nouveau projet") + " · " + new Date(p.maj).toLocaleDateString("fr-FR") + "</option>").join("");
+      $("msrBarre").innerHTML = '<div class="msr-barre">'
+        + (projets.length ? '<select data-a="choisir">' + opts + "</select>" : "")
+        + '<button class="btn small" data-a="nouveau">＋ Nouveau projet</button>'
+        + (actif ? '<button class="btn small" data-a="supprimer">🗑 Supprimer</button>' : "") + "</div>";
+    }
+    function renderEtapes() {
+      $("msrEtapes").innerHTML = '<div class="msr-etapes">' + ETAPES.map((e, i) => {
+        const n = i + 1, ok = accessible(n);
+        return '<button class="chip' + (vue === n ? " on" : "") + '" data-a="vue" data-v="' + n + '"' + (ok ? "" : " disabled") + ">"
+          + (etapeFaite(n) ? "✓ " : e[0] + ". ") + e[1] + "</button>";
+      }).join("") + "</div>";
+    }
+    function vignette(url, alt) { return url ? '<img class="msr-img" src="' + esc(url) + '" alt="' + esc(alt) + '">' : '<div class="msr-img msr-vide">＋</div>'; }
+
+    function vue1() {
+      const p = actif;
+      return '<div class="label">Ton idée (en français, quelques phrases)</div>'
+        + '<textarea data-f="idee" rows="4" placeholder="Ex : Une jeune infirmière découvre, la nuit, que son voisin cache un secret dans l\'ascenseur de l\'immeuble…">' + esc(p.idee) + "</textarea>"
+        + '<div class="label" style="margin-top:12px">Format</div><div class="chips">'
+        + RATIOS.map((r) => '<button class="chip' + (p.format === r ? " on" : "") + '" data-a="fmt" data-v="' + r + '">' + (r === "9:16" ? "📱 9:16 Vertical" : "🖥️ 16:9 Horizontal") + "</button>").join("") + "</div>"
+        + '<div class="label" style="margin-top:12px">Durée cible : <b id="msrDureeVal">' + p.duree + ' s</b></div>'
+        + '<input type="range" min="30" max="60" step="5" value="' + p.duree + '" data-f="duree" style="width:100%">'
+        + '<div class="estimate">Scènes de 5 ou 10 s : environ ' + nbScenes(p.duree) + " scènes.</div>"
+        + '<button class="btn" data-a="proposer" style="width:100%;margin-top:12px;">✨ ' + (p.scenes.length ? "Proposer un nouveau scénario" : "Proposer le scénario") + "</button>"
+        + '<div class="estimate" style="margin-top:8px;">Cette étape écrit seulement le texte : aucune vidéo n\'est créée.</div>';
+    }
+
+    function vue2() {
+      const p = actif, v = p.valide.scenario, dis = v ? " disabled" : "", t = total(p);
+      const pb = problemesScenario(p);
+      let h = '<div class="label">Titre</div><input type="text" data-f="titre" value="' + esc(p.titre) + '"' + dis + ">"
+        + '<div class="label" style="margin-top:10px">Résumé</div><textarea data-f="resume" rows="4"' + dis + ">" + esc(p.resume) + "</textarea>"
+        + '<div class="msr-titre">👤 Personnages <span class="estimate">(3 maximum)</span></div>';
+      p.personnages.forEach((c) => {
+        h += '<div class="msr-bloc"><input type="text" data-pf="nom" data-id="' + c.id + '" value="' + esc(c.nom) + '" placeholder="Nom" style="font-weight:700"' + dis + ">"
+          + '<input type="text" data-pf="role" data-id="' + c.id + '" value="' + esc(c.role) + '" placeholder="Rôle en anglais (ex : the young nurse)"' + dis + ' style="margin-top:6px">'
+          + '<textarea data-pf="desc" data-id="' + c.id + '" rows="2" placeholder="Apparence (en anglais) : âge, cheveux, tenue…"' + dis + ' style="margin-top:6px">' + esc(c.desc) + "</textarea>"
+          + (v ? "" : '<button class="btn small" data-a="delperso" data-id="' + c.id + '" style="margin-top:6px">🗑 Retirer</button>') + "</div>";
+      });
+      if (!v && p.personnages.length < 3) h += '<button class="btn small" data-a="addperso">＋ Ajouter un personnage</button>';
+      h += '<div class="msr-titre">🏙️ Décors <span class="estimate">(3 maximum)</span></div>';
+      p.decors.forEach((d) => {
+        h += '<div class="msr-bloc"><input type="text" data-df="nom" data-id="' + d.id + '" value="' + esc(d.nom) + '" placeholder="Nom du décor" style="font-weight:700"' + dis + ">"
+          + '<textarea data-df="desc" data-id="' + d.id + '" rows="2" placeholder="Lieu, heure, lumière (en anglais), sans personne"' + dis + ' style="margin-top:6px">' + esc(d.desc) + "</textarea>"
+          + (v ? "" : '<button class="btn small" data-a="deldecor" data-id="' + d.id + '" style="margin-top:6px">🗑 Retirer</button>') + "</div>";
+      });
+      if (!v && p.decors.length < 3) h += '<button class="btn small" data-a="adddecor">＋ Ajouter un décor</button>';
+      h += '<div class="msr-titre">🎬 Scènes · total <b style="color:' + (t >= 30 && t <= 60 ? "var(--ok)" : "var(--err)") + '">' + t + " s</b></div>";
+      p.scenes.forEach((s, i) => {
+        h += '<div class="msr-bloc"><div class="msr-ligne"><b>Scène ' + (i + 1) + "</b>"
+          + '<span class="chips">' + [5, 10].map((d) => '<button class="chip' + (s.duree === d ? " on" : "") + '" data-a="dur" data-id="' + s.id + '" data-v="' + d + '"' + dis + ">" + d + " s</button>").join("") + "</span></div>"
+          + '<div class="label">Décor</div><select data-sf="decorId" data-id="' + s.id + '"' + dis + ">"
+          + '<option value="">— choisir —</option>' + p.decors.map((d) => '<option value="' + d.id + '"' + (d.id === s.decorId ? " selected" : "") + ">" + esc(d.nom) + "</option>").join("") + "</select>"
+          + '<div class="label" style="margin-top:6px">Personnages présents</div><div class="msr-ligne" style="flex-wrap:wrap">'
+          + p.personnages.map((c) => '<label class="msr-case"><input type="checkbox" data-sp="' + c.id + '" data-id="' + s.id + '"' + (s.persoIds.indexOf(c.id) >= 0 ? " checked" : "") + dis + "> " + esc(c.nom) + "</label>").join("") + "</div>"
+          + '<div class="label" style="margin-top:6px">Action (en anglais, une seule action simple)</div>'
+          + '<textarea data-sf="action" data-id="' + s.id + '" rows="3"' + dis + ">" + esc(s.action) + "</textarea>"
+          + '<div class="label" style="margin-top:6px">Réplique ou voix off (facultatif, non parlée dans cette version)</div>'
+          + '<input type="text" data-sf="dialogue" data-id="' + s.id + '" value="' + esc(s.dialogue) + '"' + dis + ">"
+          + (v ? "" : '<div class="msr-ligne" style="margin-top:6px"><button class="btn small" data-a="haut" data-id="' + s.id + '">↑</button><button class="btn small" data-a="bas" data-id="' + s.id + '">↓</button><button class="btn small" data-a="delscene" data-id="' + s.id + '">🗑 Retirer</button></div>')
+          + "</div>";
+      });
+      if (!v && p.scenes.length < 12) h += '<button class="btn small" data-a="addscene">＋ Ajouter une scène</button>';
+      if (v) {
+        h += '<div class="estimate okc" style="margin-top:12px">✓ Scénario validé.</div>'
+          + '<button class="btn small" data-a="rouvrir1" style="margin-top:6px">✏️ Rouvrir le scénario (les références seront à revalider)</button>'
+          + '<button class="btn" data-a="vue" data-v="3" style="width:100%;margin-top:10px">Passer aux références →</button>';
+      } else {
+        h += (pb.length ? '<div class="estimate err" style="margin-top:12px">À corriger avant de valider :<br>• ' + pb.map(esc).join("<br>• ") + "</div>" : "")
+          + '<button class="btn" data-a="valider1" style="width:100%;margin-top:12px"' + (pb.length ? " disabled" : "") + ">✓ Valider le scénario</button>";
+      }
+      return h;
+    }
+
+    function vue3() {
+      const p = actif, v = p.valide.refs;
+      const persosUtiles = p.personnages.filter((c) => p.scenes.some((s) => s.persoIds.indexOf(c.id) >= 0));
+      const decorsUtiles = p.decors.filter((d) => p.scenes.some((s) => s.decorId === d.id));
+      let h = '<div class="estimate" style="color:var(--gold);font-weight:700">⚠️ La ressemblance des visages d\'une scène à l\'autre n\'est jamais garantie. Des images de référence nettes (visage de face, bien éclairé) aident beaucoup, mais tu devras vérifier chaque scène.</div>'
+        + '<div class="msr-titre">👤 Références des personnages <span class="estimate">(1 à 3 images chacun)</span></div>';
+      persosUtiles.forEach((c) => {
+        h += '<div class="msr-bloc"><div><b>' + esc(c.nom) + '</b> <span class="estimate">' + esc(c.role) + "</span></div>"
+          + '<div class="msr-imgs">' + (c.refs.map((u, i) => '<div class="msr-imgcase">' + vignette(u, c.nom) + (v ? "" : '<button class="msr-x" data-a="retirerperso" data-id="' + c.id + '" data-i="' + i + '">✕</button>') + "</div>").join("") || vignette("", "")) + "</div>"
+          + (v ? "" : '<div class="msr-ligne" style="flex-wrap:wrap;margin-top:6px">'
+            + (c.refs.length < 3 ? '<button class="btn small" data-a="importer" data-type="perso" data-id="' + c.id + '">📁 Importer une image</button>'
+              + '<button class="btn small" data-a="ia" data-type="perso" data-id="' + c.id + '"' + (enCours ? " disabled" : "") + ">🎨 Créer par IA" + (estPro() ? "" : " (pack Pro)") + "</button>" : "")
+            + '<label class="msr-case"><input type="checkbox" data-a="valperso" data-id="' + c.id + '"' + (c.valide ? " checked" : "") + (c.refs.length ? "" : " disabled") + "> ✓ Je valide ce personnage</label></div>") + "</div>";
+      });
+      h += '<div class="msr-titre">🏙️ Références des décors</div>';
+      decorsUtiles.forEach((d) => {
+        h += '<div class="msr-bloc"><div><b>' + esc(d.nom) + "</b></div>"
+          + '<div class="msr-imgs"><div class="msr-imgcase">' + vignette(d.refUrl, d.nom) + "</div></div>"
+          + (v ? "" : '<div class="msr-ligne" style="flex-wrap:wrap;margin-top:6px">'
+            + '<button class="btn small" data-a="importer" data-type="decor" data-id="' + d.id + '">📁 ' + (d.refUrl ? "Remplacer" : "Importer une image") + "</button>"
+            + '<button class="btn small" data-a="ia" data-type="decor" data-id="' + d.id + '"' + (enCours ? " disabled" : "") + ">🎨 Créer par IA" + (estPro() ? "" : " (pack Pro)") + "</button>"
+            + '<label class="msr-case"><input type="checkbox" data-a="valdecor" data-id="' + d.id + '"' + (d.valide ? " checked" : "") + (d.refUrl ? "" : " disabled") + "> ✓ Je valide ce décor</label></div>") + "</div>";
+      });
+      const manque = persosUtiles.filter((c) => !c.valide || !c.refs.length).length + decorsUtiles.filter((d) => !d.valide || !d.refUrl).length;
+      if (v) {
+        h += '<div class="estimate okc" style="margin-top:12px">✓ Références validées.</div>'
+          + '<button class="btn small" data-a="rouvrir2" style="margin-top:6px">✏️ Rouvrir les références</button>'
+          + '<button class="btn" data-a="vue" data-v="4" style="width:100%;margin-top:10px">Passer aux scènes →</button>';
+      } else {
+        h += '<button class="btn" data-a="valider2" style="width:100%;margin-top:12px"' + (manque ? " disabled" : "") + ">✓ Valider les références" + (manque ? " (" + manque + " à compléter)" : "") + "</button>";
+      }
+      return h;
+    }
+
+    function badge(s) {
+      if (s.statut === "encours") return '<span class="msr-badge msr-b-cours">⏳ en cours</span>';
+      if (s.statut === "rate") return '<span class="msr-badge msr-b-rate">✗ échec</span>';
+      if (s.statut === "fait") return s.valide ? '<span class="msr-badge msr-b-ok">✓ validée</span>' : '<span class="msr-badge msr-b-cours">à vérifier</span>';
+      return '<span class="msr-badge">à faire</span>';
+    }
+    function vue4() {
+      const p = actif;
+      const restant = p.scenes.filter((s) => s.statut !== "fait").reduce((n, s) => n + credits(s), 0);
+      let h = '<div class="label">Modèle par défaut</div><div class="chips">'
+        + Object.keys(MODELES).map((k) => '<button class="chip' + (p.modele === k ? " on" : "") + '" data-a="modeleDefaut" data-v="' + k + '"' + (MODELES[k].pro && !estPro() ? " disabled" : "") + ">" + MODELES[k].label + "</button>").join("") + "</div>"
+        + '<div class="estimate">Première passe des scènes restantes : environ <b style="color:var(--gold)">' + pluriel(restant, "crédit") + " vidéo</b> (estimation, hors relances). Rien ne part sans ta confirmation, scène par scène.</div>"
+        + '<div class="estimate">Cette version ne crée pas de voix : les répliques restent des notes.</div>';
+      p.scenes.forEach((s, i) => {
+        const m = modeleDe(p, s), decor = p.decors.find((d) => d.id === s.decorId);
+        const noms = s.persoIds.map((id) => { const c = p.personnages.find((x) => x.id === id); return c ? esc(c.nom) : ""; }).filter(Boolean).join(", ");
+        const bloque = enCours || s.statut === "encours";
+        h += '<div class="msr-bloc"><div class="msr-ligne"><b>Scène ' + (i + 1) + "</b><span class=\"estimate\">" + s.duree + " s · " + esc(decor ? decor.nom : "?") + (noms ? " · " + noms : "") + "</span>" + badge(s) + "</div>"
+          + '<textarea data-sf="action" data-id="' + s.id + '" rows="3"' + (bloque ? " disabled" : "") + ">" + esc(s.action) + "</textarea>"
+          + '<label class="msr-case"><input type="checkbox" data-sf="pret" data-id="' + s.id + '"' + (s.pret ? " checked" : "") + (bloque ? " disabled" : "") + "> ✓ Je valide le texte de cette scène</label>"
+          + '<div class="label" style="margin-top:6px">Modèle de cette scène</div><select data-a="modeleScene" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">"
+          + Object.keys(MODELES).map((k) => '<option value="' + k + '"' + (m === k ? " selected" : "") + (MODELES[k].pro && !estPro() ? " disabled" : "") + ">" + MODELES[k].label + "</option>").join("") + "</select>";
+        if (MODELES[m].depart || s.depart) {
+          h += '<div class="label" style="margin-top:6px">Image de départ ' + (MODELES[m].depart ? "(obligatoire pour ce modèle)" : "(facultative)") + "</div>"
+            + '<div class="msr-imgs"><div class="msr-imgcase">' + vignette(s.depart, "départ") + "</div></div>"
+            + '<div class="msr-ligne" style="flex-wrap:wrap;margin-top:6px"><button class="btn small" data-a="importer" data-type="depart" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">📁 Importer</button>"
+            + '<button class="btn small" data-a="ia" data-type="depart" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">🎨 Créer par IA" + (estPro() ? "" : " (pack Pro)") + "</button>"
+            + (s.depart ? '<button class="btn small" data-a="retirerdepart" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">✕ Retirer</button>" : "") + "</div>"
+            + '<div class="estimate">Avec ce modèle, le format de la vidéo suit celui de l\'image de départ.</div>';
+        }
+        h += '<div class="estimate" style="margin-top:8px">' + MODELES[m].label + " · " + dureeGen(s) + " s générées · <b style=\"color:var(--gold)\">≈ " + pluriel(credits(s), "crédit") + " vidéo</b> (estimation)</div>";
+        if (s.statut === "encours") {
+          h += '<div class="estimate" id="msr-etat-' + s.id + '">Suivi en cours…</div>'
+            + (s.erreur ? '<div class="estimate err">' + esc(s.erreur) + "</div>" : "")
+            + (s.job && !enCours ? '<button class="btn small" data-a="reprendre" data-id="' + s.id + '">🔄 Reprendre le suivi</button>' : "");
+        } else {
+          h += '<button class="btn" data-a="gen" data-id="' + s.id + '" style="width:100%;margin-top:6px"' + ((!s.pret || enCours) ? " disabled" : "") + ">"
+            + (s.statut === "fait" ? "🔁 Regénérer cette scène" : s.statut === "rate" ? "🔁 Réessayer cette scène" : "🎬 Générer cette scène") + "</button>"
+            + (!s.pret ? '<div class="estimate">Coche d\'abord « Je valide le texte de cette scène ».</div>' : "")
+            + (s.statut === "rate" ? '<div class="estimate err">' + esc(s.erreur) + "</div>" : "");
+        }
+        if (s.statut === "fait" && s.url) {
+          h += '<video data-msrv controls playsinline src="' + esc(s.url) + '" style="width:100%;border-radius:12px;margin-top:10px;background:#000"></video>'
+            + '<div class="estimate" style="margin-top:6px">Vérifie les visages, les tenues et le décor par rapport à tes références.</div>'
+            + '<div class="msr-ligne" style="flex-wrap:wrap;margin-top:6px">'
+            + '<button class="btn small" data-a="visageok" data-id="' + s.id + '">✓ Visages cohérents</button>'
+            + '<button class="btn small" data-a="visageko" data-id="' + s.id + '">✗ À refaire</button>'
+            + '<button class="btn small" data-a="garder" data-id="' + s.id + '">Garder malgré tout</button></div>'
+            + (s.visage === false ? '<div class="estimate err">' + (s.valide ? "Gardée malgré des visages différents." : "Marquée « à refaire » : modifie le texte ou les références, puis regénère.") + "</div>" : "");
+        }
+        h += "</div>";
+      });
+      if (p.scenes.some((s) => s.statut === "fait")) h += '<button class="btn" data-a="vue" data-v="5" style="width:100%;margin-top:10px">Aller à l\'export →</button>';
+      return h;
+    }
+
+    function vue5() {
+      const p = actif, faites = p.scenes.filter((s) => s.statut === "fait" && s.url);
+      const tout = p.scenes.length > 0 && p.scenes.every((s) => s.valide);
+      let h = '<div class="estimate">Télécharge tes scènes dès qu\'elles te plaisent : les liens des moteurs ne sont pas garantis indéfiniment.</div>';
+      p.scenes.forEach((s, i) => {
+        h += '<div class="msr-bloc"><div class="msr-ligne"><b>Scène ' + (i + 1) + "</b><span class=\"estimate\">" + s.duree + " s</span>" + badge(s) + "</div>"
+          + (s.statut === "fait" && s.url
+            ? '<button class="btn small" data-a="dl" data-id="' + s.id + '" style="margin-top:6px">📲 Enregistrer la scène ' + (i + 1) + '</button><div class="estimate" id="msr-h-' + s.id + '"></div>'
+            : '<div class="estimate">Pas encore générée.</div>') + "</div>";
+      });
+      h += '<button class="btn" data-a="zip" style="width:100%;margin-top:10px"' + (faites.length ? "" : " disabled") + ">📦 Tout télécharger (ZIP)</button>"
+        + '<div class="msr-titre">🎞️ Épisode complet</div>';
+      if (!tout) {
+        h += '<div class="estimate">Valide toutes les scènes (étape 4) pour débloquer la lecture de l\'épisode.</div>';
+      } else {
+        h += '<button class="btn" data-a="lire" style="width:100%">▶ Lire l\'épisode (scènes à la suite)</button><div id="msrLecteur"></div>';
+        if (ASSEMBLAGE_SERVEUR) {
+          h += (p.episodeUrl
+            ? '<video controls playsinline src="' + esc(p.episodeUrl) + '" style="width:100%;border-radius:12px;margin-top:10px;background:#000"></video><button class="btn small" data-a="dlep" style="margin-top:6px">📲 Enregistrer l\'épisode</button><div class="estimate" id="msr-h-ep"></div>'
+            : "")
+            + '<button class="btn" data-a="assembler" style="width:100%;margin-top:8px"' + (enCours ? " disabled" : "") + ">🎞️ Assembler en un seul fichier</button>";
+        } else {
+          h += '<div class="estimate" style="margin-top:8px">Assemblage en un seul fichier : pas encore disponible. Utilise le ZIP pour monter l\'épisode dans ton application de montage.</div>';
+        }
+      }
+      return h;
+    }
+
+    function render() {
+      const y = window.scrollY;
+      if (!actif && projets.length) actif = projets[0];
+      renderBarre();
+      if (!actif) {
+        $("msrEtapes").innerHTML = "";
+        $("msrCorps").innerHTML = '<div class="estimate">Aucun projet pour l\'instant.</div><button class="btn" data-a="nouveau" style="width:100%;margin-top:8px">＋ Créer ma première mini-série</button>';
+        return;
+      }
+      if (!accessible(vue)) vue = 1;
+      renderEtapes();
+      $("msrCorps").innerHTML = [null, vue1, vue2, vue3, vue4, vue5][vue]();
+      document.querySelectorAll("#msrCorps video[data-msrv]").forEach((v) => {
+        v.addEventListener("error", () => {
+          v.insertAdjacentHTML("afterend", '<div class="estimate err">⚠️ Ce lien vidéo n\'est plus disponible. Si tu ne l\'as pas téléchargée, regénère la scène.</div>');
+          v.remove();
+        }, { once: true });
+      });
+      window.scrollTo(0, y);
+    }
+    function aller(n) { vue = n; render(); racine.scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+    // ─────────────── Actions ───────────────
+    function agir(a, d, el) {
+      const p = actif;
+      const s = p && d.id ? p.scenes.find((x) => x.id === d.id) : null;
+      const bouger = (dir) => { const i = p.scenes.indexOf(s), j = i + dir; if (j < 0 || j >= p.scenes.length) return; p.scenes.splice(j, 0, p.scenes.splice(i, 1)[0]); };
+      switch (a) {
+        case "nouveau":
+          if (projets.length >= MAX_PROJETS && !confirm("Tu as déjà " + MAX_PROJETS + " projets. Le plus ancien sera supprimé pour faire de la place. Continuer ?")) return;
+          actif = nouveauProjet(); projets.unshift(actif); if (projets.length > MAX_PROJETS) projets.length = MAX_PROJETS;
+          vue = 1; sauver(); info(""); render(); return;
+        case "supprimer":
+          if (!confirm("Supprimer ce projet de cet appareil ? Les scènes non téléchargées seront perdues.")) return;
+          projets = projets.filter((x) => x.id !== p.id); actif = projets[0] || null; vue = 1; sauver(); render(); return;
+        case "choisir": actif = projets.find((x) => x.id === d.v) || actif; vue = 1; sauver(); info(""); render(); return;
+        case "vue": aller(parseInt(d.v, 10)); return;
+        case "fmt": p.format = d.v; p.maj = Date.now(); sauver(); render(); return;
+        case "proposer": proposer(el); return;
+        case "addperso": if (p.personnages.length < 3) p.personnages.push({ id: uid("c"), nom: "", role: "", desc: "", refs: [], valide: false }); break;
+        case "delperso":
+          if (!confirm("Retirer ce personnage ?")) return;
+          p.personnages = p.personnages.filter((x) => x.id !== d.id); p.scenes.forEach((x) => { x.persoIds = x.persoIds.filter((i) => i !== d.id); }); break;
+        case "adddecor": if (p.decors.length < 3) p.decors.push({ id: uid("d"), nom: "", desc: "", refUrl: "", valide: false }); break;
+        case "deldecor":
+          if (!confirm("Retirer ce décor ?")) return;
+          p.decors = p.decors.filter((x) => x.id !== d.id); p.scenes.forEach((x) => { if (x.decorId === d.id) x.decorId = ""; }); break;
+        case "addscene": p.scenes.push(nouvelleScene({ decorId: p.decors[0] ? p.decors[0].id : "" })); break;
+        case "delscene": if (!confirm("Retirer cette scène ?")) return; p.scenes = p.scenes.filter((x) => x.id !== d.id); break;
+        case "haut": bouger(-1); break;
+        case "bas": bouger(1); break;
+        case "dur": if (s) { s.duree = parseInt(d.v, 10); s.pret = false; } break;
+        case "valider1": if (problemesScenario(p).length) return; p.valide.scenario = true; p.valide.refs = false; p.maj = Date.now(); sauver(); vue = 3; render(); info(""); return;
+        case "rouvrir1": p.valide.scenario = false; p.valide.refs = false; break;
+        case "importer": cibleFichier = { type: d.type, id: d.id }; $("msrFichier").value = ""; $("msrFichier").click(); return;
+        case "ia": creerImage({ type: d.type, id: d.id }); return;
+        case "retirerperso": { const c = p.personnages.find((x) => x.id === d.id); if (c) { c.refs.splice(parseInt(d.i, 10), 1); c.valide = false; } break; }
+        case "retirerdepart": if (s) { s.depart = ""; s.pret = false; } break;
+        case "valider2": p.valide.refs = true; p.maj = Date.now(); sauver(); vue = 4; render(); info(""); return;
+        case "rouvrir2": p.valide.refs = false; break;
+        case "modeleDefaut": p.modele = d.v; break;
+        case "modeleScene": if (s) { s.modele = d.v; s.pret = false; } break;
+        case "gen": generer(d.id); return;
+        case "reprendre": reprendre(d.id); return;
+        case "visageok": if (s) { s.visage = true; s.valide = true; } break;
+        case "visageko": if (s) { s.visage = false; s.valide = false; } break;
+        case "garder": if (s) { s.visage = false; s.valide = true; } break;
+        case "dl": if (s) sauverFichier(s.url, "scene-" + String(p.scenes.indexOf(s) + 1).padStart(2, "0") + ".mp4", $("msr-h-" + s.id)); return;
+        case "dlep": sauverFichier(p.episodeUrl, "episode.mp4", $("msr-h-ep")); return;
+        case "zip": zipper(el); return;
+        case "lire": lireEnchaine(); return;
+        case "assembler": assembler(el); return;
+        default: return;
+      }
+      p.maj = Date.now(); sauver(); render();
+    }
+    function champ(e) {
+      const t = e.target, p = actif, d = t.dataset;
+      if (!p || !(d.f || d.pf || d.df || d.sf || d.sp || d.a === "valperso" || d.a === "valdecor")) return;
+      if (d.a === "valperso") { const c = p.personnages.find((x) => x.id === d.id); if (c) c.valide = t.checked; }
+      else if (d.a === "valdecor") { const x = p.decors.find((q) => q.id === d.id); if (x) x.valide = t.checked; }
+      else if (d.f) { if (d.f === "duree") { p.duree = +t.value; const z = $("msrDureeVal"); if (z) z.textContent = p.duree + " s"; } else p[d.f] = t.value; }
+      else if (d.pf) { const c = p.personnages.find((x) => x.id === d.id); if (c) c[d.pf] = t.value; }
+      else if (d.df) { const x = p.decors.find((q) => q.id === d.id); if (x) x[d.df] = t.value; }
+      else if (d.sf) {
+        const s = p.scenes.find((x) => x.id === d.id); if (!s) return;
+        if (d.sf === "pret") { s.pret = t.checked; p.maj = Date.now(); sauver(); render(); return; }
+        s[d.sf] = t.value;
+        if (d.sf === "action" && s.pret) {
+          s.pret = false;
+          const c = document.querySelector('[data-sf="pret"][data-id="' + s.id + '"]'); if (c) c.checked = false;
+          const g = document.querySelector('button[data-a="gen"][data-id="' + s.id + '"]'); if (g) g.disabled = true;
+        }
+      } else if (d.sp) {
+        const s = p.scenes.find((x) => x.id === d.id); if (!s) return;
+        const i = s.persoIds.indexOf(d.sp);
+        if (t.checked && i < 0) s.persoIds.push(d.sp);
+        if (!t.checked && i >= 0) s.persoIds.splice(i, 1);
+        s.pret = false;
+      }
+      p.maj = Date.now(); sauverTard();
+      if (d.a === "valperso" || d.a === "valdecor") { sauver(); render(); }
+    }
+
+    racine.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-a]");
+      if (!b || b.disabled) return;
+      agir(b.dataset.a, b.dataset, b);
+    });
+    racine.addEventListener("change", (e) => {
+      const t = e.target;
+      if (t.tagName === "SELECT" && t.dataset.a) { agir(t.dataset.a, Object.assign({}, t.dataset, { v: t.value }), t); return; }
+      if (t.id === "msrFichier") {
+        const f = t.files && t.files[0];
+        if (f && cibleFichier) importerImage(f, cibleFichier);
+        return;
+      }
+      champ(e);
+    });
+    racine.addEventListener("input", (e) => { if (e.target.type !== "checkbox" && e.target.tagName !== "SELECT") champ(e); });
+
+    charger();
+    if (!actif) { actif = nouveauProjet(); projets.unshift(actif); sauver(); }
+    // Une scène restée « en cours » après fermeture de la page : on garde son lien de suivi.
+    render();
+  } catch (err) {
+    console.error("[StarClip] Mini-séries IA : module désactivé —", err);
+  }
+})();
 </script>
 </body>
 </html>
