@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.139 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.140 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1092,13 +1092,14 @@
     <div id="pmListe" style="margin-top:12px;"></div>
   </section>
 
-  <!-- v41.139 : 🎞️ MINI-SÉRIES IA — épisode pilote de 30 à 60 s, validé à chaque étape. -->
+  <!-- v41.140 : 🎞️ MINI-SÉRIES IA — épisode pilote de 30 à 60 s, validé à chaque étape. -->
   <section class="card" id="sec-msr" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1a1204;">&#127902;</span> Mini-séries IA &mdash; ton épisode pilote</h2>
     <p class="sub" style="margin:0 0 12px;">Raconte ton idée : StarClip écrit un <b>épisode pilote de 30 à 60 secondes</b>, découpé en scènes de 5 ou 10 secondes. <b>Tu valides chaque étape</b> avant que la moindre vidéo soit créée, et chaque scène est lancée une par une, avec ta confirmation.</p>
     <div id="msrBarre"></div>
     <div id="msrEtapes"></div>
     <div id="msrMsg" class="estimate" style="min-height:0;"></div>
+    <div id="msrRondG"></div>
     <div id="msrCorps"></div>
     <input type="file" id="msrFichier" accept="image/*" class="hidden">
     <div class="estimate" style="margin-top:14px;">&#9888;&#65039; Les visages ne sont jamais parfaitement identiques d'une scène à l'autre : utilise des images de référence nettes et vérifie chaque scène. Ton projet est gardé sur cet appareil.</div>
@@ -2213,7 +2214,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.139</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.140</span>
 
   </footer>
 </div>
@@ -9004,7 +9005,7 @@ fxRefresh();
 .vign span { position:absolute; left:0; right:0; bottom:0; padding:4px 6px; font-size:11px; font-weight:700; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.85)); text-align:left; }
 .vign.on { border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset; }
 
-/* v41.139 — 🎞️ Mini-séries IA (tout est préfixé .msr-) */
+/* v41.140 — 🎞️ Mini-séries IA (tout est préfixé .msr-) */
 #sec-msr .msr-barre { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
 #sec-msr .msr-barre select { flex:1 1 160px; min-width:0; }
 #sec-msr .msr-etapes { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; }
@@ -9027,6 +9028,20 @@ fxRefresh();
 #sec-msr .msr-b-cours { border-color:var(--gold); color:var(--gold); }
 #sec-msr select { background:var(--up); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; }
 #sec-msr .msr-ligne[style*="flex-wrap"] { justify-content:flex-start; }
+/* Grand écran (MacBook) : l'onglet occupe TOUTE la largeur et les blocs se rangent côte à côte */
+#sec-msr .msr-grille { display:block; }
+#sec-msr video[data-msrv] { max-height:420px; object-fit:contain; }
+@media (min-width:1000px) {
+  body.tab-miniseries .cards-area { grid-template-columns:1fr; }
+  #sec-msr { padding:24px 28px; }
+  #sec-msr .msr-grille { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:14px; align-items:start; }
+  #sec-msr .msr-grille .msr-bloc { margin-bottom:0; }
+  #sec-msr textarea[data-f="idee"], #sec-msr textarea[data-f="resume"] { max-width:900px; }
+  #sec-msr [data-f="titre"] { max-width:600px; }
+  #sec-msr .msr-etapes .chip { font-size:14px; padding:9px 16px; }
+}
+#sec-msr textarea, #sec-msr input[type=text] { font-size:15px; }
+@media (min-width:1000px) { #sec-msr .msr-img { width:140px; height:140px; } }
 </style>
 <script>
 (function(){
@@ -9076,6 +9091,7 @@ fxRefresh();
     // v40.3 : marque l'onglet actif sur le body (utilisé par le CSS pour la mise en page).
     document.body.classList.toggle('tab-scenario', tab === 'scenario');
     document.body.classList.toggle('tab-premium', tab === 'premium');   // v41.123
+    document.body.classList.toggle('tab-miniseries', tab === 'miniseries');   // v41.140
     // v40.5 : le bouton « Générer », la barre de statut et le résultat n'appartiennent
     // à aucun volet. Ils ne concernent QUE la génération vidéo : on les affiche donc
     // uniquement dans l'onglet Scénario et dans « Tout voir » — ailleurs ils créaient
@@ -13528,7 +13544,7 @@ const SCENARIO_EXEMPLES = [
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════
-//  v41.139 · 🎞️ MINI-SÉRIES IA — épisode pilote de 30 à 60 s
+//  v41.140 · 🎞️ MINI-SÉRIES IA — épisode pilote de 30 à 60 s
 //  Nouveau module AUTONOME : tous les noms commencent par « msr », rien
 //  d'existant n'est modifié. Il réutilise : apiSubmit / apiPoll (serveur
 //  StarClip), hebergerFichier, nbModele, MODELS, clientPlan, getCode,
@@ -13553,7 +13569,7 @@ const SCENARIO_EXEMPLES = [
     const MAX_PROJETS = 6;
     // Assemblage de l'épisode en UN fichier : nécessite que le Worker autorise
     // « fal-ai/ffmpeg-api/merge-videos ». Laisser false tant que ce n'est pas fait.
-    const ASSEMBLAGE_SERVEUR = false;
+    const ASSEMBLAGE_SERVEUR = true;
 
     const RATIOS = ["9:16", "16:9"];
     const MODELES = {
@@ -13595,6 +13611,29 @@ const SCENARIO_EXEMPLES = [
       }
     }
     function sauverTard() { clearTimeout(minuterie); minuterie = setTimeout(sauver, 500); }
+    // Rond de progression : même apparence que dans les autres volets de l'app.
+    // fal ne donne AUCUN pourcentage de génération : l'anneau tourne et le chrono défile,
+    // on n'invente pas de chiffre.
+    function rondHtml(id, etape, t0) {
+      return '<div class="rwRond tourne" data-msr-t0="' + (t0 || Date.now()) + '">'
+        + '<div style="position:relative; width:132px; height:132px;">'
+        + '<svg width="132" height="132" viewBox="0 0 132 132"><circle class="piste" cx="66" cy="66" r="58"></circle>'
+        + '<circle class="arc" cx="66" cy="66" r="58" stroke-dasharray="364.4" stroke-dashoffset="262.4"></circle></svg>'
+        + '<div class="rwRondTexte"><div class="rwRondPct">…</div><div class="rwRondChrono">00:00</div></div></div>'
+        + '<div class="rwRondEtape" id="msr-etat-' + id + '">' + etape + "</div></div>";
+    }
+    function rondG(oui, etape) {
+      const z = $("msrRondG"); if (!z) return;
+      z.innerHTML = oui ? rondHtml("g", etape) : "";
+    }
+    function progres(txt) { const z = $("msr-etat-g"); if (z) z.textContent = txt; }
+    setInterval(() => {
+      document.querySelectorAll("#sec-msr [data-msr-t0]").forEach((r) => {
+        const s = Math.max(0, Math.round((Date.now() - Number(r.getAttribute("data-msr-t0"))) / 1000));
+        const c = r.querySelector(".rwRondChrono");
+        if (c) c.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+      });
+    }, 1000);
     function info(html) { const z = $("msrMsg"); if (z) z.innerHTML = html || ""; }
 
     function nouveauProjet() {
@@ -13615,9 +13654,9 @@ const SCENARIO_EXEMPLES = [
     // ─────────────── Calculs ───────────────
     const nbScenes = (T) => Math.max(Math.ceil(T / 10), Math.min(Math.floor(T / 5), Math.round(T / 7.5)));
     const total = (p) => p.scenes.reduce((s, x) => s + x.duree, 0);
-    // Règle de crédits appliquée aux autres outils vidéo de l'app : ≤ 5 s = 1, jusqu'à 10 s = 2.
-    // C'est une ESTIMATION : le serveur reste seul juge du débit réel.
-    const credits = (s) => (s.duree <= 5 ? 1 : 2);
+    // Worker v5.37 : les modèles Kling débitent 1 crédit vidéo PAR GÉNÉRATION, quelle que soit
+    // la durée (5 ou 10 s). Seuls danse / décor vidéo / tenue vidéo ont un palier à 2.
+    const credits = () => 1;
     const modeleDe = (p, s) => s.modele || p.modele;
     const dureeGen = (s) => (s.duree <= 5 ? 5 : 10);
     function couper(t, max) {
@@ -13707,7 +13746,8 @@ const SCENARIO_EXEMPLES = [
       }
       const T = p.duree, N = nbScenes(T);
       btn.disabled = true;
-      info("✍️ Écriture du scénario en cours (20 à 60 s). Aucune vidéo n'est générée à cette étape.");
+      info("Aucune vidéo n'est générée à cette étape.");
+      rondG(true, "✍️ Écriture du scénario en cours (20 à 60 s)…");
       try {
         const sortie = await llm(systemScenario(T, N), "Idée du client : " + idee);
         let j;
@@ -13717,7 +13757,7 @@ const SCENARIO_EXEMPLES = [
         info("<span class='okc'>✓ Scénario proposé. Relis-le, modifie ce que tu veux, puis valide-le.</span>");
       } catch (e) {
         info("<span class='err'>✗ " + esc(e.message) + ". Réessaie, ou précise ton idée.</span>");
-      } finally { btn.disabled = false; }
+      } finally { btn.disabled = false; rondG(false); }
     }
 
     // ─────────────── Validation du scénario ───────────────
@@ -13756,13 +13796,15 @@ const SCENARIO_EXEMPLES = [
     }
     async function importerImage(file, cible) {
       if (!getCode()) { info("<span class='err'>Entre d'abord ton code StarClip en haut de l'app.</span>"); return; }
-      info("⏳ Envoi de l'image…");
+      info("");
+      rondG(true, "⏳ Envoi de l'image…");
       try {
         const blob = await redim(file, 1536);
         const url = await hebergerFichier(blob, "serie-" + cible.type + ".jpg");
+        rondG(false);
         poser(cible, url);
         info("<span class='okc'>✓ Image ajoutée. Vérifie-la, puis valide-la.</span>");
-      } catch (e) { info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
+      } catch (e) { rondG(false); info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
     }
     function poser(cible, url) {
       const p = actif;
@@ -13785,7 +13827,7 @@ const SCENARIO_EXEMPLES = [
         const sj = await apiPoll(st);
         if (sj.status === "COMPLETED") { ok = true; break; }
         if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("la création de l'image a échoué");
-        info("🎨 Création de l'image… (" + (i + 1) * 3 + " s)");
+        progres("🎨 Création de l'image en cours…");
       }
       if (!ok) throw new Error("la création de l'image prend trop de temps");
       const data = await apiPoll(rp);
@@ -13816,15 +13858,16 @@ const SCENARIO_EXEMPLES = [
           + s.action + " Same location, natural lighting, " + p.format + " framing.";
         ratio = p.format;
       }
-      if (!confirm("Créer cette image par IA ?\n\nElle utilise 1 image du quota d'images de ton code (estimation).\nLe résultat n'est jamais garanti : tu pourras le refuser.")) return;
+      if (!confirm("Créer cette image par IA ?\n\nElle utilise 1 image du quota d'images de ton code.\nLe résultat n'est jamais garanti : tu pourras le refuser.")) return;
       enCours = true; render();
-      info("🎨 Création de l'image… (10 à 40 s)");
+      info("");
+      rondG(true, "🎨 Création de l'image (10 à 40 s)…");
       try {
         const url = await imageIA(prompt, images, ratio);
-        enCours = false;
+        enCours = false; rondG(false);
         poser(cible, url);
         info("<span class='okc'>✓ Image créée. Vérifie-la, puis valide-la.</span>");
-      } catch (e) { enCours = false; render(); info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
+      } catch (e) { enCours = false; rondG(false); render(); info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
     }
 
     // ─────────────── Construction de la requête d'une scène ───────────────
@@ -13888,8 +13931,8 @@ const SCENARIO_EXEMPLES = [
         await sleep(4000);
         const sj = await apiPoll(s.job.st);
         const sec = Math.round((Date.now() - t0) / 1000);
-        if (sj.status === "IN_QUEUE") majEtat(s, "En file d'attente (position " + (sj.queue_position != null ? sj.queue_position : "…") + ") · " + sec + " s");
-        else majEtat(s, "Le studio crée ta scène… (1 à 5 min) · " + sec + " s");
+        if (sj.status === "IN_QUEUE") majEtat(s, "En file d'attente (position " + (sj.queue_position != null ? sj.queue_position : "…") + ")…");
+        else majEtat(s, "Le studio crée ta scène… (1 à 5 min)");
         if (sj.status === "COMPLETED") { fini = true; break; }
         if (sj.status === "FAILED" || sj.status === "ERROR") {
           const rep = await apiPoll(s.job.rp).catch(() => ({}));
@@ -13916,12 +13959,12 @@ const SCENARIO_EXEMPLES = [
       const msg = "Générer la scène " + (idx + 1) + " ?\n\n"
         + "Modèle : " + MODELES[m].label + "\n"
         + "Durée générée : " + req.dg + " s\n"
-        + "Coût estimé : " + pluriel(c, "crédit") + " vidéo (estimation)\n"
+        + "Coût : " + pluriel(c, "crédit") + " vidéo\n"
         + (s.tentatives ? "\nCette scène a déjà été lancée " + pluriel(s.tentatives, "fois") + " : chaque relance est facturée.\n" : "")
         + "\nAucune autre scène ne sera lancée.";
       if (!confirm(msg)) return;
       enCours = true;
-      s.statut = "encours"; s.erreur = ""; s.tentatives += 1; s.url = ""; s.visage = null; s.valide = false; s.job = null;
+      s.statut = "encours"; s.erreur = ""; s.tentatives += 1; s.url = ""; s.visage = null; s.valide = false; s.job = null; s.t0 = Date.now();
       p.maj = Date.now(); sauver(); render();
       try {
         const job = await apiSubmit(req.path, req.payload);
@@ -13941,7 +13984,7 @@ const SCENARIO_EXEMPLES = [
     async function reprendre(id) {
       const p = actif, s = p.scenes.find((x) => x.id === id);
       if (!s || !s.job || enCours) return;
-      enCours = true; s.erreur = ""; render();
+      enCours = true; s.erreur = ""; s.t0 = Date.now(); render();
       try { await suivreJob(s); }
       catch (e) { if (e.attente) { s.erreur = e.message; } else { s.statut = "rate"; s.erreur = e.message; } }
       enCours = false; p.maj = Date.now(); sauver(); render();
@@ -13979,7 +14022,7 @@ const SCENARIO_EXEMPLES = [
       const p = actif, faites = p.scenes.filter((s) => s.statut === "fait" && s.url);
       if (!faites.length) return;
       if (typeof JSZip === "undefined") { info("<span class='err'>Le module ZIP n'est pas chargé. Télécharge les scènes une par une.</span>"); return; }
-      const avant = btn.textContent; btn.disabled = true; btn.textContent = "📦 Préparation du ZIP…";
+      const avant = btn.textContent; btn.disabled = true; btn.textContent = "📦 Préparation du ZIP…"; rondG(true, "📦 Préparation du ZIP…");
       try {
         const zip = new JSZip(); let ok = 0;
         for (const s of faites) {
@@ -13996,7 +14039,7 @@ const SCENARIO_EXEMPLES = [
         setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 4000);
         info("<span class='okc'>✓ ZIP prêt (" + pluriel(ok, "scène") + " + scenario.txt).</span>");
       } catch (e) { info("<span class='err'>✗ ZIP impossible : " + esc(e.message) + ". Télécharge les scènes une par une.</span>"); }
-      finally { btn.disabled = false; btn.textContent = avant; }
+      finally { btn.disabled = false; btn.textContent = avant; rondG(false); }
     }
     function lireEnchaine() {
       const p = actif, urls = p.scenes.filter((s) => s.statut === "fait" && s.url).map((s) => s.url);
@@ -14012,8 +14055,8 @@ const SCENARIO_EXEMPLES = [
       const p = actif;
       const urls = p.scenes.filter((s) => s.statut === "fait" && s.url).map((s) => s.url);
       if (urls.length < 2 || enCours) return;
-      if (!confirm("Assembler " + urls.length + " scènes en un seul fichier ?\n\nCoût estimé : 1 crédit vidéo (estimation).\nUne seule opération sera lancée.")) return;
-      enCours = true; btn.disabled = true; info("🎞️ Assemblage en cours…");
+      if (!confirm("Assembler " + urls.length + " scènes en un seul fichier ?\n\nAucun crédit vidéo n'est débité pour l'assemblage.\nUne seule opération sera lancée.")) return;
+      enCours = true; btn.disabled = true; info(""); rondG(true, "🎞️ Assemblage en cours…");
       try {
         const path = "fal-ai/ffmpeg-api/merge-videos";
         const job = await apiSubmit(path, { video_urls: urls });
@@ -14032,7 +14075,7 @@ const SCENARIO_EXEMPLES = [
         if (!v) throw new Error("vidéo introuvable dans la réponse");
         p.episodeUrl = v; sauver(); info("<span class='okc'>✓ Épisode assemblé.</span>");
       } catch (e) { info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
-      enCours = false; render();
+      enCours = false; rondG(false); render();
     }
 
     // ─────────────── Affichage ───────────────
@@ -14089,22 +14132,24 @@ const SCENARIO_EXEMPLES = [
       const pb = problemesScenario(p);
       let h = '<div class="label">Titre</div><input type="text" data-f="titre" value="' + esc(p.titre) + '"' + dis + ">"
         + '<div class="label" style="margin-top:10px">Résumé</div><textarea data-f="resume" rows="4"' + dis + ">" + esc(p.resume) + "</textarea>"
-        + '<div class="msr-titre">👤 Personnages <span class="estimate">(3 maximum)</span></div>';
+        + '<div class="msr-titre">👤 Personnages <span class="estimate">(3 maximum)</span></div><div class="msr-grille">';
       p.personnages.forEach((c) => {
         h += '<div class="msr-bloc"><input type="text" data-pf="nom" data-id="' + c.id + '" value="' + esc(c.nom) + '" placeholder="Nom" style="font-weight:700"' + dis + ">"
           + '<input type="text" data-pf="role" data-id="' + c.id + '" value="' + esc(c.role) + '" placeholder="Rôle en anglais (ex : the young nurse)"' + dis + ' style="margin-top:6px">'
           + '<textarea data-pf="desc" data-id="' + c.id + '" rows="2" placeholder="Apparence (en anglais) : âge, cheveux, tenue…"' + dis + ' style="margin-top:6px">' + esc(c.desc) + "</textarea>"
           + (v ? "" : '<button class="btn small" data-a="delperso" data-id="' + c.id + '" style="margin-top:6px">🗑 Retirer</button>') + "</div>";
       });
+      h += "</div>";
       if (!v && p.personnages.length < 3) h += '<button class="btn small" data-a="addperso">＋ Ajouter un personnage</button>';
-      h += '<div class="msr-titre">🏙️ Décors <span class="estimate">(3 maximum)</span></div>';
+      h += '<div class="msr-titre">🏙️ Décors <span class="estimate">(3 maximum)</span></div><div class="msr-grille">';
       p.decors.forEach((d) => {
         h += '<div class="msr-bloc"><input type="text" data-df="nom" data-id="' + d.id + '" value="' + esc(d.nom) + '" placeholder="Nom du décor" style="font-weight:700"' + dis + ">"
           + '<textarea data-df="desc" data-id="' + d.id + '" rows="2" placeholder="Lieu, heure, lumière (en anglais), sans personne"' + dis + ' style="margin-top:6px">' + esc(d.desc) + "</textarea>"
           + (v ? "" : '<button class="btn small" data-a="deldecor" data-id="' + d.id + '" style="margin-top:6px">🗑 Retirer</button>') + "</div>";
       });
+      h += "</div>";
       if (!v && p.decors.length < 3) h += '<button class="btn small" data-a="adddecor">＋ Ajouter un décor</button>';
-      h += '<div class="msr-titre">🎬 Scènes · total <b style="color:' + (t >= 30 && t <= 60 ? "var(--ok)" : "var(--err)") + '">' + t + " s</b></div>";
+      h += '<div class="msr-titre">🎬 Scènes · total <b style="color:' + (t >= 30 && t <= 60 ? "var(--ok)" : "var(--err)") + '">' + t + ' s</b></div><div class="msr-grille">';
       p.scenes.forEach((s, i) => {
         h += '<div class="msr-bloc"><div class="msr-ligne"><b>Scène ' + (i + 1) + "</b>"
           + '<span class="chips">' + [5, 10].map((d) => '<button class="chip' + (s.duree === d ? " on" : "") + '" data-a="dur" data-id="' + s.id + '" data-v="' + d + '"' + dis + ">" + d + " s</button>").join("") + "</span></div>"
@@ -14119,6 +14164,7 @@ const SCENARIO_EXEMPLES = [
           + (v ? "" : '<div class="msr-ligne" style="margin-top:6px"><button class="btn small" data-a="haut" data-id="' + s.id + '">↑</button><button class="btn small" data-a="bas" data-id="' + s.id + '">↓</button><button class="btn small" data-a="delscene" data-id="' + s.id + '">🗑 Retirer</button></div>')
           + "</div>";
       });
+      h += "</div>";
       if (!v && p.scenes.length < 12) h += '<button class="btn small" data-a="addscene">＋ Ajouter une scène</button>';
       if (v) {
         h += '<div class="estimate okc" style="margin-top:12px">✓ Scénario validé.</div>'
@@ -14136,7 +14182,7 @@ const SCENARIO_EXEMPLES = [
       const persosUtiles = p.personnages.filter((c) => p.scenes.some((s) => s.persoIds.indexOf(c.id) >= 0));
       const decorsUtiles = p.decors.filter((d) => p.scenes.some((s) => s.decorId === d.id));
       let h = '<div class="estimate" style="color:var(--gold);font-weight:700">⚠️ La ressemblance des visages d\'une scène à l\'autre n\'est jamais garantie. Des images de référence nettes (visage de face, bien éclairé) aident beaucoup, mais tu devras vérifier chaque scène.</div>'
-        + '<div class="msr-titre">👤 Références des personnages <span class="estimate">(1 à 3 images chacun)</span></div>';
+        + '<div class="msr-titre">👤 Références des personnages <span class="estimate">(1 à 3 images chacun)</span></div><div class="msr-grille">';
       persosUtiles.forEach((c) => {
         h += '<div class="msr-bloc"><div><b>' + esc(c.nom) + '</b> <span class="estimate">' + esc(c.role) + "</span></div>"
           + '<div class="msr-imgs">' + (c.refs.map((u, i) => '<div class="msr-imgcase">' + vignette(u, c.nom) + (v ? "" : '<button class="msr-x" data-a="retirerperso" data-id="' + c.id + '" data-i="' + i + '">✕</button>') + "</div>").join("") || vignette("", "")) + "</div>"
@@ -14145,7 +14191,7 @@ const SCENARIO_EXEMPLES = [
               + '<button class="btn small" data-a="ia" data-type="perso" data-id="' + c.id + '"' + (enCours ? " disabled" : "") + ">🎨 Créer par IA" + (estPro() ? "" : " (pack Pro)") + "</button>" : "")
             + '<label class="msr-case"><input type="checkbox" data-a="valperso" data-id="' + c.id + '"' + (c.valide ? " checked" : "") + (c.refs.length ? "" : " disabled") + "> ✓ Je valide ce personnage</label></div>") + "</div>";
       });
-      h += '<div class="msr-titre">🏙️ Références des décors</div>';
+      h += '</div><div class="msr-titre">🏙️ Références des décors</div><div class="msr-grille">';
       decorsUtiles.forEach((d) => {
         h += '<div class="msr-bloc"><div><b>' + esc(d.nom) + "</b></div>"
           + '<div class="msr-imgs"><div class="msr-imgcase">' + vignette(d.refUrl, d.nom) + "</div></div>"
@@ -14154,6 +14200,7 @@ const SCENARIO_EXEMPLES = [
             + '<button class="btn small" data-a="ia" data-type="decor" data-id="' + d.id + '"' + (enCours ? " disabled" : "") + ">🎨 Créer par IA" + (estPro() ? "" : " (pack Pro)") + "</button>"
             + '<label class="msr-case"><input type="checkbox" data-a="valdecor" data-id="' + d.id + '"' + (d.valide ? " checked" : "") + (d.refUrl ? "" : " disabled") + "> ✓ Je valide ce décor</label></div>") + "</div>";
       });
+      h += "</div>";
       const manque = persosUtiles.filter((c) => !c.valide || !c.refs.length).length + decorsUtiles.filter((d) => !d.valide || !d.refUrl).length;
       if (v) {
         h += '<div class="estimate okc" style="margin-top:12px">✓ Références validées.</div>'
@@ -14176,8 +14223,8 @@ const SCENARIO_EXEMPLES = [
       const restant = p.scenes.filter((s) => s.statut !== "fait").reduce((n, s) => n + credits(s), 0);
       let h = '<div class="label">Modèle par défaut</div><div class="chips">'
         + Object.keys(MODELES).map((k) => '<button class="chip' + (p.modele === k ? " on" : "") + '" data-a="modeleDefaut" data-v="' + k + '"' + (MODELES[k].pro && !estPro() ? " disabled" : "") + ">" + MODELES[k].label + "</button>").join("") + "</div>"
-        + '<div class="estimate">Première passe des scènes restantes : environ <b style="color:var(--gold)">' + pluriel(restant, "crédit") + " vidéo</b> (estimation, hors relances). Rien ne part sans ta confirmation, scène par scène.</div>"
-        + '<div class="estimate">Cette version ne crée pas de voix : les répliques restent des notes.</div>';
+        + '<div class="estimate">Première passe des scènes restantes : <b style="color:var(--gold)">' + pluriel(restant, "crédit") + " vidéo</b> (hors relances). Rien ne part sans ta confirmation, scène par scène.</div>"
+        + '<div class="estimate">Cette version ne crée pas de voix : les répliques restent des notes.</div><div class="msr-grille msr-grille-scenes">';
       p.scenes.forEach((s, i) => {
         const m = modeleDe(p, s), decor = p.decors.find((d) => d.id === s.decorId);
         const noms = s.persoIds.map((id) => { const c = p.personnages.find((x) => x.id === id); return c ? esc(c.nom) : ""; }).filter(Boolean).join(", ");
@@ -14195,9 +14242,9 @@ const SCENARIO_EXEMPLES = [
             + (s.depart ? '<button class="btn small" data-a="retirerdepart" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">✕ Retirer</button>" : "") + "</div>"
             + '<div class="estimate">Avec ce modèle, le format de la vidéo suit celui de l\'image de départ.</div>';
         }
-        h += '<div class="estimate" style="margin-top:8px">' + MODELES[m].label + " · " + dureeGen(s) + " s générées · <b style=\"color:var(--gold)\">≈ " + pluriel(credits(s), "crédit") + " vidéo</b> (estimation)</div>";
+        h += '<div class="estimate" style="margin-top:8px">' + MODELES[m].label + " · " + dureeGen(s) + " s générées · <b style=\"color:var(--gold)\">" + pluriel(credits(s), "crédit") + " vidéo</b></div>";
         if (s.statut === "encours") {
-          h += '<div class="estimate" id="msr-etat-' + s.id + '">Suivi en cours…</div>'
+          h += (enCours ? rondHtml(s.id, "Envoi au studio…", s.t0) : '<div class="estimate">⏳ Rendu lancé. Touche « Reprendre le suivi » pour le retrouver.</div>')
             + (s.erreur ? '<div class="estimate err">' + esc(s.erreur) + "</div>" : "")
             + (s.job && !enCours ? '<button class="btn small" data-a="reprendre" data-id="' + s.id + '">🔄 Reprendre le suivi</button>' : "");
         } else {
@@ -14217,6 +14264,7 @@ const SCENARIO_EXEMPLES = [
         }
         h += "</div>";
       });
+      h += "</div>";
       if (p.scenes.some((s) => s.statut === "fait")) h += '<button class="btn" data-a="vue" data-v="5" style="width:100%;margin-top:10px">Aller à l\'export →</button>';
       return h;
     }
@@ -14224,13 +14272,14 @@ const SCENARIO_EXEMPLES = [
     function vue5() {
       const p = actif, faites = p.scenes.filter((s) => s.statut === "fait" && s.url);
       const tout = p.scenes.length > 0 && p.scenes.every((s) => s.valide);
-      let h = '<div class="estimate">Télécharge tes scènes dès qu\'elles te plaisent : les liens des moteurs ne sont pas garantis indéfiniment.</div>';
+      let h = '<div class="estimate">Télécharge tes scènes dès qu\'elles te plaisent : les liens des moteurs ne sont pas garantis indéfiniment.</div><div class="msr-grille">';
       p.scenes.forEach((s, i) => {
         h += '<div class="msr-bloc"><div class="msr-ligne"><b>Scène ' + (i + 1) + "</b><span class=\"estimate\">" + s.duree + " s</span>" + badge(s) + "</div>"
           + (s.statut === "fait" && s.url
             ? '<button class="btn small" data-a="dl" data-id="' + s.id + '" style="margin-top:6px">📲 Enregistrer la scène ' + (i + 1) + '</button><div class="estimate" id="msr-h-' + s.id + '"></div>'
             : '<div class="estimate">Pas encore générée.</div>') + "</div>";
       });
+      h += "</div>";
       h += '<button class="btn" data-a="zip" style="width:100%;margin-top:10px"' + (faites.length ? "" : " disabled") + ">📦 Tout télécharger (ZIP)</button>"
         + '<div class="msr-titre">🎞️ Épisode complet</div>';
       if (!tout) {
