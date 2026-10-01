@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.141 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.142 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2226,7 +2226,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.141</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.142</span>
 
   </footer>
 </div>
@@ -13623,7 +13623,7 @@ const SCENARIO_EXEMPLES = [
     let minuterie = null;
     let studio = false;         // v41.141 : mode Studio (PIN) — jamais mémorisé, à réactiver depuis l'espace Admin
     const estStudio = () => studio && typeof admPin === "function" && !!admPin();
-    window.msrModeStudio = function (on) { studio = !!on; try { render(); } catch (_) {} };
+    window.msrModeStudio = function (on) { studio = !!on; try { if (on) localStorage.setItem("starclip_msr_dev", "1"); } catch (_) {} try { journal(on ? "studio_on" : "studio_off", {}); render(); } catch (_) {} };
 
     // ─────────────── Stockage ───────────────
     function charger() {
@@ -13665,6 +13665,72 @@ const SCENARIO_EXEMPLES = [
       });
     }, 1000);
     function info(html) { const z = $("msrMsg"); if (z) z.innerHTML = html || ""; }
+
+    // ═══ v41.142 — 🧾 JOURNAL TECHNIQUE ═══
+    // Garde les 250 derniers événements dans l'appareil (localStorage). Ne contient JAMAIS le code client ni le PIN.
+    // Sert à me transmettre ce qui s'est passé (scène qui disparaît, échec, remboursement…).
+    const VERSION_APP = "v41.142", CLE_J = "starclip_msr_journal";
+    let journalOuvert = false;
+    function nettoyer(t) {
+      let x = String(t == null ? "" : t);
+      try { const c = getCode(); if (c) x = x.split(c).join("***"); } catch (_) {}
+      try { const pn = typeof admPin === "function" ? admPin() : ""; if (pn) x = x.split(pn).join("***"); } catch (_) {}
+      return x.replace(/\s+/g, " ").slice(0, 400);
+    }
+    function lireJournal() { try { const j = JSON.parse(localStorage.getItem(CLE_J) || "[]"); return Array.isArray(j) ? j : []; } catch (_) { return []; } }
+    function journal(ev, d) {
+      try {
+        let j = lireJournal();
+        j.push(Object.assign({ t: new Date().toISOString(), ev: ev }, d || {}));
+        if (j.length > 250) j = j.slice(-250);
+        localStorage.setItem(CLE_J, JSON.stringify(j));
+      } catch (_) { /* le journal ne doit jamais casser l'app */ }
+    }
+    const numScene = (sc) => (actif ? actif.scenes.indexOf(sc) + 1 : 0);
+    function rapport() {
+      const p = actif;
+      const L = ["STARCLIP · Journal technique Mini-séries · " + VERSION_APP, "Date : " + new Date().toISOString(),
+        "Mode : " + (estStudio() ? "Studio (PIN)" : "client"), "Écran : " + window.innerWidth + "x" + window.innerHeight + " · " + String(navigator.userAgent).slice(0, 90)];
+      if (p) {
+        L.push("", "PROJET : " + (p.titre || "(sans titre)") + " · " + p.format + " · modèle par défaut : " + p.modele + " · étape affichée : " + vue);
+        p.personnages.forEach((c) => L.push("  Perso " + c.nom + " : " + c.refs.filter(Boolean).length + " photo(s), validé=" + !!c.valide));
+        p.decors.forEach((d) => L.push("  Décor " + d.nom + " : image=" + (d.refUrl ? "oui" : "non") + ", validé=" + !!d.valide));
+        p.scenes.forEach((sc, i) => L.push("  Scène " + (i + 1) + " | " + sc.duree + "s | " + modeleDe(p, sc) + " | statut=" + sc.statut + " | essais=" + sc.tentatives
+          + " | validée=" + !!sc.valide + " | réplique=" + (sc.dialogue ? "oui" : "non") + (sc.url ? " | url=" + sc.url : "") + (sc.job ? " | job=" + sc.job.id : "")
+          + (sc.erreur ? " | erreur=" + nettoyer(sc.erreur) : "")));
+        if (p.episodeUrl) L.push("  Épisode assemblé : " + p.episodeUrl);
+      }
+      L.push("", "ÉVÉNEMENTS (les plus récents en bas) :");
+      lireJournal().slice(-120).forEach((e) => {
+        const reste = Object.keys(e).filter((k) => k !== "t" && k !== "ev").map((k) => k + "=" + nettoyer(typeof e[k] === "object" ? JSON.stringify(e[k]) : e[k])).join(" ");
+        L.push(String(e.t).slice(5, 19).replace("T", " ") + " " + e.ev + (reste ? " " + reste : ""));
+      });
+      return L.join("\n");
+    }
+    // Le journal peut contenir des noms de fournisseurs : il n'est affiché QUE sur l'appareil du propriétaire
+    // (activé une fois en ouvrant « Mini-séries · Studio » depuis l'espace Admin). Jamais chez un client.
+    function modeProprio() { try { return estStudio() || localStorage.getItem("starclip_msr_dev") === "1"; } catch (_) { return false; } }
+    function journalHtml() {
+      if (!actif || !modeProprio()) return "";
+      return '<details id="msrJ" class="msr-bloc" style="margin-top:14px"' + (journalOuvert ? " open" : "") + '><summary style="cursor:pointer;font-weight:700">🧾 Journal technique (' + lireJournal().length + ' lignes)</summary>'
+        + '<div class="estimate" style="margin-top:6px">Si une scène disparaît ou échoue : touche « Copier le journal », puis colle-le dans la conversation avec Claude. Il ne contient ni ton code ni ton PIN.</div>'
+        + '<div class="msr-ligne" style="flex-wrap:wrap;margin:8px 0"><button class="btn small" data-a="jcopier">📋 Copier le journal</button><button class="btn small" data-a="jvider">🗑 Vider le journal</button></div>'
+        + '<textarea readonly id="msrJTxt" rows="9" style="font-family:ui-monospace,Menlo,monospace;font-size:11px;width:100%">' + esc(rapport()) + "</textarea>"
+        + '<div class="estimate" id="msrJInfo"></div></details>';
+    }
+    async function copierJournal() {
+      const t = rapport(), z = $("msrJInfo"), ta = $("msrJTxt");
+      if (ta) ta.value = t;
+      try { await navigator.clipboard.writeText(t); if (z) z.innerHTML = "<span class='okc'>✓ Journal copié. Colle-le dans la conversation.</span>"; journal("journal_copie", {}); return; } catch (_) { /* repli ci-dessous */ }
+      try { if (ta) { ta.focus(); ta.select(); if (document.execCommand("copy")) { if (z) z.innerHTML = "<span class='okc'>✓ Journal copié. Colle-le dans la conversation.</span>"; return; } } } catch (_) {}
+      if (z) z.innerHTML = "Le texte est sélectionné : fais Cmd + C (ou appui long → Copier), puis colle-le dans la conversation.";
+    }
+    racine.addEventListener("toggle", (e) => { if (e.target && e.target.id === "msrJ") journalOuvert = e.target.open; }, true);
+    let nbErreursJs = 0;
+    window.addEventListener("error", (e) => { if (nbErreursJs++ < 20) journal("erreur_js", { msg: nettoyer(e.message), fichier: String(e.filename || "").split("/").pop(), ligne: e.lineno }); });
+    window.addEventListener("unhandledrejection", (e) => { if (nbErreursJs++ < 20) journal("promesse_rejetee", { msg: nettoyer(e.reason && e.reason.message ? e.reason.message : e.reason) }); });
+    { const dern = lireJournal().filter((e) => e.ev === "ouverture").pop();
+      if (!dern || Date.now() - Date.parse(dern.t) > 30 * 60 * 1000) journal("ouverture", { version: VERSION_APP, ecran: window.innerWidth + "x" + window.innerHeight }); }
 
     // v41.141 — Avancement TOUJOURS visible : un bandeau doré fixe en bas de l'écran (chrono + état),
     // en plus du rond dans la carte de la scène, qui peut se trouver sous la zone visible.
@@ -14042,8 +14108,9 @@ const SCENARIO_EXEMPLES = [
       try {
         const r = await fetch(WORKER_URL + "/refund", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: getCode(), request_id: id }) });
         const d = await r.json().catch(() => ({}));
+        journal("remboursement", { id: id, http: r.status, ok: !!d.ok, deja: !!d.deja, fcfa: d.rembourse_fcfa || 0, credits: d.rembourse || 0, err: nettoyer(d.error) });
         if (r.ok && d.ok && !d.deja) return d.rembourse_fcfa ? " Ton solde Premium t'a été remboursé automatiquement (" + fcfa(d.rembourse_fcfa) + ")." : " Tes crédits t'ont été rendus automatiquement.";
-      } catch (_) { /* silencieux */ }
+      } catch (e) { journal("remboursement_erreur", { id: id, msg: nettoyer(e && e.message) }); /* silencieux pour le client */ }
       return "";
     }
     async function suivreJob(s) {
@@ -14054,6 +14121,7 @@ const SCENARIO_EXEMPLES = [
         await sleep(4000);
         const sj = await sonde(s.job.st);
         if (s.job.studio && sj && sj.error && !sj.status) { const e = new Error(sj.error); e.definitif = true; throw e; }
+        if (sj && sj.status && sj.status !== s._st) { s._st = sj.status; journal("statut", { scene: numScene(s), st: sj.status, position: sj.queue_position }); }
         const sec = Math.round((Date.now() - t0) / 1000);
         if (sj.status === "IN_QUEUE") majEtat(s, "En file d'attente (position " + (sj.queue_position != null ? sj.queue_position : "…") + ")…");
         else majEtat(s, "Le studio crée ta scène… (1 à 5 min)");
@@ -14062,6 +14130,7 @@ const SCENARIO_EXEMPLES = [
           const rep = await sonde(s.job.rp).catch(() => ({}));
           const detail = JSON.stringify(rep.detail || rep.error || rep.message || "").slice(0, 160);
           const rb = s.job.studio ? " Aucun solde client n'a été débité." : await rembourser(s.job.id);
+          journal("echec_moteur", { scene: numScene(s), detail: nettoyer(detail), remboursement: nettoyer(rb) });
           const e = new Error("le moteur a refusé ou échoué" + (detail && detail !== '""' ? " (" + detail + ")" : "") + "." + rb);
           e.definitif = true; throw e;
         }
@@ -14071,6 +14140,7 @@ const SCENARIO_EXEMPLES = [
       const v = (data.video && data.video.url) || (data.response && data.response.video && data.response.video.url);
       if (!v) throw new Error("vidéo introuvable dans la réponse");
       s.statut = "fait"; s.url = v; s.erreur = ""; s.job.fini = true;
+      journal("termine", { scene: numScene(s), url: v });
     }
     async function generer(id) {
       const p = actif, s = p.scenes.find((x) => x.id === id);
@@ -14078,7 +14148,7 @@ const SCENARIO_EXEMPLES = [
       const idx = p.scenes.indexOf(s), m = modeleDe(p, s);
       if (!s.pret) { info("<span class='err'>Valide d'abord le texte de la scène (case à cocher).</span>"); return; }
       let req;
-      try { req = construire(p, s, m); } catch (e) { info("<span class='err'>Scène " + (idx + 1) + " : " + esc(e.message) + ".</span>"); return; }
+      try { req = construire(p, s, m); } catch (e) { journal("refus_avant_envoi", { scene: idx + 1, raison: nettoyer(e.message) }); info("<span class='err'>Scène " + (idx + 1) + " : " + esc(e.message) + ".</span>"); return; }
       const c = credits(s);
       const modeS = !!req.voix && estStudio();
       if (req.voix && studio && !modeS) { info("<span class='err'>Mode Studio : PIN absent. Rouvre l'espace Admin (◆ en haut de page), puis reviens ici.</span>"); return; }
@@ -14092,10 +14162,11 @@ const SCENARIO_EXEMPLES = [
           : "Coût : " + pluriel(c, "crédit") + " vidéo\n")
         + (s.tentatives ? "\nCette scène a déjà été lancée " + pluriel(s.tentatives, "fois") + " : chaque relance est facturée.\n" : "")
         + "\nAucune autre scène ne sera lancée.";
-      if (!confirm(msg)) return;
+      if (!confirm(msg)) { journal("confirmation_refusee", { scene: idx + 1, modele: m }); return; }
       enCours = true;
       s.statut = "encours"; s.erreur = ""; s.tentatives += 1; s.url = ""; s.visage = null; s.valide = false; s.job = null; s.t0 = Date.now();
-      p.maj = Date.now(); sauver(); toastTxt = "Envoi au studio…"; render();
+      journal("lancement", { scene: idx + 1, modele: m, duree: req.dg, essai: s.tentatives, mode: modeS ? "studio" : "client", images: req.payload && req.payload.image_urls ? req.payload.image_urls.length : 0, replique_mots: req.mots || 0 });
+      s._st = ""; p.maj = Date.now(); sauver(); toastTxt = "Envoi au studio…"; render();
       { const z = $("msr-etat-" + s.id); if (z) z.scrollIntoView({ behavior: "smooth", block: "center" }); }
       try {
         s.avecVoix = !!req.voix;
@@ -14108,8 +14179,10 @@ const SCENARIO_EXEMPLES = [
           rp: job.response_url || ("https://queue.fal.run/" + req.path + "/requests/" + job.request_id),
         };
         sauver();
+        journal("envoye", { scene: idx + 1, id: job.request_id, studio: modeS });
         await suivreJob(s);
       } catch (e) {
+        journal(e.attente ? "suivi_interrompu" : "echec", { scene: idx + 1, msg: nettoyer(e.message), definitif: !!e.definitif });
         if (e.attente) { s.statut = "encours"; s.erreur = anon(e.message); }
         else { s.statut = "rate"; s.erreur = anon(e.message); }
       }
@@ -14118,6 +14191,7 @@ const SCENARIO_EXEMPLES = [
     async function reprendre(id) {
       const p = actif, s = p.scenes.find((x) => x.id === id);
       if (!s || !s.job || enCours) return;
+      journal("reprise_suivi", { scene: numScene(s), id: s.job && s.job.id }); s._st = "";
       enCours = true; s.erreur = ""; s.t0 = Date.now(); toastTxt = "Reprise du suivi…"; render();
       { const z = $("msr-etat-" + s.id); if (z) z.scrollIntoView({ behavior: "smooth", block: "center" }); }
       try { await suivreJob(s); }
@@ -14194,7 +14268,7 @@ const SCENARIO_EXEMPLES = [
       if (!confirm("Assembler " + urls.length + " scènes en un seul fichier ?\n\nAucun crédit vidéo n'est débité pour l'assemblage.\nUne seule opération sera lancée."
         + (mixte ? "\n\n⚠️ Certaines scènes n'ont pas de son (modèles sans voix) : le son de l'épisode assemblé peut être incomplet. Pour un épisode parlé, génère toutes les scènes avec « 🎙️ Dialogues avec voix », même celles sans réplique. Sinon, utilise le ZIP pour monter l'épisode." : ""))) return;
       enCours = true; btn.disabled = true; info(""); rondG(true, "🎞️ Assemblage en cours…");
-      tacheTxt = "Assemblage"; tacheT0 = Date.now(); majToast();
+      tacheTxt = "Assemblage"; tacheT0 = Date.now(); majToast(); journal("assemblage_lancement", { scenes: urls.length, avec_voix: nV });
       try {
         const path = "fal-ai/ffmpeg-api/merge-videos";
         const job = await apiSubmit(path, { video_urls: urls });
@@ -14211,8 +14285,8 @@ const SCENARIO_EXEMPLES = [
         const data = await apiPoll(rp);
         const v = (data.video && data.video.url) || (data.response && data.response.video && data.response.video.url);
         if (!v) throw new Error("vidéo introuvable dans la réponse");
-        p.episodeUrl = v; sauver(); info("<span class='okc'>✓ Épisode assemblé.</span>" + (nV ? "<br><span class='estimate'>Écoute-le en entier pour vérifier que le son est bien présent.</span>" : ""));
-      } catch (e) { info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
+        p.episodeUrl = v; sauver(); journal("assemblage_termine", { url: v }); info("<span class='okc'>✓ Épisode assemblé.</span>" + (nV ? "<br><span class='estimate'>Écoute-le en entier pour vérifier que le son est bien présent.</span>" : ""));
+      } catch (e) { journal("assemblage_echec", { msg: nettoyer(e.message) }); info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
       enCours = false; tacheTxt = ""; rondG(false); render();
     }
 
@@ -14457,7 +14531,7 @@ const SCENARIO_EXEMPLES = [
       }
       if (!accessible(vue)) vue = 1;
       renderEtapes();
-      $("msrCorps").innerHTML = [null, vue1, vue2, vue3, vue4, vue5][vue]();
+      $("msrCorps").innerHTML = [null, vue1, vue2, vue3, vue4, vue5][vue]() + journalHtml();
       document.querySelectorAll("#msrCorps video[data-msrv]").forEach((v) => {
         v.addEventListener("error", () => {
           v.insertAdjacentHTML("afterend", '<div class="estimate err">⚠️ Ce lien vidéo n\'est plus disponible. Si tu ne l\'as pas téléchargée, regénère la scène.</div>');
@@ -14507,14 +14581,16 @@ const SCENARIO_EXEMPLES = [
         case "retirerdepart": if (s) { s.depart = ""; s.pret = false; } break;
         case "valider2": p.valide.refs = true; p.maj = Date.now(); sauver(); vue = 4; render(); info(""); return;
         case "rouvrir2": p.valide.refs = false; break;
-        case "studioOff": studio = false; break;
+        case "jcopier": copierJournal(); return;
+        case "jvider": if (!confirm("Vider le journal technique de cet appareil ?")) return; try { localStorage.removeItem(CLE_J); } catch (_) {} journal("journal_vide", {}); break;
+        case "studioOff": studio = false; journal("studio_off", {}); break;
         case "modeleDefaut": p.modele = d.v; break;
-        case "modeleScene": if (s) { s.modele = d.v; s.pret = false; } break;
+        case "modeleScene": if (s) { s.modele = d.v; s.pret = false; journal("modele_scene", { scene: numScene(s), modele: d.v }); } break;
         case "gen": generer(d.id); return;
         case "reprendre": reprendre(d.id); return;
-        case "visageok": if (s) { s.visage = true; s.valide = true; } break;
-        case "visageko": if (s) { s.visage = false; s.valide = false; } break;
-        case "garder": if (s) { s.visage = false; s.valide = true; } break;
+        case "visageok": if (s) { s.visage = true; s.valide = true; journal("verdict", { scene: numScene(s), v: "visages cohérents" }); } break;
+        case "visageko": if (s) { s.visage = false; s.valide = false; journal("verdict", { scene: numScene(s), v: "à refaire" }); } break;
+        case "garder": if (s) { s.visage = false; s.valide = true; journal("verdict", { scene: numScene(s), v: "gardée malgré tout" }); } break;
         case "dl": if (s) sauverFichier(s.url, "scene-" + String(p.scenes.indexOf(s) + 1).padStart(2, "0") + ".mp4", $("msr-h-" + s.id)); return;
         case "dlep": sauverFichier(p.episodeUrl, "episode.mp4", $("msr-h-ep")); return;
         case "zip": zipper(el); return;
