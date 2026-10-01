@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.147 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.148 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1194,7 +1194,7 @@
       <div class="card" id="admCarteSim" style="border-color:#38bdf8; margin-bottom:12px;">
         <h2 style="margin:0; color:#38bdf8;">🧪 SIMULATION GLOBALE · 0 $</h2>
         <p class="sub" style="margin:8px 0 0;">Pendant la mise au point : <b>rien n'est envoyé aux moteurs et rien n'est facturé</b>. Tu vois tout le déroulé (envoi, avancement, résultat d'exemple). Quand tout est au point, tu l'éteins : tes essais passent alors par ton compte fournisseur au tarif développeur, et tes clients paient leur grille.</p>
-        <p class="sub" style="margin:6px 0 0;">Couvert : <b>Aleph, Seedance 2.5 et 2.0 (Studio), Multi-Shot, Moteur A, Multi-plans, Créer une chanson, Chanson Pro, stems, Mini-séries</b>. <b>Pas encore couverts</b> (onglets clients) : photo, traitement, habillage &amp; décor, scénario, finition, et les autres moteurs de l'onglet Premium.</p>
+        <p class="sub" style="margin:6px 0 0;">Couvert : <b>Aleph, Seedance 2.5 et 2.0 (Studio), Multi-Shot, Moteur A, Multi-plans, Montage auto (génération des plans), Créer une chanson, Chanson Pro, stems, Mini-séries</b>. <b>Pas encore couverts</b> (onglets clients) : photo, traitement, habillage &amp; décor, scénario, finition, et les autres moteurs de l'onglet Premium.</p>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
           <button class="btn" id="admSimBtn">Activer la simulation (0 $)</button>
           <span id="admSimEtat" class="estimate">Éteinte : les envois sont réels et facturés.</span>
@@ -2236,7 +2236,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.147</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.148</span>
 
   </footer>
 </div>
@@ -11743,7 +11743,7 @@ function mtLotMaj() {
   const coutRestant = restants.reduce((s, e) => s + mtPrixPlan(mtPlansCourants[e.i].duree || 10), 0);
   document.getElementById("mtLotCout").innerHTML =
     mtPlansCourants.length + " plans · " + mtRes + " · " + mtFormat
-    + " · <b style='color:var(--gold)'>total ≈ " + cout.toFixed(2) + " $</b>"
+    + (window.SIM_GLOBAL ? " · <b style='color:#38bdf8'>🧪 simulation : 0 $ (prix réel ≈ " + cout.toFixed(2) + " $)</b>" : " · <b style='color:var(--gold)'>total ≈ " + cout.toFixed(2) + " $</b>")
     + (faits ? " · déjà fait : " + faits : "")
     + (restants.length ? " · reste ≈ " + coutRestant.toFixed(2) + " $" : "");
 
@@ -11865,7 +11865,7 @@ async function mtGenererUn(idx) {
     const restants = mtEtatPlans.filter(e => e.statut === "attente" || e.statut === "rate").slice(0, MT_LOT);
     if (!restants.length) return;
     const cout = restants.reduce((s, e) => s + mtPrixPlan(mtPlansCourants[e.i].duree || 10), 0);
-    if (!confirm("Générer " + restants.length + " plans ?\n\nCoût estimé : " + cout.toFixed(2) + " $\nDurée : environ " + (restants.length * 3) + " minutes.\n\nTu pourras vérifier le résultat avant de continuer."))
+    if (!confirm("Générer " + restants.length + " plans ?\n\n" + (window.SIM_GLOBAL ? "🧪 SIMULATION : 0 $, rien n'est envoyé (prix réel ≈ " + cout.toFixed(2) + " $)" : "Coût estimé : " + cout.toFixed(2) + " $") + "\nDurée : environ " + (restants.length * 3) + " minutes.\n\nTu pourras vérifier le résultat avant de continuer."))
       return;
     mtLotEnCours = true; mtLotArret = false;
     document.getElementById("mtLotStop").classList.remove("hidden");
@@ -13778,7 +13778,7 @@ const SCENARIO_EXEMPLES = [
     // ═══ v41.142 — 🧾 JOURNAL TECHNIQUE ═══
     // Garde les 250 derniers événements dans l'appareil (localStorage). Ne contient JAMAIS le code client ni le PIN.
     // Sert à me transmettre ce qui s'est passé (scène qui disparaît, échec, remboursement…).
-    const VERSION_APP = "v41.147", CLE_J = "starclip_msr_journal";
+    const VERSION_APP = "v41.148", CLE_J = "starclip_msr_journal";
     let journalOuvert = false;
     function nettoyer(t, max) {
       let x = String(t == null ? "" : t);
