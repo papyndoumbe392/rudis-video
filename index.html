@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.143 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.144 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1294,7 +1294,7 @@
             </div>
           </div>
           <p class="sub" style="margin:10px 0 0;">Ouvre l'onglet Mini-séries IA en <b>mode Studio</b> : les scènes « 🎙️ Dialogues avec voix » passent par ton PIN et <b>ne débitent aucun solde client</b>.</p>
-          <div class="admCartePied">Seul coût : ton compte fournisseur (≈ 3 $ pour 10 s, d'après ton estimation)</div>
+          <div class="admCartePied">Seul coût : ton compte fournisseur (≈ 1,40 $ pour 10 s en 720p)</div>
         </div>
         <div class="card admCarte" id="admCarteMontage" style="border-color:#f0abfc;">
           <div class="admCarteTete">
@@ -2226,7 +2226,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.143</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.144</span>
 
   </footer>
 </div>
@@ -13598,12 +13598,12 @@ const SCENARIO_EXEMPLES = [
       pro: { label: "Pro (Kling 3.0 Turbo)", depart: true, pro: true },
       eco: { label: "Éco (Kling 2.1)", depart: true, pro: false },
       // v41.141 : les répliques sont DITES par les personnages (solde Admin Premium, en FCFA).
-      voix: { label: "🎙️ Dialogues avec voix", depart: false, pro: false },
+      voix: { label: "🎙️ Dialogues avec voix", depart: true, pro: false },   // v41.144 : image de départ obligatoire
     };
     const PRIX_VOIX = { 5: 3499, 10: 5499 };   // = grille du Worker (5 s / 10 s)
     const fcfa = (n) => Number(n).toLocaleString("fr-FR") + " FCFA";
     // Aucun nom de fournisseur ne doit s'afficher chez le client.
-    const anon = (t) => String(t == null ? "" : t).replace(/seedance(\s*2(\.\d)?)?|kling(\s*[\d.]+)?|byte\s?dance|eleven\s?labs|\bfal(\.ai)?\b/gi, "le studio");
+    const anon = (t) => String(t == null ? "" : t).replace(/seedance(\s*2(\.\d)?)?|kling(\s*[\d.]+)?|byte\s?dance|eleven\s?labs|happy\s?horse|alibaba|\bfal(\.ai)?\b/gi, "le studio");
     const ETAPES = [["1", "Idée"], ["2", "Scénario"], ["3", "Références"], ["4", "Scènes"], ["5", "Export"]];
 
     const $ = (id) => document.getElementById(id);
@@ -13669,7 +13669,7 @@ const SCENARIO_EXEMPLES = [
     // ═══ v41.142 — 🧾 JOURNAL TECHNIQUE ═══
     // Garde les 250 derniers événements dans l'appareil (localStorage). Ne contient JAMAIS le code client ni le PIN.
     // Sert à me transmettre ce qui s'est passé (scène qui disparaît, échec, remboursement…).
-    const VERSION_APP = "v41.143", CLE_J = "starclip_msr_journal";
+    const VERSION_APP = "v41.144", CLE_J = "starclip_msr_journal";
     let journalOuvert = false;
     function nettoyer(t) {
       let x = String(t == null ? "" : t);
@@ -14000,63 +14000,82 @@ const SCENARIO_EXEMPLES = [
     }
 
     // ─────────────── Construction de la requête d'une scène ───────────────
-    // v41.141 — 🎙️ Dialogues avec voix : une scène parlée, en français, lèvres synchronisées.
-    // La réplique peut commencer par « Nom : » (obligatoire s'il y a 2 personnages ou plus),
-    // ou par « Voix off : » / « Voix off de Nom : » (personne ne bouge les lèvres).
-    function analyserReplique(p, s, idxPerso) {
-      let t = String(s.dialogue || "").trim();
-      if (!t) return null;
-      let off = false, nom = "";
+    // v41.144 — 🎙️ Dialogues avec voix : scène + voix française + lèvres créées ENSEMBLE, à partir d'une
+    // image de départ (tous les personnages de la scène, dans le décor). Le moteur ne connaît pas les prénoms :
+    // on décrit chaque personne (rôle + apparence). Vérifié le 1er oct. 2026 : visages réalistes acceptés,
+    // français correct, et le moteur respecte « qui parle » à deux personnages, même de profil.
+    // Réplique : « Nom : phrase » (plusieurs à la suite possibles), ou « Voix off : phrase ».
+    const roleDe = (c) => "the " + String((c && c.role) || "person").replace(/^(the|a|an)\s+/i, "").trim();
+    function analyserRepliques(p, s, persos) {
+      const t = String(s.dialogue || "").replace(/[«»"“”]/g, "").replace(/\s+/g, " ").trim();
+      if (!t) return [];
       const mOff = t.match(/^voix\s*off(?:\s+de\s+([^:：]+?))?\s*[:：]\s*/i);
-      if (mOff) { off = true; nom = (mOff[1] || "").trim(); t = t.slice(mOff[0].length); }
-      else {
-        const mN = t.match(/^([^:：]{1,30}?)\s*[:：]\s*/);
-        if (mN && idxPerso.some((x) => x.c.nom && x.c.nom.toLowerCase() === mN[1].trim().toLowerCase())) { nom = mN[1].trim(); t = t.slice(mN[0].length); }
+      if (mOff) {
+        const nom = (mOff[1] || "").trim();
+        const c = nom ? p.personnages.find((x) => x.nom.toLowerCase() === nom.toLowerCase()) : null;
+        const txt = t.slice(mOff[0].length).trim();
+        return txt ? [{ off: true, c: c, texte: txt }] : [];
       }
-      t = t.replace(/[«»"“”]/g, "").replace(/\s+/g, " ").trim();
-      if (!t) return null;
-      let perso = nom ? idxPerso.find((x) => x.c.nom.toLowerCase() === nom.toLowerCase()) : null;
-      if (!perso && !off && idxPerso.length === 1) perso = idxPerso[0];
-      if (!perso && !off) throw new Error("plusieurs personnages sont dans cette scène : commence la réplique par le nom de celui qui parle, par exemple « " + idxPerso[0].c.nom + " : ... »");
-      const ref = nom ? p.personnages.find((c) => c.nom.toLowerCase() === nom.toLowerCase()) : null;
-      return { texte: t, off: off, perso: perso, role: (perso && perso.c.role) || (ref && ref.role) || "" };
+      const noms = persos.filter((c) => c.nom).map((c) => c.nom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+      if (noms.length) {
+        const re = new RegExp("(^|\\s)(" + noms.join("|") + ")\\s*[:：]\\s*", "giu");
+        const pos = []; let m;
+        while ((m = re.exec(t))) pos.push({ i: m.index + m[1].length, fin: re.lastIndex, nom: m[2] });
+        if (pos.length && pos[0].i === 0) {
+          const segs = [];
+          pos.forEach((x, k) => {
+            const txt = t.slice(x.fin, k + 1 < pos.length ? pos[k + 1].i : t.length).trim();
+            const c = persos.find((y) => y.nom.toLowerCase() === x.nom.toLowerCase());
+            if (txt) segs.push({ off: false, c: c, texte: txt });
+          });
+          return segs.slice(0, 4);
+        }
+      }
+      if (persos.length === 1) return [{ off: false, c: persos[0], texte: t }];
+      if (!persos.length) return [{ off: true, c: null, texte: t }];
+      throw new Error("plusieurs personnages sont dans cette scène : écris le nom devant chaque réplique, par exemple « " + persos[0].nom + " : ... »");
     }
     function construireVoix(p, s) {
       const decor = p.decors.find((d) => d.id === s.decorId);
       const persos = s.persoIds.map((id) => p.personnages.find((c) => c.id === id)).filter(Boolean);
-      const dg = dureeGen(s), imgs = [], idxPerso = [];
-      persos.forEach((c) => {
-        const r = c.refs.filter(Boolean).slice(0, persos.length <= 2 ? 3 : 2);   // max 9 images au total côté moteur
-        if (!r.length) throw new Error("il manque l'image de référence de « " + c.nom + " »");
-        idxPerso.push({ c: c, debut: imgs.length + 1, n: r.length });
-        r.forEach((u) => imgs.push(u));
-      });
-      const base = s.depart || (decor && decor.refUrl);
-      if (!base) throw new Error("il manque l'image du décor pour cette scène");
-      imgs.push(base);
-      const tag = (k) => "@Image" + k, iLieu = imgs.length;
+      const dg = dureeGen(s);
+      if (!s.depart) throw new Error("ce modèle a besoin d'une image de départ : les personnages de la scène dans le décor, au format de ta série");
+      const segs = analyserRepliques(p, s, persos);
       let action = s.action;
-      idxPerso.forEach((x) => {
-        if (!x.c.nom) return;
-        const re = new RegExp("(^|[^\\p{L}])" + x.c.nom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\p{L}])", "giu");
-        action = action.replace(re, (t, a) => a + tag(x.debut));
+      persos.forEach((c) => {
+        if (!c.nom) return;
+        const re = new RegExp("(^|[^\\p{L}])" + c.nom.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\p{L}])", "giu");
+        action = action.replace(re, (t, a) => a + roleDe(c));
       });
       action = action.replace(/[.\s]+$/, "");
-      const rep = analyserReplique(p, s, idxPerso);
-      let pre = idxPerso.map((x) => { const tg = Array.from({ length: x.n }, (_, i) => tag(x.debut + i)); return (x.n > 1 ? tg.slice(0, -1).join(", ") + " and " + tg[x.n - 1] + " show different views of " : tg[0] + " shows ") + (x.c.role || "a person") + " (always the same person)"; }).join(". ");
-      pre += (pre ? ". " : "") + tag(iLieu) + " shows the location of this scene: keep this place and its atmosphere. "
-        + "Keep each person's exact face, skin tone, hairstyle and outfit from their own references, never swap people and never use a lookalike. ";
+      const maj = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+      action = maj(action);
+      const intro = persos.length
+        ? "People in the image: " + persos.map((c) => { const d = String(c.desc || "").split(/[.;]/)[0].trim(); return roleDe(c) + (d ? " (" + d.slice(0, 90) + ")" : ""); }).join("; ")
+          + ". Keep each person's face, hairstyle and outfit exactly as in the image. "
+        : "";
       let voix;
-      if (!rep) voix = "No spoken dialogue in this shot: natural ambient sound only, no voice-over.";
-      else if (rep.off) voix = "Voice-over: an off-screen voice" + (rep.role ? " (" + rep.role + ")" : "") + " says in French, exactly: \"" + rep.texte + "\". Nobody on screen speaks or moves their lips.";
-      else voix = "The person shown in " + tag(rep.perso.debut) + " is the only one who speaks. In this shot they say in French, with natural lip-synced speech and a calm natural voice, exactly this line: \"" + rep.texte + "\". Nobody else speaks. The mouth movements match the French words.";
-      const txt = couper(pre + (decor ? "Setting: " + decor.desc.replace(/[,;.]?\s*(with\s+)?no\s+(people|persons?|humans?)\.?/gi, "").replace(/[.\s]+$/, "") + ". " : "") + action + ". " + voix
-        + " Cinematic photorealistic shot, smooth natural camera and body motion, faces fully visible, eyes open, no subtitles, no on-screen text, no watermark.", 2400);
-      const mots = rep ? rep.texte.split(/\s+/).length : 0;
+      if (!segs.length) voix = "No spoken dialogue in this shot: natural ambient sound only.";
+      else if (segs[0].off) voix = "Voice-over: an off-screen voice" + (segs[0].c ? " of " + roleDe(segs[0].c) : "") + " says in French: \"" + segs[0].texte + "\". Nobody on screen speaks or moves their lips.";
+      else voix = segs.map((g, k) => (k ? "Then " + roleDe(g.c) : maj(roleDe(g.c))) + (k ? " answers" : " says") + " in French: \"" + g.texte + "\".").join(" ")
+        + " Each person speaks only their own line" + (segs.length === 1 && persos.length > 1 ? ", the others listen silently" : "") + ". Natural calm voices, lips synchronized with the French words.";
+      const txt = couper(intro + (decor ? "Setting: " + decor.desc.replace(/[,;.]?\s*(with\s+)?no\s+(people|persons?|humans?)\.?/gi, "").replace(/[.\s]+$/, "") + ". " : "")
+        + action + ". " + voix + " Cinematic photorealistic shot, smooth natural motion, no music, no subtitles, no on-screen text.", 2400);
+      const mots = segs.reduce((n, g) => n + g.texte.split(/\s+/).length, 0);
       return {
-        voix: true, mode: "ref", path: "bytedance/seedance-2.0", dg: dg, parle: rep ? rep.texte : "", mots: mots, trop: mots > (dg === 5 ? 14 : 30),
-        payload: { prompt: txt, image_urls: imgs, aspect_ratio: p.format, generate_audio: true },
+        voix: true, mode: "image", path: "alibaba/happy-horse", dg: dg, mots: mots, trop: mots > (dg === 5 ? 14 : 30),
+        parle: segs.map((g) => (g.off ? "Voix off" : g.c.nom) + " : " + g.texte).join(" / "),
+        payload: { image_url: s.depart, prompt: txt },
       };
+    }
+    // Format de l'image de départ (le moteur garde celui de l'image).
+    function dimsImage(url) {
+      return new Promise((ok) => {
+        const im = new Image(); const t = setTimeout(() => ok(null), 4000);
+        im.onload = () => { clearTimeout(t); ok({ w: im.naturalWidth, h: im.naturalHeight }); };
+        im.onerror = () => { clearTimeout(t); ok(null); };
+        im.src = url;
+      });
     }
     function construire(p, s, m) {
       if (m === "voix") return construireVoix(p, s);
@@ -14152,7 +14171,9 @@ const SCENARIO_EXEMPLES = [
       s.statut = "fait"; s.url = v; s.erreur = ""; s.job.fini = true;
       journal("termine", { scene: numScene(s), url: v });
     }
-    async function generer(id) {
+    let prepGen = false;   // v41.144 : empêche un double clic de lancer deux fois la même scène
+    async function generer(id) { if (prepGen) return; prepGen = true; try { await genererUne(id); } finally { prepGen = false; } }
+    async function genererUne(id) {
       const p = actif, s = p.scenes.find((x) => x.id === id);
       if (!s || enCours) return;
       const idx = p.scenes.indexOf(s), m = modeleDe(p, s);
@@ -14161,12 +14182,18 @@ const SCENARIO_EXEMPLES = [
       try { req = construire(p, s, m); } catch (e) { journal("refus_avant_envoi", { scene: idx + 1, raison: nettoyer(e.message) }); info("<span class='err'>Scène " + (idx + 1) + " : " + esc(e.message) + ".</span>"); return; }
       const c = credits(s);
       const modeS = !!req.voix && estStudio();
+      let avertFormat = "";
+      if (req.voix) {
+        const dm = await dimsImage(s.depart);
+        if (dm && ((p.format === "9:16" && dm.w > dm.h) || (p.format === "16:9" && dm.h > dm.w)))
+          avertFormat = "⚠️ Ton image de départ n'est pas au format " + p.format + " : la vidéo suivra le format de l'image.\n";
+      }
       if (req.voix && studio && !modeS) { info("<span class='err'>Mode Studio : PIN absent. Rouvre l'espace Admin (◆ en haut de page), puis reviens ici.</span>"); return; }
       const msg = "Générer la scène " + (idx + 1) + " ?\n\n"
         + "Modèle : " + MODELES[m].label + "\n"
-        + "Durée générée : " + req.dg + " s\n"
+        + "Durée générée : " + req.dg + " s\n" + avertFormat
         + (req.voix
-          ? (modeS ? "MODE STUDIO (ton PIN) : aucun solde client débité.\nCoût réel pour toi : environ " + (req.dg === 5 ? "1,5" : "3") + " $ (estimation de ta fiche).\n" : "Prix : " + fcfa(prixVoix(s)) + " (débités de ton solde Admin Premium 5.0)\n")
+          ? (modeS ? "MODE STUDIO (ton PIN) : aucun solde client débité.\nCoût réel pour toi : environ " + (req.dg === 5 ? "0,70" : "1,40") + " $ (tarif 720p affiché par le fournisseur).\n" : "Prix : " + fcfa(prixVoix(s)) + " (débités de ton solde Admin Premium 5.0)\n")
             + (req.parle ? "Réplique dite : « " + req.parle + " »\n" + (req.trop ? "⚠️ Réplique longue pour " + req.dg + " s : elle risque d'être coupée ou accélérée.\n" : "") : "Pas de réplique dans cette scène (seulement l'ambiance sonore).\n")
             + (modeS ? "Un résultat qui ne te plaît pas (visage, lèvres) reste à ta charge : chaque relance coûte.\n" : "Si le rendu échoue, le prix est remboursé automatiquement. Un résultat qui ne te plaît pas (visage, lèvres) n'est pas remboursé.\n")
           : "Coût : " + pluriel(c, "crédit") + " vidéo\n")
@@ -14181,8 +14208,8 @@ const SCENARIO_EXEMPLES = [
       try {
         s.avecVoix = !!req.voix;
         const job = modeS
-          ? await fsSubmit("bytedance/seedance-2.0/reference-to-video", Object.assign({}, req.payload, { resolution: "720p", duration: String(req.dg) }))
-          : req.voix ? await pmSubmit("seedance2", req.dg, req.mode, req.payload) : await apiSubmit(req.path, req.payload);
+          ? await fsSubmit("alibaba/happy-horse/image-to-video", Object.assign({}, req.payload, { resolution: "720p", duration: req.dg }))
+          : req.voix ? await pmSubmit("happyhorse", req.dg, req.mode, req.payload) : await apiSubmit(req.path, req.payload);
         s.job = {
           id: job.request_id, path: req.path, studio: modeS,
           st: job.status_url || ("https://queue.fal.run/" + req.path + "/requests/" + job.request_id + "/status"),
@@ -14466,12 +14493,13 @@ const SCENARIO_EXEMPLES = [
             + '<div class="msr-ligne" style="flex-wrap:wrap;margin-top:6px"><button class="btn small" data-a="importer" data-type="depart" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">📁 Importer</button>"
             + '<button class="btn small" data-a="ia" data-type="depart" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">🎨 Créer par IA" + (estPro() ? "" : " (pack Pro)") + "</button>"
             + (s.depart ? '<button class="btn small" data-a="retirerdepart" data-id="' + s.id + '"' + (bloque ? " disabled" : "") + ">✕ Retirer</button>" : "") + "</div>"
-            + '<div class="estimate">Avec ce modèle, le format de la vidéo suit celui de l\'image de départ.</div>';
+            + '<div class="estimate">Avec ce modèle, le format de la vidéo suit celui de l\'image de départ.</div>'
+            + (m === "voix" ? '<div class="estimate">Scène parlée : mets dans cette image <b>tous les personnages de la scène, dans le décor</b>, à leur place, au format de ta série. Les visages de l\'image sont ceux de la vidéo.</div>' : "");
         }
         if (m === "voix") {
           h += '<div class="label" style="margin-top:6px">Réplique dite (en français)</div>'
             + '<input type="text" data-sf="dialogue" data-id="' + s.id + '" value="' + esc(s.dialogue) + '"' + (bloque ? " disabled" : "") + ">"
-            + '<div class="estimate">S\'il y a plusieurs personnages dans la scène, commence par le nom : « Maya : ta phrase ». Pour une voix off : « Voix off : ta phrase ».</div>'
+            + '<div class="estimate">Plusieurs personnages : écris le nom devant chaque réplique, à la suite. Ex. « Maya : Ta chanson… ? Daniel : Toutes. » Voix off : « Voix off : ta phrase ».</div>'
             + '<div class="estimate">Les voix sont créées dans la vidéo : elles peuvent changer d\'une scène à l\'autre, et la synchronisation des lèvres en français n\'est pas parfaite.</div>';
         }
         h += '<div class="estimate" style="margin-top:8px">' + MODELES[m].label + " · " + dureeGen(s) + ' s générées · <b style="color:var(--gold)">' + (m === "voix" ? (studio ? "Studio · aucun solde client" : fcfa(prixVoix(s))) : pluriel(credits(s), "crédit") + " vidéo") + "</b></div>";
