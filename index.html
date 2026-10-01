@@ -1284,6 +1284,18 @@
           <p class="sub" style="margin:10px 0 0;">Le moteur haut de gamme des clients, <b>gratuit pour le studio</b> (ton PIN). Vrai WAV + MP3 rapide, intros adaptées au genre, « Copier le style d'une chanson ».</p>
           <div class="admCartePied">2 min · 3 min · 3 min 50 · seul coût : ElevenLabs (~0,15 $/min)</div>
         </div>
+        <!-- v41.141 : 🎞️ Mini-séries en MODE STUDIO (ton PIN, aucun solde client débité) -->
+        <div class="card admCarte" id="admCarteMiniserie" style="border-color:#f5b82e;">
+          <div class="admCarteTete">
+          <div class="admCarteVignette"><span class="puce">🎞️</span></div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#f5b82e;">MINI-SÉRIES · STUDIO</h2>
+              <div class="admCarteSous">DIALOGUES AVEC VOIX · TES ESSAIS</div>
+            </div>
+          </div>
+          <p class="sub" style="margin:10px 0 0;">Ouvre l'onglet Mini-séries IA en <b>mode Studio</b> : les scènes « 🎙️ Dialogues avec voix » passent par ton PIN et <b>ne débitent aucun solde client</b>.</p>
+          <div class="admCartePied">Seul coût : ton compte fournisseur (≈ 3 $ pour 10 s, d'après ton estimation)</div>
+        </div>
         <div class="card admCarte" id="admCarteMontage" style="border-color:#f0abfc;">
           <div class="admCarteTete">
           <div class="admCarteVignette"><span class="puce">🎼</span><img src="vignette-montage.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>
@@ -9355,6 +9367,15 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
     if (t) t.click();
     setTimeout(() => { pmOuvrir("chansonPro"); pmModeStudio = true; pmStudioMaj(); }, 200);
   };
+  const cMs = document.getElementById("admCarteMiniserie");
+  if (cMs) cMs.onclick = () => {
+    const z = document.getElementById("adminZone");
+    if (z) z.classList.add("hidden");
+    document.body.style.overflow = "";
+    const t = document.querySelector('#tabbar .qnav[data-tab="miniseries"]');
+    if (t) t.click();
+    setTimeout(() => { if (typeof window.msrModeStudio === "function") window.msrModeStudio(true); }, 200);
+  };
   document.getElementById("admCarteCodes").onclick = () => window.open("admin.html", "_blank");   // v41.127 : une seule page d'admin   // v41.123
   document.getElementById("admCarteStems").onclick = () => admVue("stems");   // stems studio
   document.getElementById("admRetour").onclick     = () => admVue("choix");
@@ -13600,6 +13621,9 @@ const SCENARIO_EXEMPLES = [
     let enCours = false;        // une seule génération à la fois
     let cibleFichier = null;    // { type, id } pour le sélecteur d'image
     let minuterie = null;
+    let studio = false;         // v41.141 : mode Studio (PIN) — jamais mémorisé, à réactiver depuis l'espace Admin
+    const estStudio = () => studio && typeof admPin === "function" && !!admPin();
+    window.msrModeStudio = function (on) { studio = !!on; try { render(); } catch (_) {} };
 
     // ─────────────── Stockage ───────────────
     function charger() {
@@ -13993,23 +14017,25 @@ const SCENARIO_EXEMPLES = [
     async function suivreJob(s) {
       const t0 = Date.now();
       let fini = false;
+      const sonde = s.job.studio ? fsPoll : apiPoll;
       for (let i = 0; i < 150; i++) {
         await sleep(4000);
-        const sj = await apiPoll(s.job.st);
+        const sj = await sonde(s.job.st);
+        if (s.job.studio && sj && sj.error && !sj.status) { const e = new Error(sj.error); e.definitif = true; throw e; }
         const sec = Math.round((Date.now() - t0) / 1000);
         if (sj.status === "IN_QUEUE") majEtat(s, "En file d'attente (position " + (sj.queue_position != null ? sj.queue_position : "…") + ")…");
         else majEtat(s, "Le studio crée ta scène… (1 à 5 min)");
         if (sj.status === "COMPLETED") { fini = true; break; }
         if (sj.status === "FAILED" || sj.status === "ERROR") {
-          const rep = await apiPoll(s.job.rp).catch(() => ({}));
+          const rep = await sonde(s.job.rp).catch(() => ({}));
           const detail = JSON.stringify(rep.detail || rep.error || rep.message || "").slice(0, 160);
-          const rb = await rembourser(s.job.id);
+          const rb = s.job.studio ? " Aucun solde client n'a été débité." : await rembourser(s.job.id);
           const e = new Error("le moteur a refusé ou échoué" + (detail && detail !== '""' ? " (" + detail + ")" : "") + "." + rb);
           e.definitif = true; throw e;
         }
       }
       if (!fini) { const e = new Error("Le rendu prend plus de temps que prévu. Touche « Reprendre le suivi » dans quelques minutes."); e.attente = true; throw e; }
-      const data = await apiPoll(s.job.rp);
+      const data = await sonde(s.job.rp);
       const v = (data.video && data.video.url) || (data.response && data.response.video && data.response.video.url);
       if (!v) throw new Error("vidéo introuvable dans la réponse");
       s.statut = "fait"; s.url = v; s.erreur = ""; s.job.fini = true;
@@ -14022,13 +14048,15 @@ const SCENARIO_EXEMPLES = [
       let req;
       try { req = construire(p, s, m); } catch (e) { info("<span class='err'>Scène " + (idx + 1) + " : " + esc(e.message) + ".</span>"); return; }
       const c = credits(s);
+      const modeS = !!req.voix && estStudio();
+      if (req.voix && studio && !modeS) { info("<span class='err'>Mode Studio : PIN absent. Rouvre l'espace Admin (◆ en haut de page), puis reviens ici.</span>"); return; }
       const msg = "Générer la scène " + (idx + 1) + " ?\n\n"
         + "Modèle : " + MODELES[m].label + "\n"
         + "Durée générée : " + req.dg + " s\n"
         + (req.voix
-          ? "Prix : " + fcfa(prixVoix(s)) + " (débités de ton solde Admin Premium 5.0)\n"
+          ? (modeS ? "MODE STUDIO (ton PIN) : aucun solde client débité.\nCoût réel pour toi : environ " + (req.dg === 5 ? "1,5" : "3") + " $ (estimation de ta fiche).\n" : "Prix : " + fcfa(prixVoix(s)) + " (débités de ton solde Admin Premium 5.0)\n")
             + (req.parle ? "Réplique dite : « " + req.parle + " »\n" + (req.trop ? "⚠️ Réplique longue pour " + req.dg + " s : elle risque d'être coupée ou accélérée.\n" : "") : "Pas de réplique dans cette scène (seulement l'ambiance sonore).\n")
-            + "Si le rendu échoue, le prix est remboursé automatiquement. Un résultat qui ne te plaît pas (visage, lèvres) n'est pas remboursé.\n"
+            + (modeS ? "Un résultat qui ne te plaît pas (visage, lèvres) reste à ta charge : chaque relance coûte.\n" : "Si le rendu échoue, le prix est remboursé automatiquement. Un résultat qui ne te plaît pas (visage, lèvres) n'est pas remboursé.\n")
           : "Coût : " + pluriel(c, "crédit") + " vidéo\n")
         + (s.tentatives ? "\nCette scène a déjà été lancée " + pluriel(s.tentatives, "fois") + " : chaque relance est facturée.\n" : "")
         + "\nAucune autre scène ne sera lancée.";
@@ -14038,9 +14066,11 @@ const SCENARIO_EXEMPLES = [
       p.maj = Date.now(); sauver(); render();
       try {
         s.avecVoix = !!req.voix;
-        const job = req.voix ? await pmSubmit("seedance2", req.dg, req.mode, req.payload) : await apiSubmit(req.path, req.payload);
+        const job = modeS
+          ? await fsSubmit("bytedance/seedance-2.0/reference-to-video", Object.assign({}, req.payload, { resolution: "720p", duration: String(req.dg) }))
+          : req.voix ? await pmSubmit("seedance2", req.dg, req.mode, req.payload) : await apiSubmit(req.path, req.payload);
         s.job = {
-          id: job.request_id, path: req.path,
+          id: job.request_id, path: req.path, studio: modeS,
           st: job.status_url || ("https://queue.fal.run/" + req.path + "/requests/" + job.request_id + "/status"),
           rp: job.response_url || ("https://queue.fal.run/" + req.path + "/requests/" + job.request_id),
         };
@@ -14176,7 +14206,8 @@ const SCENARIO_EXEMPLES = [
       $("msrBarre").innerHTML = '<div class="msr-barre">'
         + (projets.length ? '<select data-a="choisir">' + opts + "</select>" : "")
         + '<button class="btn small" data-a="nouveau">＋ Nouveau projet</button>'
-        + (actif ? '<button class="btn small" data-a="supprimer">🗑 Supprimer</button>' : "") + "</div>";
+        + (actif ? '<button class="btn small" data-a="supprimer">🗑 Supprimer</button>' : "") + "</div>"
+        + (studio ? '<div class="estimate" style="margin-top:8px;border:1px solid var(--gold);border-radius:10px;padding:8px 10px;">🎛️ <b style="color:var(--gold)">Mode Studio</b> : les scènes « 🎙️ Dialogues avec voix » passent par ton PIN, <b>aucun solde client débité</b>. <button class="btn small" data-a="studioOff" style="margin-left:6px">Quitter le mode Studio</button></div>' : "");
     }
     function renderEtapes() {
       $("msrEtapes").innerHTML = '<div class="msr-etapes">' + ETAPES.map((e, i) => {
@@ -14295,7 +14326,7 @@ const SCENARIO_EXEMPLES = [
       const p = actif;
       const aFaire = p.scenes.filter((s) => s.statut !== "fait");
       const restant = aFaire.reduce((n, s) => n + credits(s), 0);
-      const restantF = aFaire.reduce((n, s) => n + (modeleDe(p, s) === "voix" ? prixVoix(s) : 0), 0);
+      const restantF = studio ? 0 : aFaire.reduce((n, s) => n + (modeleDe(p, s) === "voix" ? prixVoix(s) : 0), 0);
       const restantTxt = (restant ? pluriel(restant, "crédit") + " vidéo" : "") + (restant && restantF ? " + " : "") + (restantF ? fcfa(restantF) : "") || "0";
       let h = '<div class="label">Modèle par défaut</div><div class="chips">'
         + Object.keys(MODELES).map((k) => '<button class="chip' + (p.modele === k ? " on" : "") + '" data-a="modeleDefaut" data-v="' + k + '"' + (MODELES[k].pro && !estPro() ? " disabled" : "") + ">" + MODELES[k].label + "</button>").join("") + "</div>"
@@ -14324,7 +14355,7 @@ const SCENARIO_EXEMPLES = [
             + '<div class="estimate">S\'il y a plusieurs personnages dans la scène, commence par le nom : « Maya : ta phrase ». Pour une voix off : « Voix off : ta phrase ».</div>'
             + '<div class="estimate">Les voix sont créées dans la vidéo : elles peuvent changer d\'une scène à l\'autre, et la synchronisation des lèvres en français n\'est pas parfaite.</div>';
         }
-        h += '<div class="estimate" style="margin-top:8px">' + MODELES[m].label + " · " + dureeGen(s) + ' s générées · <b style="color:var(--gold)">' + (m === "voix" ? fcfa(prixVoix(s)) : pluriel(credits(s), "crédit") + " vidéo") + "</b></div>";
+        h += '<div class="estimate" style="margin-top:8px">' + MODELES[m].label + " · " + dureeGen(s) + ' s générées · <b style="color:var(--gold)">' + (m === "voix" ? (studio ? "Studio · aucun solde client" : fcfa(prixVoix(s))) : pluriel(credits(s), "crédit") + " vidéo") + "</b></div>";
         if (s.statut === "encours") {
           h += (enCours ? rondHtml(s.id, "Envoi au studio…", s.t0) : '<div class="estimate">⏳ Rendu lancé. Touche « Reprendre le suivi » pour le retrouver.</div>')
             + (s.erreur ? '<div class="estimate err">' + esc(s.erreur) + "</div>" : "")
@@ -14440,6 +14471,7 @@ const SCENARIO_EXEMPLES = [
         case "retirerdepart": if (s) { s.depart = ""; s.pret = false; } break;
         case "valider2": p.valide.refs = true; p.maj = Date.now(); sauver(); vue = 4; render(); info(""); return;
         case "rouvrir2": p.valide.refs = false; break;
+        case "studioOff": studio = false; break;
         case "modeleDefaut": p.modele = d.v; break;
         case "modeleScene": if (s) { s.modele = d.v; s.pret = false; } break;
         case "gen": generer(d.id); return;
