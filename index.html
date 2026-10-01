@@ -13666,6 +13666,38 @@ const SCENARIO_EXEMPLES = [
     }, 1000);
     function info(html) { const z = $("msrMsg"); if (z) z.innerHTML = html || ""; }
 
+    // v41.141 — Avancement TOUJOURS visible : un bandeau doré fixe en bas de l'écran (chrono + état),
+    // en plus du rond dans la carte de la scène, qui peut se trouver sous la zone visible.
+    (function () {
+      const st = document.createElement("style");
+      st.textContent = "#msrToast{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9999;max-width:560px;margin:0 auto;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:#1b1626;border:1.5px solid #f5b82e;color:#fff;box-shadow:0 6px 24px rgba(0,0,0,.55);font-size:14px}"
+        + "body.tab-miniseries #msrToast.on{display:flex}"
+        + ".msr-tspin{width:20px;height:20px;border-radius:50%;border:3px solid rgba(245,184,46,.25);border-top-color:#f5b82e;animation:msrSpin 1s linear infinite;flex:none}"
+        + "@keyframes msrSpin{to{transform:rotate(360deg)}}"
+        + ".msr-tchrono{font-variant-numeric:tabular-nums;color:#f5b82e;font-weight:700}"
+        + ".msr-ttxt{opacity:.85;font-size:12px;flex:1;min-width:0}";
+      document.head.appendChild(st);
+    })();
+    let toastEl = null, toastTxt = "Envoi au studio…", tacheTxt = "", tacheT0 = 0;
+    function majToast() {
+      if (!toastEl) {
+        toastEl = document.createElement("div"); toastEl.id = "msrToast";
+        toastEl.innerHTML = '<span class="msr-tspin"></span><b class="msr-tnom"></b><span class="msr-tchrono">00:00</span><span class="msr-ttxt"></span>';
+        document.body.appendChild(toastEl);
+      }
+      const sc = actif && enCours ? actif.scenes.find((x) => x.statut === "encours") : null;
+      if (!sc && !(enCours && tacheTxt)) { toastEl.className = ""; return; }
+      toastEl.className = "on";
+      toastEl.setAttribute("data-t0", String(sc ? (sc.t0 || Date.now()) : tacheT0));
+      toastEl.querySelector(".msr-tnom").textContent = sc ? "Scène " + (actif.scenes.indexOf(sc) + 1) : tacheTxt;
+      toastEl.querySelector(".msr-ttxt").textContent = sc ? toastTxt : "Ne ferme pas l'app";
+    }
+    setInterval(() => {
+      if (!toastEl || toastEl.className !== "on") return;
+      const sec = Math.max(0, Math.round((Date.now() - Number(toastEl.getAttribute("data-t0"))) / 1000));
+      toastEl.querySelector(".msr-tchrono").textContent = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0");
+    }, 1000);
+
     function nouveauProjet() {
       return {
         id: uid("p"), cree: Date.now(), maj: Date.now(), titre: "", idee: "", format: "9:16", duree: 45,
@@ -13928,7 +13960,7 @@ const SCENARIO_EXEMPLES = [
       const persos = s.persoIds.map((id) => p.personnages.find((c) => c.id === id)).filter(Boolean);
       const dg = dureeGen(s), imgs = [], idxPerso = [];
       persos.forEach((c) => {
-        const r = c.refs.filter(Boolean).slice(0, 2);
+        const r = c.refs.filter(Boolean).slice(0, persos.length <= 2 ? 3 : 2);   // max 9 images au total côté moteur
         if (!r.length) throw new Error("il manque l'image de référence de « " + c.nom + " »");
         idxPerso.push({ c: c, debut: imgs.length + 1, n: r.length });
         r.forEach((u) => imgs.push(u));
@@ -13945,7 +13977,7 @@ const SCENARIO_EXEMPLES = [
       });
       action = action.replace(/[.\s]+$/, "");
       const rep = analyserReplique(p, s, idxPerso);
-      let pre = idxPerso.map((x) => (x.n > 1 ? tag(x.debut) + " and " + tag(x.debut + 1) + " show " : tag(x.debut) + " shows ") + (x.c.role || "a person") + " (always the same person)").join(". ");
+      let pre = idxPerso.map((x) => { const tg = Array.from({ length: x.n }, (_, i) => tag(x.debut + i)); return (x.n > 1 ? tg.slice(0, -1).join(", ") + " and " + tg[x.n - 1] + " show different views of " : tg[0] + " shows ") + (x.c.role || "a person") + " (always the same person)"; }).join(". ");
       pre += (pre ? ". " : "") + tag(iLieu) + " shows the location of this scene: keep this place and its atmosphere. "
         + "Keep each person's exact face, skin tone, hairstyle and outfit from their own references, never swap people and never use a lookalike. ";
       let voix;
@@ -14005,7 +14037,7 @@ const SCENARIO_EXEMPLES = [
     }
 
     // ─────────────── Génération d'UNE scène (toujours avec confirmation) ───────────────
-    function majEtat(s, txt) { const z = $("msr-etat-" + s.id); if (z) z.textContent = txt; }
+    function majEtat(s, txt) { const z = $("msr-etat-" + s.id); if (z) z.textContent = txt; toastTxt = txt; majToast(); }
     async function rembourser(id) {
       try {
         const r = await fetch(WORKER_URL + "/refund", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: getCode(), request_id: id }) });
@@ -14063,7 +14095,8 @@ const SCENARIO_EXEMPLES = [
       if (!confirm(msg)) return;
       enCours = true;
       s.statut = "encours"; s.erreur = ""; s.tentatives += 1; s.url = ""; s.visage = null; s.valide = false; s.job = null; s.t0 = Date.now();
-      p.maj = Date.now(); sauver(); render();
+      p.maj = Date.now(); sauver(); toastTxt = "Envoi au studio…"; render();
+      { const z = $("msr-etat-" + s.id); if (z) z.scrollIntoView({ behavior: "smooth", block: "center" }); }
       try {
         s.avecVoix = !!req.voix;
         const job = modeS
@@ -14085,7 +14118,8 @@ const SCENARIO_EXEMPLES = [
     async function reprendre(id) {
       const p = actif, s = p.scenes.find((x) => x.id === id);
       if (!s || !s.job || enCours) return;
-      enCours = true; s.erreur = ""; s.t0 = Date.now(); render();
+      enCours = true; s.erreur = ""; s.t0 = Date.now(); toastTxt = "Reprise du suivi…"; render();
+      { const z = $("msr-etat-" + s.id); if (z) z.scrollIntoView({ behavior: "smooth", block: "center" }); }
       try { await suivreJob(s); }
       catch (e) { if (e.attente) { s.erreur = anon(e.message); } else { s.statut = "rate"; s.erreur = anon(e.message); } }
       enCours = false; p.maj = Date.now(); sauver(); render();
@@ -14160,6 +14194,7 @@ const SCENARIO_EXEMPLES = [
       if (!confirm("Assembler " + urls.length + " scènes en un seul fichier ?\n\nAucun crédit vidéo n'est débité pour l'assemblage.\nUne seule opération sera lancée."
         + (mixte ? "\n\n⚠️ Certaines scènes n'ont pas de son (modèles sans voix) : le son de l'épisode assemblé peut être incomplet. Pour un épisode parlé, génère toutes les scènes avec « 🎙️ Dialogues avec voix », même celles sans réplique. Sinon, utilise le ZIP pour monter l'épisode." : ""))) return;
       enCours = true; btn.disabled = true; info(""); rondG(true, "🎞️ Assemblage en cours…");
+      tacheTxt = "Assemblage"; tacheT0 = Date.now(); majToast();
       try {
         const path = "fal-ai/ffmpeg-api/merge-videos";
         const job = await apiSubmit(path, { video_urls: urls });
@@ -14178,7 +14213,7 @@ const SCENARIO_EXEMPLES = [
         if (!v) throw new Error("vidéo introuvable dans la réponse");
         p.episodeUrl = v; sauver(); info("<span class='okc'>✓ Épisode assemblé.</span>" + (nV ? "<br><span class='estimate'>Écoute-le en entier pour vérifier que le son est bien présent.</span>" : ""));
       } catch (e) { info("<span class='err'>✗ " + esc(e.message) + "</span>"); }
-      enCours = false; rondG(false); render();
+      enCours = false; tacheTxt = ""; rondG(false); render();
     }
 
     // ─────────────── Affichage ───────────────
@@ -14430,6 +14465,7 @@ const SCENARIO_EXEMPLES = [
         }, { once: true });
       });
       window.scrollTo(0, y);
+      majToast();
     }
     function aller(n) { vue = n; render(); racine.scrollIntoView({ behavior: "smooth", block: "start" }); }
 
