@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.142 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.143 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2226,7 +2226,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.142</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.143</span>
 
   </footer>
 </div>
@@ -13669,7 +13669,7 @@ const SCENARIO_EXEMPLES = [
     // ═══ v41.142 — 🧾 JOURNAL TECHNIQUE ═══
     // Garde les 250 derniers événements dans l'appareil (localStorage). Ne contient JAMAIS le code client ni le PIN.
     // Sert à me transmettre ce qui s'est passé (scène qui disparaît, échec, remboursement…).
-    const VERSION_APP = "v41.142", CLE_J = "starclip_msr_journal";
+    const VERSION_APP = "v41.143", CLE_J = "starclip_msr_journal";
     let journalOuvert = false;
     function nettoyer(t) {
       let x = String(t == null ? "" : t);
@@ -14137,8 +14137,18 @@ const SCENARIO_EXEMPLES = [
       }
       if (!fini) { const e = new Error("Le rendu prend plus de temps que prévu. Touche « Reprendre le suivi » dans quelques minutes."); e.attente = true; throw e; }
       const data = await sonde(s.job.rp);
-      const v = (data.video && data.video.url) || (data.response && data.response.video && data.response.video.url);
-      if (!v) throw new Error("vidéo introuvable dans la réponse");
+      const v = (data && data.video && data.video.url) || (data && data.response && data.response.video && data.response.video.url);
+      if (!v) {
+        // v41.142 : le moteur a fini SANS vidéo (refus, contenu, paramètre…). On lit son motif au lieu de le cacher,
+        // et, en mode client, on demande le remboursement (le Worker vérifie lui-même qu'aucune vidéo n'existe).
+        const d0 = data || {};
+        const motif = d0.detail ? (Array.isArray(d0.detail) ? d0.detail.map((x) => (x && (x.msg || x.type)) || JSON.stringify(x)).join(" · ") : String(d0.detail))
+          : (d0.error || d0.message || "");
+        journal("reponse_sans_video", { scene: numScene(s), motif: nettoyer(motif), brut: nettoyer(JSON.stringify(d0)) });
+        const rb = s.job.studio ? " Aucun solde client n'a été débité." : await rembourser(s.job.id);
+        const e = new Error("le moteur n'a pas livré de vidéo" + (motif ? " (motif : " + String(motif).slice(0, 200) + ")" : " (motif non précisé)") + "." + rb);
+        e.definitif = true; throw e;
+      }
       s.statut = "fait"; s.url = v; s.erreur = ""; s.job.fini = true;
       journal("termine", { scene: numScene(s), url: v });
     }
