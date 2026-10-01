@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.148 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.149 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1194,7 +1194,7 @@
       <div class="card" id="admCarteSim" style="border-color:#38bdf8; margin-bottom:12px;">
         <h2 style="margin:0; color:#38bdf8;">🧪 SIMULATION GLOBALE · 0 $</h2>
         <p class="sub" style="margin:8px 0 0;">Pendant la mise au point : <b>rien n'est envoyé aux moteurs et rien n'est facturé</b>. Tu vois tout le déroulé (envoi, avancement, résultat d'exemple). Quand tout est au point, tu l'éteins : tes essais passent alors par ton compte fournisseur au tarif développeur, et tes clients paient leur grille.</p>
-        <p class="sub" style="margin:6px 0 0;">Couvert : <b>Aleph, Seedance 2.5 et 2.0 (Studio), Multi-Shot, Moteur A, Multi-plans, Montage auto (génération des plans), Créer une chanson, Chanson Pro, stems, Mini-séries</b>. <b>Pas encore couverts</b> (onglets clients) : photo, traitement, habillage &amp; décor, scénario, finition, et les autres moteurs de l'onglet Premium.</p>
+        <p class="sub" style="margin:6px 0 0;">Couvert : <b>tous les moteurs de génération</b> — Admin (Aleph, Seedance, Multi-Shot, Moteur A, Multi-plans, Montage auto, chansons, Chanson Pro, stems), Mini-séries, onglet Premium et onglets clients (photo, traitement, habillage &amp; décor, finition…). <b>Restent réels</b> : les dépôts de fichiers (gratuits) et les petites IA de texte (scénario, décors, résumé : une fraction de centime), qui ont besoin d'une vraie réponse pour fonctionner.</p>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
           <button class="btn" id="admSimBtn">Activer la simulation (0 $)</button>
           <span id="admSimEtat" class="estimate">Éteinte : les envois sont réels et facturés.</span>
@@ -2236,7 +2236,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.148</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.149</span>
 
   </footer>
 </div>
@@ -2584,6 +2584,7 @@ essaiAuto();
 
 // ——— Liaison avec le serveur secret du studio ———
 async function apiSubmit(modelPath, payload, extra) {
+  if (window.SIM_GLOBAL) { const g = simGenreChemin(modelPath); if (g) { const id = simNouvelleTache("simfs-", g); return { request_id: id, status_url: "sim://" + id + "/status", response_url: "sim://" + id, simulation: true }; } }   // v41.149
   if (WORKER_URL.includes("COLLE_ICI")) throw new Error("Serveur non configuré (fichier config.js).");
   const code = getCode();
   if (!code) throw new Error("Entre d'abord ton code StarClip en haut de l'app.");
@@ -2607,6 +2608,7 @@ async function apiSubmit(modelPath, payload, extra) {
 // pattern » — alors que le rendu continuait tranquillement côté serveur.
 // Maintenant : lecture prudente + 3 tentatives espacées avant d'abandonner.
 async function apiPoll(u) {
+  if (String(u).indexOf("sim://") === 0) return simFalPoll(u);   // v41.149
   let derniere = "";
   for (let essai = 1; essai <= 3; essai++) {
     try {
@@ -7581,6 +7583,7 @@ function pmDataUri(f) {
 
 // Dépôt éphémère Runway pour un client Premium (vidéo Aleph, potentiellement lourde).
 function pmEnvoyerVideo(f, majPct) {
+  if (window.SIM_GLOBAL) return new Promise((ok) => { if (majPct) majPct(100); setTimeout(() => ok("sim://depot/" + nomSur(f.name || "video.mp4")), 200); });   // v41.149
   return new Promise(async (resolve, reject) => {
     if (f.size > 200 * 1024 * 1024) return reject(new Error(f.name + " dépasse 200 Mo."));
     let dep;
@@ -7604,7 +7607,17 @@ function pmEnvoyerVideo(f, majPct) {
   });
 }
 
+function simPmSubmit(moteur, payload) {
+  const m = String(moteur);
+  if (/^(seedance25|aleph|multishot)$/.test(m)) return { id: simNouvelleTache("simrw-", "video"), prix: 0, simulation: true };
+  const job = (genre, extra) => { const id = simNouvelleTache("simfs-", genre); return Object.assign({ request_id: id, status_url: "sim://" + id + "/status", response_url: "sim://" + id }, extra || {}); };
+  if (m === "stems") { const fm = (payload && payload.formats && payload.formats.length) ? payload.formats : ["mp3"]; return { ok: true, jobs: fm.map((f) => job("stems", { format: f })), prix: 0, simulation: true }; }
+  if (m === "chanson" || m === "demoReprise") return { ok: true, jobs: [job("audio"), job("audio")], prix: 0, simulation: true };
+  if (m === "demoReference") return Object.assign(job("audio"), { prix: 0, simulation: true });
+  return Object.assign(job("video"), { prix: 0, simulation: true });
+}
 async function pmSubmit(moteur, duree, mode, payload) {
+  if (window.SIM_GLOBAL) return simPmSubmit(moteur, payload);   // v41.149
   const r = await fetch(WORKER_URL + "/premium/submit", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code: getCode(), moteur, duree, mode, payload }),
@@ -7614,6 +7627,7 @@ async function pmSubmit(moteur, duree, mode, payload) {
   return d;
 }
 async function pmStatusRunway(task_id) {
+  if (String(task_id).indexOf("simrw-") === 0) return simRwStatus(task_id);   // v41.149
   const r = await fetch(WORKER_URL + "/premium/rwstatus", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code: getCode(), task_id }),
@@ -9488,12 +9502,24 @@ function simFalPoll(url) {
   const sec = (Date.now() - t.t0) / 1000;
   if (/\/status$/.test(String(url))) return { status: sec < 1.5 ? "IN_QUEUE" : sec < 4 ? "IN_PROGRESS" : "COMPLETED", queue_position: 0 };
   if (t.genre === "audio") return { audio: { url: simAudioUrl() } };
+  if (t.genre === "image") return { images: [{ url: SIM_IMAGE }], image: { url: SIM_IMAGE }, seed: 1 };
   if (t.genre === "stems") { const a = { url: simAudioUrl() }; return { vocals: a, drums: a, bass: a, guitar: a, piano: a, other: a }; }
   return { video: { url: simVideoUrl() }, seed: 1 };
 }
+// v41.149 : image d'exemple en data: (et non blob:) — si elle est enregistrée dans un projet, elle survit au rechargement.
+const SIM_IMAGE = "data:image/png;base64,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";
+// Quel genre de résultat rend ce moteur ? null = texte (IA de texte, quasi gratuite) : on le laisse RÉEL,
+// sinon les fonctions qui lisent une réponse structurée (scénario, décors…) casseraient.
+function simGenreChemin(path) {
+  const p = String(path || "");
+  if (/any-llm|openrouter\//i.test(p)) return null;
+  if (/demucs/i.test(p)) return "stems";
+  if (/minimax-music|music/i.test(p)) return "audio";
+  if (/nano-banana|bria|birefnet|hy-wu-edit|face-swap|expand/i.test(p)) return "image";
+  return "video";   // Kling, lip-sync, reframe, swap, tenue vidéo, coupe, assemblage…
+}
 function simFalSubmit(endpoint) {
-  const e = String(endpoint);
-  const genre = /demucs/i.test(e) ? "stems" : /music|minimax\/music|lyria|eleven/i.test(e) ? "audio" : "video";
+  const genre = simGenreChemin(endpoint) || "video";
   const id = simNouvelleTache("simfs-", genre);
   return { request_id: id, status_url: "sim://" + id + "/status", response_url: "sim://" + id, simulation: true };
 }
@@ -13778,7 +13804,7 @@ const SCENARIO_EXEMPLES = [
     // ═══ v41.142 — 🧾 JOURNAL TECHNIQUE ═══
     // Garde les 250 derniers événements dans l'appareil (localStorage). Ne contient JAMAIS le code client ni le PIN.
     // Sert à me transmettre ce qui s'est passé (scène qui disparaît, échec, remboursement…).
-    const VERSION_APP = "v41.148", CLE_J = "starclip_msr_journal";
+    const VERSION_APP = "v41.149", CLE_J = "starclip_msr_journal";
     let journalOuvert = false;
     function nettoyer(t, max) {
       let x = String(t == null ? "" : t);
@@ -14428,7 +14454,7 @@ const SCENARIO_EXEMPLES = [
       const p = actif;
       const faites = p.scenes.filter((s) => s.statut === "fait" && s.url), urls = faites.map((s) => s.url);
       if (urls.length < 2 || enCours) return;
-      if (faites.some((x) => x.sim)) {
+      if (estSimulation() || faites.some((x) => x.sim)) {
         if (!confirm("🧪 SIMULATION : assembler " + urls.length + " scènes d'exemple ?\n\nRien n'est envoyé. L'assemblage réel est gratuit mais demande de vraies scènes.")) return;
         journal("simulation_assemblage", { scenes: urls.length });
         p.episodeUrl = simUrl(); p.episodeSim = true; sauver();
