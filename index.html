@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.146 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.147 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1194,7 +1194,7 @@
       <div class="card" id="admCarteSim" style="border-color:#38bdf8; margin-bottom:12px;">
         <h2 style="margin:0; color:#38bdf8;">🧪 SIMULATION GLOBALE · 0 $</h2>
         <p class="sub" style="margin:8px 0 0;">Pendant la mise au point : <b>rien n'est envoyé aux moteurs et rien n'est facturé</b>. Tu vois tout le déroulé (envoi, avancement, résultat d'exemple). Quand tout est au point, tu l'éteins : tes essais passent alors par ton compte fournisseur au tarif développeur, et tes clients paient leur grille.</p>
-        <p class="sub" style="margin:6px 0 0;">Couvert : <b>Aleph, Seedance, Multi-Shot, Moteur A (fal), Multi-plans, chansons, stems, Mini-séries</b>. <b>Pas encore couverts</b> (onglets clients) : photo, traitement, habillage &amp; décor, scénario, finition, premium.</p>
+        <p class="sub" style="margin:6px 0 0;">Couvert : <b>Aleph, Seedance 2.5 et 2.0 (Studio), Multi-Shot, Moteur A, Multi-plans, Créer une chanson, Chanson Pro, stems, Mini-séries</b>. <b>Pas encore couverts</b> (onglets clients) : photo, traitement, habillage &amp; décor, scénario, finition, et les autres moteurs de l'onglet Premium.</p>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
           <button class="btn" id="admSimBtn">Activer la simulation (0 $)</button>
           <span id="admSimEtat" class="estimate">Éteinte : les envois sont réels et facturés.</span>
@@ -2236,7 +2236,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.146</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.147</span>
 
   </footer>
 </div>
@@ -7041,6 +7041,7 @@ function chpComposerLocal(choix, precisions, maxLen) {
 async function chpProducteur(choix, precisions, maxLen, moteurCible) {
   const base = chpComposerLocal(choix, precisions, maxLen);
   const limite = maxLen || 1800;
+  if (window.SIM_GLOBAL) return base;   // v41.147 : simulation — rien n'est envoyé
   try {
     if (typeof getCode !== "function" || !getCode()) return base;
     const path = "fal-ai/any-llm";
@@ -7862,7 +7863,9 @@ async function pmLancer(id) {
         const payload = { composition_plan: { chunks: pmPlanV2(style, paroles, cibleMs, "", precis) } };
         maj("⭐ Composition en cours… (1 à 3 min, ne ferme pas la page)");
         // v41.135 : en mode Studio → /studio/musique (PIN, rien débité).
-        const rep = studioPro
+        const rep = window.SIM_GLOBAL   // v41.147 : simulation — ni /studio/musique ni /premium/musique
+          ? await (async () => { await new Promise((r) => setTimeout(r, 4000)); return fetch(simAudioUrl()); })()
+          : studioPro
           ? await fetch(WORKER_URL + "/studio/musique", {
               method: "POST", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ pin: admPin(), payload, duree: pmSel.chansonPro.duree }),
@@ -7890,7 +7893,7 @@ async function pmLancer(id) {
         const url = URL.createObjectURL(blob);
         const soldeTxt = rep.headers.get("X-Premium-Solde");
         if (soldeTxt && typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: Number(soldeTxt) });
-        const noteFormat = formatAudio === "wav" ? "" :
+        const noteFormat = (formatAudio === "wav" || window.SIM_GLOBAL) ? "" :
           `<div class="estimate" style="margin-top:4px; color:var(--dim);">⚠️ Livrée en MP3 cette fois : le compte ElevenLabs du studio n'est pas encore au forfait qui débloque le WAV.</div>`;
         // v41.136 : signale un repli sur l'ancien moteur (music_v2), avec le motif exact.
         const noteMoteur = (moteurUtilise === "music_v2" && repliMoteur)
@@ -7899,7 +7902,7 @@ async function pmLancer(id) {
         // v41.129 : emplacement du MP3 rapide — rempli en tâche de fond juste
         // après (voir plus bas), sans retarder l'affichage de la chanson.
         const zoneMp3Id = "pmMp3Zone_" + id;
-        result.innerHTML = `<div style="margin-top:10px;"><b>⭐ Ta chanson</b>
+        result.innerHTML = `<div style="margin-top:10px;"><b>⭐ Ta chanson${window.SIM_GLOBAL ? " — 🧪 simulation, son d'exemple" : ""}</b>
           <audio controls style="width:100%; margin-top:4px;" src="${url}"></audio>
           <a class="btn small" href="${url}" download="${nomFichier}" style="margin-top:4px; display:inline-block; text-decoration:none;">⬇️ Télécharger le ${ext.toUpperCase()}</a>
           <div class="estimate" style="margin-top:4px;">Télécharge-la maintenant : elle n'est pas gardée sur le serveur.</div>
@@ -13775,7 +13778,7 @@ const SCENARIO_EXEMPLES = [
     // ═══ v41.142 — 🧾 JOURNAL TECHNIQUE ═══
     // Garde les 250 derniers événements dans l'appareil (localStorage). Ne contient JAMAIS le code client ni le PIN.
     // Sert à me transmettre ce qui s'est passé (scène qui disparaît, échec, remboursement…).
-    const VERSION_APP = "v41.146", CLE_J = "starclip_msr_journal";
+    const VERSION_APP = "v41.147", CLE_J = "starclip_msr_journal";
     let journalOuvert = false;
     function nettoyer(t, max) {
       let x = String(t == null ? "" : t);
