@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.151 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.152 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -2249,7 +2249,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.151</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.152</span>
 
   </footer>
 </div>
@@ -14870,5 +14870,139 @@ const SCENARIO_EXEMPLES = [
   }
 })();
 </script>
+<!-- ═══ v41.152 · DISPOSITION « ATELIER » SUR ORDINATEUR (≥ 1100 px) ═══
+     Comme Runway, fal, Kling, Higgsfield : menu fixe à gauche, un seul outil au
+     centre, colonne « Résultats » à droite. Le TÉLÉPHONE ne change pas : toutes
+     les règles sont sous @media (min-width:1100px). Les zones de résultat de
+     chaque outil ne sont PAS déplacées : la colonne de droite les repère toute
+     seule (MutationObserver) et garde chaque création visible. -->
+<style>
+  #atlResultats { display:none; }
+  @media (min-width:1100px) {
+    body { padding-left:236px; padding-right:312px; }
+    .wrap { max-width:none; padding-left:28px; padding-right:28px; }
+    #tabbar { position:fixed !important; top:0 !important; left:0; bottom:0; width:220px;
+      flex-direction:column; flex-wrap:nowrap; overflow-y:auto !important; overflow-x:hidden !important;
+      margin:0 !important; padding:16px 10px 24px !important; gap:4px !important;
+      border-bottom:none !important; border-right:1px solid var(--line); z-index:60 !important; }
+    #tabbar::before { content:"⭐ StarClip"; display:block; font-weight:800; font-size:17px;
+      color:var(--gold); padding:4px 10px 12px; letter-spacing:.3px; }
+    #tabbar .qnav { width:100%; white-space:normal; border-radius:10px; text-align:left;
+      padding:9px 12px; flex:0 0 auto; }
+    #atlResultats { display:flex; flex-direction:column; position:fixed; top:0; right:0; bottom:0;
+      width:300px; z-index:60; background:var(--bg,#0f0d17); border-left:1px solid var(--line);
+      padding:16px 14px 24px; overflow-y:auto; }
+    #atlResultats .atlTete { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+    #atlResultats .atlTete b { font-size:16px; color:var(--text); flex:1; }
+    #atlResultats .atlNb { font-size:12px; color:var(--dim); }
+    #atlResultats .atlVider { background:none; border:1px solid var(--line); color:var(--dim);
+      border-radius:999px; font-size:12px; padding:3px 10px; cursor:pointer; }
+    #atlResultats .atlVider:hover { border-color:var(--gold); color:var(--gold); }
+    #atlResultats .atlAide { font-size:12px; color:var(--dim); line-height:1.5; margin-bottom:10px; }
+    #atlResultats .atlItem { border:1px solid var(--line); border-radius:12px; padding:8px;
+      margin-bottom:10px; background:var(--up,#1a1726); }
+    #atlResultats .atlItem video, #atlResultats .atlItem img { width:100%; border-radius:8px;
+      margin:0; background:#000; display:block; max-height:220px; object-fit:contain; }
+    #atlResultats .atlItem audio { width:100%; margin:0; }
+    #atlResultats .atlMeta { font-size:11.5px; color:var(--dim); margin:6px 2px 4px; }
+    #atlResultats .atlBoutons { display:flex; gap:6px; flex-wrap:wrap; }
+    #atlResultats .atlBoutons a { font-size:12px; text-decoration:none; color:var(--text);
+      border:1px solid var(--line); border-radius:999px; padding:3px 10px; }
+    #atlResultats .atlBoutons a:hover { border-color:var(--gold); color:var(--gold); }
+  }
+  /* Les cartes s'adaptent à l'espace central : une carte seule le remplit,
+     deux cartes se mettent côte à côte seulement s'il y a la place. */
+  @media (min-width:1100px) {
+    .cards-area { grid-template-columns:repeat(auto-fit, minmax(400px, 1fr)) !important; }
+    body.tab-scenario .cards-area { grid-template-columns:1fr !important; }
+  }
+</style>
+<script>
+(function atelierResultats() {
+  "use strict";
+  var CLE = "starclip_resultats_v1", MAX = 30;
+  var liste = [];
+  try { liste = JSON.parse(localStorage.getItem(CLE) || "[]") || []; } catch (e) { liste = []; }
+  var vus = {}; liste.forEach(function (x) { vus[x.src] = 1; });
+
+  var panneau = document.createElement("aside");
+  panneau.id = "atlResultats";
+  panneau.setAttribute("aria-label", "Résultats");
+  panneau.innerHTML = '<div class="atlTete"><b>🎬 Résultats</b><span class="atlNb" id="atlNb"></span>'
+    + '<button class="atlVider" id="atlVider" type="button">Effacer</button></div>'
+    + '<div class="atlAide">Tes créations apparaissent ici dès qu\'elles sont prêtes, et y restent pendant que tu travailles. Télécharge-les : les liens des moteurs expirent après quelques jours.</div>'
+    + '<div id="atlListe"></div>';
+  document.body.appendChild(panneau);
+
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function sauver() {
+    try { localStorage.setItem(CLE, JSON.stringify(liste.filter(function (x) { return /^https?:/i.test(x.src); }).slice(0, MAX))); } catch (e) {}
+  }
+  function dessiner() {
+    var zone = document.getElementById("atlListe"); if (!zone) return;
+    document.getElementById("atlNb").textContent = liste.length ? "(" + liste.length + ")" : "";
+    if (!liste.length) { zone.innerHTML = '<div class="atlAide" style="opacity:.8">Aucune création pour l\'instant.</div>'; return; }
+    zone.innerHTML = liste.map(function (x) {
+      var m = x.type === "video" ? '<video controls playsinline preload="metadata" src="' + esc(x.src) + '"></video>'
+        : x.type === "audio" ? '<audio controls preload="none" src="' + esc(x.src) + '"></audio>'
+        : '<img alt="" src="' + esc(x.src) + '">';
+      var session = /^https?:/i.test(x.src) ? "" : " · cette session";
+      return '<div class="atlItem">' + m + '<div class="atlMeta">' + esc(x.label) + " · " + esc(x.heure) + session + '</div>'
+        + '<div class="atlBoutons"><a href="' + esc(x.src) + '" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger</a>'
+        + '<a href="' + esc(x.src) + '" target="_blank" rel="noopener noreferrer">↗ Ouvrir</a></div></div>';
+    }).join("");
+  }
+  function etiquette() {
+    var adm = document.getElementById("adminZone");
+    if (adm && !adm.classList.contains("hidden")) return "◆ Studio";
+    var t = document.querySelector("#tabbar .qnav.active");
+    if (!t) return "StarClip";
+    var s = t.cloneNode(true); var sm = s.querySelector("small"); if (sm) sm.remove();
+    return s.textContent.trim();
+  }
+  // Un média est un « résultat » s'il se trouve dans une zone dont le nom contient
+  // « Result » (efResult, sdResult, pmResult_…, resultZone…) ou une vidéo de Mini-séries.
+  function estResultat(el) {
+    if (!el || el.closest("#atlResultats")) return false;
+    var src = el.currentSrc || el.getAttribute("src") || "";
+    if (!src || /^(about:|javascript:)/i.test(src)) return false;
+    if (el.hasAttribute("data-msrv")) return true;
+    var z = el.closest('[id*="Result"],[id*="result"]');
+    if (!z) return false;
+    if (el.tagName === "IMG") {
+      if (!/^(https?:|blob:|data:image)/i.test(src)) return false;
+      if (el.closest("button, label")) return false;
+    }
+    return true;
+  }
+  function ajouter(el) {
+    if (!estResultat(el)) return;
+    var src = el.currentSrc || el.getAttribute("src");
+    if (vus[src]) return; vus[src] = 1;
+    var d = new Date();
+    liste.unshift({ src: src, type: el.tagName === "VIDEO" ? "video" : el.tagName === "AUDIO" ? "audio" : "image",
+      label: etiquette(), heure: ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) });
+    if (liste.length > MAX) liste.length = MAX;
+    sauver(); dessiner();
+  }
+  function examiner(n) {
+    if (!n || n.nodeType !== 1) return;
+    if (/^(VIDEO|AUDIO|IMG)$/.test(n.tagName)) ajouter(n);
+    if (n.querySelectorAll) n.querySelectorAll("video, audio, img").forEach(ajouter);
+  }
+  new MutationObserver(function (muts) {
+    muts.forEach(function (m) {
+      if (m.type === "attributes") examiner(m.target);
+      else m.addedNodes.forEach(examiner);
+    });
+  }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+  document.getElementById("atlVider").onclick = function () {
+    if (!confirm("Effacer la liste des résultats ? (Tes fichiers déjà téléchargés ne sont pas touchés.)")) return;
+    liste = []; vus = {}; sauver(); dessiner();
+  };
+  dessiner();
+})();
+</script>
+
 </body>
 </html>
