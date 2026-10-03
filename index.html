@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.149 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.150 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1360,6 +1360,19 @@
           <p class="sub" style="margin:8px 0 0; opacity:.75;">La même page que ton raccourci StarClip Administrator : créer, recharger le Premium, passer en Pro, voir tous les codes.</p>
           <div class="admCartePied">admin.html · s'ouvre dans un nouvel onglet</div>
         </div>
+        <!-- v41.150 : 📘 fiche des moteurs (quel moteur pour quoi), consultable à tout moment -->
+        <div class="card admCarte" id="admCarteFiche" style="border-color:#a78bfa;">
+          <div class="admCarteTete">
+          <div class="admCarteVignette"><span class="puce">📘</span></div>
+            <div class="admCarteTitres">
+  <h2 style="margin:0; color:#a78bfa;">FICHE DES MOTEURS</h2>
+              <div class="admCarteSous">QUEL MOTEUR POUR QUOI · PDF</div>
+            </div>
+          </div>
+          <p class="sub" style="margin:10px 0 0;">« Je vérifie quel moteur choisir, ce qu'il coûte et comment marche le verrou. »</p>
+          <p class="sub" style="margin:8px 0 0; opacity:.75;">Les 7 moteurs, le choix en 3 questions, le verrou de durée, les protections, des phrases à dire à ChatGPT.</p>
+          <div class="admCartePied">fiche-moteurs.pdf · s'ouvre dans un nouvel onglet</div>
+        </div>
       </div>
     </div>
 
@@ -2236,7 +2249,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.149</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.150</span>
 
   </footer>
 </div>
@@ -9405,7 +9418,10 @@ function admGeste() { if (admSession) admDernierGeste = Date.now(); }
     if (t) t.click();
     setTimeout(() => { if (typeof window.msrModeStudio === "function") window.msrModeStudio(true); }, 200);
   };
-  document.getElementById("admCarteCodes").onclick = () => window.open("admin.html", "_blank");   // v41.127 : une seule page d'admin   // v41.123
+  document.getElementById("admCarteCodes").onclick = () => window.open("admin.html", "_blank");
+  // v41.150 : 📘 fiche des moteurs — PDF hébergé à côté de l'app, ouvert dans un nouvel onglet
+  const cFiche = document.getElementById("admCarteFiche");
+  if (cFiche) cFiche.onclick = () => window.open("fiche-moteurs.pdf?v=41150", "_blank");   // v41.127 : une seule page d'admin   // v41.123
   document.getElementById("admCarteStems").onclick = () => admVue("stems");   // stems studio
   document.getElementById("admRetour").onclick     = () => admVue("choix");
   // Le moindre clic ou frappe dans l'espace admin repousse la fermeture.
