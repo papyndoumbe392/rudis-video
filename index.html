@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.152 · par Studio Rudis, Douala.</title>
+<title>StarClip Studio v41.153 · par Studio Rudis, Douala.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -192,6 +192,7 @@
     <a data-tab="look" class="qnav">👔 Habillage &amp; Décor<small>Outfit &amp; scenery</small></a>
     <a data-tab="scenario" class="qnav">🎬 Scénario<small>Scenario</small></a>
     <a data-tab="miniseries" class="qnav">🎞️ Mini-séries IA<small>AI mini-series</small></a>
+    <a data-tab="remix" class="qnav">🔁 Remix<small>Remix</small></a>
     <a data-tab="finition" class="qnav">🎤 Finition<small>Finishing</small></a>
     <a data-tab="commander" class="qnav">💳 Commander<small>Order</small></a>
     <a data-tab="premium" class="qnav qnav-premium">👑 Admin Premium 5.0<small>Pour les pros · Pro tools</small></a>
@@ -1104,6 +1105,126 @@
     <input type="file" id="msrFichier" accept="image/*" class="hidden">
     <div class="estimate" style="margin-top:14px;">&#9888;&#65039; Les visages ne sont jamais parfaitement identiques d'une scène à l'autre : utilise des images de référence nettes et vérifie chaque scène. Ton projet est gardé sur cet appareil.</div>
   </section>
+
+  <!-- ═══ v41.153 · onglet REMIX (APERÇU DU DESIGN, style DramaWave) ═══
+       Étape 1 : affichage seulement. AUCUN appel au Worker, AUCUN crédit débité.
+       Caché aux clients : visible seulement après avoir ouvert l'app avec ?remix=1 -->
+  <section class="card" id="sec-remix" style="border-color:#e8385d;">
+    <h2><span class="num" style="background:#e8385d; color:#fff;">&#128257;</span> Remix &middot; <i>Remix</i></h2>
+    <p class="sub" style="margin:0 0 12px;">&#128679; <b>Aperçu du design</b> &mdash; la génération vidéo arrive à l'étape 3. Rien n'est débité. &middot; <i>Design preview &mdash; video generation comes in step 3. Nothing is charged.</i></p>
+
+    <div class="rmx-wrap">
+      <div class="rmx-video" aria-label="Scène source">
+        <span class="rmx-badge">EP.2</span>
+        <span class="rmx-play">&#9654;</span>
+        <span class="rmx-src">Ta scène source &middot; <i>Your source scene</i></span>
+      </div>
+
+      <div class="rmx-tabs" role="tablist">
+        <button type="button" class="on" data-rmx="modele">Modèle</button>
+        <button type="button" data-rmx="perso">Personnaliser</button>
+      </div>
+
+      <div class="rmx-panel" id="rmxModele">
+        <h3>#Remix Rapide</h3>
+        <p class="rmx-dim">Décris ton remix en une phrase. &middot; <i>Describe your remix in one sentence.</i></p>
+
+        <div class="rmx-box">
+          <div class="rmx-pickers">
+            <div>
+              <div class="rmx-lab">Personnage</div>
+              <label class="rmx-pick"><span class="rmx-av" id="rmxAv1">M</span>
+                <select id="rmxP1"><option>Maya</option><option>Daniel</option><option>Personnage 3</option></select></label>
+            </div>
+            <div>
+              <div class="rmx-lab">Interagit avec</div>
+              <label class="rmx-pick"><span class="rmx-av" id="rmxAv2">D</span>
+                <select id="rmxP2"><option>Daniel</option><option>Maya</option><option>Personnage 3</option></select></label>
+            </div>
+          </div>
+
+          <div class="rmx-h">Interaction</div>
+          <textarea id="rmxTexte" rows="4"></textarea>
+
+          <div class="rmx-hrow">
+            <div class="rmx-h" style="margin:0;">Élément déclencheur</div>
+            <button type="button" class="rmx-rand" id="rmxRand">&#128256; Aléatoire</button>
+          </div>
+          <p class="rmx-dim" id="rmxTrigDesc" style="margin:4px 0 10px;"></p>
+          <div class="rmx-car" id="rmxCar"></div>
+        </div>
+      </div>
+
+      <div class="rmx-panel" id="rmxPerso" style="display:none;">
+        <h3>Personnaliser</h3>
+        <p class="rmx-dim">Raconte la suite de la scène avec tes propres mots. &middot; <i>Tell what happens next in your own words.</i></p>
+        <textarea id="rmxLibre" rows="6" placeholder="Ex. : Maya retrouve Daniel sous la pluie et lui rend la lettre…"></textarea>
+      </div>
+
+      <button type="button" class="rmx-cta" id="rmxGo">&#127916; Remixer maintenant <small>2 crédits</small></button>
+      <div class="rmx-msg" id="rmxMsg"></div>
+    </div>
+  </section>
+  <script>
+  (function () {
+    var sec = document.getElementById("sec-remix"); if (!sec) return;
+    var TRIG = [
+      { ico: "\uD83C\uDFAD", nom: "Changement", desc: "Adoucit un personnage hostile et change la relation.", bg: "linear-gradient(135deg,#3b1d5e,#1b3a73)" },
+      { ico: "\uD83D\uDCF9", nom: "Lien du direct", desc: "La scène est surprise en direct et tout se sait.", bg: "linear-gradient(135deg,#17323f,#0c1620)" },
+      { ico: "\uD83D\uDC8C", nom: "Lettre d'amour", desc: "Une lettre oubliée révèle des sentiments cachés.", bg: "linear-gradient(135deg,#5a2330,#2a1218)" },
+      { ico: "\u26A1", nom: "Tension", desc: "Le silence devient électrique, un geste peut tout faire basculer.", bg: "linear-gradient(135deg,#5a1f57,#2a1040)" },
+      { ico: "\uD83E\uDD1D", nom: "Réconciliation", desc: "Deux personnages en froid font enfin la paix.", bg: "linear-gradient(135deg,#1f4a3a,#0f2a25)" },
+      { ico: "\uD83D\uDDDD\uFE0F", nom: "Secret révélé", desc: "Un secret longtemps gardé éclate au grand jour.", bg: "linear-gradient(135deg,#4a3a1a,#241b0b)" }
+    ];
+    var COUL = ["linear-gradient(135deg,#f2b33d,#d9822b)", "linear-gradient(135deg,#8b6cf2,#5a3fd1)", "linear-gradient(135deg,#f0466a,#b81f4a)"];
+    var cur = 0;
+    var car = document.getElementById("rmxCar"), desc = document.getElementById("rmxTrigDesc");
+    var p1 = document.getElementById("rmxP1"), p2 = document.getElementById("rmxP2");
+    var txt = document.getElementById("rmxTexte"), msg = document.getElementById("rmxMsg");
+
+    function dessiner() {
+      car.textContent = "";
+      TRIG.forEach(function (t, i) {
+        var b = document.createElement("button"); b.type = "button";
+        b.className = "rmx-trig" + (i === cur ? " on" : "");
+        var art = document.createElement("div"); art.className = "art"; art.style.background = t.bg; art.textContent = t.ico;
+        var l = document.createElement("div"); l.className = "nom"; l.textContent = t.nom;
+        b.appendChild(art); b.appendChild(l);
+        b.onclick = function () { cur = i; dessiner(); };
+        car.appendChild(b);
+      });
+      desc.textContent = TRIG[cur].desc;
+    }
+    function avatar(sel, av, idx) {
+      var n = sel.value || "?";
+      av.textContent = n.charAt(0).toUpperCase();
+      av.style.background = COUL[(n.charCodeAt(0) + idx) % COUL.length];
+    }
+    function maj() {
+      avatar(p1, document.getElementById("rmxAv1"), 0);
+      avatar(p2, document.getElementById("rmxAv2"), 1);
+      txt.placeholder = "Décris ce que " + p1.value + " dit ou fait à " + p2.value;
+      msg.textContent = (p1.value === p2.value) ? "Choisis deux personnages différents." : "";
+    }
+    p1.onchange = maj; p2.onchange = maj;
+    document.getElementById("rmxRand").onclick = function () {
+      var n; do { n = Math.floor(Math.random() * TRIG.length); } while (n === cur && TRIG.length > 1);
+      cur = n; dessiner();
+    };
+    Array.prototype.forEach.call(sec.querySelectorAll(".rmx-tabs button"), function (b) {
+      b.onclick = function () {
+        Array.prototype.forEach.call(sec.querySelectorAll(".rmx-tabs button"), function (x) { x.classList.toggle("on", x === b); });
+        document.getElementById("rmxModele").style.display = b.dataset.rmx === "modele" ? "" : "none";
+        document.getElementById("rmxPerso").style.display = b.dataset.rmx === "perso" ? "" : "none";
+      };
+    });
+    document.getElementById("rmxGo").onclick = function () {
+      if (p1.value === p2.value) { msg.textContent = "Choisis deux personnages différents."; return; }
+      msg.textContent = "\uD83D\uDEA7 Aperçu du design : la génération arrive à l'étape 3. Rien n'a été envoyé ni débité.";
+    };
+    dessiner(); maj();
+  })();
+  </script>
 
   <section class="card" id="sec-idees" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1a1204;">&#128161;</span> Idees de textes pour ta video</h2>
@@ -2249,7 +2370,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.152</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.153</span>
 
   </footer>
 </div>
@@ -9095,7 +9216,57 @@ fxRefresh();
 }
 #sec-msr textarea, #sec-msr input[type=text] { font-size:15px; }
 @media (min-width:1000px) { #sec-msr .msr-img { width:140px; height:140px; } }
+
+  /* ═══ v41.153 · REMIX (aperçu design, style DramaWave) — tout est préfixé #sec-remix ═══ */
+  body:not(.remix-on) #sec-remix,
+  body:not(.remix-on) #tabbar .qnav[data-tab="remix"] { display:none !important; }
+  body.tab-remix .cards-area { grid-template-columns:1fr; }
+  #sec-remix .rmx-wrap { max-width:520px; margin:0 auto; }
+  #sec-remix .rmx-video { position:relative; width:62%; max-width:300px; aspect-ratio:9/16; margin:6px auto 14px; border-radius:18px; overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 22%,#5a4630 0%,#1f1812 55%,#0c0a0d 100%); border:1px solid var(--line); box-shadow:0 10px 30px rgba(0,0,0,.45); }
+  #sec-remix .rmx-badge { position:absolute; top:0; left:0; padding:7px 12px; border-bottom-right-radius:12px; background:rgba(0,0,0,.6); color:#fff; font-weight:800; font-size:15px; }
+  #sec-remix .rmx-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:50%;
+    background:rgba(255,255,255,.2); color:#fff; display:grid; place-items:center; font-size:26px; padding-left:4px; box-sizing:border-box; }
+  #sec-remix .rmx-src { position:absolute; left:0; right:0; bottom:0; padding:22px 10px 10px; text-align:center; font-size:12px; color:#fff; background:linear-gradient(transparent,rgba(0,0,0,.7)); }
+  #sec-remix .rmx-tabs { display:flex; justify-content:center; gap:30px; border-bottom:1px solid var(--line); margin-bottom:14px; }
+  #sec-remix .rmx-tabs button { background:none; border:none; border-bottom:3px solid transparent; color:var(--dim); font-size:18px; padding:10px 4px; cursor:pointer; font-family:inherit; }
+  #sec-remix .rmx-tabs button.on { color:#fff; font-weight:800; border-bottom-color:#fff; }
+  #sec-remix .rmx-panel { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px; }
+  #sec-remix .rmx-panel h3 { margin:0 0 4px; font-size:24px; font-weight:800; color:var(--text); }
+  #sec-remix .rmx-dim { margin:0 0 12px; color:var(--dim); font-size:15px; }
+  #sec-remix .rmx-box { border:1px solid var(--line); border-radius:16px; padding:14px; }
+  #sec-remix .rmx-pickers { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; margin-bottom:14px; }
+  #sec-remix .rmx-pickers > div { min-width:0; }
+  #sec-remix .rmx-pick select { width:100%; text-overflow:ellipsis; }
+  #sec-remix .rmx-lab { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; font-weight:700; margin-bottom:8px; color:var(--text); font-size:15px; }
+  #sec-remix .rmx-pick { display:flex; align-items:center; gap:8px; background:var(--up); border-radius:14px; padding:8px; }
+  #sec-remix .rmx-av { flex:0 0 auto; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-weight:800; color:#1a1204; background:var(--gold); }
+  #sec-remix .rmx-pick select { flex:1; min-width:0; background:transparent; color:var(--text); border:none; font-size:16px; font-weight:700; font-family:inherit; }
+  #sec-remix .rmx-h { font-size:19px; font-weight:800; margin:6px 0 8px; color:var(--text); }
+  #sec-remix .rmx-hrow { display:flex; align-items:center; justify-content:space-between; margin-top:16px; }
+  #sec-remix textarea { width:100%; box-sizing:border-box; min-height:110px; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:14px; padding:12px; font-size:16px; font-family:inherit; resize:vertical; }
+  #sec-remix .rmx-rand { background:none; border:none; color:var(--dim); font-size:15px; cursor:pointer; font-family:inherit; }
+  #sec-remix .rmx-car { display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:6px; }
+  #sec-remix .rmx-trig { flex:0 0 108px; background:none; border:none; color:var(--text); cursor:pointer; scroll-snap-align:start; font-family:inherit; padding:0; }
+  #sec-remix .rmx-trig .art { aspect-ratio:1; border-radius:14px; display:grid; place-items:center; font-size:42px; border:2px solid transparent; }
+  #sec-remix .rmx-trig.on .art { border-color:var(--gold); box-shadow:0 0 14px rgba(242,179,61,.35); }
+  #sec-remix .rmx-trig .nom { margin-top:6px; font-size:14px; }
+  #sec-remix .rmx-cta { width:100%; margin-top:16px; padding:16px; border:none; border-radius:14px; background:linear-gradient(90deg,#f0466a,#e8385d); color:#fff; font-weight:800; font-size:18px; cursor:pointer; font-family:inherit; }
+  #sec-remix .rmx-cta small { margin-left:8px; font-weight:600; opacity:.9; font-size:14px; }
+  #sec-remix .rmx-msg { margin-top:10px; text-align:center; font-size:14px; color:var(--gold); min-height:18px; }
 </style>
+<script>
+// v41.153 : prévisualisation Remix réservée à Papy. Ouvrir l'app avec ?remix=1 pour l'activer
+// (mémorisé sur l'appareil), ?remix=0 pour la cacher de nouveau.
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("remix");
+    if (q === "1") localStorage.setItem("starclip_remix", "1");
+    if (q === "0") localStorage.removeItem("starclip_remix");
+    if (localStorage.getItem("starclip_remix") === "1") document.body.classList.add("remix-on");
+  } catch (e) {}
+})();
+</script>
 <script>
 (function(){
   // Correspondance : chaque section -> son onglet.
@@ -9106,7 +9277,7 @@ fxRefresh();
     'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
     'sec-auto9':'commander', 'sec-auto10':'commander',
-    'sec-msr':'miniseries', 'sec-idees':'idees', 'sec-prompts':'prompts', 'sec-premium':'premium'
+    'sec-msr':'miniseries', 'sec-remix':'remix', 'sec-idees':'idees', 'sec-prompts':'prompts', 'sec-premium':'premium'
   };
   var tabs = document.querySelectorAll('#tabbar .qnav');
 
@@ -9145,6 +9316,7 @@ fxRefresh();
     document.body.classList.toggle('tab-scenario', tab === 'scenario');
     document.body.classList.toggle('tab-premium', tab === 'premium');   // v41.123
     document.body.classList.toggle('tab-miniseries', tab === 'miniseries');   // v41.140
+    document.body.classList.toggle('tab-remix', tab === 'remix');   // v41.153
     // v40.5 : le bouton « Générer », la barre de statut et le résultat n'appartiennent
     // à aucun volet. Ils ne concernent QUE la génération vidéo : on les affiche donc
     // uniquement dans l'onglet Scénario et dans « Tout voir » — ailleurs ils créaient
@@ -9163,7 +9335,7 @@ fxRefresh();
 
   // Onglet de départ : le dernier utilisé, sinon "photo" (le vrai point de départ du client).
   var start = 'photo';
-  try { var saved = localStorage.getItem('starclip_tab'); if (saved) start = saved; } catch(e){}
+  try { var saved = localStorage.getItem('starclip_tab'); if (saved && !(saved === 'remix' && !document.body.classList.contains('remix-on'))) start = saved; /* v41.153 : Remix caché => onglet de départ normal */ } catch(e){}
   show(start);
 })();
 
