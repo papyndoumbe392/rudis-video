@@ -463,7 +463,7 @@
         <button class="chip" data-ratio="1:1" onclick="pickRatio(this)">◻️ 1:1 Carré</button>
       </div>
       <div class="estimate" id="ratioHint" style="margin-top:4px;"></div>
-      <div class="estimate">🎨 L'IA prolonge le vrai décor de ta photo — jamais de flou, jamais de duplication. (≈ 0,04 $ par changement de format)</div>
+      <div class="estimate">🎨 L'IA prolonge le vrai décor de ta photo — jamais de flou, jamais de duplication.</div>
     </div>
   </section>
 
@@ -490,8 +490,8 @@
     <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,.12); padding-top:10px;">
       <div class="label">Qualité des retouches d'image</div>
       <div class="chips" id="nbQualiteChips">
-        <button class="chip on" data-nbq="standard">⚡ Rapide · ≈ 0,04 $</button>
-        <button class="chip" data-nbq="pro">💎 Pro · ≈ 0,15 $</button>
+        <button class="chip on" data-nbq="standard">⚡ Rapide</button>
+        <button class="chip" data-nbq="pro">💎 Pro</button>
       </div>
       <div class="estimate" id="nbQualiteInfo"></div>
     </div>
@@ -563,7 +563,7 @@
       <span>🎯 <b>Recoller mon vrai visage après</b> — <b>option qualité maximale</b> : replace ton vrai visage sur le résultat, pour une ressemblance parfaite. Coûte 1 image de plus et prend <b>quelques minutes</b> (moteur haute fidélité). · Optional maximum quality: re-applies your real face for a perfect likeness (takes a few extra minutes).</span>
     </label>
 
-    <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor (≈ 0,04 $)</button>
+    <button class="btn" id="lieuGo" style="display:none; margin-top:12px;">🏛️ Transformer le décor</button>
     <div class="estimate" id="lieuInfo">Le visage et les habits sont préservés au maximum — seul le décor change. La case 🎯 ci-dessous garantit ton vrai visage.<br><b style='color:var(--gold)'>Cet outil change UNIQUEMENT le lieu derrière toi.</b> · <i>This tool only swaps the place behind you.</i><br>💡 <b>Tu veux une vraie scène — assis à une table, entouré d'amis, en action ? C'est le <span style='color:var(--gold)'>🎬 Multi-plans</span> (onglet Scénario) qui fait ça</b>, avec ton visage garanti. · <i>For a full scene — seated at a table, with friends, in action — use <b>Multi-shot</b> (Scenario tab): it builds the whole scene with your face locked.</i></div>
     <div id="lieuPreview"></div>
   </section>
@@ -739,7 +739,7 @@
     <div id="t2iLock" class="estimate" style="border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
       🔒 <b>Réservé aux packs Pro.</b> Entre ton code StarClip en haut de l'app. Si tu as un pack Éco, commande un <b>Pack Pro</b> sur WhatsApp pour débloquer le Studio Images.
     </div>
-    <button class="btn" id="t2iGo" style="margin-top:12px;" disabled>🎨 Créer l'image · Create image (≈ 0,04 $)</button>
+    <button class="btn" id="t2iGo" style="margin-top:12px;" disabled>🎨 Créer l'image · Create image</button>
     <div class="estimate" id="t2iInfo" style="margin-top:8px;"></div>
     <div id="t2iPreview"></div>
   </section>
@@ -827,7 +827,7 @@
 
     <div class="estimate" style="margin:14px 0 2px;"><b style="color:var(--gold);">B · 🎨 Créer mon décor</b> — décris la ville ou le lieu que tu veux : StarClip le fabrique, puis l'applique.</div>
     <textarea id="dvPrompt" rows="2" placeholder="Ex : une avenue de New York la nuit, néons, taxis jaunes, sol mouillé"></textarea>
-    <button class="chip" id="dvCreerBtn" style="margin-top:6px;">✨ Créer ce décor (≈ 0,04 $ · 1 image)</button>
+    <button class="chip" id="dvCreerBtn" style="margin-top:6px;">✨ Créer ce décor</button>
 
     <div class="estimate" style="margin:14px 0 2px;"><b style="color:var(--gold);">C · 📂 Importer mon image</b> — si tu as déjà la photo du lieu.</div>
     <div class="chips">
@@ -878,12 +878,12 @@
     <div class="estimate" id="decorBox" style="border-left:3px solid var(--gold); background:var(--up); border-radius:8px; padding:12px; margin-top:10px;">
       <b style="color:var(--gold)">🎨 Créer une vraie image de la scène · Build a real scene image (optionnel)</b>
       <div style="font-size:13px; color:var(--dim); margin-top:6px;">Pour les décors riches (jet privé, villa, boîte de nuit…), l'IA crée d'abord une <b>vraie image complète de la scène avec ton visage</b>, puis tu l'animes. Bien meilleur qu'un simple portrait. · For rich scenery, the AI first builds a full scene image with your face, then you animate it.</div>
-      <button class="btn" id="decorGo" style="margin-top:10px;">🎨 Créer le décor par IA · Build the scene (≈ 0,04 $)</button>
+      <button class="btn" id="decorGo" style="margin-top:10px;">🎨 Créer le décor par IA · Build the scene</button>
       <label class="opt" style="margin-top:8px; display:flex;">
         <input type="checkbox" id="pxlChk" checked>
         <span>🔒 <b>Pixel Lock</b> — les pixels de ta photo d'import sont <b>copiés, jamais régénérés</b>, avec vérification numérique incluse. Coûte 1 image de plus (masque). Décoché : mode 🎯 classique. · Your pixels are copied, never regenerated — with numeric verification.</span>
       </label>
-      <button class="btn" id="decorBria" style="margin-top:8px; background:var(--violet); color:#fff;">🎯 Décor fidèle — garde ton visage à l'identique (≈ 0,03 $)</button>
+      <button class="btn" id="decorBria" style="margin-top:8px; background:var(--violet); color:#fff;">🎯 Décor fidèle — garde ton visage à l'identique</button>
       <div style="font-size:12px; color:var(--dim); margin-top:6px;">🎯 <b>Décor fidèle</b> remplace seulement l'arrière-plan. Avec la case <b>🔒 Pixel Lock cochée</b>, ta personne est <b>gardée pixel pour pixel, vérification numérique incluse</b> — la seule garantie prouvée de l'app. Décochée : préservation fidèle classique. · With 🔒 checked, your person is kept pixel-for-pixel, numerically verified.</div>
       <div class="estimate" id="decorInfo" style="margin-top:8px;"></div>
       <div id="decorPreview"></div>
@@ -891,9 +891,9 @@
 
     <div class="label">Qualité / Prix</div>
     <div class="chips">
-      <button class="chip on" data-model="eco" onclick="pickModel(this)">Éco — ≈0,28 $ / 5 s</button>
-      <button class="chip" data-model="pro" onclick="pickModel(this)">Pro (lip-sync) — 0,14 $ / s</button>
-      <button class="chip" data-model="ref" onclick="pickModel(this)">⭐ Visage stable — 0,112 $ / s</button>
+      <button class="chip on" data-model="eco" onclick="pickModel(this)">Éco</button>
+      <button class="chip" data-model="pro" onclick="pickModel(this)">Pro (lip-sync)</button>
+      <button class="chip" data-model="ref" onclick="pickModel(this)">⭐ Visage stable</button>
     </div>
     <div class="estimate" id="modelInfo" style="display:none; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-top:8px;">⭐ <b>Visage stable :</b> le moteur ancre ton identité sur tes <b>photos de référence visage</b> (volet 1) — le visage ne change plus, même en marchant ou en dansant. Ajoute au moins 1 photo de référence pour utiliser ce mode.</div>
 
@@ -907,7 +907,7 @@
       <button class="chip on" data-dur="5" onclick="pickDur(this)">5 secondes</button>
       <button class="chip" data-dur="10" onclick="pickDur(this)">10 secondes</button>
     </div>
-    <div class="estimate" id="estimate">Coût estimé : ≈ 0,28 $</div>
+    <div class="estimate" id="estimate">Débité sur ton code StarClip au lancement</div>
   </section>
 
   <button class="master" id="go" disabled>Complète les étapes pour générer ta vidéo · Complete the steps</button>
@@ -3111,10 +3111,10 @@ function refresh() {
   const cost = model === "eco"
     ? (dur === "5" ? MODELS.eco.price5 : MODELS.eco.price10)
     : (model === "ref" ? MODELS.ref.perSec : MODELS.pro.perSec) * parseInt(dur);
-  document.getElementById("estimate").textContent = `Coût estimé : ≈ ${cost.toFixed(2)} $`;
+  document.getElementById("estimate").textContent = "Débité sur ton code StarClip au lancement";   // v41.155 : plus de coût fournisseur affiché aux clients
   const go = document.getElementById("go");
   go.disabled = !(hasKey && hasPhoto && hasPrompt);
-  go.textContent = go.disabled ? "Complète les étapes pour générer ta vidéo · Complete the steps" : `🎬 Générer la vidéo (≈ ${cost.toFixed(2)} $)`;
+  go.textContent = go.disabled ? "Complète les étapes pour générer ta vidéo · Complete the steps" : "🎬 Générer la vidéo";
   if (window.__msReady) msRefresh();
 }
 document.getElementById("prompt").addEventListener("input", refresh);
@@ -4366,7 +4366,7 @@ document.getElementById("go").onclick = async () => {
         <h2>🔧 Un détail te gêne ?</h2>
         <p class="sub" style="margin:4px 0 10px;">Décris UNIQUEMENT ce qui ne va pas (ex : « ouvre les yeux de l'homme », « la tête de la femme ne doit pas être coupée », « le champagne doit couler normalement, pas de mousse »). Le reste de la vidéo est préservé — c'est une <b>retouche</b>, pas une nouvelle vidéo.</p>
         <textarea id="fixPrompt" rows="2" placeholder="Ex : garde les yeux ouverts pendant toute la vidéo"></textarea>
-        <button class="btn" id="fixGo" style="margin-top:8px; width:100%;">🔧 Corriger ce détail (≈ ${(0.168 * lastVideoDur).toFixed(2)} $)</button>
+        <button class="btn" id="fixGo" style="margin-top:8px; width:100%;">🔧 Corriger ce détail</button>
         <div class="estimate" id="fixInfo" style="margin-top:6px;"></div>
       </div>`;
     prepareVideoFile(videoUrl);
@@ -6308,7 +6308,7 @@ function msRefresh() {
     : "🎬 Générer le multi-plans (− 2 vidéos de ton code)";
   document.getElementById("msCost").innerHTML = go.disabled
     ? (hasFace ? "" : `⭐ Ajoute au moins <b>1 photo de référence visage</b> (volet 1, bouton violet) — c'est elle qui garde ton visage identique d'un plan à l'autre.`)
-    : `Ce mini-clip débite <b>2 vidéos</b> de ton code (au lieu de 1) — normal : il vaut jusqu'à 15 s de cinéma en un seul rendu. Coût studio ≈ ${(0.112 * total).toFixed(2)} $.`;
+    : `Ce mini-clip débite <b>2 vidéos</b> de ton code (au lieu de 1) — normal : il vaut jusqu'à 15 s de cinéma en un seul rendu.`;
 }
 
 function msSetStatus(html, pct) {
@@ -6794,7 +6794,7 @@ function rtRefresh() {
   const b = document.getElementById("rtGo");
   b.disabled = !pret;
   b.textContent = !rtSource ? "Choisis d'abord une image"
-    : (pret ? "🧹 Retoucher l'image (≈ 0,04 $)" : "Décris ce que tu veux changer");
+    : (pret ? "🧹 Retoucher l'image" : "Décris ce que tu veux changer");
 }
 // v38.2 : corrections rapides — les formulations qui marchent, prêtes à l'emploi.
 // Le client touche, le texte s'écrit dans la zone, et il peut encore le modifier.
@@ -8544,7 +8544,7 @@ function efRefresh() {
     : deuxDiff ? "/together et /transferoutfit : un seul à la fois"
     : (besoin2 && !efSource2) ? "Ajoute une photo dans le carré de droite"
     : !lieuOk ? "Décris le lieu dans l'encadré doré"
-    : (pret ? "✨ Appliquer l'effet (≈ 0,04 $)" : "Écris la précision demandée");
+    : (pret ? "✨ Appliquer l'effet" : "Écris la précision demandée");
 }
 document.getElementById("efDetail").addEventListener("input", efRefresh);
 document.getElementById("efTogLieu").addEventListener("input", efRefresh);
@@ -8723,7 +8723,7 @@ function poRefresh() {
   const b = document.getElementById("poGo");
   b.disabled = !pret;
   b.textContent = !poSource ? "Choisis d'abord une image"
-    : (pret ? "🕺 Changer la posture (≈ 0,04 $)" : "Décris la posture souhaitée");
+    : (pret ? "🕺 Changer la posture" : "Décris la posture souhaitée");
 }
 document.getElementById("poImportBtn").onclick = () => document.getElementById("poInput").click();
 document.getElementById("poInput").onchange = (e) => {
