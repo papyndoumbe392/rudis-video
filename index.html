@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.154 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.155 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -2402,7 +2402,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.154</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.155</span>
 
   </footer>
 </div>
@@ -7271,17 +7271,27 @@ async function wavVersMp3(blobWav) {
   try { audioBuf = await ctx.decodeAudioData(tampon.slice(0)); }
   finally { try { ctx.close(); } catch (_) {} }
   const canaux = audioBuf.numberOfChannels;
+  // v41.155 : marge de sécurité AVANT l'encodage. Les WAV livrés culminent vers −0,3 dBFS ;
+  // l'encodage MP3 crée alors des pics au-dessus de 0 dBTP (saturation mesurée jusqu'à +1,1).
+  // On abaisse le niveau, et seulement si besoin, pour qu'il reste 1,5 dB de marge (pic réel ≤ −1 dBTP).
+  let pic = 0;
+  for (let c = 0; c < Math.min(canaux, 2); c++) {
+    const d = audioBuf.getChannelData(c);
+    for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > pic) pic = a; }
+  }
+  const CIBLE = Math.pow(10, -1.5 / 20);   // −1,5 dBFS
+  const gain = pic > CIBLE ? CIBLE / pic : 1;
   const versInt16 = (f32) => {
     const i16 = new Int16Array(f32.length);
     for (let i = 0; i < f32.length; i++) {
-      const s = Math.max(-1, Math.min(1, f32[i]));
+      const s = Math.max(-1, Math.min(1, f32[i] * gain));
       i16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
     }
     return i16;
   };
   const gauche = versInt16(audioBuf.getChannelData(0));
   const droite = canaux > 1 ? versInt16(audioBuf.getChannelData(1)) : null;
-  const encodeur = new lamejs.Mp3Encoder(canaux, audioBuf.sampleRate, 128);
+  const encodeur = new lamejs.Mp3Encoder(canaux, audioBuf.sampleRate, 320);   // v41.155 : 320 kbps (était 128)
   const morceaux = [];
   const taille = 1152; // taille de bloc imposée par lamejs
   for (let i = 0; i < gauche.length; i += taille) {
@@ -7433,12 +7443,12 @@ const PM_MOTEURS = [
     desc: "Décris le style, écris (ou laisse écrire) les paroles — 2 versions.",
     durees: [0], prix: { 0: 499 }, chanson: true },
   { id: "chansonPro", nom: "⭐ Chanson Pro — qualité studio", fournisseur: "elevenlabs",
-    desc: "Qualité studio, niveau Suno. 1 version : 2 min, 3 min ou 3 min 50.",
+    desc: "Qualité studio, niveau Suno. 1 version : ≈ 2 min, ≈ 3 min ou ≈ 3 min 50.",
     durees: [2, 3, 4], prix: { 2: 999, 3: 1499, 4: 1999 }, chanson: true, pro: true,
-    libDuree: { 2: "2 min", 3: "3 min", 4: "3 min 50" } },
+    libDuree: { 2: "≈ 2 min", 3: "≈ 3 min", 4: "≈ 3 min 50" } },
   { id: "demo", nom: "🎙️ Améliorer ma démo", fournisseur: "fal",
     desc: "Envoie ta démo, même enregistrée au téléphone : on la produit comme en studio, ou on crée une nouvelle chanson dans son style.",
-    durees: [2, 3, 4], prix: { 2: 1999, 3: 2999, 4: 3999 }, libDuree: { 2: "2 min", 3: "3 min", 4: "3 min 50" },
+    durees: [2, 3, 4], prix: { 2: 1999, 3: 2999, 4: 3999 }, libDuree: { 2: "≈ 2 min", 3: "≈ 3 min", 4: "≈ 3 min 50" },
     chanson: true, demo: true },
   { id: "stems", nom: "🎚️ Extraire les stems", fournisseur: "fal",
     desc: "Sépare une chanson en pistes : voix, batterie, basse, instruments. En MP3, WAV ou les deux.",
