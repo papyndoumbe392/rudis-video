@@ -3,26 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip Studio v41.153 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.154 · par Studio Rudis, Douala.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="StarClip">
-<meta name="theme-color" content="#100D16">
+<meta name="theme-color" content="#060A1C">
 <style>
   :root {
-    --bg:#100D16; --panel:#1A1523; --up:#241D30; --line:#352B45;
-    --gold:#F2B33D; --violet:#8B6CF2; --text:#EFEAF7; --dim:#9C92AE;
+    --bg:#060A1C; --panel:#0A1236; --up:#0E1A48; --line:#1F2B5C;
+    --gold:#F2B33D; --violet:#9B7CFF; --text:#E8ECF7; --dim:#AEB7D3;
+    /* v41.154 : identité STARCLIP AI STUDIO */
+    --champagne:#F3E3B5; --music:#B79CFF; --video:#3DA2FF; --cinema:#FF9E2C; --ai:#2EE6D6;
     --ok:#5DD9A0; --err:#F26D6D;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
     background:var(--bg); color:var(--text);
-    font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-family:Manrope, -apple-system, 'Segoe UI', Roboto, sans-serif;
     min-height:100vh; padding-bottom:60px;
-    background-image:radial-gradient(ellipse 70% 40% at 50% -5%, rgba(139,108,242,.14), transparent);
+    background-image:radial-gradient(ellipse 70% 40% at 50% -5%, rgba(40,70,200,.28), transparent);
   }
   .wrap { max-width:640px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 24px) 16px 40px; }
   /* Ordinateur (grand écran) : l'app remplit la page. L'en-tête reste pleine largeur,
@@ -169,12 +173,39 @@
   }
   .face-ref-slot.filled { border-style:solid; border-color:var(--violet); }
 </style>
+<style>
+  /* v41.154 : identité STARCLIP AI STUDIO — habillage uniquement */
+  .sc-brand { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+  .sc-logo, .sc-studio { display:inline-block; width:max-content; max-width:100%; }
+  .sc-logo { font-family:Cinzel, Georgia, serif; font-weight:700; letter-spacing:.08em; line-height:.95;
+    font-size:clamp(40px,10vw,64px);
+    background:linear-gradient(100deg,#B9C0CC 0%,#FFFFFF 22%,#D7DCE6 38%,#F2B33D 56%,#FFE6A6 70%,#C8952F 88%,#8F6A1E 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sc-studio { font-weight:800; letter-spacing:.42em; color:var(--champagne); font-size:clamp(14px,3.4vw,19px); }
+  .sc-domaines { display:grid; grid-template-columns:repeat(4,max-content); gap:8px 22px; margin-top:14px; }
+  .sc-d { font-weight:800; letter-spacing:.14em; line-height:1.1; font-size:clamp(18px,4.6vw,28px); }
+  .sc-music { color:var(--music); text-shadow:0 0 16px rgba(183,156,255,.35); }
+  .sc-video { color:var(--video); text-shadow:0 0 16px rgba(61,162,255,.35); }
+  .sc-cinema { color:var(--cinema); text-shadow:0 0 16px rgba(255,158,44,.35); }
+  .sc-ai { color:var(--ai); text-shadow:0 0 16px rgba(46,230,214,.35); }
+  @media (max-width:520px) { .sc-domaines { grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; } .sc-d { letter-spacing:.06em; font-size:clamp(15px,4.8vw,19px); } }
+  .eyebrow { color:var(--champagne); }
+  .sc-nav-brand { display:none; }
+  @media (min-width:1100px) {
+    .sc-nav-brand { display:flex; flex-direction:column; gap:2px; padding:4px 10px 14px; }
+    .sc-nav-brand .sc-logo { font-size:22px; letter-spacing:.12em; }
+    .sc-nav-brand .sc-studio { font-size:11px; letter-spacing:.32em; }
+    #tabbar { background:#070D26 !important; }
+    #atlResultats { background:#070D26 !important; }
+  }
+</style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="eyebrow">Studio Rudis · Douala</div>
-    <h1>Star<span>Clip</span> Studio</h1>
+    <h1 class="sc-brand"><span class="sc-logo">STARCLIP</span><span class="sc-studio">AI STUDIO</span></h1>
+    <p class="sc-domaines" aria-label="MUSIC, VIDEO, CINEMA, AI"><span class="sc-d sc-music">MUSIC</span><span class="sc-d sc-video">VIDEO</span><span class="sc-d sc-cinema">CINEMA</span><span class="sc-d sc-ai">AI</span></p>
     <p class="sub">Ta photo + ta chanson → ton clip vidéo professionnel, créé par l'intelligence artificielle du studio. <span style="color:var(--gold); font-size:17px; font-weight:700; display:block; margin-top:6px;">Chante, danse, change de tenue — deviens la star de ton clip. ✨</span></p>
     <a href="guide.html" style="display:inline-block; margin-top:12px; padding:8px 16px; border:1px solid var(--gold); border-radius:999px; color:var(--gold); text-decoration:none; font-size:13px; font-weight:600;">📖 Guide en BD — pour petits et grands</a>
     <a href="guide.html?lang=en" style="display:inline-block; margin-top:8px; padding:8px 16px; border:1px solid var(--line); border-radius:999px; color:var(--dim); text-decoration:none; font-size:13px; font-weight:600;">🇬🇧 Comic Guide — English version</a>
@@ -186,6 +217,7 @@
 
   <!-- v39.2 : NIVEAU 3 — navigation par onglets. Un seul groupe visible à la fois. -->
   <nav id="tabbar" style="position:sticky; top:0; z-index:50; background:var(--bg,#0f0d17); border-bottom:1px solid var(--line); padding:8px 4px; margin:0 0 8px; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <div class="sc-nav-brand" aria-hidden="true"><span class="sc-logo">STARCLIP</span><span class="sc-studio">AI STUDIO</span></div>
     <a data-tab="accueil" class="qnav">🎬 Accueil<small>Home</small></a>
     <a data-tab="photo" class="qnav">📸 Ta photo<small>Your photo</small></a>
     <a data-tab="traitement" class="qnav">✨ Traitement<small>Photo effects</small></a>
@@ -2370,7 +2402,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.153</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.154</span>
 
   </footer>
 </div>
@@ -15057,7 +15089,7 @@ const SCENARIO_EXEMPLES = [
       flex-direction:column; flex-wrap:nowrap; overflow-y:auto !important; overflow-x:hidden !important;
       margin:0 !important; padding:16px 10px 24px !important; gap:4px !important;
       border-bottom:none !important; border-right:1px solid var(--line); z-index:60 !important; }
-    #tabbar::before { content:"⭐ StarClip"; display:block; font-weight:800; font-size:17px;
+    #tabbar::before { content:none; display:block; font-weight:800; font-size:17px;
       color:var(--gold); padding:4px 10px 12px; letter-spacing:.3px; }
     #tabbar .qnav { width:100%; white-space:normal; border-radius:10px; text-align:left;
       padding:9px 12px; flex:0 0 auto; }
