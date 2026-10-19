@@ -86,7 +86,11 @@
     dev_wa_absent: { fr: "Je ne trouve pas le lien WhatsApp officiel dans l'app : copie le texte et envoie-le depuis l'onglet 💳 Commander.", en: "I can't find the official WhatsApp link in the app: copy the text and send it from the 💳 Commander tab.", de: "Ich finde den offiziellen WhatsApp-Link nicht in der App: Kopieren Sie den Text und senden Sie ihn über den Tab 💳 Commander." },
     essai_fini: { fr: "La période de test de StarClip est terminée : il n'y a plus de code d'essai. Pour commencer :\n1. choisis ton pack dans l'onglet 💳 Commander ;\n2. paie par Orange Money ou MTN Mobile Money ;\n3. envoie la capture sur WhatsApp ;\n4. entre le code reçu en haut de l'app et touche OK. Ce code est ton compte : il garde tes crédits.", en: "The StarClip test period is over: there are no more trial codes. To get started:\n1. choose your pack in the 💳 Commander tab;\n2. pay with Orange Money or MTN Mobile Money;\n3. send the screenshot on WhatsApp;\n4. enter the code you receive at the top of the app and tap OK. This code is your account: it keeps your credits.", de: "Die Testphase von StarClip ist beendet: Es gibt keine Testcodes mehr. So fangen Sie an:\n1. Wählen Sie Ihr Paket im Tab 💳 Commander;\n2. bezahlen Sie mit Orange Money oder MTN Mobile Money;\n3. senden Sie den Screenshot per WhatsApp;\n4. geben Sie den erhaltenen Code oben in der App ein und tippen Sie auf OK. Dieser Code ist Ihr Konto: Er speichert Ihr Guthaben." },
     langue_auto: { fr: "Je passe en français.", en: "Switching to English.", de: "Ich wechsle zu Deutsch." },
-    voix_off: { fr: "La lecture à voix haute utilise la voix de ton appareil.", en: "Reading aloud uses your device's voice.", de: "Das Vorlesen nutzt die Stimme Ihres Geräts." }
+    voix_melanie: { fr: "🎙️ Voix de Naya : {n}", en: "🎙️ Naya's voice: {n}", de: "🎙️ Nayas Stimme: {n}" },
+    voix_secours: { fr: "Voix de secours de ton appareil ({n}) : la voix de Naya n'est pas disponible pour le moment.", en: "Backup voice from your device ({n}): Naya's voice is not available right now.", de: "Ersatzstimme Ihres Geräts ({n}): Nayas Stimme ist gerade nicht verfügbar." },
+    voix_aucune: { fr: "La voix n'est pas disponible pour le moment sur cet appareil : la réponse reste écrite.", en: "The voice is not available on this device right now: the answer stays in writing.", de: "Die Stimme ist auf diesem Gerät gerade nicht verfügbar: Die Antwort bleibt schriftlich." },
+    voix_touche: { fr: "Touche encore « Écouter » pour lancer la lecture.", en: "Tap « Listen » again to start playback.", de: "Tippen Sie erneut auf « Anhören », um die Wiedergabe zu starten." },
+    environ: { fr: "environ ", en: "about ", de: "etwa " }
   };
   // Langues pas encore prises en charge : une seule phrase, écrite à l'avance, puis réponse en français ou en anglais.
   var PAS_ENCORE = {
@@ -537,6 +541,7 @@
   function changerLangue(lg) { etat.lg = lg; ecrire(LS.lg, lg); libelles(); chargerKB(lg).catch(function () {}); }
   function basculer(o) {
     etat.ouvert = o; el.pan.hidden = !o; el.btn.setAttribute("aria-expanded", String(o));
+    if (!o) arreterVoix();
     if (o) {
       if (!el.fil.childNodes.length) restaurer();
       chargerKB(etat.lg).catch(function () {});
@@ -557,7 +562,7 @@
     if (rep.intention) d.dataset.intention = rep.intention;
     d.innerHTML = mise(rep.texte);
     var acts = (rep.actions || []).slice();
-    if (qui === "naya" && "speechSynthesis" in window && !rep.formulaire) acts.push({ lib: "🔊 " + t("ecouter"), fn: function () { lireAVoix(rep.texte); }, discret: true });
+    if (qui === "naya" && !rep.formulaire && (serveurVoix() || "speechSynthesis" in window)) acts.push({ lib: "🔊 " + t("ecouter"), fn: function (b) { lireAVoix(rep.texte, b); }, discret: true });
     if (acts.length) {
       var z = document.createElement("div"); z.className = "naya-acts";
       acts.forEach(function (a) {
@@ -574,12 +579,71 @@
     return d;
   }
   function dire(texte) { ajouter("naya", { texte: texte }); }
-  function lireAVoix(texte) {
-    try {
-      speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(String(texte).replace(/[•«»]/g, "").slice(0, 900));
-      u.lang = { fr: "fr-FR", en: "en-GB", de: "de-DE" }[etat.lg]; speechSynthesis.speak(u);
-    } catch (_) {}
+  // ───────────── Voix ─────────────
+  // 1) Mélanie (ElevenLabs) par le serveur StarClip : la clé reste dans Cloudflare, jamais dans le navigateur.
+  // 2) Sinon, voix de secours de l'appareil, SIGNALÉE, et seulement si c'est une voix FÉMININE connue dans la
+  //    bonne langue. Avant v41.157, aucune voix n'était choisie : le navigateur prenait sa voix par défaut
+  //    (souvent masculine, « Thomas » sur Mac et iPhone) et lisait l'anglais ou l'allemand avec un accent français.
+  var LANGUE_VOIX = { fr: "fr-FR", en: "en-GB", de: "de-DE" };
+  var FEMININES = {
+    fr: ["audrey", "aurelie", "amelie", "marie", "flo", "sandy", "shelley", "hortense", "julie", "denise", "eloise", "vivienne", "google francais"],
+    en: ["samantha", "ava", "allison", "susan", "zoe", "nicky", "joelle", "kate", "serena", "stephanie", "martha", "fiona", "moira", "tessa", "karen", "kathy", "flo", "sandy", "shelley", "zira", "aria", "jenny", "sonia", "libby", "michelle", "emma", "google us english", "google uk english female"],
+    de: ["anna", "petra", "helena", "katja", "hedda", "amala", "seraphina", "flo", "sandy", "shelley", "google deutsch"]
+  };
+  // Nom simplifié : « Microsoft Hortense - French (France) » → « hortense » ; « Flo (Français (France)) » → « flo ».
+  function nomVoix(n) { return plier(n).replace(/\s+-\s+.*$/, "").replace(/\s*\(.*$/, "").replace(/^microsoft\s+/, "").replace(/\s+online.*$/, "").trim(); }
+  function voixFeminine(lg) {
+    var liste = []; try { liste = speechSynthesis.getVoices() || []; } catch (_) {}
+    var noms = FEMININES[lg] || [], region = LANGUE_VOIX[lg].toLowerCase();
+    var bonnes = liste.filter(function (v) {
+      var n = nomVoix(v.name), l = String(v.lang || "").toLowerCase().replace("_", "-");
+      return l.indexOf(lg) === 0 && noms.some(function (x) { return n === x || n.indexOf(x + " ") === 0; });
+    });
+    // Préférence : la région exacte (fr-FR, en-GB, de-DE), puis une voix « améliorée », puis l'ordre de la liste.
+    bonnes.sort(function (a, b) {
+      var ra = String(a.lang).toLowerCase().replace("_", "-") === region ? 0 : 1, rb = String(b.lang).toLowerCase().replace("_", "-") === region ? 0 : 1;
+      var qa = /premium|enhanced|améliorée|natural/i.test(a.name) ? 0 : 1, qb = /premium|enhanced|améliorée|natural/i.test(b.name) ? 0 : 1;
+      return ra - rb || qa - qb || noms.indexOf(nomVoix(a.name)) - noms.indexOf(nomVoix(b.name));
+    });
+    return bonnes[0] || null;
+  }
+  function voixPretes() {
+    return new Promise(function (ok) {
+      try {
+        if ((speechSynthesis.getVoices() || []).length) return ok();
+        speechSynthesis.addEventListener("voiceschanged", function f() { speechSynthesis.removeEventListener("voiceschanged", f); ok(); });
+        setTimeout(ok, 1500);
+      } catch (_) { ok(); }
+    });
+  }
+  var lecture = null;
+  function arreterVoix() { try { if (lecture) { lecture.pause(); URL.revokeObjectURL(lecture.src); } } catch (_) {} lecture = null; try { speechSynthesis.cancel(); } catch (_) {} }
+  function noteVoix(bouton, texte) { var z = bouton && bouton.parentNode; if (!z) return; var n = z.querySelector(".naya-vx") || z.appendChild(document.createElement("small")); n.className = "naya-vx"; n.style.cssText = "flex-basis:100%;color:var(--dim,#AEB7D3);font-size:11px"; n.textContent = texte; }
+  function serveurVoix() { try { return typeof WORKER_URL === "string" && /^(https:\/\/|http:\/\/127\.0\.0\.1[:/])/.test(WORKER_URL) && !/COLLE_ICI|\.invalid/.test(WORKER_URL) ? WORKER_URL : null; } catch (_) { return null; } }
+  function lireAVoix(texte, bouton) {
+    arreterVoix();
+    var lg = etat.lg, srv = serveurVoix();
+    var essai = srv ? fetch(srv + "/naya/voix", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texte: String(texte).slice(0, 1200), langue: lg }) })
+      .then(function (r) { return r.ok && /audio/.test(r.headers.get("Content-Type") || "") ? r.blob().then(function (b) { return { blob: b, nom: decodeURIComponent(r.headers.get("X-Naya-Voix") || "Mélanie") }; }) : null; })
+      .catch(function () { return null; }) : Promise.resolve(null);
+    essai.then(function (res) {
+      if (res) {
+        lecture = new Audio(URL.createObjectURL(res.blob));
+        var p = lecture.play(); if (p && p.catch) p.catch(function () { noteVoix(bouton, t("voix_touche")); });
+        noteVoix(bouton, t("voix_melanie", { n: res.nom })); return;
+      }
+      if (!("speechSynthesis" in window)) { noteVoix(bouton, t("voix_aucune")); return; }
+      voixPretes().then(function () {
+        var v = voixFeminine(lg);
+        // Jamais de voix choisie au hasard par le navigateur : sans voix féminine connue, la réponse reste écrite.
+        if (!v) { noteVoix(bouton, t("voix_aucune")); return; }
+        var u = new SpeechSynthesisUtterance(String(texte).replace(/≈\s?/g, t("environ")).replace(/[•«»"*#|]|[\u2190-\u2BFF\uFE0F]|\p{Extended_Pictographic}/gu, " ").slice(0, 900));
+        try { u.voice = v; } catch (_) { noteVoix(bouton, t("voix_aucune")); return; }
+        u.lang = v.lang; u.rate = 0.97;
+        speechSynthesis.speak(u);
+        noteVoix(bouton, t("voix_secours", { n: v.name.replace(/\s*\(.*$/, "") }));
+      });
+    });
   }
   function envoyer(brut) {
     var q = String(brut || "").trim().slice(0, 1000); if (!q) return;
@@ -599,7 +663,8 @@
     // Point d'accès pour les tests automatiques et pour l'aide contextuelle des autres onglets.
     window.Naya = { ouvrir: function () { basculer(true); }, fermer: function () { basculer(false); }, demander: function (q) { basculer(true); envoyer(q); },
       repondre: function (q, lg) { return chargerKB(lg || etat.lg).then(function (k) { var a = etat.lg; if (lg) etat.lg = lg; try { return repondre(q, k); } finally { etat.lg = a; } }); },
-      langue: function () { return etat.lg; } };
+      langue: function () { return etat.lg; },
+      voixDeSecours: function (lg) { var v = voixFeminine(lg); return v ? v.name + " (" + v.lang + ")" : null; } };
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", demarrer); else demarrer();
 })();
