@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.155 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.156 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -2402,12 +2402,13 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.155</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.156</span>
 
   </footer>
 </div>
 
 <script src="config.js"></script>
+<script src="chanson-exemples.js"></script>
 <!-- v41.129 : encodeur MP3 pur JavaScript (aucune donnée envoyée nulle part) —
      sert à fabriquer le "MP3 rapide" de Chanson Pro à partir du WAV déjà
      généré, sans redemander une chanson à ElevenLabs (donc sans nouveau coût,
@@ -7520,6 +7521,14 @@ function pmCarte(m) {
        <div class="label">Voix</div><div class="chips" id="pmChVoix_${m.id}"></div>
        <div class="label">Langue du chant</div><div class="chips" id="pmChLangue_${m.id}"></div>
        <div class="label">Ambiance</div><div class="chips" id="pmChAmb_${m.id}"></div>
+       ${m.demo ? "" : `<div class="label">✨ Essayer un prompt exemple</div>
+       <div class="chips" id="pmEx_${m.id}">
+         <button class="chip" data-ex="debutant">🟢 Débutant</button>
+         <button class="chip" data-ex="pro">🎚️ Professionnel</button>
+         <button class="chip" data-ex="voix">🎤 Avec voix et paroles</button>
+         <button class="chip" data-ex="instru">🎹 Plutôt instrumental</button>
+       </div>
+       <div class="estimate" id="pmExInfo_${m.id}">Choisis un genre, puis un exemple : il se place dans tes précisions et reste modifiable. Rien n'est lancé.</div>`}
        ${m.demo ? "" : `<div style="border:1px dashed var(--line); border-radius:10px; padding:8px 10px; margin-top:8px;">
          <b>🎧 Copier le style d'une chanson</b>
          <div class="estimate" style="margin-top:2px;">Envoie une chanson que tu aimes : l'IA écoute et décrit son <b>style</b> (genre, tempo, instruments, intro, voix, mixage). Ta chanson sera <b>nouvelle</b> : on reprend le style, jamais la mélodie ni les paroles.</div>
@@ -7593,6 +7602,34 @@ function pmStudioMaj() {
   if (b) b.classList.toggle("hidden", !pmModeStudio);
   if (document.getElementById("pmGo_chansonPro")) pmMaj("chansonPro");
 }
+// v41.156 : ✨ « Essayer un prompt exemple » — remplit les précisions (et, pour « Avec voix », des paroles
+// d'exemple si le champ est vide) selon le genre choisi. Ne lance RIEN : le prix reste affiché en haut,
+// le débit n'a lieu qu'avec le bouton de création. Le texte du client n'est jamais effacé.
+function pmChargerExemple(id, niveau) {
+  const info = document.getElementById("pmExInfo_" + id);
+  const genre = pmChChoix[id] && pmChChoix[id].genre;
+  const E = genre && window.CHP_EXEMPLES ? window.CHP_EXEMPLES[genre] : null;
+  if (!E) { info.textContent = "⬆️ Choisis d'abord un genre ci-dessus, puis un exemple."; return; }
+  const zone = document.getElementById("pmStyle_" + id), par = document.getElementById("pmParoles_" + id);
+  const texte = niveau === "voix" ? E.voix.precis : E[niveau];
+  const perso = zone.value.trim() && zone.value !== zone.dataset.exemple ? zone.value.trim() : "";
+  zone.value = texte + (perso ? "\n" + perso : "");
+  zone.dataset.exemple = zone.value;
+  let note = "";
+  if (niveau === "voix") {
+    if (!par.value.trim()) {
+      par.value = E.voix.paroles;
+      if (!pmChChoix[id].langue) { pmChChoix[id].langue = "fr"; chpPuces(document.getElementById("pmChLangue_" + id), CHP_LANGUES, pmChChoix[id], "langue", () => pmMaj(id)); }
+      note = " Paroles d'exemple ajoutées : originales, à remplacer par les tiennes.";
+    } else note = " Tes paroles n'ont pas été modifiées.";
+  }
+  if (niveau === "instru") note = " Chanson Pro chante toujours : pour une version sans voix, crée ta chanson puis utilise « 🎚️ Extraire les stems ».";
+  document.querySelectorAll("#pmEx_" + id + " [data-ex]").forEach(b => b.classList.toggle("on", b.dataset.ex === niveau));
+  pmMaj(id);
+  const prix = (document.getElementById("pmPrix_" + id) || {}).textContent || "";
+  info.textContent = E.desc + " ✓ Exemple chargé : modifie-le librement." + note + " Rien n'est lancé : coût " + prix + ", débité seulement quand tu appuies sur le bouton de création.";
+}
+
 function pmOuvrir(id) {
   pmModeStudio = false; pmStudioMaj();
   document.getElementById("pmTuiles").classList.add("hidden");
@@ -8316,6 +8353,9 @@ async function pmLancer(id) {
       chpPuces(document.getElementById("pmChLangue_" + m.id), CHP_LANGUES, pmChChoix[m.id], "langue", maj);
       chpPuces(document.getElementById("pmChAmb_" + m.id), CHP_AMBIANCES, pmChChoix[m.id], "ambiance", maj);
       document.getElementById("pmStyle_" + m.id).addEventListener("input", () => pmMaj(m.id));
+      // v41.156 : ✨ prompts exemples (chargement seul, jamais de génération)
+      const ex = document.getElementById("pmEx_" + m.id);
+      if (ex) ex.querySelectorAll("[data-ex]").forEach(b => b.onclick = () => pmChargerExemple(m.id, b.dataset.ex));
       document.getElementById("pmParoles_" + m.id).addEventListener("input", () => pmMaj(m.id));
       // v41.133 : 🎧 copier le style d'une chanson modèle
       const bRef = document.getElementById("pmRefStyleBtn_" + m.id), iRef = document.getElementById("pmRefStyleInput_" + m.id);
