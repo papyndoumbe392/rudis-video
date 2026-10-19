@@ -63,7 +63,12 @@
   .vg-lightbox { position:fixed; inset:0; z-index:9999; background:rgba(8,6,12,.97);
     display:none; flex-direction:column; }
   .vg-lightbox.on { display:flex; }
-  .vg-back { align-self:flex-start; margin:calc(env(safe-area-inset-top) + 12px) 0 0 14px;
+  .vg-q { position:absolute; top:calc(env(safe-area-inset-top) + 12px); right:14px; display:flex; gap:4px;
+    padding:4px; border-radius:999px; border:1px solid var(--line); background:var(--up); }
+  .vg-q button { padding:7px 12px; border:0; border-radius:999px; background:transparent; color:var(--dim, #AEB7D3);
+    font-size:13px; font-weight:700; cursor:pointer; }
+  .vg-q button.on { background:var(--gold); color:#1A1204; }
+    .vg-back { align-self:flex-start; margin:calc(env(safe-area-inset-top) + 12px) 0 0 14px;
     padding:11px 18px; border-radius:999px; border:1px solid var(--line);
     background:var(--up); color:var(--text); font-size:15px; font-weight:700; cursor:pointer; }
   /* v35.0 : le lecteur plein écran s'adapte à TOUS les formats.
@@ -9201,16 +9206,36 @@ fxRefresh();
     stage.innerHTML = "";
     document.body.style.overflow = "";
   }
-  function ouvrir(src){
+  // v41.156 : en plein écran, la version HD (refaite depuis l'original, à sa résolution d'origine, jamais
+  // agrandie) quand la connexion le permet ; la version légère sur une connexion lente, en mode économie
+  // de données, ou si le client la choisit (bouton HD / Léger, retenu sur l'appareil). Les vignettes restent légères.
+  var CLE_Q = "starclip_vg_qualite";
+  function connexionLente(){ var c = navigator.connection; return !!(c && (c.saveData || /(^|-)2g$|^3g$/.test(c.effectiveType || ""))); }
+  function qualite(){ var q = null; try { q = localStorage.getItem(CLE_Q); } catch(e){} return q === "hd" || q === "leger" ? q : (connexionLente() ? "leger" : "hd"); }
+  var qbar = document.createElement("div");
+  qbar.className = "vg-q";
+  qbar.innerHTML = '<button type="button" data-q="hd">HD</button><button type="button" data-q="leger">Léger</button>';
+  lb.appendChild(qbar);
+  function ouvrir(leger, hd){
     stage.innerHTML = "";
-    var g = document.createElement("video");
-    g.src = src; g.controls = true; g.autoplay = true;
+    var g = document.createElement("video"), q = hd ? qualite() : "leger";
+    g.controls = true; g.autoplay = true;
     g.setAttribute("playsinline", "");
     g.setAttribute("controlslist", "nodownload");
+    function maj(){ qbar.style.display = hd ? "" : "none"; [].forEach.call(qbar.children, function(b){ b.classList.toggle("on", b.dataset.q === q); }); }
+    function charger(nq, reprise){
+      var t = reprise ? g.currentTime : 0, enPause = reprise && g.paused;
+      q = nq; g.dataset.q = q; g.src = q === "hd" ? hd : leger; maj();
+      if (t) g.addEventListener("loadedmetadata", function f(){ g.removeEventListener("loadedmetadata", f); try { g.currentTime = t; } catch(e){} }, { once: true });
+      var pr = enPause ? null : g.play(); if (pr && pr.catch) pr.catch(function(){});
+    }
+    // HD introuvable ou illisible : on revient à la version légère, sans rien casser.
+    g.addEventListener("error", function(){ if (q === "hd") charger("leger", false); });
+    qbar.onclick = function(e){ var b = e.target.closest("[data-q]"); if (!b || b.dataset.q === q) return; try { localStorage.setItem(CLE_Q, b.dataset.q); } catch(err){} charger(b.dataset.q, true); };
     stage.appendChild(g);
     lb.classList.add("on");
     document.body.style.overflow = "hidden";
-    var pr = g.play(); if (pr && pr.catch) pr.catch(function(){});
+    charger(q, false);
   }
   lb.querySelector(".vg-back").onclick = fermer;
   lb.addEventListener("click", function(e){ if (e.target === lb || e.target === stage) fermer(); });
@@ -9230,7 +9255,7 @@ fxRefresh();
       if (!triedUpper) { triedUpper = true; base = n + ".MP4"; v.src = base + "#t=0.1"; v.load(); }
     });
     cell.appendChild(v);
-    cell.addEventListener("click", function(){ ouvrir(base); });
+    cell.addEventListener("click", function(){ ouvrir(base, "vitrine-hd/" + n + ".mp4"); });
     box.appendChild(cell);
   });
 })();
@@ -15258,5 +15283,7 @@ const SCENARIO_EXEMPLES = [
 })();
 </script>
 
+<!-- v41.156 : Naya, l'assistante StarClip (dans le navigateur, sans IA payante ni envoi de données). -->
+<script src="naya/naya.js?v=41156" defer></script>
 </body>
 </html>
