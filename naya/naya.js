@@ -84,6 +84,7 @@
     copie: { fr: "Copié ✓", en: "Copied ✓", de: "Kopiert ✓" },
     dev_prix: { fr: "Prix affiché dans l'app : {p}. Le devis final, l'acompte et le délai sont confirmés par Studio Rudis ; aucun délai n'est garanti avant cette confirmation.", en: "Price shown in the app: {p}. The final quote, deposit and timing are confirmed by Studio Rudis; no deadline is guaranteed before that confirmation.", de: "In der App angezeigter Preis: {p}. Endgültiges Angebot, Anzahlung und Termin bestätigt Studio Rudis; vor dieser Bestätigung ist kein Termin garantiert." },
     dev_wa_absent: { fr: "Je ne trouve pas le lien WhatsApp officiel dans l'app : copie le texte et envoie-le depuis l'onglet 💳 Commander.", en: "I can't find the official WhatsApp link in the app: copy the text and send it from the 💳 Commander tab.", de: "Ich finde den offiziellen WhatsApp-Link nicht in der App: Kopieren Sie den Text und senden Sie ihn über den Tab 💳 Commander." },
+    essai_fini: { fr: "La période de test de StarClip est terminée : il n'y a plus de code d'essai. Pour commencer :\n1. choisis ton pack dans l'onglet 💳 Commander ;\n2. paie par Orange Money ou MTN Mobile Money ;\n3. envoie la capture sur WhatsApp ;\n4. entre le code reçu en haut de l'app et touche OK. Ce code est ton compte : il garde tes crédits.", en: "The StarClip test period is over: there are no more trial codes. To get started:\n1. choose your pack in the 💳 Commander tab;\n2. pay with Orange Money or MTN Mobile Money;\n3. send the screenshot on WhatsApp;\n4. enter the code you receive at the top of the app and tap OK. This code is your account: it keeps your credits.", de: "Die Testphase von StarClip ist beendet: Es gibt keine Testcodes mehr. So fangen Sie an:\n1. Wählen Sie Ihr Paket im Tab 💳 Commander;\n2. bezahlen Sie mit Orange Money oder MTN Mobile Money;\n3. senden Sie den Screenshot per WhatsApp;\n4. geben Sie den erhaltenen Code oben in der App ein und tippen Sie auf OK. Dieser Code ist Ihr Konto: Er speichert Ihr Guthaben." },
     langue_auto: { fr: "Je passe en français.", en: "Switching to English.", de: "Ich wechsle zu Deutsch." },
     voix_off: { fr: "La lecture à voix haute utilise la voix de ton appareil.", en: "Reading aloud uses your device's voice.", de: "Das Vorlesen nutzt die Stimme Ihres Geräts." }
   };
@@ -189,7 +190,7 @@
   }
 
   // ───────────── Garde-fous ─────────────
-  var ADMIN = /(code ?pin|\bpin\b|mot de passe admin|admin password|passwort|cl[ée] api|api ?key|api-schl[üu]ssel|secret|(cr[ée]er|g[ée]n[ée]rer|create|generate|erstellen) (des |un |my |own |eigene )?(customer |client |clients? |kunden)?(codes?|kundencodes?)|(modifier|changer|augmenter|change|increase|ändern|erhöhen) (mon |le |my |das )?(solde|balance|guthaben)|(guthaben|solde|balance) (zu )?(ändern|erhöhen|modifier|changer|change|increase)|espace studio|studio space|studio-bereich|panneau admin|admin panel|console du directeur|code (gratuit|offert)|free code|kostenlose?r? code|(codes?|kundencodes?) (zu )?(erstellen|generieren|anlegen))/i;
+  var ADMIN = /(code ?pin|\bpin\b|mot de passe admin|admin password|passwort|cl[ée] api|api ?key|api-schl[üu]ssel|secret|(cr[ée]er|g[ée]n[ée]rer|create|generate|erstellen) (des |un |my |own |eigene )?(customer |client |clients? |kunden)?(codes?|kundencodes?)|(modifier|changer|augmenter|change|increase|ändern|erhöhen) (mon |le |my |das )?(solde|balance|guthaben)|(guthaben|solde|balance) (zu )?(ändern|erhöhen|modifier|changer|change|increase)|espace studio|studio space|studio-bereich|panneau admin|admin panel|console du directeur|(codes?|kundencodes?) (zu )?(erstellen|generieren|anlegen))/i;
 
   // ───────────── Données réelles de l'app ─────────────
   // Données et fonctions de l'app (déclarées au niveau global d'index.html), lues au moment de la question.
@@ -318,6 +319,9 @@
   // Chaque réponse : { texte, actions: [{lib, fn}], html? }. Aucune action ne lance une génération ni n'envoie rien.
   function repondre(q, k) {
     var r = function (texte, actions, extra) { var o = { texte: texte, actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; };
+    // Fin de la période de test : une demande de code d'essai reçoit le vrai mode d'emploi, pas un refus.
+    if (/(essai gratuit|code (d.essai|de test|test|gratuit|offert|b[êe]ta)|(acc[èe]s|version) (test|b[êe]ta)|free (trial|code)|trial code|test code|beta code|kostenlos(e|er)? (test|code)|testcode|probecode|probeversion)/i.test(q))
+      return r(t("essai_fini"), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "essai_fini" });
     if (ADMIN.test(q) && !/admin premium/i.test(q)) return r(t("admin"), [], { intention: "admin_refuse" });
     var abs = (k.absentes || []).filter(function (f) { return new RegExp(f.motif, "i").test(q); })[0];
     if (abs) return r(abs.texte, [], { intention: "fonction_absente" });

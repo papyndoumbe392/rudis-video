@@ -409,7 +409,14 @@
       <button class="btn" id="saveCode">OK</button>
     </div>
     <div class="estimate" id="codeInfo"></div>
-    <div class="estimate">Pas encore de code ? Commande-le en bas de la page 👇 (Orange Money / MTN MoMo).</div>
+    <div class="estimate" id="commentCommencer" style="line-height:1.7;">
+      <b>Pas encore de code ? Voici comment commencer :</b><br>
+      1. Choisis ton pack dans l'onglet <a href="#" onclick="document.querySelector('#tabbar .qnav[data-tab=&quot;commander&quot;]').click(); return false;" style="color:var(--gold);">💳 Commander</a>.<br>
+      2. Paie par Orange Money ou MTN Mobile Money (sans carte bancaire).<br>
+      3. Envoie la capture de ton paiement sur WhatsApp.<br>
+      4. Tu reçois ton code StarClip : entre-le ici et touche OK. Ce code est ton compte : il garde tes crédits et marche sur plusieurs appareils.<br>
+      <span style="color:var(--dim)">No code yet? Choose a pack in 💳 Commander, pay by Orange Money or MTN MoMo, send your receipt on WhatsApp and enter the code you receive here.</span>
+    </div>
   </section>
 
   <!-- PHOTO -->
@@ -2683,23 +2690,9 @@ document.getElementById("saveCode").onclick = checkCode;
 codeInput.addEventListener("input", refresh);
 if (codeInput.value) checkCode();
 
-// ═══ v41.123 : 🎁 ESSAI GRATUIT AUTOMATIQUE ═══
-// À la toute première visite, sans code enregistré, l'app demande au Worker un
-// code d'essai (1 vidéo Éco de 5 s, 2 images, 1 lip-sync). Le Worker plafonne
-// le total (30 essais) : une fois épuisé, il répond « fini » et l'app se
-// comporte exactement comme avant — la case « Ton code » reste vide.
-// Un identifiant tiré au hasard reste sur l'appareil : le même appareil
-// retrouve toujours SON code, il n'en obtient jamais un deuxième.
-function essaiAppareil() {
-  try {
-    let d = localStorage.getItem("starclip_device");
-    if (!d) {
-      d = (crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)));
-      localStorage.setItem("starclip_device", d);
-    }
-    return d;
-  } catch (_) { return ""; }
-}
+// v41.156 : fin de la période de test. L'app ne demande plus de code d'essai au serveur
+// (route /essai) et n'affiche plus d'invitation « première vidéo offerte ». Seul reste le réglage
+// Éco 5 s pour un code d'essai déjà distribué, tant que le serveur l'accepte encore.
 function essaiPreparer() {
   // Règle l'interface sur ce que l'essai autorise : Éco + 5 s.
   const eco = document.querySelector('[data-model="eco"]');
@@ -2707,52 +2700,6 @@ function essaiPreparer() {
   const d5 = document.querySelector('[data-dur="5"]');
   if (d5 && typeof pickDur === "function") pickDur(d5);
 }
-function essaiBandeau() {
-  const info = document.getElementById("codeInfo");
-  if (!info) return;
-  info.innerHTML = '<div style="border:1px solid var(--gold); background:rgba(233,196,106,.12); border-radius:10px; padding:10px 12px; color:var(--text);">'
-    + '🎁 <b style="color:var(--gold)">Bienvenue ! Ta première vidéo est offerte.</b><br>'
-    + 'Ton code d\'essai est déjà rempli : ajoute ta photo, décris ta scène et lance une vidéo <b>Éco de 5 secondes</b>. '
-    + 'Tu as aussi droit à 2 images et 1 lip-sync.<br><span style="color:var(--dim)">🎁 Welcome! Your first video is free — 5 s Éco mode.</span></div>';
-}
-// Message d'accueil visible quel que soit l'onglet ouvert (le visiteur arrive
-// sur « Ta photo », pas sur l'accueil où se trouve la case du code).
-function essaiToast() {
-  if (document.getElementById("essaiToast")) return;
-  const t = document.createElement("div");
-  t.id = "essaiToast";
-  t.style.cssText = "position:fixed; left:12px; right:12px; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:8000; max-width:520px; margin:0 auto;"
-    + "background:#1a1426; border:1.5px solid var(--gold); border-radius:14px; padding:14px 16px; color:var(--text); box-shadow:0 10px 30px rgba(0,0,0,.5); font-size:15px; line-height:1.45;";
-  t.innerHTML = '🎁 <b style="color:var(--gold)">Bienvenue ! Ta première vidéo est offerte.</b><br>'
-    + 'Ajoute ta photo, décris ta scène en une phrase et lance ta vidéo (mode <b>Éco, 5 secondes</b>). Ton code est déjà activé.'
-    + '<br><span style="color:var(--dim); font-size:13px;">Welcome! Your first video is free.</span>'
-    + '<div style="text-align:right; margin-top:8px;"><button class="btn small" id="essaiToastOk">C\'est parti ✨</button></div>';
-  document.body.appendChild(t);
-  document.getElementById("essaiToastOk").onclick = () => t.remove();
-}
-async function essaiAuto() {
-  try {
-    if (getCode()) return;                                   // déjà un code : rien ne change
-    if (localStorage.getItem("starclip_essai_fini")) return; // essais épuisés : comme avant
-    if (!WORKER_URL || WORKER_URL.includes("COLLE_ICI")) return;
-    const device = essaiAppareil();
-    if (!device) return;
-    const r = await fetch(WORKER_URL + "/essai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ device }) });
-    const d = await r.json().catch(() => ({}));
-    if (d && d.ok && d.code) {
-      codeInput.value = d.code;
-      localStorage.setItem("starCode", d.code);
-      localStorage.setItem("starclip_essai", "1");
-      await checkCode();
-      essaiPreparer();
-      essaiBandeau();
-      essaiToast();
-    } else if (d && d.fini) {
-      localStorage.setItem("starclip_essai_fini", "1");
-    }
-  } catch (_) { /* en cas de souci réseau, l'app reste comme avant */ }
-}
-essaiAuto();
 
 // ——— Liaison avec le serveur secret du studio ———
 async function apiSubmit(modelPath, payload, extra) {
