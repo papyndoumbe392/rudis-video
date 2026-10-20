@@ -9,12 +9,17 @@
   var ACTIVES = ["fr", "en", "de"];
   var BIENTOT = { es: "Español", pt: "Português", ar: "العربية" };
   var NIVEAUX = ["debutant", "pro"];
-  var LS = { lg: "starclip_naya_lg", niv: "starclip_naya_niveau", hist: "starclip_naya_hist", dem: "starclip_naya_demandes" };
+  var LS = { lg: "starclip_naya_lg_choix", niv: "starclip_naya_niveau", hist: "starclip_naya_hist", dem: "starclip_naya_demandes" };
   var lire = function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } };
   var ecrire = function (k, v) { try { localStorage.setItem(k, v); } catch (_) {} };
-  var navLg = String((navigator.language || "fr")).slice(0, 2).toLowerCase();
+  // v41.162 : deux langues distinctes.
+  //  • Langue de l'INTERFACE = celle de StarClip (<html lang>, suivie en direct) : bandeau, bouton flottant, cadre du panneau.
+  //  • Langue de CONVERSATION = celle dans laquelle Naya répond (et parle) : au départ celle de l'interface, puis celle
+  //    que le client choisit dans le panneau ou dans laquelle il écrit. Seul un choix explicite est mémorisé.
+  var LANGUES_UI = ["fr", "en", "de", "es", "pt", "ar"];
+  var lgInterface = function () { var l = String(document.documentElement.getAttribute("lang") || "fr").slice(0, 2).toLowerCase(); return LANGUES_UI.indexOf(l) >= 0 ? l : "fr"; };
   var etat = {
-    lg: ACTIVES.indexOf(lire(LS.lg, "")) >= 0 ? lire(LS.lg, "") : (ACTIVES.indexOf(navLg) >= 0 ? navLg : "fr"),
+    lg: ACTIVES.indexOf(lire(LS.lg, "")) >= 0 ? lire(LS.lg, "") : (ACTIVES.indexOf(lgInterface()) >= 0 ? lgInterface() : "fr"),
     niveau: NIVEAUX.indexOf(lire(LS.niv, "")) >= 0 ? lire(LS.niv, "") : "debutant",
     ouvert: false
   };
@@ -95,6 +100,9 @@
     voix_langue: { fr: "La voix de Naya n'est pas disponible pour cette réponse : elle reste écrite.", en: "Naya's voice is not available for this answer: it stays in writing.", de: "Nayas Stimme ist für diese Antwort nicht verfügbar: Sie bleibt schriftlich." },
     voix_touche: { fr: "Touche encore « Écouter » pour lancer la lecture.", en: "Tap « Listen » again to start playback.", de: "Tippen Sie erneut auf « Anhören », um die Wiedergabe zu starten." },
     environ: { fr: "environ ", en: "about ", de: "etwa " },
+    recharge_intro: { fr: "Les outils de l'onglet « 👑 Admin Premium 5.0 » se paient à l'unité sur ton solde Premium, avec ton même code StarClip. Voici les recharges affichées dans l'app :", en: "The tools in the « 👑 Admin Premium 5.0 » tab are paid per use from your Premium balance, with the same StarClip code. Here are the top-ups shown in the app:", de: "Die Werkzeuge im Tab « 👑 Admin Premium 5.0 » werden einzeln vom Premium-Guthaben bezahlt, mit demselben StarClip-Code. Hier die Aufladungen aus der App:" },
+    recharge_etapes: { fr: "Pour recharger :\n1. Envoie le montant choisi par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet « 💳 Commander ».\n2. Envoie ta capture et ton code StarClip sur WhatsApp (bouton « 💬 Recharger mon solde sur WhatsApp »). C'est toi qui envoies le message.\n3. Le studio crédite ton solde Premium sur ton code ; il s'affiche en haut de l'onglet 👑.", en: "To top up:\n1. Send the chosen amount by Orange Money or MTN Mobile Money to the numbers shown in the « 💳 Commander » (Order) tab.\n2. Send your screenshot and your StarClip code on WhatsApp (« 💬 Recharger mon solde sur WhatsApp » (Top up my balance on WhatsApp) button). You send the message yourself.\n3. The studio credits your Premium balance on your code; it shows at the top of the 👑 tab.", de: "So laden Sie auf:\n1. Senden Sie den gewählten Betrag per Orange Money oder MTN Mobile Money an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern.\n2. Senden Sie Ihren Screenshot und Ihren StarClip-Code per WhatsApp (Schaltfläche « 💬 Recharger mon solde sur WhatsApp » (Guthaben per WhatsApp aufladen)). Die Nachricht senden Sie selbst.\n3. Das Studio schreibt Ihr Premium-Guthaben Ihrem Code gut; es erscheint oben im Tab 👑." },
+    recharge_ouvrir: { fr: "👑 Voir les recharges Premium", en: "👑 See Premium top-ups", de: "👑 Premium-Aufladungen ansehen" },
     securite: { fr: "Je suis Naya, l'assistante StarClip. Je peux vous expliquer comment utiliser nos outils, créer vos projets et choisir nos services. En revanche, le code interne, les accès administratifs et les informations confidentielles de StarClip ne sont pas communicables.", en: "I'm Naya, the StarClip assistant. I can explain how to use our tools, create your projects and choose our services. However, StarClip's internal code, administrative access and confidential information cannot be shared.", de: "Ich bin Naya, die StarClip-Assistentin. Ich erkläre Ihnen gern, wie Sie unsere Werkzeuge nutzen, Ihre Projekte erstellen und unsere Dienste auswählen. Interner Code, Administratorzugänge und vertrauliche Informationen von StarClip können jedoch nicht weitergegeben werden." },
     // v41.160 : réponses guidées (faits repris du manuel et de l'app, jamais inventés)
     guide_intro: { fr: "Bienvenue ! Voici comment utiliser StarClip, étape par étape.", en: "Welcome! Here is how to use StarClip, step by step.", de: "Willkommen! So nutzen Sie StarClip, Schritt für Schritt." },
@@ -157,12 +165,34 @@
   var TARIFS_TR = {
     en: [[/\(chant \+ tenue\)/, "(singing + outfit)"], [/(\d+) scènes? Éco/, "$1 Eco scene(s)"], [/(\d+) scènes? Pro/, "$1 Pro scenes"],
       [/\(jusqu'à (\d+) s\)/, "(up to $1 s)"], [/(\d+) à (\d+) minutes/, "$1 to $2 minutes"], [/plus de scènes, (\d+) formats/, "more scenes, $1 formats"],
-      [/scénario élaboré, corrections/, "detailed script, revisions"]],
+      [/scénario élaboré, corrections/, "detailed script, revisions"], [/tu paies/, "you pay"], [/solde reçu/, "balance received"]],
     de: [[/\(chant \+ tenue\)/, "(Gesang + Outfit)"], [/(\d+) scènes? Éco/, "$1 Eco-Szene(n)"], [/(\d+) scènes? Pro/, "$1 Pro-Szenen"],
       [/\(jusqu'à (\d+) s\)/, "(bis zu $1 s)"], [/(\d+) à (\d+) minutes/, "$1 bis $2 Minuten"], [/plus de scènes, (\d+) formats/, "mehr Szenen, $1 Formate"],
-      [/scénario élaboré, corrections/, "ausgearbeitetes Drehbuch, Korrekturen"]]
+      [/scénario élaboré, corrections/, "ausgearbeitetes Drehbuch, Korrekturen"], [/tu paies/, "Sie zahlen"], [/solde reçu/, "erhaltenes Guthaben"]]
   };
   var tarifLg = function (x) { (TARIFS_TR[etat.lg] || []).forEach(function (r) { x = x.replace(r[0], r[1]); }); return x; };
+  // Textes du cadre (interface) : 6 langues. Les réponses de Naya restent dans la langue de conversation (T, t()).
+  var UI = {
+    ban_txt: { fr: T.ban_txt.fr, en: T.ban_txt.en, de: T.ban_txt.de,
+      es: "¿Necesitas ayuda? Naya te acompaña. Habla con Naya o escríbele. Te guiará paso a paso para crear tus canciones, vídeos y videoclips profesionales.",
+      pt: "Precisa de ajuda? A Naya acompanha você. Fale com a Naya ou escreva para ela. Ela vai guiá-lo passo a passo para criar suas músicas, vídeos e videoclipes profissionais.",
+      ar: "هل تحتاج إلى مساعدة؟ نايا ترافقك. تحدّث إلى نايا أو اكتب لها. سترشدك خطوة بخطوة لإنشاء أغانيك وفيديوهاتك ومقاطعك الموسيقية الاحترافية." },
+    ban_parler: { fr: T.ban_parler.fr, en: T.ban_parler.en, de: T.ban_parler.de, es: "🎤 Hablar con Naya", pt: "🎤 Falar com a Naya", ar: "🎤 تحدّث إلى نايا" },
+    ban_ecrire: { fr: T.ban_ecrire.fr, en: T.ban_ecrire.en, de: T.ban_ecrire.de, es: "✍️ Escribir a Naya", pt: "✍️ Escrever para a Naya", ar: "✍️ اكتب إلى نايا" },
+    bouton: { fr: "Naya", en: "Naya", de: "Naya", es: "Naya", pt: "Naya", ar: "نايا" },
+    titre: { fr: T.titre.fr, en: T.titre.en, de: T.titre.de, es: "Naya · tu asistente", pt: "Naya · sua assistente", ar: "نايا · مساعدتك" },
+    placeholder: { fr: T.placeholder.fr, en: T.placeholder.en, de: T.placeholder.de, es: "Haz tu pregunta a Naya…", pt: "Faça sua pergunta à Naya…", ar: "اطرح سؤالك على نايا…" },
+    envoyer: { fr: T.envoyer.fr, en: T.envoyer.en, de: T.envoyer.de, es: "Enviar", pt: "Enviar", ar: "إرسال" },
+    fermer: { fr: T.fermer.fr, en: T.fermer.en, de: T.fermer.de, es: "Cerrar", pt: "Fechar", ar: "إغلاق" },
+    debutant: { fr: T.debutant.fr, en: T.debutant.en, de: T.debutant.de, es: "Principiante", pt: "Iniciante", ar: "مبتدئ" },
+    pro: { fr: T.pro.fr, en: T.pro.en, de: T.pro.de, es: "Pro", pt: "Pro", ar: "محترف" },
+    effacer: { fr: T.effacer.fr, en: T.effacer.en, de: T.effacer.de, es: "Borrar la conversación", pt: "Apagar a conversa", ar: "مسح المحادثة" },
+    bientot: { fr: T.bientot.fr, en: T.bientot.en, de: T.bientot.de, es: "pronto", pt: "em breve", ar: "قريبًا" },
+    confid: { fr: T.confid.fr, en: T.confid.en, de: T.confid.de, es: "Naya responde a partir del manual de StarClip. Tu conversación se queda en tu dispositivo: no se envía nada.", pt: "A Naya responde a partir do manual do StarClip. Sua conversa fica no seu aparelho: nada é enviado.", ar: "تجيب نايا انطلاقًا من دليل StarClip. تبقى محادثتك على جهازك: لا يُرسَل أي شيء." },
+    micro: { fr: T.micro.fr, en: T.micro.en, de: T.micro.de, es: "Hablar con Naya", pt: "Falar com a Naya", ar: "تحدّث إلى نايا" },
+    micro_ecoute: { fr: T.micro_ecoute.fr, en: T.micro_ecoute.en, de: T.micro_ecoute.de, es: "🎤 Te escucho… habla ahora.", pt: "🎤 Estou ouvindo… fale agora.", ar: "🎤 أنا أستمع… تحدّث الآن." }
+  };
+  var ti = function (cle) { var e = UI[cle] || T[cle]; return (e && (e[lgInterface()] || e.fr)) || ""; };
   var t = function (cle, vars) {
     var e = T[cle]; var s = (e && (e[etat.lg] || e.fr)) || "";
     return vars ? s.replace(/\{(\w+)\}/g, function (_, k) { return k in vars ? vars[k] : ""; }) : s;
@@ -760,11 +790,20 @@
       "\n\n" + t("guide_premium") + "\n\n" + t("guide_suite"),
       [option("op_video"), option("op_chanson"), option("op_prix"), option("op_acheter")], { intention: "guide" });
   }
+  // v41.162 : recharges du solde Premium (bloc « 👑 Recharger mon solde Premium » de l'onglet Commander, lu dans l'app).
+  var RECHARGE = / (recharg\w*|top up|topup|top ups|aufladen|aufladung|auflade) | (solde|balance|guthaben) premium | premium (solde|balance|guthaben)|premiumguthaben|premium guthaben /;
+  function ouvrirRecharge() { ouvrirOnglet("commander"); setTimeout(function () { var s0 = $("#sec-recharge"); if (s0) try { s0.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) {} }, 150); }
+  function reponseRecharge(r) {
+    var l = lignesTarifs("sec-recharge").map(function (x) { return "• " + tarifLg(x); });
+    if (!l.length) return null;
+    return r(t("recharge_intro") + "\n" + l.join("\n") + "\n\n" + t("recharge_etapes") + "\n" + t("debite"),
+      [{ lib: t("recharge_ouvrir"), fn: ouvrirRecharge }, option("op_prix")], { intention: "recharge" });
+  }
   function reponseAchat(k, r) {
     var pk = lignesTarifs("sec-auto9").map(function (x) { return "• " + tarifLg(x); });
     return r(t("achat_intro") + " " + phrases(rubrique(k, "commander", 1), 1) + "\n" + annoter(rubrique(k, "commander", 5)) + (pk.length ? "\n\n" + t("packs") + " :\n" + pk.join("\n") : "") +
       "\n\n" + annoter(rubrique(k, "commander", 7)) + "\n" + annoter(rubrique(k, "commander", 6)),
-      [boutonGuide("pack"), { lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }, option("op_signature")], { intention: "achat" });
+      [boutonGuide("pack"), { lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }].concat($("#sec-recharge") ? [{ lib: t("recharge_ouvrir"), fn: ouvrirRecharge }] : []).concat([option("op_signature")]), { intention: "achat" });
   }
   function reponseVideo(k, r) {
     var l = [puce(annoter("🎬 Scénario"), phrases(rubrique(k, "scenario", 1), 2)), puce(annoter(titreChap(k, "multiplans")), phrases(rubrique(k, "multiplans", 1), 1)),
@@ -882,6 +921,7 @@
     if (I.abonnement.test(q)) return r(t("abonnement"), [], { intention: "abonnement" });
     var outil = outilDe(q), genre = genreDe(q);
     if (I.prix.test(q) && (outil || !I.paiement.test(q))) return reponsePrix(outil || panneauOuvert(), r);
+    if (RECHARGE.test(normaliser(q))) { var rc = reponseRecharge(r); if (rc) return rc; }
     if (I.paiement.test(q)) return reponseAchat(k, r);
     if (genre || (/(prompt|exemple|example|beispiel|genre)/i.test(q) && /(chanson|song|lied|musique|music|musik|genre)/i.test(plier(q)))) return reponseGenre(genre, r);
     if (I.erreur.test(q)) {
@@ -1094,34 +1134,37 @@
     el.pan.querySelector(".naya-x").addEventListener("click", function () { basculer(false); });
     el.pan.querySelector(".naya-saisie").addEventListener("submit", function (ev) { ev.preventDefault(); envoyer(el.saisie.value); });
     el.saisie.addEventListener("keydown", function (ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); envoyer(el.saisie.value); } });
-    el.lg.addEventListener("change", function () { if (ACTIVES.indexOf(el.lg.value) < 0) { el.lg.value = etat.lg; return; } changerLangue(el.lg.value); });
+    el.lg.addEventListener("change", function () { if (ACTIVES.indexOf(el.lg.value) < 0) { el.lg.value = etat.lg; return; } changerLangue(el.lg.value, true); });
     [].forEach.call(el.pan.querySelectorAll("[data-niv]"), function (b) { b.addEventListener("click", function () { etat.niveau = b.dataset.niv; ecrire(LS.niv, etat.niveau); libelles(); }); });
     el.pan.querySelector(".naya-eff").addEventListener("click", function () { ecrire(LS.hist, "[]"); el.fil.innerHTML = ""; ajouter("naya", { texte: t("bienvenue") }, true); });
     document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && etat.ouvert) basculer(false); });
     libelles();
   }
   function libelles() {
-    el.btn.querySelector(".naya-lib").textContent = t("bouton");
-    el.btn.setAttribute("aria-label", t("titre"));
-    el.pan.setAttribute("aria-label", t("titre"));
-    el.pan.querySelector(".naya-t").textContent = t("titre");
-    el.pan.querySelector(".naya-x").setAttribute("aria-label", t("fermer")); el.pan.querySelector(".naya-x").textContent = "×";
-    el.saisie.placeholder = t("placeholder");
-    el.pan.querySelector(".naya-saisie button[type=submit]").textContent = t("envoyer");
-    el.mic.setAttribute("aria-label", t("micro")); el.mic.title = t("micro");
-    if (el.ban) { el.ban.querySelector("p").textContent = t("ban_txt"); el.ban.querySelector("[data-a=parler]").textContent = t("ban_parler"); el.ban.querySelector("[data-a=ecrire]").textContent = t("ban_ecrire"); el.ban.lang = etat.lg; }
-    el.pan.querySelector(".naya-conf").textContent = t("confid");
-    el.pan.querySelector(".naya-eff").textContent = t("effacer");
+    var li = lgInterface(), sens = li === "ar" ? "rtl" : "ltr";
+    el.btn.querySelector(".naya-lib").textContent = ti("bouton"); el.btn.lang = li; el.btn.dir = sens;
+    el.btn.setAttribute("aria-label", ti("titre"));
+    el.pan.setAttribute("aria-label", ti("titre"));
+    el.pan.querySelector(".naya-t").textContent = ti("titre");
+    [".naya-tete", ".naya-niv", ".naya-pied"].forEach(function (c) { var z = el.pan.querySelector(c); if (z) { z.dir = sens; z.lang = li; } });
+    el.pan.querySelector(".naya-x").setAttribute("aria-label", ti("fermer")); el.pan.querySelector(".naya-x").textContent = "×";
+    if (!reco) el.saisie.placeholder = ti("placeholder");
+    el.saisie.dir = "auto";
+    el.pan.querySelector(".naya-saisie button[type=submit]").textContent = ti("envoyer");
+    el.mic.setAttribute("aria-label", ti("micro")); el.mic.title = ti("micro");
+    if (el.ban) { el.ban.querySelector("p").textContent = ti("ban_txt"); el.ban.querySelector("[data-a=parler]").textContent = ti("ban_parler"); el.ban.querySelector("[data-a=ecrire]").textContent = ti("ban_ecrire"); el.ban.lang = li; el.ban.dir = sens; }
+    el.pan.querySelector(".naya-conf").textContent = ti("confid");
+    el.pan.querySelector(".naya-eff").textContent = ti("effacer");
     el.lg.innerHTML = ACTIVES.map(function (l) { return '<option value="' + l + '"' + (l === etat.lg ? " selected" : "") + ">" + l.toUpperCase() + " · " + NOM_LG[l] + "</option>"; }).join("") +
-      Object.keys(BIENTOT).map(function (l) { return '<option value="' + l + '" disabled>' + l.toUpperCase() + " · " + BIENTOT[l] + " (" + t("bientot") + ")</option>"; }).join("");
-    [].forEach.call(el.pan.querySelectorAll("[data-niv]"), function (b) { b.textContent = t(b.dataset.niv); b.classList.toggle("on", b.dataset.niv === etat.niveau); });
+      Object.keys(BIENTOT).map(function (l) { return '<option value="' + l + '" disabled>' + l.toUpperCase() + " · " + BIENTOT[l] + " (" + ti("bientot") + ")</option>"; }).join("");
+    [].forEach.call(el.pan.querySelectorAll("[data-niv]"), function (b) { b.textContent = ti(b.dataset.niv); b.classList.toggle("on", b.dataset.niv === etat.niveau); });
     var pu = el.pan.querySelector(".naya-puces"); pu.innerHTML = "";
     ["q_quoi", "q_chanson", "q_prompt", "q_clip", "q_payer"].forEach(function (k) {
       var b = document.createElement("button"); b.type = "button"; b.className = "naya-btn"; b.textContent = t(k);
       b.addEventListener("click", function () { envoyer(t(k)); }); pu.appendChild(b);
     });
   }
-  function changerLangue(lg) { etat.lg = lg; ecrire(LS.lg, lg); libelles(); chargerKB(lg).catch(function () {}); }
+  function changerLangue(lg, explicite) { etat.lg = lg; if (explicite) ecrire(LS.lg, lg); libelles(); chargerKB(lg).catch(function () {}); }
   function basculer(o) {
     etat.ouvert = o; el.pan.hidden = !o; el.btn.setAttribute("aria-expanded", String(o));
     if (!o) { arreterVoix(); if (reco) { try { reco.abort(); } catch (_) {} } }
@@ -1141,7 +1184,7 @@
     h.push({ qui: qui, texte: String(texte).slice(0, 1500) }); ecrire(LS.hist, JSON.stringify(h.slice(-30)));
   }
   function ajouter(qui, rep, sansMemo) {
-    var d = document.createElement("div"); d.className = "naya-m " + qui;
+    var d = document.createElement("div"); d.className = "naya-m " + qui; d.dir = "auto";
     if (rep.intention) d.dataset.intention = rep.intention;
     if (qui === "naya" && !rep.lg) rep.lg = etat.lg;   // langue dans laquelle la réponse est écrite : la voix lira cette langue
     d.innerHTML = mise(rep.texte);
@@ -1225,7 +1268,7 @@
     };
     r0.onerror = function (ev) { var e = ev && ev.error; if (e === "not-allowed" || e === "service-not-allowed") noteMicro("micro_refus"); else if (e === "no-speech") noteMicro("micro_rien"); else if (e !== "aborted") noteMicro("micro_indispo"); };
     r0.onend = function () { reco = null; el.mic.classList.remove("on"); el.saisie.placeholder = place; var q = final.trim(); if (q) envoyer(q); };
-    try { r0.start(); reco = r0; el.mic.classList.add("on"); el.saisie.placeholder = t("micro_ecoute"); }
+    try { r0.start(); reco = r0; el.mic.classList.add("on"); el.saisie.placeholder = ti("micro_ecoute"); }
     catch (_) { reco = null; noteMicro("micro_indispo"); }
   }
   function arreterVoix() { try { if (lecture) { lecture.pause(); URL.revokeObjectURL(lecture.src); } } catch (_) {} lecture = null; try { speechSynthesis.cancel(); } catch (_) {} }
@@ -1275,6 +1318,10 @@
   function demarrer() {
     if (document.getElementById("naya-btn")) return;
     construire();
+    // v41.162 : le cadre de Naya suit la langue de l'interface StarClip en direct (attribut lang de la page, ou
+    // événement « starclip:langue » si un sélecteur de langue global est ajouté), sans rechargement.
+    try { new MutationObserver(function () { libelles(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] }); } catch (_) {}
+    window.addEventListener("starclip:langue", function (ev) { if (ev && ev.detail) document.documentElement.setAttribute("lang", String(ev.detail)); libelles(); });
     // Point d'accès pour les tests automatiques et pour l'aide contextuelle des autres onglets.
     window.Naya = { ouvrir: function () { basculer(true); }, fermer: function () { basculer(false); }, demander: function (q) { basculer(true); envoyer(q); },
       repondre: function (q, lg) { return chargerKB(lg || etat.lg).then(function (k) { var a = etat.lg; if (lg) etat.lg = lg; try { return repondre(q, k); } finally { etat.lg = a; } }); },

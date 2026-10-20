@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.161 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.162 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -1096,6 +1096,29 @@
     <div class="estimate" style="margin-top:10px;">Étape 3 — Reçois ton CODE sur WhatsApp en quelques minutes ⚡ Entre-le en haut de l'app et crée tes vidéos toi-même, quand tu veux !</div>
   </section>
 
+  <!-- v41.162 : RECHARGES PREMIUM — les mêmes offres que l'outil « Recharger le Premium d'un code existant » de l'espace
+       Studio (Découverte, Créateur, Studio). Paiement par le même circuit que les packs : Mobile Money aux numéros de
+       l'étape 1, preuve sur WhatsApp, le studio crédite le solde Premium du code. Aucun paiement dans l'app. -->
+  <section class="card" id="sec-recharge" style="border-color:#c026d3; background:linear-gradient(180deg, rgba(192,38,211,.08), transparent);">
+    <h2><span class="num" style="background:linear-gradient(135deg,#7c3aed,#c026d3,#f59e0b); color:#fff;">👑</span> Recharger mon solde Premium</h2>
+    <p class="sub" style="margin:0 0 12px;">Les outils de l'onglet <b>👑 Admin Premium 5.0</b> (Seedance, Aleph, Multi-Shot, Chanson, Chanson Pro, Stems…) se paient <b>à l'unité</b> sur ton <b>solde Premium</b>, avec ton même code STAR-XXXX. Le prix s'affiche avant chaque création ; rien n'est débité avant que tu lances.<br><span style="opacity:.85">Premium top-ups: pay by Mobile Money, the studio credits your Premium balance on your StarClip code.</span></p>
+    <div class="label" style="margin-top:0;">Recharges Premium</div>
+    <div style="background:var(--up); border-radius:10px; padding:12px 14px; font-size:14px; line-height:2;">
+      🔹 <b>Découverte</b> — tu paies 10 499 FCFA — solde reçu <b style="color:var(--gold);">10 499 FCFA</b><br>
+      💠 <b>Créateur</b> — tu paies 24 999 FCFA — solde reçu <b style="color:var(--gold);">27 499 FCFA</b> (+10 %)<br>
+      👑 <b>Studio</b> — tu paies 49 999 FCFA — solde reçu <b style="color:var(--gold);">57 499 FCFA</b> (+15 %)
+    </div>
+    <div class="estimate" style="margin-top:8px; border-left:3px solid #c026d3; line-height:1.7;">
+      1. Envoie le montant de la recharge choisie aux numéros <b>Orange Money</b> ou <b>MTN Mobile Money</b> de l'étape 1 ci-dessus.<br>
+      2. Envoie ta capture du paiement <b>et ton code StarClip</b> sur WhatsApp.<br>
+      3. Le studio crédite ton solde Premium sur ton code : il s'affiche en haut de l'onglet 👑 Admin Premium 5.0.
+    </div>
+    <a href="https://wa.me/237695535475?text=Bonjour%20Studio%20Rudis%20!%20Je%20veux%20recharger%20mon%20solde%20Premium%20(recharge%20%3A%20...).%20Voici%20ma%20preuve%20de%20paiement%20et%20mon%20code%20StarClip%20%3A%20"
+       style="display:block; text-align:center; padding:13px; border-radius:10px; background:#25D366; color:#06300f; font-weight:800; font-size:15px; text-decoration:none; margin-top:12px;">
+      💬 Recharger mon solde sur WhatsApp
+    </a>
+  </section>
+
   <!-- CLIP SIGNATURE : offre montée par Papy (haut de gamme) -->
   <section class="card" id="sec-auto10" style="border-color:var(--violet); background:linear-gradient(180deg, rgba(139,92,246,.08), transparent);">
     <h2><span class="num" style="background:var(--violet); color:#fff;">🎬</span> Clip Signature — réalisé par un professionnel</h2>
@@ -1143,7 +1166,7 @@
     </div>
     <div class="estimate" id="pmCodeInfo" style="margin-top:4px;"></div>
     <div class="estimate" style="margin-top:8px;">
-      Pas encore de solde Premium ? Commande un pack sur WhatsApp 👇 (en bas de la page « Commander »).
+      Pas encore de solde Premium ? <a href="#" onclick="document.querySelector('#tabbar .qnav[data-tab=&quot;commander&quot;]').click(); setTimeout(function () { var s = document.getElementById('sec-recharge'); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 120); return false;" style="color:var(--gold);">Recharge-le dans l'onglet 💳 Commander</a> (bloc « 👑 Recharger mon solde Premium »).
     </div>
     <div id="pmListe" style="margin-top:12px;"></div>
   </section>
@@ -2425,7 +2448,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.161</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.162</span>
 
   </footer>
 </div>
@@ -9341,7 +9364,7 @@ fxRefresh();
     'nav-tenue':'look', 'sec-tenuevid':'look', 'nav-decor':'look', 'sec-auto6':'look',
     'sec-danses':'scenario', 'sec-decorvid':'scenario', 'nav-scenario':'scenario', 'sec-auto7':'scenario',
     'nav-lipsync':'finition', 'sec-auto8':'finition',
-    'sec-auto9':'commander', 'sec-auto10':'commander',
+    'sec-auto9':'commander', 'sec-recharge':'commander', 'sec-auto10':'commander',
     'sec-msr':'miniseries', 'sec-remix':'remix', 'sec-idees':'idees', 'sec-prompts':'prompts', 'sec-premium':'premium'
   };
   var tabs = document.querySelectorAll('#tabbar .qnav');
@@ -15242,6 +15265,6 @@ const SCENARIO_EXEMPLES = [
 </script>
 
 <!-- v41.156 : Naya, l'assistante StarClip (dans le navigateur, sans IA payante ni envoi de données). -->
-<script src="naya/naya.js?v=41161" defer></script>
+<script src="naya/naya.js?v=41162" defer></script>
 </body>
 </html>
