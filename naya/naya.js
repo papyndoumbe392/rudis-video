@@ -278,6 +278,9 @@
         case "chpPuces": return typeof chpPuces !== "undefined" ? chpPuces : null;
         case "pmMaj": return typeof pmMaj !== "undefined" ? pmMaj : null;
         case "pmOuvrir": return typeof pmOuvrir !== "undefined" ? pmOuvrir : null;
+        case "pmFermer": return typeof pmFermer !== "undefined" ? pmFermer : null;
+        // v41.160 : le guide sait seulement SI un code est saisi (oui / non), jamais lequel.
+        case "codePresent": return typeof getCode !== "undefined" ? !!getCode() : false;
         case "pmChargerExemple": return typeof pmChargerExemple !== "undefined" ? pmChargerExemple : null;
       }
     } catch (_) {}
@@ -531,9 +534,216 @@
     });
     return x;
   }
+  // Le bouton vaut accord du client : le parcours démarre directement.
+  function boutonGuide(id) { return { lib: tg(GT.accompagner), fn: function () { ajouter("naya", demarrerGuide(id, function (t0, a, x) { var o = { texte: propre(t0), actions: a || [] }; for (var k in x || {}) o[k] = x[k]; return o; })); } }; }
   function puce(nom, texte) { return "• " + nom + " : " + texte; }
   function option(cle) { return { lib: t(cle), fn: function () { envoyer(t(cle).replace(/^\S+\s/, "")); } }; }
   var OPTIONS = ["op_debuter", "op_video", "op_chanson", "op_moteur", "op_prix", "op_acheter", "op_signature"];
+
+
+  // ───────────── v41.160 : Naya — Guide interactif ─────────────
+  // Parcours reliés aux vrais onglets et éléments de l'app (identifiants stables d'index.html). Le guide peut ouvrir un
+  // onglet (après accord du client) et mettre un élément en évidence. Il vérifie la progression avec les indicateurs que
+  // l'app affiche déjà (pastilles « fait », genre choisi, génération démarrée) et dit quand il ne peut pas vérifier.
+  // Il ne clique JAMAIS sur un bouton de lancement, de paiement ou d'envoi : ces gestes restent ceux du client.
+  var $ = function (sel) { try { return document.querySelector(sel); } catch (_) { return null; } };
+  var visible = function (e) { return !!(e && e.getClientRects().length && !e.closest(".hidden,[hidden]")); };
+  var aClasse = function (sel, c) { var e = $(sel); return !!(e && e.classList.contains(c)); };
+  var tg = function (o, v) { var s0 = (o && (o[etat.lg] || o.fr)) || ""; return v ? s0.replace(/\{(\w+)\}/g, function (_, k) { return k in v ? v[k] : ""; }) : s0; };
+  var GT = {
+    titre: { fr: "🧭 Guide interactif", en: "🧭 Interactive guide", de: "🧭 Interaktiver Guide" },
+    proposer: { fr: "Je peux t'accompagner étape par étape dans l'app : {p}. J'ouvre les bons onglets et je te montre où toucher ; c'est toi qui fais chaque geste. On y va ?", en: "I can walk you through it step by step in the app: {p}. I open the right tabs and show you where to tap; you make every move yourself. Shall we?", de: "Ich kann Sie Schritt für Schritt in der App begleiten: {p}. Ich öffne die richtigen Tabs und zeige Ihnen, wo Sie tippen; jeden Schritt machen Sie selbst. Sollen wir?" },
+    oui: { fr: "✅ Oui, allons-y", en: "✅ Yes, let's go", de: "✅ Ja, los geht's" },
+    non: { fr: "Non merci", en: "No thanks", de: "Nein danke" },
+    accompagner: { fr: "🧭 M'accompagner pas à pas", en: "🧭 Guide me step by step", de: "🧭 Schritt für Schritt begleiten" },
+    debut: { fr: "Avec plaisir ! Nous allons {p} ensemble, une étape à la fois. Tu peux dire à tout moment « répète », « explique autrement », « reviens en arrière », « passe cette étape » ou « arrête le guide ».", en: "With pleasure! We'll {p} together, one step at a time. You can say « repeat », « explain differently », « go back », « skip this step » or « stop the guide » at any time.", de: "Sehr gern! Wir werden gemeinsam {p}, ein Schritt nach dem anderen. Sie können jederzeit « wiederholen », « anders erklären », « zurück », « Schritt überspringen » oder « Guide beenden » sagen." },
+    etape: { fr: "Étape {n}/{N} — {t}", en: "Step {n}/{N} — {t}", de: "Schritt {n}/{N} — {t}" },
+    verif_auto: { fr: "Je vois quand c'est fait et je te propose la suite.", en: "I'll see when it's done and suggest the next step.", de: "Ich sehe, wenn es erledigt ist, und schlage den nächsten Schritt vor." },
+    verif_manu: { fr: "Je ne peux pas vérifier cette étape moi-même : dis « suivant » quand c'est fait.", en: "I can't check this step myself: say « next » when it's done.", de: "Diesen Schritt kann ich nicht selbst prüfen: Sagen Sie « weiter », wenn er erledigt ist." },
+    bravo: { fr: "✓ Parfait, c'est fait !", en: "✓ Great, that's done!", de: "✓ Perfekt, erledigt!" },
+    pas_encore: { fr: "Je ne vois pas encore cette étape terminée dans l'app. Prends ton temps ; si tu veux continuer quand même, dis « passe cette étape ».", en: "I don't see this step completed in the app yet. Take your time; to continue anyway, say « skip this step ».", de: "Ich sehe diesen Schritt in der App noch nicht als erledigt. Lassen Sie sich Zeit; um trotzdem weiterzumachen, sagen Sie « Schritt überspringen »." },
+    fini: { fr: "🎉 Bravo, le parcours « {p} » est terminé ! Ton résultat apparaîtra dans la zone Résultats. Je reste là si tu as une question.", en: "🎉 Well done, the « {p} » guide is complete! Your result will appear in the Results area. I'm here if you have a question.", de: "🎉 Glückwunsch, der Guide « {p} » ist abgeschlossen! Ihr Ergebnis erscheint im Ergebnisbereich. Ich bin da, wenn Sie eine Frage haben." },
+    arret: { fr: "Guide arrêté. Tu pourras le reprendre quand tu veux : dis par exemple « accompagne-moi pour ma première chanson ».", en: "Guide stopped. You can restart it any time: say for example « guide me through my first song ».", de: "Guide beendet. Sie können ihn jederzeit neu starten: Sagen Sie zum Beispiel « begleite mich bei meinem ersten Song »." },
+    debut_deja: { fr: "Nous sommes déjà à la première étape.", en: "We're already at the first step.", de: "Wir sind schon beim ersten Schritt." },
+    rappel: { fr: "🧭 Guide en cours (étape {n}/{N}) : dis « continue » pour reprendre ou « arrête le guide ».", en: "🧭 Guide in progress (step {n}/{N}): say « continue » to resume or « stop the guide ».", de: "🧭 Guide läuft (Schritt {n}/{N}): Sagen Sie « weiter » zum Fortsetzen oder « Guide beenden »." },
+    b_suivant: { fr: "✓ C'est fait", en: "✓ Done", de: "✓ Erledigt" },
+    b_autre: { fr: "💬 Explique autrement", en: "💬 Explain differently", de: "💬 Anders erklären" },
+    b_retour: { fr: "← Retour", en: "← Back", de: "← Zurück" },
+    b_passer: { fr: "⏭ Passer", en: "⏭ Skip", de: "⏭ Überspringen" },
+    b_arret: { fr: "■ Arrêter", en: "■ Stop", de: "■ Beenden" },
+    // Commandes envoyées par les boutons (reconnues ensuite comme si le client les avait écrites)
+    c_suivant: { fr: "suivant", en: "next", de: "weiter" }, c_autre: { fr: "explique autrement", en: "explain differently", de: "anders erklären" },
+    c_retour: { fr: "reviens en arrière", en: "go back", de: "zurück" }, c_passer: { fr: "passe cette étape", en: "skip this step", de: "Schritt überspringen" },
+    c_arret: { fr: "arrête le guide", en: "stop the guide", de: "Guide beenden" }
+  };
+  // Commandes reconnues pendant un parcours (texte normalisé, FR / EN / DE, y compris dictée).
+  var CMD = {
+    arret: / (arrete|arreter|stop|stoppe|stopp|quitte|quitter|quit|cancel|annule|beenden|beende|abbrechen|aufhoren|ende) /,
+    retour: / (retour|reviens|revenir|arriere|precedent|back|previous|zuruck|vorherige) /,
+    passer: / (passe|passer|saute|sauter|skip|uberspringen|uberspringe|ignorer cette) /,
+    autre: / (autrement|autre facon|explique mieux|differently|another way|anders|einfacher|simpler|plus simple) /,
+    repeter: / (repete|repeter|redis|repeat|again|say again|wiederhole|wiederholen|nochmal|noch einmal) /,
+    suivant: / (suivant|suivante|continue|continuer|reprendre|reprend|next|done|weiter|fertig|erledigt|gemacht|c est fait|j ai fini|j y suis|ok|okay|oui|yes|ja|voila|finished|i m there|bin da) /
+  };
+  var ACCORD = / (oui|ouais|d accord|ok|okay|vas y|allons y|go|yes|yeah|sure|let s go|ja|gerne|los|klar) /, REFUS = / (non|no|nope|nein|pas maintenant|not now|merci non|plus tard|later|spater) /;
+  var DEMANDE_GUIDE = / (accompagne|accompagner|guide|guider|guides|pas a pas|etape par etape|step by step|walk me|show me how|montre moi|begleite|begleiten|fuhre|fuhren|schritt fur schritt|zeig mir|premiere|premier|first|erste|ersten|erstes|debutant|debutante|beginner|anfanger|einsteiger) /;
+
+  function tuileOuverte(id) { return visible($("#pmPan_" + id)); }
+  function preparerPremium(outilVoulu) { ouvrirOnglet("premium"); var p = $(".pmPan:not(.hidden)"); if (p && p.id !== "pmPan_" + outilVoulu) { var f = G("pmFermer"); if (f) try { f(); } catch (_) {} } }
+  var PARCOURS = {
+    chanson: {
+      nom: { fr: "créer ta première chanson", en: "create your first song", de: "Ihren ersten Song erstellen" },
+      etapes: [
+        { t: { fr: "Ton code StarClip", en: "Your StarClip code", de: "Ihr StarClip-Code" }, onglet: "premium", prep: function () { preparerPremium("chanson"); }, cible: "#pmCode",
+          x: { fr: "Entre ton code StarClip dans la case mise en évidence (« Ton code STAR-XXXX »), puis touche OK. Il donne accès aux outils et contient ton solde. Pas encore de code ? Dis « acheter un code ».", en: "Enter your StarClip code in the highlighted box (« Ton code STAR-XXXX »), then tap OK. It unlocks the tools and holds your balance. No code yet? Say « buy a code ».", de: "Geben Sie Ihren StarClip-Code in das hervorgehobene Feld ein (« Ton code STAR-XXXX ») und tippen Sie auf OK. Er schaltet die Werkzeuge frei und enthält Ihr Guthaben. Noch kein Code? Sagen Sie « Code kaufen »." },
+          a: { fr: "Ton code ressemble à STAR-7K3M. Tape-le sans espace dans la case qui clignote, puis touche le bouton OK juste à côté.", en: "Your code looks like STAR-7K3M. Type it without spaces into the flashing box, then tap the OK button next to it.", de: "Ihr Code sieht aus wie STAR-7K3M. Tippen Sie ihn ohne Leerzeichen in das blinkende Feld und dann auf OK daneben." },
+          fait: function () { return G("codePresent"); } },
+        { t: { fr: "Ouvrir l'outil Chanson", en: "Open the Song tool", de: "Das Song-Werkzeug öffnen" }, onglet: "premium", prep: function () { preparerPremium("chanson"); }, cible: '.pmTuile[data-pmouvre="chanson"]', cibleSiFait: "#pmPan_chanson",
+          x: { fr: "Touche la tuile « 🎵 Chanson » mise en évidence : c'est l'outil le plus simple pour une première chanson (2 versions d'une chanson complète).", en: "Tap the highlighted « 🎵 Chanson » (Song) tile: it's the simplest tool for a first song (2 versions of a complete song).", de: "Tippen Sie auf die hervorgehobene Kachel « 🎵 Chanson » (Song): das einfachste Werkzeug für einen ersten Song (2 Versionen eines vollständigen Songs)." },
+          a: { fr: "Dans l'onglet « 👑 Admin Premium 5.0 », plusieurs tuiles présentent les outils. Celle qui clignote s'appelle « 🎵 Chanson » : touche-la une fois pour ouvrir son formulaire.", en: "In the « 👑 Admin Premium 5.0 » tab, tiles present the tools. The flashing one is « 🎵 Chanson » (Song): tap it once to open its form.", de: "Im Tab « 👑 Admin Premium 5.0 » stellen Kacheln die Werkzeuge vor. Die blinkende heißt « 🎵 Chanson » (Song): Tippen Sie einmal darauf, um das Formular zu öffnen." },
+          fait: function () { return tuileOuverte("chanson"); } },
+        { t: { fr: "Le style musical", en: "The music style", de: "Der Musikstil" }, onglet: "premium", prep: function () { if (!tuileOuverte("chanson")) ouvrirOutil("chanson"); }, cible: "#pmChGenre_chanson",
+          x: { fr: "Choisis un genre dans la liste mise en évidence : par exemple Makossa, Afrobeats ou Rumba congolaise. Quel style préfères-tu ? Je peux aussi te proposer un exemple de prompt : dis « prompt makossa ».", en: "Choose a genre in the highlighted list: for example Makossa, Afrobeats or Congolese rumba. Which style do you prefer? I can also suggest an example prompt: say « makossa prompt ».", de: "Wählen Sie ein Genre in der hervorgehobenen Liste, zum Beispiel Makossa, Afrobeats oder kongolesische Rumba. Welchen Stil möchten Sie? Ich kann Ihnen auch einen Beispiel-Prompt vorschlagen: Sagen Sie « Makossa-Prompt »." },
+          a: { fr: "Chaque bouton de la ligne « Genre » est un style de musique. Touche celui qui ressemble le plus à la chanson que tu imagines ; il devient doré quand il est choisi.", en: "Each button in the « Genre » row is a music style. Tap the one closest to the song you imagine; it turns gold when selected.", de: "Jede Schaltfläche in der Zeile « Genre » ist ein Musikstil. Tippen Sie auf den, der Ihrem Song am nächsten kommt; er wird golden, wenn er gewählt ist." },
+          fait: function () { var c = G("pmChChoix"); return !!(c && c.chanson && c.chanson.genre); } },
+        { t: { fr: "La voix et la langue", en: "Voice and language", de: "Stimme und Sprache" }, onglet: "premium", cible: "#pmChVoix_chanson",
+          x: { fr: "Choisis la voix (homme, femme, duo…) puis, juste en dessous, la langue du chant et l'ambiance. Si tu hésites, garde les choix proposés.", en: "Choose the voice (male, female, duo…) then, just below, the singing language and the mood. If unsure, keep the suggested choices.", de: "Wählen Sie die Stimme (Mann, Frau, Duo…) und darunter die Gesangssprache und die Stimmung. Wenn Sie unsicher sind, behalten Sie die Vorschläge." },
+          a: { fr: "Ces réglages sont facultatifs : ils précisent qui chante, dans quelle langue et avec quelle émotion. Tu peux les laisser tels quels pour une première chanson.", en: "These settings are optional: they define who sings, in which language and with what emotion. You can leave them as they are for a first song.", de: "Diese Einstellungen sind optional: Sie legen fest, wer singt, in welcher Sprache und mit welcher Stimmung. Für einen ersten Song können Sie sie so lassen." } },
+        { t: { fr: "Tes paroles", en: "Your lyrics", de: "Ihr Liedtext" }, onglet: "premium", cible: "#pmParoles_chanson",
+          x: { fr: "Colle tes paroles dans la case mise en évidence, avec une ligne vide entre les couplets (le bloc qui se répète devient le refrain). Pas de paroles ? Laisse vide : elles seront écrites pour toi.", en: "Paste your lyrics into the highlighted box, with a blank line between verses (the repeated block becomes the chorus). No lyrics? Leave it empty: they will be written for you.", de: "Fügen Sie Ihren Text in das hervorgehobene Feld ein, mit einer Leerzeile zwischen den Strophen (der wiederholte Block wird zum Refrain). Kein Text? Leer lassen: Er wird für Sie geschrieben." },
+          a: { fr: "Les paroles sont facultatives. Si tu en as, sépare chaque couplet par une ligne vide. Tu peux aussi ajouter des précisions dans la case juste au-dessus, par exemple « refrain très accrocheur, guitare douce ».", en: "Lyrics are optional. If you have some, separate each verse with a blank line. You can also add details in the box just above, for example « very catchy chorus, soft guitar ».", de: "Der Text ist optional. Wenn Sie einen haben, trennen Sie jede Strophe durch eine Leerzeile. Im Feld darüber können Sie Details ergänzen, z. B. « sehr eingängiger Refrain, sanfte Gitarre »." } },
+        { t: { fr: "Vérifier le prix et lancer", en: "Check the price and start", de: "Preis prüfen und starten" }, onglet: "premium", cible: "#pmGo_chanson",
+          x: { fr: "Le prix affiché en haut de l'outil est de {prix}. Il n'est débité que lorsque TU touches le bouton de lancement mis en évidence. Je ne lance jamais rien à ta place : quand tout te convient, touche-le toi-même.", en: "The price shown at the top of the tool is {prix}. It is charged only when YOU tap the highlighted start button. I never start anything for you: when everything suits you, tap it yourself.", de: "Der oben im Werkzeug angezeigte Preis beträgt {prix}. Er wird erst abgebucht, wenn SIE auf die hervorgehobene Start-Schaltfläche tippen. Ich starte nie etwas für Sie: Wenn alles passt, tippen Sie selbst darauf." },
+          a: { fr: "Si le bouton indique encore ce qu'il manque (par exemple le genre ou le code), complète ce point d'abord. Quand il affiche « 👑 Lancer » avec le prix, tout est prêt.", en: "If the button still says what is missing (for example the genre or the code), complete that first. When it shows « 👑 Lancer » with the price, everything is ready.", de: "Wenn die Schaltfläche noch anzeigt, was fehlt (z. B. Genre oder Code), ergänzen Sie das zuerst. Zeigt sie « 👑 Lancer » mit dem Preis, ist alles bereit." },
+          fait: function () { return visible($("#pm_chansonRond")) || !!$("#pmResult_chanson audio"); } }
+      ]
+    },
+    video: {
+      nom: { fr: "créer ta première vidéo", en: "create your first video", de: "Ihr erstes Video erstellen" },
+      etapes: [
+        { t: { fr: "Ton code StarClip", en: "Your StarClip code", de: "Ihr StarClip-Code" }, onglet: "accueil", cible: "#starCode",
+          x: { fr: "Entre ton code StarClip dans la case mise en évidence, puis touche OK. Pas encore de code ? Dis « acheter un code ».", en: "Enter your StarClip code in the highlighted box, then tap OK. No code yet? Say « buy a code ».", de: "Geben Sie Ihren StarClip-Code in das hervorgehobene Feld ein und tippen Sie auf OK. Noch kein Code? Sagen Sie « Code kaufen »." },
+          a: { fr: "Ton code ressemble à STAR-7K3M. Il contient tes vidéos. Tape-le sans espace dans la case qui clignote, puis OK.", en: "Your code looks like STAR-7K3M and holds your videos. Type it without spaces into the flashing box, then OK.", de: "Ihr Code sieht aus wie STAR-7K3M und enthält Ihre Videos. Tippen Sie ihn ohne Leerzeichen in das blinkende Feld, dann OK." },
+          fait: function () { return aClasse("#dotKey", "on"); } },
+        { t: { fr: "Ta photo", en: "Your photo", de: "Ihr Foto" }, onglet: "photo", cible: "#photoBtn",
+          x: { fr: "Touche « Choisir une photo » et prends une photo nette, de face et bien éclairée : c'est la base de ta vidéo et le visage que l'app protège.", en: "Tap « Choisir une photo » (Choose a photo) and pick a sharp, front-facing, well-lit photo: it's the base of your video and the face the app protects.", de: "Tippen Sie auf « Choisir une photo » (Foto wählen) und nehmen Sie ein scharfes, frontales, gut beleuchtetes Foto: Es ist die Grundlage Ihres Videos und das Gesicht, das die App schützt." },
+          a: { fr: "Une bonne photo fait une bonne vidéo : visage bien visible, pas de lunettes de soleil, lumière du jour si possible. Touche le bouton qui clignote pour la choisir dans ta galerie.", en: "A good photo makes a good video: face clearly visible, no sunglasses, daylight if possible. Tap the flashing button to pick it from your gallery.", de: "Ein gutes Foto ergibt ein gutes Video: Gesicht gut sichtbar, keine Sonnenbrille, möglichst Tageslicht. Tippen Sie auf die blinkende Schaltfläche, um es aus Ihrer Galerie zu wählen." },
+          fait: function () { return aClasse("#dot1", "on"); } },
+        { t: { fr: "Ton idée", en: "Your idea", de: "Ihre Idee" }, onglet: "scenario", cible: "#ideaFr",
+          x: { fr: "Décris ton idée en une ou deux phrases dans la case mise en évidence (par exemple « je chante sur la plage au coucher du soleil »), puis touche le bouton juste en dessous : l'assistant écrit le scénario pour toi.", en: "Describe your idea in one or two sentences in the highlighted box (for example « I sing on the beach at sunset »), then tap the button just below: the assistant writes the script for you.", de: "Beschreiben Sie Ihre Idee in ein bis zwei Sätzen im hervorgehobenen Feld (z. B. « ich singe am Strand bei Sonnenuntergang ») und tippen Sie auf die Schaltfläche darunter: Der Assistent schreibt das Drehbuch für Sie." },
+          a: { fr: "Pas besoin d'être technique : dis simplement où tu es, ce que tu fais et l'ambiance. Évite de redécrire ta tenue ou le décor : ils viennent de ta photo.", en: "No need to be technical: just say where you are, what you do and the mood. Don't describe your outfit or setting again: they come from your photo.", de: "Sie müssen nicht technisch sein: Sagen Sie einfach, wo Sie sind, was Sie tun und welche Stimmung herrscht. Outfit und Kulisse nicht erneut beschreiben: Sie kommen aus Ihrem Foto." },
+          fait: function () { return aClasse("#dot2", "on"); } },
+        { t: { fr: "Le mode et la durée", en: "Mode and length", de: "Modus und Dauer" }, onglet: "scenario", cible: '.chip[data-model="eco"]', cibleParent: true,
+          x: { fr: "Choisis le mode : « Éco », « Pro (lip-sync) » ou « ⭐ Visage stable », puis la durée : 5 ou 10 secondes. Si tu débutes, « Éco » et 5 secondes suffisent.", en: "Choose the mode: « Éco », « Pro (lip-sync) » or « ⭐ Visage stable » (stable face), then the length: 5 or 10 seconds. To start, « Éco » and 5 seconds are enough.", de: "Wählen Sie den Modus: « Éco », « Pro (lip-sync) » oder « ⭐ Visage stable » (stabiles Gesicht), dann die Dauer: 5 oder 10 Sekunden. Für den Anfang reichen « Éco » und 5 Sekunden." },
+          a: { fr: "Le mode change la qualité et ce qui est possible (lip-sync, visage plus fidèle) ; la durée change la longueur de la vidéo. Le bouton doré indique ton choix.", en: "The mode changes quality and what's possible (lip-sync, more faithful face); the length changes the video duration. The gold button shows your choice.", de: "Der Modus ändert Qualität und Möglichkeiten (Lip-Sync, treueres Gesicht); die Dauer ändert die Länge des Videos. Die goldene Schaltfläche zeigt Ihre Wahl." } },
+        { t: { fr: "Lancer la vidéo", en: "Start the video", de: "Video starten" }, onglet: "scenario", cible: "#go",
+          x: { fr: "Quand le bouton mis en évidence affiche « 🎬 Générer la vidéo », tout est prêt. C'est débité sur ton code StarClip au lancement : touche-le toi-même, je ne lance jamais rien à ta place.", en: "When the highlighted button shows « 🎬 Générer la vidéo » (Generate the video), everything is ready. It's charged to your StarClip code at launch: tap it yourself, I never start anything for you.", de: "Wenn die hervorgehobene Schaltfläche « 🎬 Générer la vidéo » (Video erzeugen) zeigt, ist alles bereit. Die Abbuchung von Ihrem StarClip-Code erfolgt beim Start: Tippen Sie selbst, ich starte nie etwas für Sie." },
+          a: { fr: "Si le bouton dit encore « Complète les étapes », il manque le code, la photo ou le texte : dis « reviens en arrière » et je te remontre l'étape.", en: "If the button still says « Complète les étapes » (complete the steps), the code, photo or text is missing: say « go back » and I'll show you the step again.", de: "Wenn die Schaltfläche noch « Complète les étapes » (Schritte ergänzen) zeigt, fehlen Code, Foto oder Text: Sagen Sie « zurück », und ich zeige Ihnen den Schritt erneut." },
+          fait: function () { return visible($("#status")); } }
+      ]
+    },
+    pack: {
+      nom: { fr: "comprendre et commander un pack", en: "understand and order a pack", de: "ein Paket verstehen und bestellen" },
+      etapes: [
+        { t: { fr: "Choisir ton pack", en: "Choose your pack", de: "Ihr Paket wählen" }, onglet: "commander", cible: "#sec-auto9",
+          x: { fr: "Voici les packs affichés dans l'app :\n{packs}\nUn pack contient des scènes vidéo à assembler toi-même avec ta chanson. Lequel t'intéresse ?", en: "Here are the packs shown in the app:\n{packs}\nA pack contains video scenes you assemble yourself with your song. Which one interests you?", de: "Hier sind die Pakete aus der App:\n{packs}\nEin Paket enthält Videoszenen, die Sie selbst mit Ihrem Song zusammenfügen. Welches interessiert Sie?" },
+          a: { fr: "Le nombre de scènes et leur qualité (Éco ou Pro) font le prix. Pour essayer, « ⭐ Essai Star » donne 1 scène ; les packs Pro donnent des scènes jusqu'à 10 s et débloquent aussi le Studio Images.", en: "The number of scenes and their quality (Éco or Pro) set the price. To try, « ⭐ Essai Star » gives 1 scene; Pro packs give scenes up to 10 s and also unlock the Studio Images.", de: "Anzahl und Qualität der Szenen (Éco oder Pro) bestimmen den Preis. Zum Ausprobieren gibt « ⭐ Essai Star » 1 Szene; Pro-Pakete liefern Szenen bis zu 10 s und schalten auch das Studio Images frei." } },
+        { t: { fr: "Payer par Mobile Money", en: "Pay by Mobile Money", de: "Per Mobile Money bezahlen" }, onglet: "commander", cible: "#omNum", cibleParent: true,
+          x: { fr: "Envoie le montant du pack choisi par Orange Money ou MTN Mobile Money au numéro affiché (le bouton « Copier » le copie pour toi). N'utilise jamais un autre numéro que ceux affichés dans l'app.", en: "Send the amount for the chosen pack by Orange Money or MTN Mobile Money to the number shown (the « Copier » (Copy) button copies it for you). Never use any number other than those shown in the app.", de: "Senden Sie den Betrag für das gewählte Paket per Orange Money oder MTN Mobile Money an die angezeigte Nummer (die Schaltfläche « Copier » (Kopieren) kopiert sie). Verwenden Sie nie eine andere Nummer als die in der App angezeigten." },
+          a: { fr: "Le paiement se fait depuis ton téléphone, dans ton application Orange Money ou MTN MoMo, comme un transfert habituel. Garde la capture d'écran de la confirmation : elle te servira à l'étape suivante.", en: "Payment is made from your phone, in your Orange Money or MTN MoMo app, like a usual transfer. Keep the confirmation screenshot: you'll need it in the next step.", de: "Die Zahlung erfolgt auf Ihrem Telefon in der Orange-Money- oder MTN-MoMo-App wie eine normale Überweisung. Behalten Sie den Screenshot der Bestätigung: Sie brauchen ihn im nächsten Schritt." } },
+        { t: { fr: "Envoyer ta preuve", en: "Send your proof", de: "Ihren Nachweis senden" }, onglet: "commander", cible: '#sec-auto9 a[href^="https://wa.me/"]',
+          x: { fr: "Touche le bouton WhatsApp mis en évidence et envoie la capture de ton paiement. C'est toi qui envoies le message : je n'envoie rien à ta place.", en: "Tap the highlighted WhatsApp button and send the screenshot of your payment. You send the message yourself: I never send anything for you.", de: "Tippen Sie auf die hervorgehobene WhatsApp-Schaltfläche und senden Sie den Screenshot Ihrer Zahlung. Sie senden die Nachricht selbst: Ich sende nichts für Sie." },
+          a: { fr: "WhatsApp s'ouvre avec un message déjà prêt pour Studio Rudis. Ajoute la capture de ton paiement, puis envoie.", en: "WhatsApp opens with a message ready for Studio Rudis. Add your payment screenshot, then send.", de: "WhatsApp öffnet sich mit einer vorbereiteten Nachricht an Studio Rudis. Fügen Sie den Screenshot Ihrer Zahlung hinzu und senden Sie." } },
+        { t: { fr: "Entrer ton code", en: "Enter your code", de: "Ihren Code eingeben" }, onglet: "accueil", cible: "#starCode",
+          x: { fr: "Tu reçois ton code StarClip sur WhatsApp en quelques minutes, après vérification du paiement. Tape-le dans la case mise en évidence, puis touche OK.", en: "You receive your StarClip code on WhatsApp within a few minutes, after the payment is checked. Type it into the highlighted box, then tap OK.", de: "Sie erhalten Ihren StarClip-Code per WhatsApp innerhalb weniger Minuten nach Prüfung der Zahlung. Tippen Sie ihn in das hervorgehobene Feld und dann auf OK." },
+          a: { fr: "Le code ressemble à STAR-7K3M. Ne le partage jamais : il donne accès à tes crédits.", en: "The code looks like STAR-7K3M. Never share it: it gives access to your credits.", de: "Der Code sieht aus wie STAR-7K3M. Geben Sie ihn nie weiter: Er gibt Zugriff auf Ihr Guthaben." },
+          fait: function () { return aClasse("#dotKey", "on"); } }
+      ]
+    }
+  };
+  var LS_GUIDE = "starclip_naya_guide";   // contexte du parcours, pour la session seulement (sessionStorage)
+  var guide = (function () { try { var g = JSON.parse(sessionStorage.getItem(LS_GUIDE) || "null"); return g && PARCOURS[g.id] ? g : null; } catch (_) { return null; } })();
+  var propose = null, surveillance = null, signale = -1;
+  function memoGuide() { try { if (guide) sessionStorage.setItem(LS_GUIDE, JSON.stringify(guide)); else sessionStorage.removeItem(LS_GUIDE); } catch (_) {} }
+  function surligner(sel, parent) {
+    [].forEach.call(document.querySelectorAll(".naya-surligne"), function (e) { e.classList.remove("naya-surligne"); });
+    var e = sel && $(sel); if (e && parent && e.parentNode) e = e.parentNode;
+    if (!e) return false;
+    e.classList.add("naya-surligne");
+    try {
+      e.scrollIntoView({ behavior: "smooth", block: window.innerWidth <= 640 ? "start" : "center" });
+      if (window.innerWidth <= 640) setTimeout(function () { window.scrollBy(0, -70); }, 350);   // sous la barre d'onglets collante
+    } catch (_) {}
+    return true;
+  }
+  function etapeCourante() { return guide && PARCOURS[guide.id].etapes[guide.i]; }
+  function appliquerEtape() {
+    var e = etapeCourante(); if (!e) return;
+    if (e.onglet) ouvrirOnglet(e.onglet);
+    if (e.prep) try { e.prep(); } catch (_) {}
+    var cible = e.cibleSiFait && e.fait && e.fait() ? e.cibleSiFait : e.cible;
+    surligner(cible, e.cibleParent);
+    if (el.pan) el.pan.classList.add("naya-guide");
+    surveiller();
+  }
+  function texteEtape(autrement) {
+    var P = PARCOURS[guide.id], e = P.etapes[guide.i];
+    var prix = ($("#pmPrix_chanson") || {}).textContent || "…";
+    var packs = lignesTarifs("sec-auto9").map(function (x) { return "• " + tarifLg(x); }).join("\n");
+    var corps = tg(autrement ? e.a : e.x, { prix: prix, packs: packs });
+    return tg(GT.titre) + " · " + tg(GT.etape, { n: guide.i + 1, N: P.etapes.length, t: tg(e.t) }) + "\n" + corps + "\n\n" + (e.fait ? tg(GT.verif_auto) : tg(GT.verif_manu));
+  }
+  function boutonsGuide() {
+    var b = function (lib, cmd) { return { lib: tg(GT[lib]), fn: function () { envoyer(tg(GT[cmd])); } }; };
+    return [b("b_suivant", "c_suivant"), b("b_autre", "c_autre"), b("b_retour", "c_retour"), b("b_passer", "c_passer"), b("b_arret", "c_arret")];
+  }
+  function repEtape(r, prefixe, autrement) { appliquerEtape(); return r((prefixe ? prefixe + "\n\n" : "") + texteEtape(autrement), boutonsGuide(), { intention: "guide_etape", guide: guide.id, etape: guide.i }); }
+  function finirGuide(r, termine) {
+    var nom = guide ? tg(PARCOURS[guide.id].nom) : "";
+    guide = null; memoGuide(); surligner(null); if (el.pan) el.pan.classList.remove("naya-guide");
+    if (surveillance) { clearInterval(surveillance); surveillance = null; }
+    return r(termine ? tg(GT.fini, { p: nom }) : tg(GT.arret), [], { intention: termine ? "guide_fini" : "guide_arret" });
+  }
+  function avancer(r, prefixe) {
+    guide.i++; memoGuide();
+    if (guide.i >= PARCOURS[guide.id].etapes.length) return finirGuide(r, true);
+    return repEtape(r, prefixe);
+  }
+  // Observation : quand l'app montre l'étape faite, Naya le dit et propose la suite (une seule fois par étape).
+  function surveiller() {
+    if (surveillance) clearInterval(surveillance);
+    surveillance = setInterval(function () {
+      var e = etapeCourante(); if (!e) { clearInterval(surveillance); surveillance = null; return; }
+      if (e.fait && signale !== guide.i && e.fait()) {
+        signale = guide.i;
+        var r0 = function (texte, actions, extra) { var o = { texte: propre(texte), actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; };
+        ajouter("naya", avancer(r0, tg(GT.bravo)));
+      }
+    }, 800);
+  }
+  function demarrerGuide(id, r) { guide = { id: id, i: 0 }; signale = -1; propose = null; memoGuide(); return repEtape(r, tg(GT.debut, { p: tg(PARCOURS[id].nom) })); }
+  function proposerGuide(id, r, base) { propose = id; return r((base ? base.texte + "\n\n" : "") + tg(GT.proposer, { p: tg(PARCOURS[id].nom) }), [{ lib: tg(GT.oui), fn: function () { ajouter("naya", demarrerGuide(id, function (t0, a, x) { var o = { texte: propre(t0), actions: a || [] }; for (var k in x || {}) o[k] = x[k]; return o; })); } }, { lib: tg(GT.non), fn: function () { propose = null; } }].concat(base ? base.actions.slice(1) : []), { intention: "guide_proposition", guide: id }); }
+  // Pendant un parcours : commandes du guide ; une autre question reçoit sa réponse, suivie d'un rappel du guide.
+  function repondreGuide(q, r) {
+    var n = normaliser(q), e = etapeCourante();
+    if (propose && !guide) {
+      if (ACCORD.test(n) && !REFUS.test(n)) return demarrerGuide(propose, r);
+      if (REFUS.test(n)) { propose = null; return r(t("clarif"), OPTIONS.map(option), { intention: "clarification" }); }
+    }
+    if (!guide) return null;
+    if (CMD.arret.test(n)) return finirGuide(r, false);
+    if (CMD.retour.test(n)) { if (guide.i === 0) return repEtape(r, tg(GT.debut_deja)); guide.i--; signale = -1; memoGuide(); return repEtape(r); }
+    if (CMD.passer.test(n)) return avancer(r);
+    if (CMD.autre.test(n)) return repEtape(r, "", true);
+    if (CMD.repeter.test(n)) return repEtape(r);
+    if (CMD.suivant.test(n) && n.split(" ").filter(Boolean).length <= 6) {
+      if (/ (continue|continuer|reprendre|reprend) /.test(n)) return repEtape(r);
+      if (e.fait && !e.fait()) return r(tg(GT.pas_encore), boutonsGuide(), { intention: "guide_attente", guide: guide.id, etape: guide.i });
+      return avancer(r, e.fait ? tg(GT.bravo) : "");
+    }
+    return null;
+  }
+  function parcoursDe(id, q) { var n = normaliser(q); if (!DEMANDE_GUIDE.test(n)) return null; return { chanson: "chanson", video: "video", acheter: "pack" }[id] || null; }
 
   // 4. Réponses guidées.
   function reponseGuide(k, r) {
@@ -547,14 +757,14 @@
     var pk = lignesTarifs("sec-auto9").map(function (x) { return "• " + tarifLg(x); });
     return r(t("achat_intro") + " " + phrases(rubrique(k, "commander", 1), 1) + "\n" + annoter(rubrique(k, "commander", 5)) + (pk.length ? "\n\n" + t("packs") + " :\n" + pk.join("\n") : "") +
       "\n\n" + annoter(rubrique(k, "commander", 7)) + "\n" + annoter(rubrique(k, "commander", 6)),
-      [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }, option("op_signature")], { intention: "achat" });
+      [boutonGuide("pack"), { lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }, option("op_signature")], { intention: "achat" });
   }
   function reponseVideo(k, r) {
     var l = [puce(annoter("🎬 Scénario"), phrases(rubrique(k, "scenario", 1), 2)), puce(annoter(titreChap(k, "multiplans")), phrases(rubrique(k, "multiplans", 1), 1)),
       puce(nomMoteur("seedance25"), phrases(rubrique(k, "seedance25", 1), 2)), puce(nomMoteur("seedance2"), phrases(rubrique(k, "seedance2", 1), 2)),
       puce(nomMoteur("multishot"), phrases(rubrique(k, "multishot", 1), 1)), puce("Clip Signature", phrases(rubrique(k, "commander", 6), 1, true))];
     return r(t("video_intro") + "\n" + l.join("\n") + "\n\n" + t("video_fin"),
-      [{ lib: t("ouvrir_x", { x: nomApp(ongletLib("scenario")) }), fn: function () { ouvrirOnglet("scenario"); } }, option("op_moteur"), option("op_signature")], { intention: "video" });
+      [boutonGuide("video"), { lib: t("ouvrir_x", { x: nomApp(ongletLib("scenario")) }), fn: function () { ouvrirOnglet("scenario"); } }, option("op_moteur"), option("op_signature")], { intention: "video" });
   }
   function prixDe(id) { var m = moteurs().filter(function (x) { return x.id === id; })[0]; var p = m ? prixMoteur(m) : []; return p.length ? " (" + p.join(" · ") + ")" : ""; }
   function reponseChanson(k, r) {
@@ -562,7 +772,7 @@
     var l = [puce(nomMoteur("chanson"), phrases(rubrique(k, "chanson", 1), 1) + prixDe("chanson")), puce(nomMoteur("chansonPro"), phrases(rubrique(k, "chansonPro", 1), 1) + prixDe("chansonPro")),
       puce(nomMoteur("demo"), phrases(demo, 1)), puce(nomMoteur("stems"), phrases(rubrique(k, "stems", 1), 1))];
     return r(t("chanson_intro") + "\n" + l.join("\n") + "\n" + t("debite") + "\n\n" + t("chanson_fin"),
-      [{ lib: t("ouvrir_x", { x: nomMoteur("chanson") }), fn: function () { ouvrirOutil("chanson"); } }, { lib: t("ouvrir_x", { x: nomMoteur("chansonPro") }), fn: function () { ouvrirOutil("chansonPro"); } }], { intention: "chanson" });
+      [boutonGuide("chanson"), { lib: t("ouvrir_x", { x: nomMoteur("chanson") }), fn: function () { ouvrirOutil("chanson"); } }, { lib: t("ouvrir_x", { x: nomMoteur("chansonPro") }), fn: function () { ouvrirOutil("chansonPro"); } }], { intention: "chanson" });
   }
   function reponseMoteur(k, r) {
     var l = ["seedance25", "seedance2", "multishot", "aleph", "chanson", "chansonPro"].map(function (id) { return puce(nomMoteur(id), phrases(rubrique(k, id, 1), 2)); });
@@ -578,6 +788,7 @@
   var MOTS_INTENTION = { star: 1, clip: 1, clips: 1, starclip: 1 };
   Object.keys(INTENTIONS).forEach(function (k) { INTENTIONS[k].forEach(function (c) { (c[0].source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; }); }); });
   VOCAB.concat(Object.keys(GEN)).forEach(function (m) { MOTS_INTENTION[m] = 1; });
+  (DEMANDE_GUIDE.source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; });
   function chapitreNomme(k, q) {
     var tt = normaliser(q).split(" ").filter(function (x) { return x.length > 2 && !MOTS_INTENTION[x] && !VIDES[x]; });
     if (!tt.length) return null;
@@ -598,6 +809,11 @@
     var r = function (texte, actions, extra) { var o = { texte: propre(texte), actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; };
     // v41.160 : sécurité d'abord (secrets, code interne, contournements, manipulation) → réponse fixe, sans détail.
     if (demandeSensible(q)) return r(t("securite"), [], { intention: "securite" });
+    var g0 = repondreGuide(q, r); if (g0) return g0;
+    if (guide) { var rep0 = repondre2(q, k, r); rep0.texte += "\n\n" + tg(GT.rappel, { n: guide.i + 1, N: PARCOURS[guide.id].etapes.length }); return rep0; }
+    return repondre2(q, k, r);
+  }
+  function repondre2(q, k, r) {
     // Fin de la période de test : une demande de code d'essai reçoit le vrai mode d'emploi, pas un refus.
     if (/(essai gratuit|code (d.essai|de test|test|gratuit|offert|b[êe]ta)|(acc[èe]s|version) (test|b[êe]ta)|free (trial|code)|trial code|test code|beta code|kostenlos(e|er)? (test|code)|testcode|probecode|probeversion|(cr[ée]dits?|g[ée]n[ée]rations?|vid[ée]os?) (gratuit|offert)|free (credits?|generations?|videos?)|(kostenlose?n?|gratis) (guthaben|credits?|videos?|generierung))/i.test(q))
       return r(t("essai_fini"), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "essai_fini" });
@@ -614,6 +830,9 @@
       return r(t("verif_titre") + " :\n" + (c.length ? c.map(function (x) { return "• " + x; }).join("\n") : t("verif_bon")), [], { intention: "verifier", conseils: c.length });
     }
     if (I.deleguer.test(q)) return r(t("dev_intro"), [], { intention: "devis", formulaire: true });
+    // v41.160 : « accompagne-moi », « ma première chanson », « step by step »… → réponse, puis proposition du guide interactif.
+    var pg = !guide && parcoursDe(intentionDe(q).id, q);
+    if (pg) return proposerGuide(pg, r, pg === "chanson" ? reponseChanson(k, r) : pg === "video" ? reponseVideo(k, r) : reponseAchat(k, r));
     if (I.abonnement.test(q)) return r(t("abonnement"), [], { intention: "abonnement" });
     var outil = outilDe(q), genre = genreDe(q);
     if (I.prix.test(q) && (outil || !I.paiement.test(q))) return reponsePrix(outil || panneauOuvert(), r);
@@ -781,6 +1000,10 @@
     ".naya-mic{flex:none;width:44px;border-radius:10px;font-size:18px;padding:0}.naya-mic.on{background:var(--ai,#2EE6D6);color:#04201e;animation:nayaMic 1.2s ease-in-out infinite}" +
     "@keyframes nayaMic{50%{box-shadow:0 0 0 6px rgba(46,230,214,.25)}}" +
     "@media (max-width:640px){#naya-ban{font-size:12.5px;padding:8px 10px}#naya-ban .naya-acts-ban{flex:1 1 100%}#naya-ban .naya-btn{flex:1;padding:8px 6px}}" +
+    ".naya-surligne{outline:3px solid #2EE6D6 !important;outline-offset:4px;border-radius:10px;box-shadow:0 0 0 8px rgba(46,230,214,.22) !important;animation:nayaSurligne 1.6s ease-in-out infinite;scroll-margin:90px}" +
+    "@keyframes nayaSurligne{50%{outline-color:#F2B33D;box-shadow:0 0 0 12px rgba(242,179,61,.18)}}" +
+    "@media (prefers-reduced-motion:reduce){.naya-surligne,.naya-mic.on{animation:none}}" +
+    "@media (max-width:640px){#naya-pan.naya-guide{height:46vh;height:46dvh}}" +
     "@media print{#naya-btn,#naya-pan,#naya-ban{display:none}}";
 
   var el = {};
