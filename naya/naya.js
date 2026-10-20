@@ -94,7 +94,40 @@
     voix_indispo: { fr: "La voix de Naya (Mélanie) n'est pas disponible pour le moment : la réponse reste écrite.", en: "Naya's voice (Lara) is not available right now: the answer stays in writing.", de: "Nayas Stimme (Lea) ist gerade nicht verfügbar: Die Antwort bleibt schriftlich." },
     voix_langue: { fr: "La voix de Naya n'est pas disponible pour cette réponse : elle reste écrite.", en: "Naya's voice is not available for this answer: it stays in writing.", de: "Nayas Stimme ist für diese Antwort nicht verfügbar: Sie bleibt schriftlich." },
     voix_touche: { fr: "Touche encore « Écouter » pour lancer la lecture.", en: "Tap « Listen » again to start playback.", de: "Tippen Sie erneut auf « Anhören », um die Wiedergabe zu starten." },
-    environ: { fr: "environ ", en: "about ", de: "etwa " }
+    environ: { fr: "environ ", en: "about ", de: "etwa " },
+    securite: { fr: "Je suis Naya, l'assistante StarClip. Je peux vous expliquer comment utiliser nos outils, créer vos projets et choisir nos services. En revanche, le code interne, les accès administratifs et les informations confidentielles de StarClip ne sont pas communicables.", en: "I'm Naya, the StarClip assistant. I can explain how to use our tools, create your projects and choose our services. However, StarClip's internal code, administrative access and confidential information cannot be shared.", de: "Ich bin Naya, die StarClip-Assistentin. Ich erkläre Ihnen gern, wie Sie unsere Werkzeuge nutzen, Ihre Projekte erstellen und unsere Dienste auswählen. Interner Code, Administratorzugänge und vertrauliche Informationen von StarClip können jedoch nicht weitergegeben werden." },
+    // v41.160 : réponses guidées (faits repris du manuel et de l'app, jamais inventés)
+    guide_intro: { fr: "Bienvenue ! Voici comment utiliser StarClip, étape par étape.", en: "Welcome! Here is how to use StarClip, step by step.", de: "Willkommen! So nutzen Sie StarClip, Schritt für Schritt." },
+    guide_code: { fr: "1) Obtiens ton code StarClip : il donne accès aux outils et porte tes crédits.", en: "1) Get your StarClip code: it unlocks the tools and holds your credits.", de: "1) Holen Sie sich Ihren StarClip-Code: Er schaltet die Werkzeuge frei und enthält Ihr Guthaben." },
+    guide_etapes: { fr: "2) Crée ton clip, toujours dans le même ordre :", en: "2) Create your video, always in the same order:", de: "2) Erstellen Sie Ihr Video, immer in derselben Reihenfolge:" },
+    guide_premium: { fr: "3) Pour aller plus loin, les outils Premium (vidéo haut de gamme, chanson, Chanson Pro, stems…) sont dans l'onglet « 👑 Admin Premium 5.0 ». Ils se paient à l'unité sur ton solde Premium, et le prix s'affiche avant chaque lancement.", en: "3) To go further, the Premium tools (high-end video, song, Chanson Pro, stems…) are in the « 👑 Admin Premium 5.0 » tab. They are paid per use from your Premium balance, and the price is shown before each launch.", de: "3) Für mehr Möglichkeiten finden Sie die Premium-Werkzeuge (hochwertiges Video, Song, Chanson Pro, Stems…) im Tab « 👑 Admin Premium 5.0 ». Sie werden einzeln von Ihrem Premium-Guthaben bezahlt, und der Preis wird vor jedem Start angezeigt." },
+    guide_suite: { fr: "Dis-moi ce que tu veux créer, je te guide :", en: "Tell me what you want to create and I'll guide you:", de: "Sagen Sie mir, was Sie erstellen möchten – ich führe Sie:" },
+    achat_intro: { fr: "Pour utiliser StarClip, tu achètes un code StarClip : pas d'abonnement, pas de carte bancaire. Voici comment faire :", en: "To use StarClip, you buy a StarClip code: no subscription, no bank card. Here is how:", de: "Um StarClip zu nutzen, kaufen Sie einen StarClip-Code: kein Abo, keine Bankkarte. So geht's:" },
+    video_intro: { fr: "Pour créer une vidéo, tu as plusieurs possibilités :", en: "To create a video, you have several options:", de: "Für ein Video haben Sie mehrere Möglichkeiten:" },
+    video_fin: { fr: "Commence toujours par une bonne photo (onglet « 📸 Ta photo »). Le prix s'affiche avant chaque lancement.", en: "Always start with a good photo (« 📸 Ta photo » (Your photo) tab). The price is shown before each launch.", de: "Beginnen Sie immer mit einem guten Foto (Tab « 📸 Ta photo » (Ihr Foto)). Der Preis wird vor jedem Start angezeigt." },
+    chanson_intro: { fr: "Pour créer une chanson, deux outils (onglet « 👑 Admin Premium 5.0 ») :", en: "To create a song, two tools (« 👑 Admin Premium 5.0 » tab):", de: "Für einen Song gibt es zwei Werkzeuge (Tab « 👑 Admin Premium 5.0 »):" },
+    chanson_fin: { fr: "Dis-moi ton genre (makossa, bikutsi, afropop…) et je te propose un exemple de prompt.", en: "Tell me your genre (makossa, bikutsi, afropop…) and I'll suggest an example prompt.", de: "Nennen Sie mir Ihr Genre (Makossa, Bikutsi, Afropop…), und ich schlage Ihnen einen Beispiel-Prompt vor." },
+    moteur_intro: { fr: "Voici les moteurs et ce que fait chacun :", en: "Here are the engines and what each one does:", de: "Hier sind die Modelle und was jedes kann:" },
+    moteur_bref: { fr: "En bref : une vidéo avec ton propre visage → Seedance 2.5 ; sans visage réel → Seedance 2.0 Moteur A ; plusieurs plans → Multi-Shot Video ; modifier une vidéo existante → Aleph 2.0.", en: "In short: a video with your own face → Seedance 2.5; no real face → Seedance 2.0 Engine A; several shots → Multi-Shot Video; edit an existing video → Aleph 2.0.", de: "Kurz gesagt: Video mit Ihrem eigenen Gesicht → Seedance 2.5; ohne echtes Gesicht → Seedance 2.0 Modell A; mehrere Einstellungen → Multi-Shot Video; vorhandenes Video bearbeiten → Aleph 2.0." },
+    ici_intro: { fr: "Dans cet onglet ({o}) :", en: "In this tab ({o}):", de: "In diesem Tab ({o}):" },
+    clarif: { fr: "Avec plaisir ! Pour te répondre précisément, dis-moi ce que tu cherches :", en: "Happy to help! To answer precisely, tell me what you are looking for:", de: "Gern helfe ich Ihnen! Damit ich genau antworten kann: Was suchen Sie?" },
+    clarif_flou: { fr: "Je ne suis pas sûre d'avoir bien compris. Tu cherches plutôt :", en: "I'm not sure I understood. Are you looking for:", de: "Ich bin nicht sicher, ob ich Sie richtig verstanden habe. Suchen Sie eher:" },
+    op_debuter: { fr: "🚀 Débuter avec StarClip", en: "🚀 Get started with StarClip", de: "🚀 Erste Schritte mit StarClip" },
+    op_video: { fr: "🎬 Créer une vidéo", en: "🎬 Create a video", de: "🎬 Ein Video erstellen" },
+    op_chanson: { fr: "🎵 Créer une chanson", en: "🎵 Create a song", de: "🎵 Einen Song erstellen" },
+    op_moteur: { fr: "⚙️ Choisir un moteur", en: "⚙️ Choose an engine", de: "⚙️ Ein Modell wählen" },
+    op_prix: { fr: "💰 Voir les prix", en: "💰 See the prices", de: "💰 Preise ansehen" },
+    op_acheter: { fr: "💳 Acheter un code", en: "💳 Buy a code", de: "💳 Einen Code kaufen" },
+    op_signature: { fr: "🎬 Un clip réalisé par le studio", en: "🎬 A music video made by the studio", de: "🎬 Ein Musikvideo vom Studio" },
+    // v41.160 : bandeau d'aide et micro
+    ban_txt: { fr: "Besoin d'aide ? Naya vous accompagne. Parlez à Naya ou écrivez-lui. Elle vous guidera pas à pas pour créer vos chansons, vidéos et clips professionnels.", en: "Need help? Naya is here for you. Talk to Naya or write to her. She will guide you step by step to create your songs, videos and professional music videos.", de: "Brauchen Sie Hilfe? Naya begleitet Sie. Sprechen Sie mit Naya oder schreiben Sie ihr. Sie führt Sie Schritt für Schritt zu Ihren Songs, Videos und professionellen Musikclips." },
+    ban_parler: { fr: "🎤 Parler à Naya", en: "🎤 Talk to Naya", de: "🎤 Mit Naya sprechen" },
+    ban_ecrire: { fr: "✍️ Écrire à Naya", en: "✍️ Write to Naya", de: "✍️ Naya schreiben" },
+    micro: { fr: "Parler à Naya", en: "Talk to Naya", de: "Mit Naya sprechen" },
+    micro_ecoute: { fr: "🎤 Je t'écoute… parle maintenant.", en: "🎤 I'm listening… speak now.", de: "🎤 Ich höre zu… sprechen Sie jetzt." },
+    micro_indispo: { fr: "La dictée n'est pas disponible dans ce navigateur : touche la zone de saisie, puis le micro 🎤 de ton clavier pour dicter ta question.", en: "Voice input isn't available in this browser: tap the text box, then the 🎤 microphone on your keyboard to dictate your question.", de: "Die Spracheingabe ist in diesem Browser nicht verfügbar: Tippen Sie in das Eingabefeld und dann auf das 🎤 Mikrofon Ihrer Tastatur." },
+    micro_refus: { fr: "Je n'ai pas accès au micro. Autorise le micro pour ce site dans les réglages du navigateur, ou écris ta question.", en: "I can't access the microphone. Allow the microphone for this site in your browser settings, or type your question.", de: "Ich habe keinen Zugriff auf das Mikrofon. Erlauben Sie das Mikrofon für diese Seite in den Browser-Einstellungen oder schreiben Sie Ihre Frage." },
+    micro_rien: { fr: "Je n'ai rien entendu. Touche 🎤 pour réessayer, ou écris ta question.", en: "I didn't hear anything. Tap 🎤 to try again, or type your question.", de: "Ich habe nichts gehört. Tippen Sie auf 🎤, um es erneut zu versuchen, oder schreiben Sie Ihre Frage." }
   };
   // Langues pas encore prises en charge : une seule phrase, écrite à l'avance, puis réponse en français ou en anglais.
   var PAS_ENCORE = {
@@ -167,6 +200,8 @@
   function termes(q) { var vu = {}; return plier(q).split(/[^a-z0-9]+/).filter(function (m) { if (m.length <= 2 || GEN[m] || vu[m]) return false; vu[m] = 1; return true; }); }
   var racine = function (x) { return x.slice(0, Math.min(5, x.length)); };
   var SEUIL = 4, COUV_MIN = 0.6, RUBRIQUES = { debutant: [5, 3, 1], pro: [6, 7, 3] };
+  // Chapitres du studio (réservés à l'Admin) : jamais cités aux clients.
+  var CHAP_STUDIO = { fonctionsReservees: 1, seedance2studio: 1, miniseries: 1, montageAuto: 1 };
 
   function bm25(k, q, chapitre) {
     var base = mots(q), vu = {}, tt = [];
@@ -190,24 +225,28 @@
   function chercherManuel(k, q, chapitre) {
     var tt = termes(q); if (!tt.length) return null;
     var sc = bm25(k, tt.map(racine).join(" "), chapitre);
-    var cl = k.docs.filter(function (d) { return d.s.c !== "fonctionsReservees"; }).map(function (d) {
+    var cl = k.docs.filter(function (d) { return !CHAP_STUDIO[d.s.c]; }).map(function (d) {
       var c = tt.filter(function (x) { return d.plein.indexOf(racine(x)) >= 0; }).length / tt.length;
       return { d: d, couv: c, score: sc[d.s.c + "#" + d.s.r] || 0 };
     }).sort(function (a, b) { return b.couv - a.couv || b.score - a.score; });
     var best = cl[0];
     if (!best || best.couv < COUV_MIN || (best.score < SEUIL && best.couv < 1)) return null;
-    var ss = k.sections.filter(function (s) { return s.c === best.d.s.c; });
-    var prefs = RUBRIQUES[etat.niveau] || RUBRIQUES.debutant, choisie = null;
-    for (var i = 0; i < prefs.length && !choisie; i++) choisie = ss.filter(function (s) { return s.r === prefs[i]; })[0] || null;
-    choisie = choisie || best.d.s;
-    return { chapitre: best.d.s.c, titre: best.d.s.t, rubrique: choisie.r, texte: choisie.x.slice(0, 900) + (choisie.x.length > 900 ? "…" : "") };
+    // v41.160 : la rubrique citée est celle qui contient le plus de mots de la question (à égalité : tutoriel selon le niveau),
+    // et elle doit en contenir au moins un — sinon ce n'est pas une réponse, Naya demande une précision.
+    var ss = k.sections.filter(function (s) { return s.c === best.d.s.c && s.x; });
+    var prefs = RUBRIQUES[etat.niveau] || RUBRIQUES.debutant;
+    var rang = function (s) { var i = prefs.indexOf(s.r); return i < 0 ? 9 : i; };
+    var couv = function (s) { var p = plier(s.x); return tt.filter(function (x) { return p.indexOf(racine(x)) >= 0; }).length; };
+    var choisie = ss.slice().sort(function (a, b) { return couv(b) - couv(a) || rang(a) - rang(b); })[0] || best.d.s;
+    if (!couv(choisie) && !tt.some(function (x) { return best.d.titre.indexOf(racine(x)) >= 0; })) return null;
+    return { chapitre: best.d.s.c, titre: best.d.s.t, rubrique: choisie.r, texte: couper(choisie.x, 1000) };
   }
 
   // ───────────── Langue du message ─────────────
   var MOTS_LG = {
-    fr: "je tu vous le la les est comment pour avec une mon ma pas quoi combien bonjour merci et".split(" "),
-    en: "i you the is how for with my what can do does hello thanks please and it".split(" "),
-    de: "ich sie du der die das ist wie für mit mein meine was kann hallo danke bitte und nicht".split(" "),
+    fr: "je tu vous le la les est comment pour avec une mon ma pas quoi combien bonjour merci et acheter commencer utiliser faire veux besoin aide quel quelle où".split(" "),
+    en: "i you the is how for with my what can do does hello thanks please and it to buy get start use make want need help which where".split(" "),
+    de: "ich sie du der die das ist wie für mit mein meine was kann hallo danke bitte und nicht kaufe kaufen anfangen arbeiten mache machen brauche hilfe welche welches wo".split(" "),
     es: "yo el los las es cómo como para con mi qué puedo hola gracias por y".split(" "),
     pt: "eu você o os as é como para com meu minha que posso olá obrigado obrigada e não".split(" ")
   };
@@ -302,8 +341,8 @@
   var ALIAS_GENRE = { "coupe decale": "coupe", "coupe-decale": "coupe", "r&b": "afrorb", "rnb": "afrorb", "afro r&b": "afrorb", "afro trap": "afrotrap", "afro jazz": "afrojazz", "ballad": "ballade", "slow": "ballade", "afrobeat": "afrobeats" };
   function genreDe(q) {
     var E = window.CHP_EXEMPLES; if (!E) return null;
-    var p = " " + plier(q).replace(/[^a-z0-9&-]+/g, " ") + " ";
-    var a = Object.keys(ALIAS_GENRE).filter(function (k) { return p.indexOf(" " + k + " ") >= 0; })[0];
+    var p = " " + plier(q).replace(/[^a-z0-9&]+/g, " ") + " ";
+    var a = Object.keys(ALIAS_GENRE).filter(function (k) { return p.indexOf(" " + k.replace(/-/g, " ") + " ") >= 0; })[0];
     if (a) return ALIAS_GENRE[a];
     return Object.keys(E).sort(function (x, y) { return y.length - x.length; }).filter(function (g) { return p.indexOf(" " + g + " ") >= 0 || p.indexOf(" " + g + "s ") >= 0; })[0] || null;
   }
@@ -359,9 +398,9 @@
   // ───────────── Intentions ─────────────
   var I = {
     salut: /^(bonjour|bonsoir|salut|coucou|hello|hi|hey|hallo|guten (tag|morgen|abend))\b[\s!.,]*$/i,
-    capacites: /(que (puis|peux)[- ]je faire|tu (sais|peux) faire quoi|qu.est-ce que tu fais|aide[- ]moi$|what can (i|you) do|was kann ich|was kannst du|^aide$|^help$|^hilfe$)/i,
+    capacites: /(tu (sais|peux) faire quoi|que (sais|peux)[- ]tu faire|qu.est-ce que tu (fais|sais faire)|what can you do|what do you do|was kannst du|was machst du)/i,
     lancer: /(lance[- ](la|le|les|moi|pour moi)|g[ée]n[èe]re[- ](la|le|moi|pour moi)|cr[ée]e[- ](la|le|moi)|fais[- ](la|le)\b|start it|generate it|run it|make it for me|starte es|generiere es|erstelle es)/i,
-    deleguer: /(studio rudis|clip signature|premium cin[ée]ma|r[ée]alis[ée] par (le |un )?(studio|pro)|fai(tes|s)[- ]le pour moi|d[ée]l[ée]guer|devis|une offre|\bquote\b|do it for me|made by the studio|music video made|angebot|vom studio|für mich (machen|erstellen))/i,
+    deleguer: /(studio rudis|clip signature|premium cin[ée]ma|r[ée]alis[ée] par (le |un |des )?(studio|pro)|clip (pro|professionnel|complet)|(demander|commander|faire faire) un clip|professional (music )?video|professionelle?s? (musik)?video|fai(tes|s)[- ]le pour moi|d[ée]l[ée]guer|devis|une offre|\bquote\b|do it for me|made by the studio|music video made|angebot|vom studio|für mich (machen|erstellen))/i,
     abonnement: /(abonnement|obligatoire|subscription|do i have to|\babo\b|pflicht)/i,
     paiement: /(payer|paiement|orange money|\bmomo\b|mobile money|recharg|\bpacks?\b|essai star|\bpay\b|payment|top ?up|bezahlen|zahlung|aufladen|paket)/i,
     prix: /(prix|co[uû]t|combien|tarif|price|cost|how much|kostet|kosten|preis)/i,
@@ -370,13 +409,198 @@
     erreur: /(erreur|error|refus|refused|marche pas|bloqu|[ée]chou|failed|ne fonctionne|doesn.t work|fehler|abgelehnt|funktioniert nicht)/i
   };
 
+
+  // ───────────── v41.160 : sécurité ─────────────
+  // Naya n'a accès à AUCUN secret : elle tourne dans le navigateur, lit le manuel public et les prix affichés par l'app.
+  // Ce filtre refuse poliment les demandes de secrets, de code interne, de contournement ou de manipulation, avec une
+  // réponse fixe (aucun détail, aucune accusation). Les vraies protections sont côté serveur (PIN limité, plafonds).
+  var SECURITE = new RegExp([
+    "cl(e|es) (d )?api", "api[ -]?(key|keys|schlussel|token)", "\\btokens?\\b", "\\bsecrets?\\b", "geheimnis", "mot de passe", "password", "passwort", "kennwort",
+    "\\bpin\\b", "identifiants? (admin|d acces|de connexion|prives?)", "\\bcredentials?\\b", "zugangsdaten", "variables? d environnement", "environment variables?",
+    "umgebungsvariablen?", "\\benv\\b", "cloudflare", "elevenlabs\\W+(cle|key|schlussel|token)", "(cle|key|schlussel) (d |von |de |of )?elevenlabs",
+    "code source", "source ?code", "quellcode", "instructions? (systeme|internes?)", "system ?prompt", "prompt (systeme|interne)", "systemanweisung",
+    "(montre|affiche|donne|revele|repete|ecris|show|reveal|print|display|give|repeat|tell|zeig|gib|nenne|verrate)\\w* (moi |me |mir |uns )?(ton|tes|votre|vos|your|deine|deinen|ihre|dein) (prompt|instructions|consignes|regles|rules|anweisungen|regeln|system|configuration|config)",
+    "\\bendpoints?\\b", "routes? (admin|privees?|internes?|secretes?)", "\\bworker\\b", "\\bbackend\\b", "base de donnees", "\\bdatabase\\b", "datenbank", "\\bkv\\b",
+    "contourn", "bypass", "umgeh", "\\bhack", "pirat", "\\bfaille", "\\bexploits?\\b", "\\binjection\\b", "jailbreak", "\\bdan mode\\b",
+    "sans payer", "without pay", "ohne (zu )?(be)?zahlen", "illimite", "unlimited", "unbegrenzt",
+    "(modifier|changer|augmenter|change|increase|edit|andern|erhohen|bearbeiten) (mes |mon |le |les |my |the |mein |meine |mein |das |den )?(credits?|solde|balance|guthaben)",
+    "(credits?|solde|balance|guthaben) (zu )?(andern|erhohen|modifier|augmenter|increase|change)",
+    "(compte|code|donnees|historique|projets?) d (un |une )?autres? (client|utilisateur|personne)", "(another|other) (user|customer|client|person)s?\\W? (account|code|data|projects?|videos?)",
+    "(konto|code|daten|projekte?) (eines|von einem|von) anderen", "(customer|client|kunden)[ -]?(codes|liste|list|accounts|konten|comptes)", "codes? (des |der |of )?(clients|kunden|customers)", "(liste|list|alle|tous les|all) (des |der |of |the |les )?(codes|clients|kunden|customers|users|utilisateurs)",
+    "(acces|droits|privileges?) (d )?(admin|administrateur)", "admin(istrator)? (access|rights|privileges?)", "admin(istrator)?-?(zugang|rechte)",
+    "devenir admin", "become (an )?admin", "admin werden",
+    "ignore\\w* (tes |les |vos |toutes (les |tes )?|your |all |all previous |previous |prior |the previous |the above |any )(instructions|consignes|regles|rules|directives|prompts?)",
+    "ignoriere\\w* (alle |deine |die |vorherigen |bisherigen )+(anweisungen|regeln|vorgaben)", "oublie\\w* (tes|les|vos|toutes) (instructions|consignes|regles)",
+    "forget (your|all|previous|the) (instructions|rules)", "vergiss\\w* (alle |deine )+(anweisungen|regeln)",
+    "je suis (le |la |un |une )?(developpeu(r|se)|admin|administrat(eur|rice)|directeur|createur|proprietaire|patron|papy)",
+    "i a?m (the |a |an )?(developer|dev|admin|administrator|owner|creator|director)", "ich bin (der |die |ein |eine )?(entwickler|admin|administrator|chef|inhaber|eigentumer)",
+    "mode (admin|administrateur|developpeur|debug|dieu|god)", "(admin|developer|debug|god|dev|root) mode", "(admin|entwickler|debug)-?modus",
+    "^\\W*(system|systeme|assistant|admin)\\s*:", "\\[(system|systeme|admin|instructions?)\\]", "<\\s*/?\\s*system", "#+ ?system"
+  ].join("|"));
+  function demandeSensible(q) { var p = plier(q).replace(/['’`]/g, " ").replace(/admin premium( 5\.?0)?/g, " "); return SECURITE.test(p) || ADMIN.test(p); }
+
+  // ───────────── v41.160 : compréhension des questions naturelles ─────────────
+  // 1. Normalisation : minuscules sans accents, « star clip » → starclip, mots de remplissage de la dictée retirés,
+  //    lettres répétées réduites, puis fautes de frappe corrigées vers le vocabulaire des intentions (distance d'édition).
+  var REMPLISSAGE = / (euh+|heu+|hmm+|ben|bah|um+|uh+|erm|ahm|aehm|also|bitte|please|stp|svp|s il (te|vous) plait|dis moi|sag mal|okay|ok|hey|naya)(?= )/g;
+  var VOCAB = ("acheter achat achete commander commande payer paiement abonnement buy purchase order payment kaufen bestellen bezahlen erwerben " +
+    "commencer debuter demarrer debutant start started begin beginner anfangen beginnen starten loslegen einsteiger " +
+    "utiliser utilise fonctionne use using work works arbeiten benutzen nutzen verwenden funktioniert " +
+    "moteur moteurs engine engines modele modell modelle choisir choose welches " +
+    "chanson chansons song songs musique music musik video videos clip clips creer erstellen machen " +
+    "prix tarif tarifs combien price prices preis preise kosten kostet aide aider help hilfe helfen signature studio starclip").split(" ");
+  var SANS_CORR = { words: 1, world: 1, model: 1, mode: 1, prise: 1, start: 1, using: 1, maker: 1, mache: 1, music: 1, video: 1, where: 1, there: 1, these: 1, those: 1, haben: 1, sagen: 1, bitte: 1, photo: 1, photos: 1 };
+  function dist(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 9;
+    var d = [], i, j;
+    for (i = 0; i <= a.length; i++) d[i] = [i];
+    for (j = 0; j <= b.length; j++) d[0][j] = j;
+    for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);   // lettres inversées
+    }
+    return d[a.length][b.length];
+  }
+  // Fautes courtes fréquentes (dictée, phonétique) : corrigées directement.
+  var FAUTES = { bye: "buy", byu: "buy", bai: "buy", kofen: "kaufen", kaufn: "kaufen", achte: "achete", acheté: "achete", coment: "comment", komment: "comment", starclipe: "starclip", sarclip: "starclip", klip: "clip", vidoe: "video", vidio: "video", sond: "song" };
+  function corrigerMot(m) {
+    if (FAUTES[m]) return FAUTES[m];
+    if (m.length < 5 || SANS_CORR[m] || VOCAB.indexOf(m) >= 0) return m;
+    var max = m.length >= 8 ? 2 : 1, best = m, bd = 9;
+    VOCAB.forEach(function (v) { if (v.length < 4) return; var x = dist(m, v); if (x <= max && x < bd) { bd = x; best = v; } });
+    return best;
+  }
+  function normaliser(q) {
+    var p = " " + plier(q).replace(/['’`]/g, " ").replace(/star[\s.-]*cl[iy]p+e?s?(?![a-z])/g, "starclip").replace(/[^a-z0-9&+]+/g, " ").replace(/([a-z])\1{2,}/g, "$1$1") + " ";
+    p = p.replace(REMPLISSAGE, " ");
+    return " " + p.split(/\s+/).filter(Boolean).map(corrigerMot).join(" ") + " ";
+  }
+  // 2. Intentions : indices pondérés (FR / EN / DE), évalués sur le texte normalisé.
+  var INTENTIONS = {
+    acheter: [[/ (acheter|achat|achete|achetes|buy|buying|purchase|kaufen|kaufe|kauft|erwerben|erwerbe|abonner) /, 3], [/ (commander|commande|order|ordern|bestellen|bestelle) /, 2],
+      [/ (obtenir|avoir|recevoir|get|bekommen|erhalten|kriege) (un |mon |ton |le |a |my |the |einen |meinen |den )?(code|acces|access|zugang) /, 3],
+      [/ (pack|packs|paket|pakete) /, 2], [/ (payer|paie|paiement|pay|payment|bezahlen|zahlen|zahlung|orange money|momo|mobile money|recharger|aufladen|top up) /, 2]],
+    debuter: [[/ (commencer|commence|debuter|debute|demarrer|demarre|debutant|debutante|start|started|starting|begin|beginner|anfangen|fange|anfanger|beginnen|starten|loslegen|einsteiger|einstieg) /, 3],
+      [/ (premiere fois|first time|erste mal|erstes mal|erste schritte|get started|nouveau ici|nouvelle ici|new here|neu hier) /, 3]],
+    utiliser: [[/ (utiliser|utilise|servir|fonctionne|marche|use|using|work|works|working|arbeiten|arbeite|benutzen|nutzen|verwenden|funktioniert|bedienen|bedient) /, 2],
+      [/ (starclip|app|appli|application|plateforme|platform|site) /, 1],
+      [/ (que (puis|peux|peut) (je|on) faire|qu est ce que (je|on) (peux|peut) faire|what can i do|what can you do|what do i do|was kann ich|was kann man|was mache ich|que faire) /, 3]],
+    moteur: [[/ (moteur|moteurs|engine|engines|modele|modeles|model|models|modell|modelle|outil|outils|tool|tools|werkzeug|werkzeuge) /, 2],
+      [/ (choisir|choix|lequel|laquelle|quel|quelle|which|choose|choice|best|meilleur|welche|welches|welcher|wahlen|nehmen|empfiehlst|empfehlen|recommend|recommande|conseilles) /, 2]],
+    chanson: [[/ (chanson|chansons|song|songs|lied|lieder|musique|music|musik|morceau|chanter|singen) /, 2], [/ (creer|faire|composer|produire|ecrire|make|create|compose|produce|write|erstellen|machen|mache|komponieren|produzieren|schreiben) /, 1]],
+    video: [[/ (video|videos|clip|clips|film|filme|filmen|animer|animation|animate|musikvideo) /, 2], [/ (creer|faire|realiser|make|create|produce|erstellen|machen|mache|drehen|produzieren) /, 1]],
+    prix: [[/ (prix|cout|coute|coutent|combien|tarif|tarifs|price|prices|cost|costs|how much|kostet|kosten|preis|preise|teuer|cher) /, 3]],
+    aide: [[/ (aide|aider|help|hilfe|helfen|perdu|perdue|lost|verloren|comprends pas|understand|verstehe|bloque|stuck|weiss nicht|sais pas|don t know) /, 2]]
+  };
+  var PRIORITE = ["acheter", "prix", "chanson", "video", "moteur", "debuter", "utiliser", "aide"];
+  function intentionDe(q) {
+    var n = normaliser(q), sc = {};
+    PRIORITE.forEach(function (k) { sc[k] = INTENTIONS[k].reduce(function (a, c) { return a + (c[0].test(n) ? c[1] : 0); }, 0); });
+    var best = null;
+    PRIORITE.forEach(function (k) { if (sc[k] >= 2 && (!best || sc[k] > sc[best])) best = k; });
+    return { id: best, scores: sc, ici: / (ici|here|hier|cet onglet|this tab|diesem tab) /.test(n) };
+  }
+
+  // 3. Textes du manuel réutilisés tels quels (dans la langue de la réponse), sans l'en-tête de rubrique.
+  function rubrique(k, c, r) {
+    var x = (k.sections.filter(function (s) { return s.c === c && (r === undefined || s.r === r); })[0] || {}).x || "";
+    var y = x.replace(/^\d+\.\s+[^\n.]{1,45}\n/, "");   // en-tête sur sa propre ligne (« 5. Tutoriel débutant »)
+    return (y !== x ? y : x.replace(/^\d+\.\s+[^.\n]{1,45}\.\s+/, "")).trim();   // ou en début de phrase (« 1. Présentation. »)
+  }
+  // Découpe en phrases : un point suivi d'un chiffre (« Seedance 2.5 ») ou d'une minuscule ne termine pas la phrase.
+  function phrases(x, n, depuisFin) {
+    var t0 = String(x).trim(), m = [], debut = 0, re = /[.!?…]+\s+/g, a;
+    while ((a = re.exec(t0))) { var suite = t0.charAt(re.lastIndex); if (suite && !/[a-z0-9à-ÿ]/.test(suite)) { m.push(t0.slice(debut, re.lastIndex).trim()); debut = re.lastIndex; } }
+    if (debut < t0.length) m.push(t0.slice(debut).trim());
+    return (depuisFin ? m.slice(-n) : m.slice(0, n)).join(" ");
+  }
+  function titreChap(k, c) { var s = k.sections.filter(function (x) { return x.c === c; })[0]; return s ? s.t.replace(/^\d+\.\s*/, "").split(" — ")[0].replace(/\s*(✅|🛠️|🛠).*$/, "").trim() : c; }
+  // Noms d'onglets et de boutons de l'app (en français) : en EN / DE, suivis de leur traduction, comme dans le manuel.
+  var UI_TR = {
+    en: { "Ton code StarClip": "Your StarClip code", "💬 Commander sur WhatsApp": "Order on WhatsApp", "Copier": "Copy" },
+    de: { "Ton code StarClip": "Ihr StarClip-Code", "💬 Commander sur WhatsApp": "Auf WhatsApp bestellen", "Copier": "Kopieren" }
+  };
+  function annoter(x) {
+    if (etat.lg === "fr") return x;
+    var d = {}, a = NOMS_APP[etat.lg] || {}, b = UI_TR[etat.lg] || {}, cle;
+    for (cle in a) if (a[cle] !== cle) d[cle] = a[cle].replace(/^\S+\s/, "");
+    for (cle in b) d[cle] = b[cle];
+    Object.keys(d).sort(function (u, v) { return v.length - u.length; }).forEach(function (fr) {
+      var e = fr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      x = x.replace(new RegExp("(«\\s*)?" + e + "(\\s*»)?(?!\\s*\\(|[\\wÀ-ÿ])", "g"), function (m0) { return "« " + fr + " » (" + d[fr] + ")"; });
+    });
+    return x;
+  }
+  function puce(nom, texte) { return "• " + nom + " : " + texte; }
+  function option(cle) { return { lib: t(cle), fn: function () { envoyer(t(cle).replace(/^\S+\s/, "")); } }; }
+  var OPTIONS = ["op_debuter", "op_video", "op_chanson", "op_moteur", "op_prix", "op_acheter", "op_signature"];
+
+  // 4. Réponses guidées.
+  function reponseGuide(k, r) {
+    var d = (k.sections.filter(function (s) { return s.c === "demarrer"; })[0] || {}).x || "";
+    var etapes = (d.split(/\n(?=### )/)[0] || "").replace(/^### [^\n]*\n/, "").trim();
+    return r(t("guide_intro") + "\n\n" + t("guide_code") + "\n" + annoter(rubrique(k, "accueil", 5)) + "\n\n" + t("guide_etapes") + "\n" + etapes +
+      "\n\n" + t("guide_premium") + "\n\n" + t("guide_suite"),
+      [option("op_video"), option("op_chanson"), option("op_prix"), option("op_acheter")], { intention: "guide" });
+  }
+  function reponseAchat(k, r) {
+    var pk = lignesTarifs("sec-auto9").map(function (x) { return "• " + tarifLg(x); });
+    return r(t("achat_intro") + " " + phrases(rubrique(k, "commander", 1), 1) + "\n" + annoter(rubrique(k, "commander", 5)) + (pk.length ? "\n\n" + t("packs") + " :\n" + pk.join("\n") : "") +
+      "\n\n" + annoter(rubrique(k, "commander", 7)) + "\n" + annoter(rubrique(k, "commander", 6)),
+      [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }, option("op_signature")], { intention: "achat" });
+  }
+  function reponseVideo(k, r) {
+    var l = [puce(annoter("🎬 Scénario"), phrases(rubrique(k, "scenario", 1), 2)), puce(annoter(titreChap(k, "multiplans")), phrases(rubrique(k, "multiplans", 1), 1)),
+      puce(nomMoteur("seedance25"), phrases(rubrique(k, "seedance25", 1), 2)), puce(nomMoteur("seedance2"), phrases(rubrique(k, "seedance2", 1), 2)),
+      puce(nomMoteur("multishot"), phrases(rubrique(k, "multishot", 1), 1)), puce("Clip Signature", phrases(rubrique(k, "commander", 6), 1, true))];
+    return r(t("video_intro") + "\n" + l.join("\n") + "\n\n" + t("video_fin"),
+      [{ lib: t("ouvrir_x", { x: nomApp(ongletLib("scenario")) }), fn: function () { ouvrirOnglet("scenario"); } }, option("op_moteur"), option("op_signature")], { intention: "video" });
+  }
+  function prixDe(id) { var m = moteurs().filter(function (x) { return x.id === id; })[0]; var p = m ? prixMoteur(m) : []; return p.length ? " (" + p.join(" · ") + ")" : ""; }
+  function reponseChanson(k, r) {
+    var demo = rubrique(k, "demo");
+    var l = [puce(nomMoteur("chanson"), phrases(rubrique(k, "chanson", 1), 1) + prixDe("chanson")), puce(nomMoteur("chansonPro"), phrases(rubrique(k, "chansonPro", 1), 1) + prixDe("chansonPro")),
+      puce(nomMoteur("demo"), phrases(demo, 1)), puce(nomMoteur("stems"), phrases(rubrique(k, "stems", 1), 1))];
+    return r(t("chanson_intro") + "\n" + l.join("\n") + "\n" + t("debite") + "\n\n" + t("chanson_fin"),
+      [{ lib: t("ouvrir_x", { x: nomMoteur("chanson") }), fn: function () { ouvrirOutil("chanson"); } }, { lib: t("ouvrir_x", { x: nomMoteur("chansonPro") }), fn: function () { ouvrirOutil("chansonPro"); } }], { intention: "chanson" });
+  }
+  function reponseMoteur(k, r) {
+    var l = ["seedance25", "seedance2", "multishot", "aleph", "chanson", "chansonPro"].map(function (id) { return puce(nomMoteur(id), phrases(rubrique(k, id, 1), 2)); });
+    return r(t("moteur_intro") + "\n" + l.join("\n") + "\n\n" + t("moteur_bref") + "\n" + t("debite"),
+      [{ lib: t("ouvrir_x", { x: nomMoteur("seedance25") }), fn: function () { ouvrirOutil("seedance25"); } }, option("op_prix")], { intention: "moteur" });
+  }
+  function reponseIci(k, chap, r) {
+    var tut = rubrique(k, chap, 5) || rubrique(k, chap, 3);
+    return r(t("ici_intro", { o: annoter(titreChap(k, chap)) }) + "\n" + annoter(rubrique(k, chap, 1)) + (tut ? "\n\n" + annoter(tut) : ""), [option("op_debuter")], { intention: "ici", source: chap });
+  }
+  // La question nomme-t-elle une fonction précise (mot du titre d'un chapitre client, hors mots d'intention) ?
+  // Mots d'intention = tous les mots des motifs d'intention + vocabulaire corrigé : ils ne désignent jamais une fonction.
+  var MOTS_INTENTION = { star: 1, clip: 1, clips: 1, starclip: 1 };
+  Object.keys(INTENTIONS).forEach(function (k) { INTENTIONS[k].forEach(function (c) { (c[0].source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; }); }); });
+  VOCAB.concat(Object.keys(GEN)).forEach(function (m) { MOTS_INTENTION[m] = 1; });
+  function chapitreNomme(k, q) {
+    var tt = normaliser(q).split(" ").filter(function (x) { return x.length > 2 && !MOTS_INTENTION[x] && !VIDES[x]; });
+    if (!tt.length) return null;
+    var d = k.docs.filter(function (d) { return !CHAP_STUDIO[d.s.c] && d.s.c !== "demarrer" && tt.some(function (x) { return d.titre.indexOf(racine(x)) >= 0; }); })[0];
+    return d ? d.s.c : null;
+  }
+  function clarification(flou, r) { return r(t(flou ? "clarif_flou" : "clarif"), OPTIONS.map(option), { intention: "clarification" }); }
+  // Texte affiché : sans antislash parasite ni ligne de tableau « --- », coupé à la fin d'une phrase.
+  function propre(x) { return String(x).replace(/\\/g, "").replace(/^[ \t]*(-{3,}[ \t]*)+$\n?/gm, "").replace(/\n{3,}/g, "\n\n").trim(); }
+  function couper(x, max) {
+    if (x.length <= max) return x;
+    var c = x.slice(0, max), i = Math.max(c.lastIndexOf("\n"), c.lastIndexOf(". ") + 1, c.lastIndexOf("! ") + 1, c.lastIndexOf("? ") + 1);
+    return (i > max * 0.5 ? c.slice(0, i) : c.replace(/\s+\S*$/, "")).trim() + " …";
+  }
+
   // Chaque réponse : { texte, actions: [{lib, fn}], html? }. Aucune action ne lance une génération ni n'envoie rien.
   function repondre(q, k) {
-    var r = function (texte, actions, extra) { var o = { texte: texte, actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; };
+    var r = function (texte, actions, extra) { var o = { texte: propre(texte), actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; };
+    // v41.160 : sécurité d'abord (secrets, code interne, contournements, manipulation) → réponse fixe, sans détail.
+    if (demandeSensible(q)) return r(t("securite"), [], { intention: "securite" });
     // Fin de la période de test : une demande de code d'essai reçoit le vrai mode d'emploi, pas un refus.
-    if (/(essai gratuit|code (d.essai|de test|test|gratuit|offert|b[êe]ta)|(acc[èe]s|version) (test|b[êe]ta)|free (trial|code)|trial code|test code|beta code|kostenlos(e|er)? (test|code)|testcode|probecode|probeversion)/i.test(q))
+    if (/(essai gratuit|code (d.essai|de test|test|gratuit|offert|b[êe]ta)|(acc[èe]s|version) (test|b[êe]ta)|free (trial|code)|trial code|test code|beta code|kostenlos(e|er)? (test|code)|testcode|probecode|probeversion|(cr[ée]dits?|g[ée]n[ée]rations?|vid[ée]os?) (gratuit|offert)|free (credits?|generations?|videos?)|(kostenlose?n?|gratis) (guthaben|credits?|videos?|generierung))/i.test(q))
       return r(t("essai_fini"), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "essai_fini" });
-    if (ADMIN.test(q) && !/admin premium/i.test(q)) return r(t("admin"), [], { intention: "admin_refuse" });
     var abs = (k.absentes || []).filter(function (f) { return new RegExp(f.motif, "i").test(q); })[0];
     if (abs) return r(abs.texte, [], { intention: "fonction_absente" });
     if (I.salut.test(q.trim())) return r(t("bienvenue"), [], { intention: "salut" });
@@ -393,11 +617,8 @@
     if (I.abonnement.test(q)) return r(t("abonnement"), [], { intention: "abonnement" });
     var outil = outilDe(q), genre = genreDe(q);
     if (I.prix.test(q) && (outil || !I.paiement.test(q))) return reponsePrix(outil || panneauOuvert(), r);
-    if (I.paiement.test(q)) {
-      var pk = lignesTarifs("sec-auto9");
-      return r(t("paiement") + (pk.length ? "\n\n" + t("packs") + " :\n" + pk.map(function (x) { return "• " + tarifLg(x); }).join("\n") : ""), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "paiement" });
-    }
-    if (genre || (I.prompt.test(q) && /(chanson|song|lied|musique|music|genre)/i.test(plier(q)))) return reponseGenre(genre, r);
+    if (I.paiement.test(q)) return reponseAchat(k, r);
+    if (genre || (/(prompt|exemple|example|beispiel|genre)/i.test(q) && /(chanson|song|lied|musique|music|musik|genre)/i.test(plier(q)))) return reponseGenre(genre, r);
     if (I.erreur.test(q)) {
       var e = (k.erreurs || []).filter(function (x) { return new RegExp(x.motif, "i").test(q); })[0];
       if (e) return r(e.texte, [], { intention: "erreur" });
@@ -407,13 +628,27 @@
       var fiche = (k.outils || []).filter(function (x) { return x.id === oc; })[0];
       if (fiche) return r(fiche.icone + " " + fiche.nom + " — " + fiche.champ + ".\n" + "« " + fiche.exemple + " »\n\n" + t("verif_aide"), [], { intention: "prompt" });
     }
+    // v41.160 : intentions courantes (débuter, utiliser, acheter, prix, chanson, vidéo, moteur, aide), sauf question sur un outil précis.
+    var it = intentionDe(q), ici = panneauOuvert() || TAB_CHAP[ongletActif()];
+    var precis = /^(utiliser|debuter|video|aide)$/.test(it.id || "") && chapitreNomme(k, q);
+    if (precis) it.id = null;
+    if (!(outil && outil !== "chanson") && !I.erreur.test(q)) {
+      if (it.ici && ici && ici !== "accueil" && ici !== "photo" && /^(utiliser|aide|debuter)$/.test(it.id || "aide")) return reponseIci(k, ici, r);
+      if (it.id === "acheter") return reponseAchat(k, r);
+      if (it.id === "prix") return reponsePrix(panneauOuvert(), r);
+      if (it.id === "chanson") return reponseChanson(k, r);
+      if (it.id === "video") return reponseVideo(k, r);
+      if (it.id === "moteur") return reponseMoteur(k, r);
+      if (it.id === "debuter" || it.id === "utiliser") return reponseGuide(k, r);
+      if (it.id === "aide") return clarification(false, r);
+    }
     var m = chercherManuel(k, q, outil || panneauOuvert() || TAB_CHAP[ongletActif()]);
-    if (!m) return r(t("inconnu"), [], { intention: "inconnue" });
+    if (!m) return clarification(true, r);
     var ent = etat.niveau === "debutant" && m.rubrique === 5 ? t("pasapas") : t("manuel");
     var act = [];
     if (CHAP_TAB[m.chapitre]) act.push({ lib: t("ouvrir_x", { x: nomApp(ongletLib(CHAP_TAB[m.chapitre])) }), fn: function () { ouvrirOnglet(CHAP_TAB[m.chapitre]); } });
     else if (PM_IDS.indexOf(m.chapitre) >= 0) act.push({ lib: t("ouvrir_x", { x: nomMoteur(m.chapitre) }), fn: function () { ouvrirOutil(m.chapitre); } });
-    return r(ent + " (" + m.titre + ") :\n" + m.texte, act, { intention: "manuel", source: m.chapitre + "#" + m.rubrique });
+    return r(ent + " (" + m.titre + ") :\n" + annoter(m.texte), act, { intention: "manuel", source: m.chapitre + "#" + m.rubrique });
   }
   function ongletLib(tab) { var a = document.querySelector('#tabbar .qnav[data-tab="' + tab + '"]'); return a ? (a.childNodes[0].textContent || "").trim() : tab; }
   function nomMoteur(id) { var m = moteurs().filter(function (x) { return x.id === id; })[0]; return m ? nomApp(m.nom) : id; }
@@ -539,7 +774,14 @@
     ".naya-form input,.naya-form select,.naya-form textarea{font:16px Manrope,sans-serif;color:var(--text,#E8ECF7);background:var(--bg,#060A1C);border:1px solid var(--line,#1F2B5C);border-radius:8px;padding:7px 8px}" +
     "@media (min-width:1100px){#naya-btn{right:316px}#naya-pan{right:316px}}" +
     "@media (max-width:640px){#naya-btn{right:12px;bottom:calc(12px + env(safe-area-inset-bottom))}#naya-pan{left:0;right:0;bottom:0;width:100%;max-width:100%;height:82vh;height:82dvh;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom)}}" +
-    "@media print{#naya-btn,#naya-pan{display:none}}";
+    // v41.160 : bandeau d'aide (dans le flux de la page, sous l'en-tête : ne recouvre rien) et bouton micro.
+    "#naya-ban{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:10px 0 8px;padding:8px 12px;border:1px solid var(--line,#1F2B5C);border-left:3px solid var(--ai,#2EE6D6);border-radius:12px;background:linear-gradient(90deg,rgba(46,230,214,.08),rgba(242,179,61,.05));color:var(--text,#E8ECF7);font:13px/1.45 Manrope,system-ui,sans-serif;text-align:left}" +
+    "#naya-ban p{flex:1 1 280px;margin:0;min-width:0}#naya-ban p b{color:var(--ai,#2EE6D6)}#naya-ban .naya-acts-ban{display:flex;gap:8px;flex:0 0 auto}" +
+    "#naya-ban .naya-btn{font-size:13px;padding:7px 14px;white-space:nowrap}" +
+    ".naya-mic{flex:none;width:44px;border-radius:10px;font-size:18px;padding:0}.naya-mic.on{background:var(--ai,#2EE6D6);color:#04201e;animation:nayaMic 1.2s ease-in-out infinite}" +
+    "@keyframes nayaMic{50%{box-shadow:0 0 0 6px rgba(46,230,214,.25)}}" +
+    "@media (max-width:640px){#naya-ban{font-size:12.5px;padding:8px 10px}#naya-ban .naya-acts-ban{flex:1 1 100%}#naya-ban .naya-btn{flex:1;padding:8px 6px}}" +
+    "@media print{#naya-btn,#naya-pan,#naya-ban{display:none}}";
 
   var el = {};
   function construire() {
@@ -554,11 +796,23 @@
       '<select class="naya-lg" aria-label="Langue / Language / Sprache"></select><button type="button" class="naya-x"></button></div>' +
       '<div class="naya-niv"><button type="button" data-niv="debutant"></button><button type="button" data-niv="pro"></button></div>' +
       '<div class="naya-fil" aria-live="polite"></div><div class="naya-puces"></div>' +
-      '<form class="naya-saisie"><textarea rows="1" maxlength="1000"></textarea><button type="submit" class="naya-btn naya-or"></button></form>' +
+      '<form class="naya-saisie"><button type="button" class="naya-btn naya-mic">🎤</button><textarea rows="1" maxlength="1000"></textarea><button type="submit" class="naya-btn naya-or"></button></form>' +
       '<div class="naya-pied"><span class="naya-conf"></span> <a class="naya-eff"></a></div>';
     document.body.appendChild(el.pan); document.body.appendChild(el.btn);
     el.fil = el.pan.querySelector(".naya-fil"); el.saisie = el.pan.querySelector(".naya-saisie textarea");
-    el.lg = el.pan.querySelector(".naya-lg");
+    el.lg = el.pan.querySelector(".naya-lg"); el.mic = el.pan.querySelector(".naya-mic");
+    el.mic.addEventListener("click", function () { dicter(); });
+    // v41.160 : bandeau d'aide sous l'en-tête de l'app (au-dessus des onglets), dans la langue de Naya.
+    var tete = document.querySelector(".wrap > header");
+    if (tete) {
+      el.ban = document.createElement("div"); el.ban.id = "naya-ban"; el.ban.setAttribute("role", "note");
+      el.ban.innerHTML = '<span class="naya-pt" style="width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#2EE6D6,#0b6f68);color:#04201e;font-size:14px">✦</span><p></p>' +
+        '<span class="naya-acts-ban"><button type="button" class="naya-btn naya-or" data-a="parler"></button><button type="button" class="naya-btn" data-a="ecrire"></button></span>';
+      tete.insertAdjacentElement("afterend", el.ban);
+      // Appels directs dans le geste de l'utilisateur : indispensable sur iPhone pour ouvrir le clavier et le micro.
+      el.ban.querySelector("[data-a=parler]").addEventListener("click", function () { basculer(true); dicter(); });
+      el.ban.querySelector("[data-a=ecrire]").addEventListener("click", function () { basculer(true); try { el.saisie.focus(); } catch (_) {} });
+    }
     el.btn.addEventListener("click", function () { basculer(!etat.ouvert); });
     el.pan.querySelector(".naya-x").addEventListener("click", function () { basculer(false); });
     el.pan.querySelector(".naya-saisie").addEventListener("submit", function (ev) { ev.preventDefault(); envoyer(el.saisie.value); });
@@ -576,7 +830,9 @@
     el.pan.querySelector(".naya-t").textContent = t("titre");
     el.pan.querySelector(".naya-x").setAttribute("aria-label", t("fermer")); el.pan.querySelector(".naya-x").textContent = "×";
     el.saisie.placeholder = t("placeholder");
-    el.pan.querySelector(".naya-saisie button").textContent = t("envoyer");
+    el.pan.querySelector(".naya-saisie button[type=submit]").textContent = t("envoyer");
+    el.mic.setAttribute("aria-label", t("micro")); el.mic.title = t("micro");
+    if (el.ban) { el.ban.querySelector("p").textContent = t("ban_txt"); el.ban.querySelector("[data-a=parler]").textContent = t("ban_parler"); el.ban.querySelector("[data-a=ecrire]").textContent = t("ban_ecrire"); el.ban.lang = etat.lg; }
     el.pan.querySelector(".naya-conf").textContent = t("confid");
     el.pan.querySelector(".naya-eff").textContent = t("effacer");
     el.lg.innerHTML = ACTIVES.map(function (l) { return '<option value="' + l + '"' + (l === etat.lg ? " selected" : "") + ">" + l.toUpperCase() + " · " + NOM_LG[l] + "</option>"; }).join("") +
@@ -591,7 +847,7 @@
   function changerLangue(lg) { etat.lg = lg; ecrire(LS.lg, lg); libelles(); chargerKB(lg).catch(function () {}); }
   function basculer(o) {
     etat.ouvert = o; el.pan.hidden = !o; el.btn.setAttribute("aria-expanded", String(o));
-    if (!o) arreterVoix();
+    if (!o) { arreterVoix(); if (reco) { try { reco.abort(); } catch (_) {} } }
     if (o) {
       if (!el.fil.childNodes.length) restaurer();
       chargerKB(etat.lg).catch(function () {});
@@ -613,7 +869,7 @@
     if (qui === "naya" && !rep.lg) rep.lg = etat.lg;   // langue dans laquelle la réponse est écrite : la voix lira cette langue
     d.innerHTML = mise(rep.texte);
     var acts = (rep.actions || []).slice();
-    if (qui === "naya" && !rep.formulaire && (serveurVoix() || (VOIX_SECOURS_APPAREIL && "speechSynthesis" in window))) acts.push({ lib: "🔊 " + t("ecouter"), fn: function (b) { lireAVoix(rep.texte, b, rep.lg); }, discret: true });
+    if (qui === "naya" && !rep.formulaire && !rep.sansVoix && (serveurVoix() || (VOIX_SECOURS_APPAREIL && "speechSynthesis" in window))) acts.push({ lib: "🔊 " + t("ecouter"), fn: function (b) { lireAVoix(rep.texte, b, rep.lg); }, discret: true });
     if (acts.length) {
       var z = document.createElement("div"); z.className = "naya-acts";
       acts.forEach(function (a) {
@@ -674,6 +930,27 @@
     });
   }
   var lecture = null;
+  // v41.160 : dictée. Chrome (Mac) et Safari (iPhone) proposent la reconnaissance vocale ; le navigateur demande
+  // l'autorisation du micro. Sans elle : message clair et curseur dans la zone de saisie (micro du clavier).
+  var reco = null;
+  var LOCALE_DICTEE = { fr: "fr-FR", en: "en-US", de: "de-DE" };
+  function noteMicro(cle) { ajouter("naya", { texte: t(cle), intention: "micro", sansVoix: true }, true); }
+  function dicter() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (reco) { try { reco.stop(); } catch (_) {} return; }
+    if (!SR) { noteMicro("micro_indispo"); try { el.saisie.focus(); } catch (_) {} return; }
+    arreterVoix();
+    var r0 = new SR(), final = "", place = el.saisie.placeholder;
+    r0.lang = LOCALE_DICTEE[etat.lg] || "fr-FR"; r0.interimResults = true; r0.continuous = false; r0.maxAlternatives = 1;
+    r0.onresult = function (ev) {
+      var tmp = ""; for (var i = ev.resultIndex; i < ev.results.length; i++) { if (ev.results[i].isFinal) final += ev.results[i][0].transcript; else tmp += ev.results[i][0].transcript; }
+      el.saisie.value = (final + tmp).trim();
+    };
+    r0.onerror = function (ev) { var e = ev && ev.error; if (e === "not-allowed" || e === "service-not-allowed") noteMicro("micro_refus"); else if (e === "no-speech") noteMicro("micro_rien"); else if (e !== "aborted") noteMicro("micro_indispo"); };
+    r0.onend = function () { reco = null; el.mic.classList.remove("on"); el.saisie.placeholder = place; var q = final.trim(); if (q) envoyer(q); };
+    try { r0.start(); reco = r0; el.mic.classList.add("on"); el.saisie.placeholder = t("micro_ecoute"); }
+    catch (_) { reco = null; noteMicro("micro_indispo"); }
+  }
   function arreterVoix() { try { if (lecture) { lecture.pause(); URL.revokeObjectURL(lecture.src); } } catch (_) {} lecture = null; try { speechSynthesis.cancel(); } catch (_) {} }
   function noteVoix(bouton, texte) { var z = bouton && bouton.parentNode; if (!z) return; var n = z.querySelector(".naya-vx") || z.appendChild(document.createElement("small")); n.className = "naya-vx"; n.style.cssText = "flex-basis:100%;color:var(--dim,#AEB7D3);font-size:11px"; n.textContent = texte; }
   function serveurVoix() { try { return typeof WORKER_URL === "string" && /^(https:\/\/|http:\/\/127\.0\.0\.1[:/])/.test(WORKER_URL) && !/COLLE_ICI|\.invalid/.test(WORKER_URL) ? WORKER_URL : null; } catch (_) { return null; } }
