@@ -89,7 +89,8 @@
     voix_melanie: { fr: "🎙️ Voix de Naya : {n}", en: "🎙️ Naya's voice: {n}", de: "🎙️ Nayas Stimme: {n}" },
     voix_secours: { fr: "Voix de secours de ton appareil ({n}) : la voix de Naya n'est pas disponible pour le moment.", en: "Backup voice from your device ({n}): Naya's voice is not available right now.", de: "Ersatzstimme Ihres Geräts ({n}): Nayas Stimme ist gerade nicht verfügbar." },
     voix_aucune: { fr: "La voix n'est pas disponible pour le moment sur cet appareil : la réponse reste écrite.", en: "The voice is not available on this device right now: the answer stays in writing.", de: "Die Stimme ist auf diesem Gerät gerade nicht verfügbar: Die Antwort bleibt schriftlich." },
-    voix_indispo: { fr: "La voix de Naya (Mélanie) n'est pas disponible pour le moment : la réponse reste écrite.", en: "Naya's voice (Mélanie) is not available right now: the answer stays in writing.", de: "Nayas Stimme (Mélanie) ist gerade nicht verfügbar: Die Antwort bleibt schriftlich." },
+    voix_indispo: { fr: "La voix de Naya (Mélanie) n'est pas disponible pour le moment : la réponse reste écrite.", en: "Naya's voice (Lara) is not available right now: the answer stays in writing.", de: "Nayas Stimme (Lea) ist gerade nicht verfügbar: Die Antwort bleibt schriftlich." },
+    voix_langue: { fr: "La voix de Naya n'est pas disponible pour cette réponse : elle reste écrite.", en: "Naya's voice is not available for this answer: it stays in writing.", de: "Nayas Stimme ist für diese Antwort nicht verfügbar: Sie bleibt schriftlich." },
     voix_touche: { fr: "Touche encore « Écouter » pour lancer la lecture.", en: "Tap « Listen » again to start playback.", de: "Tippen Sie erneut auf « Anhören », um die Wiedergabe zu starten." },
     environ: { fr: "environ ", en: "about ", de: "etwa " }
   };
@@ -561,9 +562,10 @@
   function ajouter(qui, rep, sansMemo) {
     var d = document.createElement("div"); d.className = "naya-m " + qui;
     if (rep.intention) d.dataset.intention = rep.intention;
+    if (qui === "naya" && !rep.lg) rep.lg = etat.lg;   // langue dans laquelle la réponse est écrite : la voix lira cette langue
     d.innerHTML = mise(rep.texte);
     var acts = (rep.actions || []).slice();
-    if (qui === "naya" && !rep.formulaire && (serveurVoix() || (VOIX_SECOURS_APPAREIL && "speechSynthesis" in window))) acts.push({ lib: "🔊 " + t("ecouter"), fn: function (b) { lireAVoix(rep.texte, b); }, discret: true });
+    if (qui === "naya" && !rep.formulaire && (serveurVoix() || (VOIX_SECOURS_APPAREIL && "speechSynthesis" in window))) acts.push({ lib: "🔊 " + t("ecouter"), fn: function (b) { lireAVoix(rep.texte, b, rep.lg); }, discret: true });
     if (acts.length) {
       var z = document.createElement("div"); z.className = "naya-acts";
       acts.forEach(function (a) {
@@ -587,6 +589,8 @@
   //    (souvent masculine, « Thomas » sur Mac et iPhone) et lisait l'anglais ou l'allemand avec un accent français.
   // v41.158 : décision du directeur — Naya ne parle QU'AVEC la voix qu'il a choisie (Mélanie, ElevenLabs).
   // La voix de secours de l'appareil est désactivée : sans Mélanie, la réponse reste écrite et c'est dit.
+  // v41.159 : une voix native par langue, choisie par le serveur (Mélanie fr-FR, Lea de-DE, Lara en anglais) ;
+  // jamais de voix de l'appareil, même si une voix ElevenLabs manque.
   // Passer à true seulement avec son accord.
   var VOIX_SECOURS_APPAREIL = false;
   var LANGUE_VOIX = { fr: "fr-FR", en: "en-GB", de: "de-DE" };
@@ -625,11 +629,13 @@
   function arreterVoix() { try { if (lecture) { lecture.pause(); URL.revokeObjectURL(lecture.src); } } catch (_) {} lecture = null; try { speechSynthesis.cancel(); } catch (_) {} }
   function noteVoix(bouton, texte) { var z = bouton && bouton.parentNode; if (!z) return; var n = z.querySelector(".naya-vx") || z.appendChild(document.createElement("small")); n.className = "naya-vx"; n.style.cssText = "flex-basis:100%;color:var(--dim,#AEB7D3);font-size:11px"; n.textContent = texte; }
   function serveurVoix() { try { return typeof WORKER_URL === "string" && /^(https:\/\/|http:\/\/127\.0\.0\.1[:/])/.test(WORKER_URL) && !/COLLE_ICI|\.invalid/.test(WORKER_URL) ? WORKER_URL : null; } catch (_) { return null; } }
-  function lireAVoix(texte, bouton) {
+  // Le serveur choisit la voix native de la langue du texte (Mélanie en français). Sans voix validée
+  // pour cette langue, il répond 409 et la réponse reste écrite.
+  function lireAVoix(texte, bouton, lgTexte) {
     arreterVoix();
-    var lg = etat.lg, srv = serveurVoix();
+    var lg = lgTexte || etat.lg, srv = serveurVoix(), refusLangue = false;
     var essai = srv ? fetch(srv + "/naya/voix", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texte: String(texte).slice(0, 1200), langue: lg }) })
-      .then(function (r) { return r.ok && /audio/.test(r.headers.get("Content-Type") || "") ? r.blob().then(function (b) { return { blob: b, nom: decodeURIComponent(r.headers.get("X-Naya-Voix") || "Mélanie") }; }) : null; })
+      .then(function (r) { if (r.status === 409) refusLangue = true; return r.ok && /audio/.test(r.headers.get("Content-Type") || "") ? r.blob().then(function (b) { return { blob: b, nom: decodeURIComponent(r.headers.get("X-Naya-Voix") || "Naya") }; }) : null; })
       .catch(function () { return null; }) : Promise.resolve(null);
     essai.then(function (res) {
       if (res) {
@@ -637,6 +643,7 @@
         var p = lecture.play(); if (p && p.catch) p.catch(function () { noteVoix(bouton, t("voix_touche")); });
         noteVoix(bouton, t("voix_melanie", { n: res.nom })); return;
       }
+      if (refusLangue) { noteVoix(bouton, t("voix_langue")); return; }
       if (!VOIX_SECOURS_APPAREIL) { noteVoix(bouton, t("voix_indispo")); return; }
       if (!("speechSynthesis" in window)) { noteVoix(bouton, t("voix_aucune")); return; }
       voixPretes().then(function () {
