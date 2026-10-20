@@ -147,13 +147,13 @@
   // v41.160 : l'app est en français. En anglais et en allemand, Naya traduit les noms d'onglets, d'outils et de
   // genres qu'elle affiche, ainsi que les lignes de tarifs lues dans l'app (prix et noms de marque inchangés).
   var NOMS_APP = {
-    en: { "🎬 Accueil": "🎬 Home", "📸 Ta photo": "📸 Your photo", "✨ Traitement": "✨ Enhancement", "👔 Habillage & Décor": "👔 Outfit & Setting",
+    en: { "🎬 Accueil": "🎬 Home", "📸 Ta photo": "📸 Your photo", "✨ Traitement": "✨ Photo effects", "👔 Habillage & Décor": "👔 Outfit & Setting",
       "🎬 Scénario": "🎬 Script", "🎞️ Mini-séries IA": "🎞️ AI mini-series", "🔁 Remix": "🔁 Remix", "🎤 Finition": "🎤 Finishing", "💳 Commander": "💳 Order",
       "📝 Prompts": "📝 Prompts", "💡 Idées": "💡 Ideas", "📜 Tout voir": "📜 See all",
       "🎵 Chanson": "🎵 Song", "⭐ Chanson Pro — qualité studio": "⭐ Chanson Pro — studio quality", "🎙️ Améliorer ma démo": "🎙️ Improve my demo", "🎚️ Extraire les stems": "🎚️ Extract stems",
       "🎷 Rumba congolaise": "🎷 Congolese rumba", "🙏 Gospel africain": "🙏 African gospel", "💔 Ballade": "💔 Ballad",
       "👨 Voix d'homme": "👨 Male voice", "👩 Voix de femme": "👩 Female voice", "👫 Duo H + F": "👫 Duo M + F", "🎙️ Avec chœur": "🎙️ With choir" },
-    de: { "🎬 Accueil": "🎬 Start", "📸 Ta photo": "📸 Ihr Foto", "✨ Traitement": "✨ Bearbeitung", "👔 Habillage & Décor": "👔 Outfit & Kulisse",
+    de: { "🎬 Accueil": "🎬 Start", "📸 Ta photo": "📸 Ihr Foto", "✨ Traitement": "✨ Fotoeffekte", "👔 Habillage & Décor": "👔 Outfit & Kulisse",
       "🎬 Scénario": "🎬 Drehbuch", "🎞️ Mini-séries IA": "🎞️ KI-Miniserien", "🔁 Remix": "🔁 Remix", "🎤 Finition": "🎤 Feinschliff", "💳 Commander": "💳 Bestellen",
       "📝 Prompts": "📝 Prompts", "💡 Idées": "💡 Ideen", "📜 Tout voir": "📜 Alles anzeigen",
       "🎵 Chanson": "🎵 Song", "⭐ Chanson Pro — qualité studio": "⭐ Chanson Pro — Studioqualität", "🎙️ Améliorer ma démo": "🎙️ Meine Demo verbessern", "🎚️ Extraire les stems": "🎚️ Stems extrahieren",
@@ -584,7 +584,9 @@
   var $ = function (sel) { try { return document.querySelector(sel); } catch (_) { return null; } };
   var visible = function (e) { return !!(e && e.getClientRects().length && !e.closest(".hidden,[hidden]")); };
   var aClasse = function (sel, c) { var e = $(sel); return !!(e && e.classList.contains(c)); };
-  var tg = function (o, v) { var s0 = (o && (o[etat.lg] || o.fr)) || ""; return v ? s0.replace(/\{(\w+)\}/g, function (_, k) { return k in v ? v[k] : ""; }) : s0; };
+  // v41.162 : le guide parle la langue choisie pour l'interface quand Naya la connaît (FR / EN / DE), sinon celle de la conversation.
+  var lgGuide = function () { var li = lgInterface(); return ACTIVES.indexOf(li) >= 0 ? li : etat.lg; };
+  var tg = function (o, v) { var s0 = (o && (o[lgGuide()] || o.fr)) || ""; return v ? s0.replace(/\{(\w+)\}/g, function (_, k) { return k in v ? v[k] : ""; }) : s0; };
   var GT = {
     titre: { fr: "🧭 Guide interactif", en: "🧭 Interactive guide", de: "🧭 Interaktiver Guide" },
     proposer: { fr: "Je peux t'accompagner étape par étape dans l'app : {p}. J'ouvre les bons onglets et je te montre où toucher ; c'est toi qui fais chaque geste. On y va ?", en: "I can walk you through it step by step in the app: {p}. I open the right tabs and show you where to tap; you make every move yourself. Shall we?", de: "Ich kann Sie Schritt für Schritt in der App begleiten: {p}. Ich öffne die richtigen Tabs und zeige Ihnen, wo Sie tippen; jeden Schritt machen Sie selbst. Sollen wir?" },

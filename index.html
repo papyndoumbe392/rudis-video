@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
+<script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>StarClip AI Studio v41.162 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -7053,8 +7055,10 @@ function prUtiliser(g, it) {
   prAller(g, () => {
     if (it.chip) {
       const puces = [...document.querySelectorAll("#efFamilles .chip")];
-      puces.filter(c => c.classList.contains("on") && c.textContent.trim() !== it.chip).forEach(c => c.click());
-      const cible = puces.find(c => c.textContent.trim() === it.chip);
+      // v41.162 : on compare le libellé d'origine (français), même si l'interface est traduite.
+      const libelle = c => c.getAttribute("data-i18n-src") || c.textContent.trim();
+      puces.filter(c => c.classList.contains("on") && libelle(c) !== it.chip).forEach(c => c.click());
+      const cible = puces.find(c => libelle(c) === it.chip);
       if (cible && !cible.classList.contains("on")) cible.click();
     }
     const el = document.getElementById(g.champ);
@@ -15265,6 +15269,8 @@ const SCENARIO_EXEMPLES = [
 </script>
 
 <!-- v41.156 : Naya, l'assistante StarClip (dans le navigateur, sans IA payante ni envoi de données). -->
+<!-- v41.162 : langue de l'interface (FR / EN / ES / DE) — chargée avant Naya, qui en suit la langue. -->
+<script src="i18n/i18n.js?v=41162" defer></script>
 <script src="naya/naya.js?v=41162" defer></script>
 </body>
 </html>
