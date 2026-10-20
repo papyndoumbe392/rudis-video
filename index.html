@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.162 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.163 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -2450,7 +2450,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.162</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.163</span>
 
   </footer>
 </div>
@@ -7039,7 +7039,7 @@ const PR_TXT = {
         modif: "✏️ <b>These prompts are starting points, not rules.</b> Once the text is in the box, <b>edit it however you like</b> before you launch: change the colour of the clothes, the place, the mood, the light, add or remove details. Example: \"a <u>gold</u> evening gown\" can become \"a <u>red evening gown with pearls</u>\". The more the text looks like you, the more the result looks like you.",
         rappel: "✏️ You can edit this text however you like before you launch." },
 };
-let prLang = "fr";
+let prLang = document.documentElement.lang === "en" ? "en" : "fr";   // v41.163 : interface anglaise → onglet Prompts en anglais par défaut (ES / DE : traduits depuis le français)
 try { const l = localStorage.getItem("starclip_pr_lang"); if (l === "fr" || l === "en") prLang = l; } catch (_) {}
 
 function prAller(g, apres) {
@@ -7107,7 +7107,7 @@ function prAfficher() {
       ${g.items.map((it, ii) => `
         <div style="background:var(--up); border-radius:8px; padding:8px 10px; margin-top:8px;">
           ${it.chip ? `<span class="chip on" style="pointer-events:none; font-size:12px;">${it.chip}</span> ` : ""}
-          <span>${it[prLang].replace(/</g, "&lt;")}</span>
+          <span data-i18n-ignore>${it[prLang].replace(/</g, "&lt;")}</span>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
             ${g.champ ? `<button class="btn small" data-pr-use="${gi}-${ii}">${T.utiliser}</button>` : ""}
             <button class="btn small" data-pr-copy="${gi}-${ii}">${T.copier}</button>
@@ -13789,7 +13789,7 @@ function ideesAfficher() {
   z.innerHTML = IDEES_PROMPTS.map((p, i) => `
     <div class="card" style="margin-top:${i === 0 ? 0 : 10}px; padding:12px 14px;">
       <b style="color:var(--gold);">${p.titre}</b>
-      <div class="hint" style="margin-top:6px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; line-height:1.6; white-space:pre-wrap;">${p.texte}</div>
+      <div class="hint" data-i18n-ignore style="margin-top:6px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; line-height:1.6; white-space:pre-wrap;">${p.texte}</div>
       <button class="chip" data-ideescopier="${i}" style="margin-top:8px;">📋 Copier ce texte</button>
     </div>`).join("");
   z.querySelectorAll("[data-ideescopier]").forEach(b => {
@@ -15270,7 +15270,7 @@ const SCENARIO_EXEMPLES = [
 
 <!-- v41.156 : Naya, l'assistante StarClip (dans le navigateur, sans IA payante ni envoi de données). -->
 <!-- v41.162 : langue de l'interface (FR / EN / ES / DE) — chargée avant Naya, qui en suit la langue. -->
-<script src="i18n/i18n.js?v=41162" defer></script>
-<script src="naya/naya.js?v=41162" defer></script>
+<script src="i18n/i18n.js?v=41163" defer></script>
+<script src="naya/naya.js?v=41163" defer></script>
 </body>
 </html>

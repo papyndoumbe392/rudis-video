@@ -30,7 +30,7 @@
       s.src = dossier + "dict-" + l + ".js" + version;
       s.onload = function () {
         var d = window.STARCLIP_I18N && window.STARCLIP_I18N[l];
-        if (d) dicos[l] = { t: d.t || {}, re: (d.p || []).map(function (p) { return [new RegExp(p[0]), p[1]]; }) };
+        if (d) dicos[l] = { t: d.t || {}, re: (d.p || []).map(function (p) { return [new RegExp(p[0]), p[1]]; }), s: d.s || [] };
         ok(dicos[l] || null);
       };
       s.onerror = function () { chargements[l] = null; ok(null); };
@@ -43,7 +43,25 @@
     var k = norm(fr); if (!k) return null;
     if (Object.prototype.hasOwnProperty.call(D.t, k)) return D.t[k];
     for (var i = 0; i < D.re.length; i++) if (D.re[i][0].test(k)) return k.replace(D.re[i][0], D.re[i][1]);
-    return null;
+    return segments(k);
+  }
+  // Messages fabriqués par morceaux par l'app (« Envoi refusé (403). Vérifie ta connexion… ») : chaque morceau connu
+  // (8 caractères au moins, du plus long au plus court) est traduit à l'intérieur du texte. Rien trouvé → null.
+  function segments(k) {
+    if (!D.s || !D.s.length || !/[A-Za-zÀ-ÿ]{3}/.test(k)) return null;
+    var morceaux = [k], change = false;
+    for (var i = 0; i < D.s.length; i++) {
+      var fr = D.s[i];
+      for (var j = 0; j < morceaux.length; j++) {
+        var m = morceaux[j];
+        if (typeof m !== "string" || m.indexOf(fr) < 0) continue;
+        var parts = m.split(fr), rempl = [];
+        parts.forEach(function (p, n) { if (n) rempl.push({ v: D.t[fr] }); if (p) rempl.push(p); });
+        morceaux.splice.apply(morceaux, [j, 1].concat(rempl)); j += rempl.length - 1; change = true;
+      }
+    }
+    if (!change) return null;
+    return morceaux.map(function (m) { return typeof m === "string" ? m : m.v; }).join("");
   }
   function texte(n) {
     var p = n.parentElement;
