@@ -727,8 +727,10 @@
   function repondreGuide(q, r) {
     var n = normaliser(q), e = etapeCourante();
     if (propose && !guide) {
-      if (ACCORD.test(n) && !REFUS.test(n)) return demarrerGuide(propose, r);
-      if (REFUS.test(n)) { propose = null; return r(t("clarif"), OPTIONS.map(option), { intention: "clarification" }); }
+      // La proposition ne vaut que pour la réponse suivante, et seule une réponse courte compte comme oui / non.
+      var court = n.split(" ").filter(Boolean).length <= 4, id0 = propose; propose = null;
+      if (court && ACCORD.test(n) && !REFUS.test(n)) return demarrerGuide(id0, r);
+      if (court && REFUS.test(n)) return r(t("clarif"), OPTIONS.map(option), { intention: "clarification" });
     }
     if (!guide) return null;
     if (CMD.arret.test(n)) return finirGuide(r, false);
@@ -795,6 +797,27 @@
     var d = k.docs.filter(function (d) { return !CHAP_STUDIO[d.s.c] && d.s.c !== "demarrer" && tt.some(function (x) { return d.titre.indexOf(racine(x)) >= 0; }); })[0];
     return d ? d.s.c : null;
   }
+  // v41.160 : questions commerciales, comparaisons et objections → chapitre « Pourquoi StarClip » du manuel.
+  // Naya répond avec la question fréquente la plus proche, ajoute le paragraphe honnête sur le service cité,
+  // et ne prétend jamais que StarClip est moins cher ou meilleur (le manuel ne le dit pas).
+  var POURQUOI = / (pourquoi (choisir|payer|utiliser|prendre|commander|starclip)|why (should i |would i |to |not )?(choose|use|pay|pick|order|starclip)|warum (sollte ich |soll ich )?(starclip|wahlen|bezahlen|nutzen|bestellen)|plutot que|rather than|instead of|statt|anstatt|comparaison|comparer|compare|vergleich|versus|remplace|replace|ersetzt|moins cher|cheaper|billiger|gunstiger|meilleur que|better than|besser als|avantages?|advantages?|vorteile?|meme endroit|same place|selben ort|einem ort|suno|higgsfield|elevenlabs|eleven labs|runway|kling|concurren|competitor|konkurren|propre (ia|technologie|moteur)|own (ai|technology|model|engine)|eigene (ki|technologie|modell)) /;
+  var SERVICES = ["suno", "higgsfield", "elevenlabs", "runway", "kling"];
+  function reponsePourquoi(k, q, r) {
+    var n = normaliser(q), cite = SERVICES.filter(function (x) { return n.indexOf(" " + x + " ") >= 0 || (x === "elevenlabs" && / eleven labs /.test(n)); })[0];
+    var faq = rubrique(k, "pourquoi", 8).split("\n").filter(function (l) { return /^- /.test(l) && l.indexOf(" — ") > 0; }).map(function (l) { var i = l.indexOf(" — "); return { q: l.slice(2, i), a: l.slice(i + 3) }; });
+    var mq = n.split(" ").filter(function (m) { return m.length > 3 && !VIDES[m]; });
+    var best = faq.map(function (f) { var nf = normaliser(f.q); var sc = mq.filter(function (m) { return nf.indexOf(" " + m + " ") >= 0; }).length + (cite && nf.indexOf(cite) >= 0 ? 5 : 0); return { f: f, sc: sc }; })
+      .sort(function (a, b) { return b.sc - a.sc; })[0];
+    var texte;
+    // « Est-ce votre propre IA ? » → la phrase du manuel sur les moteurs partenaires, et la suivante.
+    if (/ (propre|own|eigene) /.test(n)) texte = ((rubrique(k, "pourquoi", 1).match(/[^.]*(partenaires|partners|Partnern)[^.]*\.[^.]*\./) || [""])[0]).trim();
+    if (!texte) texte = (best && best.sc > 0 ? best.f : faq[0] || { a: phrases(rubrique(k, "pourquoi", 1), 2) }).a;
+    if (cite && plier(texte).indexOf(cite) < 0) {
+      var para = rubrique(k, "pourquoi", 5).split("\n").filter(function (l) { return plier(l).indexOf(cite) >= 0; })[0];
+      if (para) texte += "\n\n" + para.replace(/^-\s*/, "");
+    }
+    return r(annoter(texte), [option("op_prix"), option("op_signature"), option("op_debuter")], { intention: "pourquoi", service: cite || null });
+  }
   function clarification(flou, r) { return r(t(flou ? "clarif_flou" : "clarif"), OPTIONS.map(option), { intention: "clarification" }); }
   // Texte affiché : sans antislash parasite ni ligne de tableau « --- », coupé à la fin d'une phrase.
   function propre(x) { return String(x).replace(/\\/g, "").replace(/^[ \t]*(-{3,}[ \t]*)+$\n?/gm, "").replace(/\n{3,}/g, "\n\n").trim(); }
@@ -829,6 +852,7 @@
       var c = verifierPrompt(txt, o);
       return r(t("verif_titre") + " :\n" + (c.length ? c.map(function (x) { return "• " + x; }).join("\n") : t("verif_bon")), [], { intention: "verifier", conseils: c.length });
     }
+    if (POURQUOI.test(normaliser(q)) && k.sections.some(function (x) { return x.c === "pourquoi"; })) return reponsePourquoi(k, q, r);
     if (I.deleguer.test(q)) return r(t("dev_intro"), [], { intention: "devis", formulaire: true });
     // v41.160 : « accompagne-moi », « ma première chanson », « step by step »… → réponse, puis proposition du guide interactif.
     var pg = !guide && parcoursDe(intentionDe(q).id, q);
