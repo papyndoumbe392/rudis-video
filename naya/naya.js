@@ -45,16 +45,18 @@
     pasapas: { fr: "Pas à pas", en: "Step by step", de: "Schritt für Schritt" },
     lancer: { fr: "Je ne lance jamais moi-même une génération payante. Vérifie le prix affiché, puis touche toi-même le bouton de lancement quand tu es prêt(e).", en: "I never start a paid generation myself. Check the price shown, then tap the start button yourself when you're ready.", de: "Ich starte nie selbst eine kostenpflichtige Generierung. Prüfen Sie den angezeigten Preis und tippen Sie selbst auf Start, wenn Sie bereit sind." },
     abonnement: { fr: "Aucun abonnement n'est nécessaire : tu paies à l'unité, avec un code StarClip ou un solde Premium que tu recharges.", en: "No subscription is required: you pay per use, with a StarClip code or a Premium balance you top up.", de: "Kein Abonnement nötig: Sie zahlen pro Nutzung, mit einem StarClip-Code oder einem aufladbaren Premium-Guthaben." },
-    paiement: { fr: "Pour payer : envoie le montant par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet 💳 Commander, puis envoie ta capture sur WhatsApp. Tu reçois ton CODE StarClip sur WhatsApp. Pas de carte bancaire pour l'instant.", en: "To pay: send the amount by Orange Money or MTN Mobile Money to the numbers shown in the 💳 Commander tab, then send your screenshot on WhatsApp. You receive your StarClip CODE on WhatsApp. No card payment for now.", de: "So bezahlen Sie: Senden Sie den Betrag per Orange Money oder MTN Mobile Money an die im Tab 💳 Commander angezeigten Nummern und schicken Sie dann Ihren Screenshot per WhatsApp. Sie erhalten Ihren StarClip-CODE per WhatsApp. Kartenzahlung ist vorerst nicht möglich." },
+    paiement: { fr: "Pour payer : envoie le montant par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet 💳 Commander, puis envoie ta capture sur WhatsApp. Tu reçois ton CODE StarClip sur WhatsApp. Pas de carte bancaire pour l'instant.", en: "To pay: send the amount by Orange Money or MTN Mobile Money to the numbers shown in the « 💳 Commander » (Order) tab, then send your screenshot on WhatsApp. You receive your StarClip CODE on WhatsApp. No card payment for now.", de: "So bezahlen Sie: Senden Sie den Betrag per Orange Money oder MTN Mobile Money an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern und schicken Sie dann Ihren Screenshot per WhatsApp. Sie erhalten Ihren StarClip-CODE per WhatsApp. Kartenzahlung ist vorerst nicht möglich." },
     packs: { fr: "Packs affichés dans l'app", en: "Packs shown in the app", de: "In der App angezeigte Pakete" },
     signature: { fr: "Clips réalisés par Studio Rudis", en: "Videos made by Studio Rudis", de: "Videos von Studio Rudis" },
     prix_moteur: { fr: "Prix affiché dans l'app pour {m}", en: "Price shown in the app for {m}", de: "In der App angezeigter Preis für {m}" },
     debite: { fr: "Débité seulement quand tu appuies toi-même sur le bouton de création.", en: "Charged only when you tap the create button yourself.", de: "Abgebucht erst, wenn Sie selbst auf Erstellen tippen." },
     prix_absent: { fr: "Je ne trouve pas ce prix dans l'app : ouvre l'onglet concerné, le prix exact s'y affiche avant tout lancement.", en: "I can't find this price in the app: open the tab concerned, the exact price is shown there before anything starts.", de: "Ich finde diesen Preis nicht in der App: Öffnen Sie den betreffenden Tab, dort wird der genaue Preis vor jedem Start angezeigt." },
-    reprise: { fr: "Améliorer ma démo en mode Reprise : 999 FCFA.", en: "Améliorer ma démo in Reprise mode: 999 FCFA.", de: "Améliorer ma démo im Reprise-Modus: 999 FCFA." },
+    reprise: { fr: "Améliorer ma démo en mode Reprise : 999 FCFA.", en: "« 🎙️ Améliorer ma démo » (Improve my demo), « Reprise » (Cover) mode: 999 FCFA.", de: "« 🎙️ Améliorer ma démo » (Meine Demo verbessern), Modus « Reprise » (Cover): 999 FCFA." },
     resume_prix: { fr: "Quelques prix affichés dans l'app (outils Premium, payés sur ton solde) :", en: "Some prices shown in the app (Premium tools, paid from your balance):", de: "Einige Preise aus der App (Premium-Werkzeuge, vom Guthaben bezahlt):" },
     ouvrir: { fr: "Ouvrir", en: "Open", de: "Öffnen" },
-    ouvrir_cmd: { fr: "Ouvrir 💳 Commander", en: "Open 💳 Commander", de: "💳 Commander öffnen" },
+    ouvrir_cmd: { fr: "Ouvrir 💳 Commander", en: "Open 💳 Order", de: "💳 Bestellen öffnen" },
+    ouvrir_x: { fr: "Ouvrir {x}", en: "Open {x}", de: "{x} öffnen" },
+    reference: { fr: "Référence", en: "Reference", de: "Referenz" },
     genre_titre: { fr: "Exemples de prompt", en: "Prompt examples", de: "Prompt-Beispiele" },
     ex_fr: { fr: "", en: "(examples written in French: the engine understands them)", de: "(Beispiele auf Französisch: Das Modell versteht sie)" },
     debutant_ex: { fr: "Débutant", en: "Beginner", de: "Einsteiger" },
@@ -64,7 +66,7 @@
     instrumental: { fr: "🎹 Instrumental", en: "🎹 Instrumental", de: "🎹 Instrumental" },
     charger_titre: { fr: "Charger un exemple dans Chanson Pro (rien n'est lancé) :", en: "Load an example into Chanson Pro (nothing starts):", de: "Ein Beispiel in Chanson Pro laden (nichts wird gestartet):" },
     charge_ok: { fr: "C'est chargé dans Chanson Pro. Modifie-le librement : rien n'est lancé, le prix s'affiche sous le formulaire.", en: "Loaded into Chanson Pro. Edit it freely: nothing has started, the price is shown below the form.", de: "In Chanson Pro geladen. Ändern Sie es frei: Nichts wurde gestartet, der Preis steht unter dem Formular." },
-    charge_ko: { fr: "Je n'ai pas pu ouvrir Chanson Pro ici. Ouvre l'onglet 👑 Admin Premium 5.0, puis ⭐ Chanson Pro, choisis le genre et touche « ✨ Essayer un prompt exemple ».", en: "I couldn't open Chanson Pro here. Open the 👑 Admin Premium 5.0 tab, then ⭐ Chanson Pro, choose the genre and tap « ✨ Essayer un prompt exemple ».", de: "Ich konnte Chanson Pro hier nicht öffnen. Öffnen Sie den Tab 👑 Admin Premium 5.0, dann ⭐ Chanson Pro, wählen Sie das Genre und tippen Sie auf « ✨ Essayer un prompt exemple »." },
+    charge_ko: { fr: "Je n'ai pas pu ouvrir Chanson Pro ici. Ouvre l'onglet 👑 Admin Premium 5.0, puis ⭐ Chanson Pro, choisis le genre et touche « ✨ Essayer un prompt exemple ».", en: "I couldn't open Chanson Pro here. Open the 👑 Admin Premium 5.0 tab, then ⭐ Chanson Pro, choose the genre and tap « ✨ Essayer un prompt exemple » (Try an example prompt).", de: "Ich konnte Chanson Pro hier nicht öffnen. Öffnen Sie den Tab 👑 Admin Premium 5.0, dann ⭐ Chanson Pro, wählen Sie das Genre und tippen Sie auf « ✨ Essayer un prompt exemple » (Beispiel-Prompt ausprobieren)." },
     genres_dispo: { fr: "Dis-moi le genre voulu, je te donne un exemple. Genres disponibles : ", en: "Tell me the genre you want and I'll give you an example. Available genres: ", de: "Nennen Sie mir das gewünschte Genre, ich gebe Ihnen ein Beispiel. Verfügbare Genres: " },
     auth: { fr: "Le nom du genre ne garantit pas le résultat : écoute toujours ta chanson avant de la publier.", en: "The genre name does not guarantee the result: always listen to your song before publishing it.", de: "Der Genrename garantiert das Ergebnis nicht: Hören Sie Ihren Song immer an, bevor Sie ihn veröffentlichen." },
     verif_titre: { fr: "Vérification de ton prompt", en: "Checking your prompt", de: "Prüfung Ihres Prompts" },
@@ -83,8 +85,8 @@
     dev_copier: { fr: "Copier le texte", en: "Copy the text", de: "Text kopieren" },
     copie: { fr: "Copié ✓", en: "Copied ✓", de: "Kopiert ✓" },
     dev_prix: { fr: "Prix affiché dans l'app : {p}. Le devis final, l'acompte et le délai sont confirmés par Studio Rudis ; aucun délai n'est garanti avant cette confirmation.", en: "Price shown in the app: {p}. The final quote, deposit and timing are confirmed by Studio Rudis; no deadline is guaranteed before that confirmation.", de: "In der App angezeigter Preis: {p}. Endgültiges Angebot, Anzahlung und Termin bestätigt Studio Rudis; vor dieser Bestätigung ist kein Termin garantiert." },
-    dev_wa_absent: { fr: "Je ne trouve pas le lien WhatsApp officiel dans l'app : copie le texte et envoie-le depuis l'onglet 💳 Commander.", en: "I can't find the official WhatsApp link in the app: copy the text and send it from the 💳 Commander tab.", de: "Ich finde den offiziellen WhatsApp-Link nicht in der App: Kopieren Sie den Text und senden Sie ihn über den Tab 💳 Commander." },
-    essai_fini: { fr: "La période de test de StarClip est terminée : il n'y a plus de code d'essai. Pour commencer :\n1. choisis ton pack dans l'onglet 💳 Commander ;\n2. paie par Orange Money ou MTN Mobile Money ;\n3. envoie la capture sur WhatsApp ;\n4. entre le code reçu en haut de l'app et touche OK. Ce code est ton compte : il garde tes crédits.", en: "The StarClip test period is over: there are no more trial codes. To get started:\n1. choose your pack in the 💳 Commander tab;\n2. pay with Orange Money or MTN Mobile Money;\n3. send the screenshot on WhatsApp;\n4. enter the code you receive at the top of the app and tap OK. This code is your account: it keeps your credits.", de: "Die Testphase von StarClip ist beendet: Es gibt keine Testcodes mehr. So fangen Sie an:\n1. Wählen Sie Ihr Paket im Tab 💳 Commander;\n2. bezahlen Sie mit Orange Money oder MTN Mobile Money;\n3. senden Sie den Screenshot per WhatsApp;\n4. geben Sie den erhaltenen Code oben in der App ein und tippen Sie auf OK. Dieser Code ist Ihr Konto: Er speichert Ihr Guthaben." },
+    dev_wa_absent: { fr: "Je ne trouve pas le lien WhatsApp officiel dans l'app : copie le texte et envoie-le depuis l'onglet 💳 Commander.", en: "I can't find the official WhatsApp link in the app: copy the text and send it from the « 💳 Commander » (Order) tab.", de: "Ich finde den offiziellen WhatsApp-Link nicht in der App: Kopieren Sie den Text und senden Sie ihn über den Tab « 💳 Commander » (Bestellen)." },
+    essai_fini: { fr: "La période de test de StarClip est terminée : il n'y a plus de code d'essai. Pour commencer :\n1. choisis ton pack dans l'onglet 💳 Commander ;\n2. paie par Orange Money ou MTN Mobile Money ;\n3. envoie la capture sur WhatsApp ;\n4. entre le code reçu en haut de l'app et touche OK. Ce code est ton compte : il garde tes crédits.", en: "The StarClip test period is over: there are no more trial codes. To get started:\n1. choose your pack in the « 💳 Commander » (Order) tab;\n2. pay with Orange Money or MTN Mobile Money;\n3. send the screenshot on WhatsApp;\n4. enter the code you receive at the top of the app and tap OK. This code is your account: it keeps your credits.", de: "Die Testphase von StarClip ist beendet: Es gibt keine Testcodes mehr. So fangen Sie an:\n1. Wählen Sie Ihr Paket im Tab « 💳 Commander » (Bestellen);\n2. bezahlen Sie mit Orange Money oder MTN Mobile Money;\n3. senden Sie den Screenshot per WhatsApp;\n4. geben Sie den erhaltenen Code oben in der App ein und tippen Sie auf OK. Dieser Code ist Ihr Konto: Er speichert Ihr Guthaben." },
     langue_auto: { fr: "Je passe en français.", en: "Switching to English.", de: "Ich wechsle zu Deutsch." },
     voix_melanie: { fr: "🎙️ Voix de Naya : {n}", en: "🎙️ Naya's voice: {n}", de: "🎙️ Nayas Stimme: {n}" },
     voix_secours: { fr: "Voix de secours de ton appareil ({n}) : la voix de Naya n'est pas disponible pour le moment.", en: "Backup voice from your device ({n}): Naya's voice is not available right now.", de: "Ersatzstimme Ihres Geräts ({n}): Nayas Stimme ist gerade nicht verfügbar." },
@@ -101,6 +103,33 @@
     ar: "لا أتحدث العربية بعد في StarClip، سأجيبك بـ{l}. يمكنك اختيار English أو Deutsch في الأعلى."
   };
   var NOM_LG = { fr: "français", en: "English", de: "Deutsch" };
+  // v41.160 : l'app est en français. En anglais et en allemand, Naya traduit les noms d'onglets, d'outils et de
+  // genres qu'elle affiche, ainsi que les lignes de tarifs lues dans l'app (prix et noms de marque inchangés).
+  var NOMS_APP = {
+    en: { "🎬 Accueil": "🎬 Home", "📸 Ta photo": "📸 Your photo", "✨ Traitement": "✨ Enhancement", "👔 Habillage & Décor": "👔 Outfit & Setting",
+      "🎬 Scénario": "🎬 Script", "🎞️ Mini-séries IA": "🎞️ AI mini-series", "🔁 Remix": "🔁 Remix", "🎤 Finition": "🎤 Finishing", "💳 Commander": "💳 Order",
+      "📝 Prompts": "📝 Prompts", "💡 Idées": "💡 Ideas", "📜 Tout voir": "📜 See all",
+      "🎵 Chanson": "🎵 Song", "⭐ Chanson Pro — qualité studio": "⭐ Chanson Pro — studio quality", "🎙️ Améliorer ma démo": "🎙️ Improve my demo", "🎚️ Extraire les stems": "🎚️ Extract stems",
+      "🎷 Rumba congolaise": "🎷 Congolese rumba", "🙏 Gospel africain": "🙏 African gospel", "💔 Ballade": "💔 Ballad",
+      "👨 Voix d'homme": "👨 Male voice", "👩 Voix de femme": "👩 Female voice", "👫 Duo H + F": "👫 Duo M + F", "🎙️ Avec chœur": "🎙️ With choir" },
+    de: { "🎬 Accueil": "🎬 Start", "📸 Ta photo": "📸 Ihr Foto", "✨ Traitement": "✨ Bearbeitung", "👔 Habillage & Décor": "👔 Outfit & Kulisse",
+      "🎬 Scénario": "🎬 Drehbuch", "🎞️ Mini-séries IA": "🎞️ KI-Miniserien", "🔁 Remix": "🔁 Remix", "🎤 Finition": "🎤 Feinschliff", "💳 Commander": "💳 Bestellen",
+      "📝 Prompts": "📝 Prompts", "💡 Idées": "💡 Ideen", "📜 Tout voir": "📜 Alles anzeigen",
+      "🎵 Chanson": "🎵 Song", "⭐ Chanson Pro — qualité studio": "⭐ Chanson Pro — Studioqualität", "🎙️ Améliorer ma démo": "🎙️ Meine Demo verbessern", "🎚️ Extraire les stems": "🎚️ Stems extrahieren",
+      "🎷 Rumba congolaise": "🎷 Kongolesische Rumba", "🙏 Gospel africain": "🙏 Afrikanischer Gospel", "💔 Ballade": "💔 Ballade",
+      "👨 Voix d'homme": "👨 Männerstimme", "👩 Voix de femme": "👩 Frauenstimme", "👫 Duo H + F": "👫 Duo M + F", "🎙️ Avec chœur": "🎙️ Mit Chor" }
+  };
+  var nomApp = function (x) { var d = NOMS_APP[etat.lg]; x = String(x || "").replace(/\s+/g, " ").trim(); return (d && d[x]) || x; };
+  // Lignes de tarifs de l'onglet 💳 Commander (texte français de l'app) : seuls les mots descriptifs sont traduits.
+  var TARIFS_TR = {
+    en: [[/\(chant \+ tenue\)/, "(singing + outfit)"], [/(\d+) scènes? Éco/, "$1 Eco scene(s)"], [/(\d+) scènes? Pro/, "$1 Pro scenes"],
+      [/\(jusqu'à (\d+) s\)/, "(up to $1 s)"], [/(\d+) à (\d+) minutes/, "$1 to $2 minutes"], [/plus de scènes, (\d+) formats/, "more scenes, $1 formats"],
+      [/scénario élaboré, corrections/, "detailed script, revisions"]],
+    de: [[/\(chant \+ tenue\)/, "(Gesang + Outfit)"], [/(\d+) scènes? Éco/, "$1 Eco-Szene(n)"], [/(\d+) scènes? Pro/, "$1 Pro-Szenen"],
+      [/\(jusqu'à (\d+) s\)/, "(bis zu $1 s)"], [/(\d+) à (\d+) minutes/, "$1 bis $2 Minuten"], [/plus de scènes, (\d+) formats/, "mehr Szenen, $1 Formate"],
+      [/scénario élaboré, corrections/, "ausgearbeitetes Drehbuch, Korrekturen"]]
+  };
+  var tarifLg = function (x) { (TARIFS_TR[etat.lg] || []).forEach(function (r) { x = x.replace(r[0], r[1]); }); return x; };
   var t = function (cle, vars) {
     var e = T[cle]; var s = (e && (e[etat.lg] || e.fr)) || "";
     return vars ? s.replace(/\{(\w+)\}/g, function (_, k) { return k in vars ? vars[k] : ""; }) : s;
@@ -278,7 +307,26 @@
     if (a) return ALIAS_GENRE[a];
     return Object.keys(E).sort(function (x, y) { return y.length - x.length; }).filter(function (g) { return p.indexOf(" " + g + " ") >= 0 || p.indexOf(" " + g + "s ") >= 0; })[0] || null;
   }
-  function libGenre(id) { var L = G("CHP_GENRES") || []; var g = L.filter(function (x) { return x.id === id; })[0]; return g ? g.l : id; }
+  // v41.160 : description des genres (chanson-exemples.js est en français) ; les prompts restent en français (voir ex_fr).
+  var DESC_GENRE = {
+    "afropop": { en: "Afropop is a family of African pop styles. This example aims at Cameroonian afropop: bright melody, clean guitars, singing bass, a chorus to sing along.", de: "Afropop ist eine Familie afrikanischer Popstile. Dieses Beispiel zielt auf kamerunischen Afropop: helle Melodie, klare Gitarren, singender Bass, ein Refrain zum Mitsingen." },
+    "afrobeats": { en: "Afrobeats is the modern pop from Nigeria and Ghana: supple programmed percussion, deep bass, a melodic voice with ad-libs. Not to be confused with 1970s afrobeat (big brass band).", de: "Afrobeats ist der moderne Pop aus Nigeria und Ghana: geschmeidige programmierte Perkussion, tiefer Bass, melodische Stimme mit Ad-libs. Nicht zu verwechseln mit dem Afrobeat der 1970er-Jahre (großes Bläserorchester)." },
+    "amapiano": { en: "Amapiano comes from South Africa: percussive « log drum » bass, jazzy piano chords, offbeat shakers, a deep and hypnotic house mood.", de: "Amapiano kommt aus Südafrika: perkussiver « Log-Drum »-Bass, jazzige Klavierakkorde, versetzte Shaker, eine tiefe, hypnotische House-Stimmung." },
+    "makossa": { en: "Makossa comes from Douala. Its heart is the dialogue between a melodic, syncopated electric bass, the drums, interlocking clean guitars and a voice answering the choir. A plain afrobeats rhythm is not enough.", de: "Makossa kommt aus Douala. Sein Kern ist der Dialog zwischen einem melodischen, synkopierten E-Bass, dem Schlagzeug, ineinandergreifenden klaren Gitarren und einer Stimme, die dem Chor antwortet. Ein einfacher Afrobeats-Rhythmus reicht nicht." },
+    "bikutsi": { en: "Bikutsi comes from Central Cameroon (Beti). It rests on a fast, hammering ternary rhythm cycle, muted-string guitars imitating the balafon, and energetic voices locking in with the percussion.", de: "Bikutsi kommt aus Zentralkamerun (Beti). Er beruht auf einem schnellen, hämmernden Dreierrhythmus, Gitarren mit abgedämpften Saiten, die das Balafon nachahmen, und energischen Stimmen, die mit der Perkussion verzahnt sind." },
+    "coupe": { en: "Coupé-décalé comes from Côte d'Ivoire: very dense electronic percussion, a slogan chorus, dance instructions and a party atmosphere.", de: "Coupé-décalé kommt aus der Elfenbeinküste: sehr dichte elektronische Perkussion, ein Slogan-Refrain, Tanzanweisungen und Partystimmung." },
+    "ndombolo": { en: "Ndombolo comes from Kinshasa: a sebene of fast lead guitars, tight drums, and a hype man calling out shouts and dance steps.", de: "Ndombolo kommt aus Kinshasa: ein Sebene aus schnellen Leadgitarren, knappes Schlagzeug und ein Animateur, der Rufe und Tanzschritte vorgibt." },
+    "rumba": { en: "Congolese rumba, on UNESCO's heritage list, is elegant and romantic: interwoven clean guitars, harmonised voices, then a more danceable sebene.", de: "Die kongolesische Rumba, UNESCO-Kulturerbe, ist elegant und romantisch: verflochtene klare Gitarren, mehrstimmiger Gesang, dann ein tanzbarerer Sebene." },
+    "highlife": { en: "Highlife comes from Ghana: bright melodic guitars, jazzy horns, a bell pattern and harmonised voices in a joyful colour.", de: "Highlife kommt aus Ghana: helle melodische Gitarren, jazzige Bläser, ein Glockenmuster und mehrstimmiger Gesang in fröhlicher Farbe." },
+    "gospel": { en: "African gospel celebrates faith: a powerful soloist, an answering choir, piano, organ, handclaps and a final build-up.", de: "Afrikanischer Gospel feiert den Glauben: kraftvolle Solostimme, antwortender Chor, Klavier, Orgel, Klatschen und eine Steigerung zum Schluss." },
+    "afrorb": { en: "Afro R&B blends the softness of R&B with light afro percussion: slow tempo, intimate voice, night-time mood.", de: "Afro R&B verbindet die Sanftheit des R&B mit leichter Afro-Perkussion: langsames Tempo, intime Stimme, nächtliche Stimmung." },
+    "kizomba": { en: "Kizomba, born in Angola, is slow, sensual music for couple dancing, with a deep synth bass and a soft electronic rhythm.", de: "Kizomba, in Angola entstanden, ist langsame, sinnliche Musik für den Paartanz, mit tiefem Synthbass und sanftem elektronischem Rhythmus." },
+    "afrotrap": { en: "Afro-trap mixes trap codes (rolling hi-hats, 808 bass) with afro percussion and guitars, with rapped verses and a sung chorus.", de: "Afro-Trap mischt Trap-Elemente (rollende Hi-Hats, 808-Bass) mit Afro-Perkussion und Gitarren, mit gerappten Strophen und gesungenem Refrain." },
+    "dancehall": { en: "Afro-dancehall combines Jamaica's dembow rhythm with afro percussion, with chanted vocals (toasting) and a melodic chorus.", de: "Afro-Dancehall verbindet den Dembow-Rhythmus Jamaikas mit Afro-Perkussion, mit skandiertem Gesang (Toasting) und melodischem Refrain." },
+    "afrojazz": { en: "Afro-jazz joins jazz harmony (extended chords, solos) with African rhythms, in an acoustic club sound.", de: "Afro-Jazz verbindet die Harmonik des Jazz (erweiterte Akkorde, Soli) mit afrikanischen Rhythmen, in einem akustischen Clubsound." },
+    "ballade": { en: "The African ballad is slow and moving: acoustic guitar, piano, soft strings and a voice that rises to a powerful final chorus.", de: "Die afrikanische Ballade ist langsam und bewegend: Akustikgitarre, Klavier, sanfte Streicher und eine Stimme, die sich bis zu einem kraftvollen Schlussrefrain steigert." }
+  };
+  function libGenre(id) { var L = G("CHP_GENRES") || []; var g = L.filter(function (x) { return x.id === id; })[0]; return g ? nomApp(g.l) : id; }
 
   // ───────────── Vérification d'un prompt (règles du manuel et limites de l'app) ─────────────
   var LIM = { seedance2: 3500, seedance25: 15000 };
@@ -347,7 +395,7 @@
     if (I.prix.test(q) && (outil || !I.paiement.test(q))) return reponsePrix(outil || panneauOuvert(), r);
     if (I.paiement.test(q)) {
       var pk = lignesTarifs("sec-auto9");
-      return r(t("paiement") + (pk.length ? "\n\n" + t("packs") + " :\n" + pk.map(function (x) { return "• " + x; }).join("\n") : ""), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "paiement" });
+      return r(t("paiement") + (pk.length ? "\n\n" + t("packs") + " :\n" + pk.map(function (x) { return "• " + tarifLg(x); }).join("\n") : ""), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "paiement" });
     }
     if (genre || (I.prompt.test(q) && /(chanson|song|lied|musique|music|genre)/i.test(plier(q)))) return reponseGenre(genre, r);
     if (I.erreur.test(q)) {
@@ -363,32 +411,32 @@
     if (!m) return r(t("inconnu"), [], { intention: "inconnue" });
     var ent = etat.niveau === "debutant" && m.rubrique === 5 ? t("pasapas") : t("manuel");
     var act = [];
-    if (CHAP_TAB[m.chapitre]) act.push({ lib: t("ouvrir") + " " + ongletLib(CHAP_TAB[m.chapitre]), fn: function () { ouvrirOnglet(CHAP_TAB[m.chapitre]); } });
-    else if (PM_IDS.indexOf(m.chapitre) >= 0) act.push({ lib: t("ouvrir") + " " + nomMoteur(m.chapitre), fn: function () { ouvrirOutil(m.chapitre); } });
+    if (CHAP_TAB[m.chapitre]) act.push({ lib: t("ouvrir_x", { x: nomApp(ongletLib(CHAP_TAB[m.chapitre])) }), fn: function () { ouvrirOnglet(CHAP_TAB[m.chapitre]); } });
+    else if (PM_IDS.indexOf(m.chapitre) >= 0) act.push({ lib: t("ouvrir_x", { x: nomMoteur(m.chapitre) }), fn: function () { ouvrirOutil(m.chapitre); } });
     return r(ent + " (" + m.titre + ") :\n" + m.texte, act, { intention: "manuel", source: m.chapitre + "#" + m.rubrique });
   }
   function ongletLib(tab) { var a = document.querySelector('#tabbar .qnav[data-tab="' + tab + '"]'); return a ? (a.childNodes[0].textContent || "").trim() : tab; }
-  function nomMoteur(id) { var m = moteurs().filter(function (x) { return x.id === id; })[0]; return m ? m.nom : id; }
+  function nomMoteur(id) { var m = moteurs().filter(function (x) { return x.id === id; })[0]; return m ? nomApp(m.nom) : id; }
 
   function reponsePrix(outil, r) {
     var L = moteurs();
     if (outil === "demo") {
       var md = L.filter(function (x) { return x.id === "demo"; })[0];
-      return r(t("prix_moteur", { m: md ? md.nom : "demo" }) + " :\n• " + t("reprise") + (md ? "\n• Référence : " + prixMoteur(md).join(" · ") : "") + "\n" + t("debite"), [{ lib: t("ouvrir") + " " + nomMoteur("demo"), fn: function () { ouvrirOutil("demo"); } }], { intention: "prix", outil: "demo" });
+      return r(t("prix_moteur", { m: md ? nomApp(md.nom) : "demo" }) + " :\n• " + t("reprise") + (md ? "\n• " + t("reference") + " : " + prixMoteur(md).join(" · ") : "") + "\n" + t("debite"), [{ lib: t("ouvrir_x", { x: nomMoteur("demo") }), fn: function () { ouvrirOutil("demo"); } }], { intention: "prix", outil: "demo" });
     }
     var m = L.filter(function (x) { return x.id === outil; })[0];
     if (m) {
       var p = prixMoteur(m);
       if (!p.length) return r(t("prix_absent"), [], { intention: "prix" });
-      return r(t("prix_moteur", { m: m.nom }) + " :\n" + p.map(function (x) { return "• " + x; }).join("\n") + "\n" + t("debite"), [{ lib: t("ouvrir") + " " + m.nom, fn: function () { ouvrirOutil(m.id); } }], { intention: "prix", outil: m.id });
+      return r(t("prix_moteur", { m: nomApp(m.nom) }) + " :\n" + p.map(function (x) { return "• " + x; }).join("\n") + "\n" + t("debite"), [{ lib: t("ouvrir_x", { x: nomApp(m.nom) }), fn: function () { ouvrirOutil(m.id); } }], { intention: "prix", outil: m.id });
     }
     // Pas d'outil précis : les packs, les clips Studio Rudis et un résumé des outils Premium.
     var pk = lignesTarifs("sec-auto9"), sg = lignesTarifs("sec-auto10");
-    var res = L.filter(function (x) { return x.prix; }).map(function (x) { return "• " + x.nom + " : " + (x.id === "demo" ? "999 FCFA" : prixMoteur(x)[0]); });
+    var res = L.filter(function (x) { return x.prix; }).map(function (x) { return "• " + nomApp(x.nom) + " : " + (x.id === "demo" ? "999 FCFA" : prixMoteur(x)[0]); });
     var blocs = [];
-    if (pk.length) blocs.push(t("packs") + " :\n" + pk.map(function (x) { return "• " + x; }).join("\n"));
+    if (pk.length) blocs.push(t("packs") + " :\n" + pk.map(function (x) { return "• " + tarifLg(x); }).join("\n"));
     if (res.length) blocs.push(t("resume_prix") + "\n" + res.join("\n"));
-    if (sg.length) blocs.push(t("signature") + " :\n" + sg.map(function (x) { return "• " + x; }).join("\n"));
+    if (sg.length) blocs.push(t("signature") + " :\n" + sg.map(function (x) { return "• " + tarifLg(x); }).join("\n"));
     if (!blocs.length) return r(t("prix_absent"), [], { intention: "prix" });
     return r(blocs.join("\n\n"), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "prix" });
   }
@@ -398,14 +446,14 @@
     if (!E) return r(t("charge_ko"), [], { intention: "genre" });
     if (!genre) return r(t("genres_dispo") + Object.keys(E).map(libGenre).join(", ") + ".", [], { intention: "genre" });
     var x = E[genre];
-    var texte = libGenre(genre) + " — " + x.desc + "\n\n" + t("debutant_ex") + " : « " + x.debutant + " »" +
+    var texte = libGenre(genre) + " — " + ((DESC_GENRE[genre] || {})[etat.lg] || x.desc) + "\n\n" + t("debutant_ex") + " : « " + x.debutant + " »" +
       (etat.niveau === "pro" ? "\n\n" + t("pro_ex") + " : « " + x.pro + " »" : "") + (t("ex_fr") ? "\n" + t("ex_fr") : "") + "\n\n" + t("auth");
     var act = ["debutant", "pro", "voix", "instru"].map(function (niv) {
       var lib = { debutant: t("debutant_ex"), pro: t("pro_ex"), voix: t("avec_paroles"), instru: t("instrumental") }[niv];
       return { lib: t("charger") + " · " + lib, fn: function () { return chargerExemple(genre, niv); } };
     });
     var prix = moteurs().filter(function (m) { return m.id === "chansonPro"; })[0];
-    if (prix) texte += "\n" + t("prix_moteur", { m: prix.nom }) + " : " + prixMoteur(prix).join(" · ") + ". " + t("debite");
+    if (prix) texte += "\n" + t("prix_moteur", { m: nomApp(prix.nom) }) + " : " + prixMoteur(prix).join(" · ") + ". " + t("debite");
     texte += "\n\n" + t("charger_titre");
     return r(texte, act, { intention: "genre", genre: genre });
   }
@@ -424,7 +472,7 @@
   function formulaireDevis() {
     var offres = lignesTarifs("sec-auto10");
     var f = document.createElement("form"); f.className = "naya-form";
-    var opt = offres.map(function (o, i) { return '<option value="' + i + '">' + esc(o) + "</option>"; }).join("") + '<option value="">' + esc(t("dev_nsp")) + "</option>";
+    var opt = offres.map(function (o, i) { return '<option value="' + i + '">' + esc(tarifLg(o)) + "</option>"; }).join("") + '<option value="">' + esc(t("dev_nsp")) + "</option>";
     f.innerHTML =
       '<label>' + esc(t("dev_offre")) + '<select name="offre">' + opt + "</select></label>" +
       '<label>' + esc(t("dev_nom")) + '<input name="nom" maxlength="80" autocomplete="name"></label>' +
