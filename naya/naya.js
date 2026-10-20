@@ -222,8 +222,11 @@
     });
     return out;
   }
+  var VERBES_USAGE = {}; "utiliser utilise utilises fonctionne marche use using uses work works benutzen benutze benutzt nutzen nutze verwenden verwende arbeiten arbeite bedienen faire fais machen mache creer create make erstellen erstelle".split(" ").forEach(function (m) { VERBES_USAGE[m] = 1; });
   function chercherManuel(k, q, chapitre) {
     var tt = termes(q); if (!tt.length) return null;
+    // v41.161 : les verbes d'intention (« benutze », « use », « utiliser »…) ne doivent pas faire échouer la recherche.
+    var tt2 = tt.filter(function (x) { return !VERBES_USAGE[x] && !VERBES_USAGE[corrigerMot(x)]; }); if (tt2.length) tt = tt2;
     var sc = bm25(k, tt.map(racine).join(" "), chapitre);
     var cl = k.docs.filter(function (d) { return !CHAP_STUDIO[d.s.c]; }).map(function (d) {
       var c = tt.filter(function (x) { return d.plein.indexOf(racine(x)) >= 0; }).length / tt.length;
@@ -336,7 +339,7 @@
     ["stems", /\bstems?\b|s[ée]parer (la|une|ma) chanson|separate|spuren/],
     ["chanson", /chanson|\bsong\b|\blied\b|musique|\bmusic\b|musik/],
     ["seedance25", /seedance ?2[.,]5/],
-    ["multishot", /multi[- ]?shot|plusieurs plans|multi[- ]?plans/],
+    ["multishot", /multi[- ]?shot(?! 3)/],
     ["aleph", /aleph|modifier (une|ma) vid[ée]o|edit (a|my) video/],
     ["seedance2", /seedance|moteur a\b|vid[ée]o [àa] partir d.une photo|video from (a )?photo/]
   ];
@@ -793,7 +796,24 @@
   Object.keys(INTENTIONS).forEach(function (k) { INTENTIONS[k].forEach(function (c) { (c[0].source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; }); }); });
   VOCAB.concat(Object.keys(GEN)).forEach(function (m) { MOTS_INTENTION[m] = 1; });
   (DEMANDE_GUIDE.source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; });
+  // v41.161 : noms d'onglets et de volets tels que les clients les disent (FR / EN / DE) → chapitre du manuel.
+  var NOMS_CHAP = [
+    [/ (ta photo|ton photo|your photo|ihr foto|photo de depart|starting photo|ausgangsfoto) /, "photo"],
+    [/ (traitement|effets? photo|photo effects?|effekte|fotoeffekte|enhancement|bearbeitung) /, "traitement"],
+    [/ (habillage|tenue|outfit|kulisse|changer (de )?decor|change (the )?setting) /, "look"],
+    [/ (scenario|drehbuch|script) /, "scenario"],
+    [/ (danses?|dances?|dance style|tanz|tanze|tanzstil) /, "danses"],
+    [/ (multi plans|multiplans|mehrfach einstellungen) /, "multiplans"],
+    [/ (mini series|miniseries|miniserien|mini serie|ki miniserien|ai mini series) /, "miniseriesClient"],
+    [/ (finition|finishing|feinschliff|lip sync|lipsync|changer le format|change (the )?format|format andern|format meines) /, "finition"],
+    [/ (remix) /, "remix"],
+    [/ (accueil|home tab|startseite|ton code starclip|your starclip code|ihr starclip code|code starclip|starclip code) /, "accueil"],
+    [/ (prompts?|idees|ideas|ideen|tout voir|see all|alles anzeigen) /, "ressources"],
+    [/ (ca ne marche pas|ne fonctionne pas|doesn t work|not working|funktioniert nicht|depannage|troubleshooting|fehlerbehebung|wenn etwas nicht) /, "depannage"]
+  ];
   function chapitreNomme(k, q) {
+    var n0 = normaliser(q).replace(/-/g, " ");
+    for (var i = 0; i < NOMS_CHAP.length; i++) if (NOMS_CHAP[i][0].test(n0) && k.sections.some(function (s) { return s.c === NOMS_CHAP[i][1]; })) return NOMS_CHAP[i][1];
     var tt = normaliser(q).split(" ").filter(function (x) { return x.length > 2 && !MOTS_INTENTION[x] && !VIDES[x]; });
     if (!tt.length) return null;
     var d = k.docs.filter(function (d) { return !CHAP_STUDIO[d.s.c] && d.s.c !== "demarrer" && tt.some(function (x) { return d.titre.indexOf(racine(x)) >= 0; }); })[0];
@@ -887,7 +907,15 @@
       if (it.id === "debuter" || it.id === "utiliser") return reponseGuide(k, r);
       if (it.id === "aide") return clarification(false, r);
     }
-    var m = chercherManuel(k, q, outil || panneauOuvert() || TAB_CHAP[ongletActif()]);
+    var nomme = (outil && outil !== "chanson" && k.sections.some(function (x) { return x.c === outil; }) ? outil : null) || chapitreNomme(k, q);
+    var m = chercherManuel(k, q, nomme || outil || panneauOuvert() || TAB_CHAP[ongletActif()]);
+    // v41.161 : le client a nommé un onglet ou un outil → on répond sur ce chapitre (tutoriel), même si les mots de la
+    // question ne se retrouvent pas tels quels dans le texte.
+    if (nomme && (!m || m.chapitre !== nomme)) {
+      var ss = k.sections.filter(function (x) { return x.c === nomme && x.x; }), pref = (RUBRIQUES[etat.niveau] || RUBRIQUES.debutant).concat([1, null]);
+      var cs = null; for (var j = 0; j < pref.length && !cs; j++) cs = ss.filter(function (x) { return x.r === pref[j]; })[0] || null;
+      if (cs) m = { chapitre: nomme, titre: cs.t, rubrique: cs.r, texte: couper(cs.x, 1000) };
+    }
     if (!m) return clarification(true, r);
     var ent = etat.niveau === "debutant" && m.rubrique === 5 ? t("pasapas") : t("manuel");
     var act = [];
