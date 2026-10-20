@@ -870,6 +870,8 @@
     [/ (mini series|miniseries|miniserien|mini serie|ki miniserien|ai mini series) /, "miniseriesClient"],
     [/ (finition|finishing|feinschliff|lip sync|lipsync|changer le format|change (the )?format|format andern|format meines|acabado|cambiar (el )?formato) /, "finition"],
     [/ (remix) /, "remix"],
+    // v41.165 : « Naya parle-t-elle espagnol ? », « Do you speak German? »… → chapitre Naya (langues et voix)
+    [/ (parle|parles|parlez|speak|speaks|spricht|sprichst|sprechen|habla|hablas|habla usted) (t |il |elle |tu |vous |you |she |du |sie |usted )?(espagnol|spanish|spanisch|espanol|anglais|english|englisch|ingles|allemand|german|deutsch|aleman|francais|french|franzosisch|frances) /, "naya"],
     [/ (accueil|home tab|startseite|ton code starclip|your starclip code|ihr starclip code|code starclip|starclip code|inicio|tu codigo starclip|codigo starclip) /, "accueil"],
     [/ (prompts?|idees|ideas|ideen|tout voir|see all|alles anzeigen|ver todo) /, "ressources"],
     [/ (ca ne marche pas|ne fonctionne pas|doesn t work|not working|funktioniert nicht|depannage|troubleshooting|fehlerbehebung|wenn etwas nicht|no funciona|solucion de problemas) /, "depannage"]
