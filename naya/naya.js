@@ -887,7 +887,7 @@
   // v41.160 : questions commerciales, comparaisons et objections → chapitre « Pourquoi StarClip » du manuel.
   // Naya répond avec la question fréquente la plus proche, ajoute le paragraphe honnête sur le service cité,
   // et ne prétend jamais que StarClip est moins cher ou meilleur (le manuel ne le dit pas).
-  var POURQUOI = / (pourquoi (choisir|payer|utiliser|prendre|commander|starclip)|why (should i |would i |to |not )?(choose|use|pay|pick|order|starclip)|warum (sollte ich |soll ich )?(starclip|wahlen|bezahlen|nutzen|bestellen)|plutot que|rather than|instead of|statt|anstatt|comparaison|comparer|compare|vergleich|versus|remplace|replace|ersetzt|moins cher|cheaper|billiger|gunstiger|meilleur que|better than|besser als|avantages?|advantages?|vorteile?|meme endroit|same place|selben ort|einem ort|suno|higgsfield|elevenlabs|eleven labs|runway|kling|concurren|competitor|konkurren|propre (ia|technologie|moteur)|own (ai|technology|model|engine)|eigene (ki|technologie|modell)|por que (elegir|escoger|pagar|usar|pedir|starclip)|en lugar de|en vez de|comparacion|sustituye|reemplaza|mas barato|mejor que|ventajas?|mismo lugar|competencia|propia (ia|tecnologia)|propio (motor|modelo)) /;
+  var POURQUOI = / (pourquoi (choisir|payer|utiliser|prendre|commander|starclip)|why (should i |would i |to |not )?(choose|use|pay|pick|order|starclip)|warum (sollte ich |soll ich )?(starclip|wahlen|bezahlen|nutzen|bestellen)|plutot que|rather than|instead of|statt|anstatt|comparaison|comparer|compare|vergleich|versus|remplace|replace|ersetzt|moins cher|cheaper|billiger|gunstiger|meilleur que|better than|besser als|avantages?|advantages?|vorteile?|meme endroit|same place|selben ort|einem ort|suno|higgsfield|elevenlabs|eleven labs|runway|kling|concurren|competitor|konkurren|propre (ia|technologie|moteur)|own (ai|technology|model|engine)|eigene (ki|technologie|modell)|por que (elegir|escoger|pagar|usar|pedir|encargar|contratar|starclip)|en lugar de|en vez de|comparacion|sustituye|reemplaza|mas barato|mejor que|ventajas?|mismo lugar|competencia|propia (ia|tecnologia)|propio (motor|modelo)) /;
   var SERVICES = ["suno", "higgsfield", "elevenlabs", "runway", "kling"];
   function reponsePourquoi(k, q, r) {
     var n = normaliser(q), cite = SERVICES.filter(function (x) { return n.indexOf(" " + x + " ") >= 0 || (x === "elevenlabs" && / eleven labs /.test(n)); })[0];
@@ -940,7 +940,11 @@
       return r(t("verif_titre") + " :\n" + (c.length ? c.map(function (x) { return "• " + x; }).join("\n") : t("verif_bon")), [], { intention: "verifier", conseils: c.length });
     }
     if (POURQUOI.test(normaliser(q)) && k.sections.some(function (x) { return x.c === "pourquoi"; })) return reponsePourquoi(k, q, r);
-    if (I.deleguer.test(q)) return r(t("dev_intro"), [], { intention: "devis", formulaire: true });
+    if (I.deleguer.test(q)) {
+      // v41.166 : « combien coûte un Clip Signature ? » → les prix affichés dans l'onglet Commander, puis la demande de devis.
+      var sg0 = I.prix.test(q) ? lignesTarifs("sec-auto10").map(function (x) { return "• " + tarifLg(x); }) : [];
+      return r((sg0.length ? t("signature") + " :\n" + sg0.join("\n") + "\n\n" : "") + t("dev_intro"), [], { intention: "devis", formulaire: true });
+    }
     // v41.160 : « accompagne-moi », « ma première chanson », « step by step »… → réponse, puis proposition du guide interactif.
     var pg = !guide && parcoursDe(intentionDe(q).id, q);
     if (pg) return proposerGuide(pg, r, pg === "chanson" ? reponseChanson(k, r) : pg === "video" ? reponseVideo(k, r) : reponseAchat(k, r));
