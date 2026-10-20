@@ -1,4 +1,4 @@
-// v41.162 : LANGUE DE L'INTERFACE STARCLIP (français, anglais, espagnol, allemand).
+// v41.162 (v41.164) : LANGUE DE L'INTERFACE STARCLIP (français, anglais, espagnol, allemand).
 // • Le choix est mémorisé sur l'appareil (localStorage « starclip_langue ») et posé sur <html lang> dès l'en-tête
 //   d'index.html : Naya (bandeau, bouton, cadre, guide) suit cet attribut.
 // • Le français est la langue source : chaque texte affiché est cherché dans i18n/dict-<langue>.js (textes exacts,
@@ -140,6 +140,13 @@
     }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS }); } catch (_) {}
     appliquer(lg);
   }
-  window.StarClipI18n = { langue: function () { return lg; }, changer: changer, langues: function () { return Object.keys(LANGUES); }, traduire: traduire };
+  // v41.164 : copie d'un élément avec ses textes d'origine (français), pour Naya qui répond dans la langue de la
+  // conversation, indépendamment de celle de l'interface.
+  function source(e) {
+    var c = e.cloneNode(true), a = document.createTreeWalker(e, NodeFilter.SHOW_TEXT), b = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), n, m;
+    while ((n = a.nextNode()) && (m = b.nextNode())) if (origine.has(n) && pose.get(n) === n.nodeValue) m.nodeValue = origine.get(n);
+    return c;
+  }
+  window.StarClipI18n = { langue: function () { return lg; }, changer: changer, langues: function () { return Object.keys(LANGUES); }, traduire: traduire, source: source };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", demarrer); else demarrer();
 })();

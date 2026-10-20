@@ -1,13 +1,13 @@
-// v41.156 : NAYA, l'assistante StarClip, dans l'application cliente.
+// v41.156 : NAYA, l'assistante StarClip, dans l'application cliente. v41.164 : conversation aussi en espagnol.
 // Tout se passe dans le navigateur : aucun serveur, aucune IA payante, aucun appel réseau autre que le
-// chargement de sa base (le manuel StarClip vérifié, en FR / EN / DE). Les prix sont lus dans l'app elle-même
+// chargement de sa base (le manuel StarClip vérifié, en FR / EN / DE / ES). Les prix sont lus dans l'app elle-même
 // (PM_MOTEURS, onglet 💳 Commander) : Naya n'invente jamais un chiffre. Elle ne lance JAMAIS une génération,
 // ne touche à aucun solde, et ne parle jamais des fonctions Admin. Une demande d'offre est préparée ici,
 // puis c'est le client qui l'envoie lui-même sur le WhatsApp officiel de StarClip.
 (function () {
   "use strict";
-  var ACTIVES = ["fr", "en", "de"];
-  var BIENTOT = { es: "Español", pt: "Português", ar: "العربية" };
+  var ACTIVES = ["fr", "en", "de", "es"];   // v41.164 : Naya converse aussi en espagnol (écrit ; pas encore de voix espagnole)
+  var BIENTOT = { pt: "Português", ar: "العربية" };
   var NIVEAUX = ["debutant", "pro"];
   var LS = { lg: "starclip_naya_lg_choix", niv: "starclip_naya_niveau", hist: "starclip_naya_hist", dem: "starclip_naya_demandes" };
   var lire = function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } };
@@ -26,124 +26,123 @@
 
   // ───────────── Textes de Naya (FR = référence ; EN et DE relus) ─────────────
   var T = {
-    titre: { fr: "Naya · ton assistante", en: "Naya · your assistant", de: "Naya · Ihre Assistentin" },
-    bouton: { fr: "Naya", en: "Naya", de: "Naya" },
-    placeholder: { fr: "Pose ta question à Naya…", en: "Ask Naya a question…", de: "Stellen Sie Naya eine Frage…" },
-    envoyer: { fr: "Envoyer", en: "Send", de: "Senden" },
-    fermer: { fr: "Fermer", en: "Close", de: "Schließen" },
-    debutant: { fr: "Débutant", en: "Beginner", de: "Einsteiger" },
-    pro: { fr: "Pro", en: "Pro", de: "Profi" },
-    effacer: { fr: "Effacer la conversation", en: "Clear conversation", de: "Gespräch löschen" },
-    bientot: { fr: "bientôt", en: "soon", de: "bald" },
-    ecouter: { fr: "Écouter", en: "Listen", de: "Anhören" },
-    confid: { fr: "Naya répond à partir du manuel StarClip. Ta conversation reste sur ton appareil : rien n'est envoyé.", en: "Naya answers from the StarClip manual. Your conversation stays on your device: nothing is sent.", de: "Naya antwortet anhand des StarClip-Handbuchs. Ihr Gespräch bleibt auf Ihrem Gerät: Nichts wird gesendet." },
-    bienvenue: { fr: "Bonjour, je suis Naya 👋 Je t'explique chaque outil de StarClip, je t'aide à écrire tes prompts, je te donne les prix affichés dans l'app et je prépare ta demande de devis pour Studio Rudis. Je ne lance jamais rien à ta place.", en: "Hello, I'm Naya 👋 I explain every StarClip tool, help you write your prompts, give you the prices shown in the app and prepare your quote request for Studio Rudis. I never start anything for you.", de: "Hallo, ich bin Naya 👋 Ich erkläre Ihnen jedes StarClip-Werkzeug, helfe beim Schreiben Ihrer Prompts, nenne die in der App angezeigten Preise und bereite Ihre Angebotsanfrage für Studio Rudis vor. Ich starte nie etwas an Ihrer Stelle." },
-    q_quoi: { fr: "Que puis-je faire ici ?", en: "What can I do here?", de: "Was kann ich hier machen?" },
-    q_chanson: { fr: "Combien coûte une Chanson Pro ?", en: "How much is a Chanson Pro?", de: "Was kostet ein Chanson Pro?" },
-    q_prompt: { fr: "Aide-moi pour un prompt makossa", en: "Help me with a makossa prompt", de: "Hilf mir mit einem Makossa-Prompt" },
-    q_clip: { fr: "Je veux un clip réalisé par le studio", en: "I want a music video made by the studio", de: "Ich möchte ein Musikvideo vom Studio" },
-    q_payer: { fr: "Comment payer ?", en: "How do I pay?", de: "Wie bezahle ich?" },
-    capacites: { fr: "Voici ce que je fais pour toi :\n• expliquer chaque onglet et chaque moteur (vidéo, chanson, lip-sync, stems…) ;\n• te proposer des prompts par genre musical et vérifier les tiens ;\n• te donner les prix exacts affichés dans l'app, avant que tu lances ;\n• préparer ta demande de devis pour un clip réalisé par Studio Rudis.\nJe ne lance aucune génération et je ne touche jamais à ton solde.", en: "Here is what I do for you:\n• explain every tab and every engine (video, song, lip-sync, stems…);\n• suggest prompts by music genre and check yours;\n• give you the exact prices shown in the app, before you start;\n• prepare your quote request for a video made by Studio Rudis.\nI never start a generation and never touch your balance.", de: "Das mache ich für Sie:\n• jeden Tab und jedes Modell erklären (Video, Song, Lip-Sync, Stems…);\n• Prompts nach Musikgenre vorschlagen und Ihre prüfen;\n• die genauen Preise aus der App nennen, bevor Sie starten;\n• Ihre Angebotsanfrage für ein Video von Studio Rudis vorbereiten.\nIch starte keine Generierung und verändere nie Ihr Guthaben." },
-    admin: { fr: "Je ne peux pas t'aider sur ce point : cette partie est réservée au studio, et je ne donne jamais d'accès, de code ni de détail technique. Si tu as besoin d'une fonction Studio, Studio Rudis peut réaliser ton projet.", en: "I can't help with that: this part is reserved for the studio, and I never give access, codes or technical details. If you need a Studio feature, Studio Rudis can produce your project.", de: "Dabei kann ich nicht helfen: Dieser Bereich ist dem Studio vorbehalten, und ich gebe niemals Zugänge, Codes oder technische Details weiter. Wenn Sie eine Studio-Funktion brauchen, kann Studio Rudis Ihr Projekt umsetzen." },
-    inconnu: { fr: "Je ne trouve pas cette fonction dans le manuel StarClip, et je préfère ne pas inventer. Dis-moi ce que tu veux obtenir (vidéo, chanson, photo…) et je te montre l'outil qui s'en rapproche le plus ; sinon, l'équipe te répond sur WhatsApp.", en: "I can't find this feature in the StarClip manual, and I'd rather not make anything up. Tell me what you want to achieve (video, song, photo…) and I'll show you the closest tool; otherwise, the team will answer you on WhatsApp.", de: "Ich finde diese Funktion nicht im StarClip-Handbuch und möchte nichts erfinden. Sagen Sie mir, was Sie erreichen möchten (Video, Song, Foto…), und ich zeige Ihnen das passendste Werkzeug; andernfalls antwortet Ihnen das Team per WhatsApp." },
-    manuel: { fr: "D'après le manuel", en: "According to the manual", de: "Laut Handbuch" },
-    pasapas: { fr: "Pas à pas", en: "Step by step", de: "Schritt für Schritt" },
-    lancer: { fr: "Je ne lance jamais moi-même une génération payante. Vérifie le prix affiché, puis touche toi-même le bouton de lancement quand tu es prêt(e).", en: "I never start a paid generation myself. Check the price shown, then tap the start button yourself when you're ready.", de: "Ich starte nie selbst eine kostenpflichtige Generierung. Prüfen Sie den angezeigten Preis und tippen Sie selbst auf Start, wenn Sie bereit sind." },
-    abonnement: { fr: "Aucun abonnement n'est nécessaire : tu paies à l'unité, avec un code StarClip ou un solde Premium que tu recharges.", en: "No subscription is required: you pay per use, with a StarClip code or a Premium balance you top up.", de: "Kein Abonnement nötig: Sie zahlen pro Nutzung, mit einem StarClip-Code oder einem aufladbaren Premium-Guthaben." },
-    paiement: { fr: "Pour payer : envoie le montant par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet 💳 Commander, puis envoie ta capture sur WhatsApp. Tu reçois ton CODE StarClip sur WhatsApp. Pas de carte bancaire pour l'instant.", en: "To pay: send the amount by Orange Money or MTN Mobile Money to the numbers shown in the « 💳 Commander » (Order) tab, then send your screenshot on WhatsApp. You receive your StarClip CODE on WhatsApp. No card payment for now.", de: "So bezahlen Sie: Senden Sie den Betrag per Orange Money oder MTN Mobile Money an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern und schicken Sie dann Ihren Screenshot per WhatsApp. Sie erhalten Ihren StarClip-CODE per WhatsApp. Kartenzahlung ist vorerst nicht möglich." },
-    packs: { fr: "Packs affichés dans l'app", en: "Packs shown in the app", de: "In der App angezeigte Pakete" },
-    signature: { fr: "Clips réalisés par Studio Rudis", en: "Videos made by Studio Rudis", de: "Videos von Studio Rudis" },
-    prix_moteur: { fr: "Prix affiché dans l'app pour {m}", en: "Price shown in the app for {m}", de: "In der App angezeigter Preis für {m}" },
-    debite: { fr: "Débité seulement quand tu appuies toi-même sur le bouton de création.", en: "Charged only when you tap the create button yourself.", de: "Abgebucht erst, wenn Sie selbst auf Erstellen tippen." },
-    prix_absent: { fr: "Je ne trouve pas ce prix dans l'app : ouvre l'onglet concerné, le prix exact s'y affiche avant tout lancement.", en: "I can't find this price in the app: open the tab concerned, the exact price is shown there before anything starts.", de: "Ich finde diesen Preis nicht in der App: Öffnen Sie den betreffenden Tab, dort wird der genaue Preis vor jedem Start angezeigt." },
-    reprise: { fr: "Améliorer ma démo en mode Reprise : 999 FCFA.", en: "« 🎙️ Améliorer ma démo » (Improve my demo), « Reprise » (Cover) mode: 999 FCFA.", de: "« 🎙️ Améliorer ma démo » (Meine Demo verbessern), Modus « Reprise » (Cover): 999 FCFA." },
-    resume_prix: { fr: "Quelques prix affichés dans l'app (outils Premium, payés sur ton solde) :", en: "Some prices shown in the app (Premium tools, paid from your balance):", de: "Einige Preise aus der App (Premium-Werkzeuge, vom Guthaben bezahlt):" },
-    ouvrir: { fr: "Ouvrir", en: "Open", de: "Öffnen" },
-    ouvrir_cmd: { fr: "Ouvrir 💳 Commander", en: "Open 💳 Order", de: "💳 Bestellen öffnen" },
-    ouvrir_x: { fr: "Ouvrir {x}", en: "Open {x}", de: "{x} öffnen" },
-    reference: { fr: "Référence", en: "Reference", de: "Referenz" },
-    genre_titre: { fr: "Exemples de prompt", en: "Prompt examples", de: "Prompt-Beispiele" },
-    ex_fr: { fr: "", en: "(examples written in French: the engine understands them)", de: "(Beispiele auf Französisch: Das Modell versteht sie)" },
-    debutant_ex: { fr: "Débutant", en: "Beginner", de: "Einsteiger" },
-    pro_ex: { fr: "Pro", en: "Pro", de: "Profi" },
-    charger: { fr: "Charger", en: "Load", de: "Laden" },
-    avec_paroles: { fr: "🎤 Avec paroles", en: "🎤 With lyrics", de: "🎤 Mit Text" },
-    instrumental: { fr: "🎹 Instrumental", en: "🎹 Instrumental", de: "🎹 Instrumental" },
-    charger_titre: { fr: "Charger un exemple dans Chanson Pro (rien n'est lancé) :", en: "Load an example into Chanson Pro (nothing starts):", de: "Ein Beispiel in Chanson Pro laden (nichts wird gestartet):" },
-    charge_ok: { fr: "C'est chargé dans Chanson Pro. Modifie-le librement : rien n'est lancé, le prix s'affiche sous le formulaire.", en: "Loaded into Chanson Pro. Edit it freely: nothing has started, the price is shown below the form.", de: "In Chanson Pro geladen. Ändern Sie es frei: Nichts wurde gestartet, der Preis steht unter dem Formular." },
-    charge_ko: { fr: "Je n'ai pas pu ouvrir Chanson Pro ici. Ouvre l'onglet 👑 Admin Premium 5.0, puis ⭐ Chanson Pro, choisis le genre et touche « ✨ Essayer un prompt exemple ».", en: "I couldn't open Chanson Pro here. Open the 👑 Admin Premium 5.0 tab, then ⭐ Chanson Pro, choose the genre and tap « ✨ Essayer un prompt exemple » (Try an example prompt).", de: "Ich konnte Chanson Pro hier nicht öffnen. Öffnen Sie den Tab 👑 Admin Premium 5.0, dann ⭐ Chanson Pro, wählen Sie das Genre und tippen Sie auf « ✨ Essayer un prompt exemple » (Beispiel-Prompt ausprobieren)." },
-    genres_dispo: { fr: "Dis-moi le genre voulu, je te donne un exemple. Genres disponibles : ", en: "Tell me the genre you want and I'll give you an example. Available genres: ", de: "Nennen Sie mir das gewünschte Genre, ich gebe Ihnen ein Beispiel. Verfügbare Genres: " },
-    auth: { fr: "Le nom du genre ne garantit pas le résultat : écoute toujours ta chanson avant de la publier.", en: "The genre name does not guarantee the result: always listen to your song before publishing it.", de: "Der Genrename garantiert das Ergebnis nicht: Hören Sie Ihren Song immer an, bevor Sie ihn veröffentlichen." },
-    verif_titre: { fr: "Vérification de ton prompt", en: "Checking your prompt", de: "Prüfung Ihres Prompts" },
-    verif_bon: { fr: "Ça semble bon. Vérifie le prix affiché, puis lance toi-même.", en: "Looks good. Check the price shown, then start it yourself.", de: "Sieht gut aus. Prüfen Sie den angezeigten Preis und starten Sie selbst." },
-    verif_aide: { fr: "Pour que je vérifie ton prompt, écris « vérifie : » suivi de ton texte.", en: "For me to check your prompt, write « check: » followed by your text.", de: "Damit ich Ihren Prompt prüfe, schreiben Sie « prüfe: » und dann Ihren Text." },
-    dev_intro: { fr: "Studio Rudis réalise ton clip de A à Z : scénario, vidéos IA, montage, synchronisation et révisions. Je prépare ta demande ; c'est toi qui l'envoies sur WhatsApp.", en: "Studio Rudis produces your video from A to Z: script, AI videos, editing, sync and revisions. I prepare your request; you send it yourself on WhatsApp.", de: "Studio Rudis produziert Ihr Video von A bis Z: Drehbuch, KI-Videos, Schnitt, Synchronisierung und Korrekturen. Ich bereite Ihre Anfrage vor; Sie senden sie selbst per WhatsApp." },
-    dev_offre: { fr: "Offre", en: "Offer", de: "Angebot" },
-    dev_nsp: { fr: "Je ne sais pas encore", en: "Not sure yet", de: "Noch unsicher" },
-    dev_nom: { fr: "Ton nom ou nom d'artiste", en: "Your name or artist name", de: "Ihr Name oder Künstlername" },
-    dev_titre: { fr: "Titre et durée de la chanson", en: "Song title and length", de: "Songtitel und Länge" },
-    dev_date: { fr: "Date souhaitée (indicative)", en: "Preferred date (indicative)", de: "Wunschtermin (unverbindlich)" },
-    dev_idee: { fr: "Ton idée en quelques mots", en: "Your idea in a few words", de: "Ihre Idee in wenigen Worten" },
-    dev_preparer: { fr: "Préparer ma demande", en: "Prepare my request", de: "Anfrage vorbereiten" },
-    dev_pret: { fr: "Ta demande est prête. Relis-la, puis envoie-la toi-même : WhatsApp s'ouvre avec le texte, rien ne part sans ton geste.", en: "Your request is ready. Read it, then send it yourself: WhatsApp opens with the text, nothing is sent without you.", de: "Ihre Anfrage ist fertig. Lesen Sie sie und senden Sie sie selbst: WhatsApp öffnet sich mit dem Text, nichts wird ohne Sie gesendet." },
-    dev_envoyer: { fr: "Envoyer moi-même sur WhatsApp", en: "Send it myself on WhatsApp", de: "Selbst per WhatsApp senden" },
-    dev_copier: { fr: "Copier le texte", en: "Copy the text", de: "Text kopieren" },
-    copie: { fr: "Copié ✓", en: "Copied ✓", de: "Kopiert ✓" },
-    dev_prix: { fr: "Prix affiché dans l'app : {p}. Le devis final, l'acompte et le délai sont confirmés par Studio Rudis ; aucun délai n'est garanti avant cette confirmation.", en: "Price shown in the app: {p}. The final quote, deposit and timing are confirmed by Studio Rudis; no deadline is guaranteed before that confirmation.", de: "In der App angezeigter Preis: {p}. Endgültiges Angebot, Anzahlung und Termin bestätigt Studio Rudis; vor dieser Bestätigung ist kein Termin garantiert." },
-    dev_wa_absent: { fr: "Je ne trouve pas le lien WhatsApp officiel dans l'app : copie le texte et envoie-le depuis l'onglet 💳 Commander.", en: "I can't find the official WhatsApp link in the app: copy the text and send it from the « 💳 Commander » (Order) tab.", de: "Ich finde den offiziellen WhatsApp-Link nicht in der App: Kopieren Sie den Text und senden Sie ihn über den Tab « 💳 Commander » (Bestellen)." },
-    essai_fini: { fr: "La période de test de StarClip est terminée : il n'y a plus de code d'essai. Pour commencer :\n1. choisis ton pack dans l'onglet 💳 Commander ;\n2. paie par Orange Money ou MTN Mobile Money ;\n3. envoie la capture sur WhatsApp ;\n4. entre le code reçu en haut de l'app et touche OK. Ce code est ton compte : il garde tes crédits.", en: "The StarClip test period is over: there are no more trial codes. To get started:\n1. choose your pack in the « 💳 Commander » (Order) tab;\n2. pay with Orange Money or MTN Mobile Money;\n3. send the screenshot on WhatsApp;\n4. enter the code you receive at the top of the app and tap OK. This code is your account: it keeps your credits.", de: "Die Testphase von StarClip ist beendet: Es gibt keine Testcodes mehr. So fangen Sie an:\n1. Wählen Sie Ihr Paket im Tab « 💳 Commander » (Bestellen);\n2. bezahlen Sie mit Orange Money oder MTN Mobile Money;\n3. senden Sie den Screenshot per WhatsApp;\n4. geben Sie den erhaltenen Code oben in der App ein und tippen Sie auf OK. Dieser Code ist Ihr Konto: Er speichert Ihr Guthaben." },
-    langue_auto: { fr: "Je passe en français.", en: "Switching to English.", de: "Ich wechsle zu Deutsch." },
-    voix_melanie: { fr: "🎙️ Voix de Naya : {n}", en: "🎙️ Naya's voice: {n}", de: "🎙️ Nayas Stimme: {n}" },
-    voix_secours: { fr: "Voix de secours de ton appareil ({n}) : la voix de Naya n'est pas disponible pour le moment.", en: "Backup voice from your device ({n}): Naya's voice is not available right now.", de: "Ersatzstimme Ihres Geräts ({n}): Nayas Stimme ist gerade nicht verfügbar." },
-    voix_aucune: { fr: "La voix n'est pas disponible pour le moment sur cet appareil : la réponse reste écrite.", en: "The voice is not available on this device right now: the answer stays in writing.", de: "Die Stimme ist auf diesem Gerät gerade nicht verfügbar: Die Antwort bleibt schriftlich." },
-    voix_indispo: { fr: "La voix de Naya (Mélanie) n'est pas disponible pour le moment : la réponse reste écrite.", en: "Naya's voice (Lara) is not available right now: the answer stays in writing.", de: "Nayas Stimme (Lea) ist gerade nicht verfügbar: Die Antwort bleibt schriftlich." },
-    voix_langue: { fr: "La voix de Naya n'est pas disponible pour cette réponse : elle reste écrite.", en: "Naya's voice is not available for this answer: it stays in writing.", de: "Nayas Stimme ist für diese Antwort nicht verfügbar: Sie bleibt schriftlich." },
-    voix_touche: { fr: "Touche encore « Écouter » pour lancer la lecture.", en: "Tap « Listen » again to start playback.", de: "Tippen Sie erneut auf « Anhören », um die Wiedergabe zu starten." },
-    environ: { fr: "environ ", en: "about ", de: "etwa " },
-    recharge_intro: { fr: "Les outils de l'onglet « 👑 Admin Premium 5.0 » se paient à l'unité sur ton solde Premium, avec ton même code StarClip. Voici les recharges affichées dans l'app :", en: "The tools in the « 👑 Admin Premium 5.0 » tab are paid per use from your Premium balance, with the same StarClip code. Here are the top-ups shown in the app:", de: "Die Werkzeuge im Tab « 👑 Admin Premium 5.0 » werden einzeln vom Premium-Guthaben bezahlt, mit demselben StarClip-Code. Hier die Aufladungen aus der App:" },
-    recharge_etapes: { fr: "Pour recharger :\n1. Envoie le montant choisi par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet « 💳 Commander ».\n2. Envoie ta capture et ton code StarClip sur WhatsApp (bouton « 💬 Recharger mon solde sur WhatsApp »). C'est toi qui envoies le message.\n3. Le studio crédite ton solde Premium sur ton code ; il s'affiche en haut de l'onglet 👑.", en: "To top up:\n1. Send the chosen amount by Orange Money or MTN Mobile Money to the numbers shown in the « 💳 Commander » (Order) tab.\n2. Send your screenshot and your StarClip code on WhatsApp (« 💬 Recharger mon solde sur WhatsApp » (Top up my balance on WhatsApp) button). You send the message yourself.\n3. The studio credits your Premium balance on your code; it shows at the top of the 👑 tab.", de: "So laden Sie auf:\n1. Senden Sie den gewählten Betrag per Orange Money oder MTN Mobile Money an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern.\n2. Senden Sie Ihren Screenshot und Ihren StarClip-Code per WhatsApp (Schaltfläche « 💬 Recharger mon solde sur WhatsApp » (Guthaben per WhatsApp aufladen)). Die Nachricht senden Sie selbst.\n3. Das Studio schreibt Ihr Premium-Guthaben Ihrem Code gut; es erscheint oben im Tab 👑." },
-    recharge_ouvrir: { fr: "👑 Voir les recharges Premium", en: "👑 See Premium top-ups", de: "👑 Premium-Aufladungen ansehen" },
-    securite: { fr: "Je suis Naya, l'assistante StarClip. Je peux vous expliquer comment utiliser nos outils, créer vos projets et choisir nos services. En revanche, le code interne, les accès administratifs et les informations confidentielles de StarClip ne sont pas communicables.", en: "I'm Naya, the StarClip assistant. I can explain how to use our tools, create your projects and choose our services. However, StarClip's internal code, administrative access and confidential information cannot be shared.", de: "Ich bin Naya, die StarClip-Assistentin. Ich erkläre Ihnen gern, wie Sie unsere Werkzeuge nutzen, Ihre Projekte erstellen und unsere Dienste auswählen. Interner Code, Administratorzugänge und vertrauliche Informationen von StarClip können jedoch nicht weitergegeben werden." },
+    titre: { fr: "Naya · ton assistante", en: "Naya · your assistant", de: "Naya · Ihre Assistentin", es: "Naya · tu asistente" },
+    bouton: { fr: "Naya", en: "Naya", de: "Naya", es: "Naya" },
+    placeholder: { fr: "Pose ta question à Naya…", en: "Ask Naya a question…", de: "Stellen Sie Naya eine Frage…", es: "Haz tu pregunta a Naya…" },
+    envoyer: { fr: "Envoyer", en: "Send", de: "Senden", es: "Enviar" },
+    fermer: { fr: "Fermer", en: "Close", de: "Schließen", es: "Cerrar" },
+    debutant: { fr: "Débutant", en: "Beginner", de: "Einsteiger", es: "Principiante" },
+    pro: { fr: "Pro", en: "Pro", de: "Profi", es: "Pro" },
+    effacer: { fr: "Effacer la conversation", en: "Clear conversation", de: "Gespräch löschen", es: "Borrar la conversación" },
+    bientot: { fr: "bientôt", en: "soon", de: "bald", es: "pronto" },
+    ecouter: { fr: "Écouter", en: "Listen", de: "Anhören", es: "Escuchar" },
+    confid: { fr: "Naya répond à partir du manuel StarClip. Ta conversation reste sur ton appareil : rien n'est envoyé.", en: "Naya answers from the StarClip manual. Your conversation stays on your device: nothing is sent.", de: "Naya antwortet anhand des StarClip-Handbuchs. Ihr Gespräch bleibt auf Ihrem Gerät: Nichts wird gesendet.", es: "Naya responde a partir del manual de StarClip. Tu conversación se queda en tu dispositivo: no se envía nada." },
+    bienvenue: { fr: "Bonjour, je suis Naya 👋 Je t'explique chaque outil de StarClip, je t'aide à écrire tes prompts, je te donne les prix affichés dans l'app et je prépare ta demande de devis pour Studio Rudis. Je ne lance jamais rien à ta place.", en: "Hello, I'm Naya 👋 I explain every StarClip tool, help you write your prompts, give you the prices shown in the app and prepare your quote request for Studio Rudis. I never start anything for you.", de: "Hallo, ich bin Naya 👋 Ich erkläre Ihnen jedes StarClip-Werkzeug, helfe beim Schreiben Ihrer Prompts, nenne die in der App angezeigten Preise und bereite Ihre Angebotsanfrage für Studio Rudis vor. Ich starte nie etwas an Ihrer Stelle.", es: "Hola, soy Naya 👋 Te explico cada herramienta de StarClip, te ayudo a escribir tus prompts, te doy los precios que muestra la app y preparo tu petición de presupuesto para Studio Rudis. Nunca lanzo nada en tu lugar." },
+    q_quoi: { fr: "Que puis-je faire ici ?", en: "What can I do here?", de: "Was kann ich hier machen?", es: "¿Qué puedo hacer aquí?" },
+    q_chanson: { fr: "Combien coûte une Chanson Pro ?", en: "How much is a Chanson Pro?", de: "Was kostet ein Chanson Pro?", es: "¿Cuánto cuesta una Chanson Pro?" },
+    q_prompt: { fr: "Aide-moi pour un prompt makossa", en: "Help me with a makossa prompt", de: "Hilf mir mit einem Makossa-Prompt", es: "Ayúdame con un prompt de makossa" },
+    q_clip: { fr: "Je veux un clip réalisé par le studio", en: "I want a music video made by the studio", de: "Ich möchte ein Musikvideo vom Studio", es: "Quiero un videoclip realizado por el estudio" },
+    q_payer: { fr: "Comment payer ?", en: "How do I pay?", de: "Wie bezahle ich?", es: "¿Cómo pago?" },
+    capacites: { fr: "Voici ce que je fais pour toi :\n• expliquer chaque onglet et chaque moteur (vidéo, chanson, lip-sync, stems…) ;\n• te proposer des prompts par genre musical et vérifier les tiens ;\n• te donner les prix exacts affichés dans l'app, avant que tu lances ;\n• préparer ta demande de devis pour un clip réalisé par Studio Rudis.\nJe ne lance aucune génération et je ne touche jamais à ton solde.", en: "Here is what I do for you:\n• explain every tab and every engine (video, song, lip-sync, stems…);\n• suggest prompts by music genre and check yours;\n• give you the exact prices shown in the app, before you start;\n• prepare your quote request for a video made by Studio Rudis.\nI never start a generation and never touch your balance.", de: "Das mache ich für Sie:\n• jeden Tab und jedes Modell erklären (Video, Song, Lip-Sync, Stems…);\n• Prompts nach Musikgenre vorschlagen und Ihre prüfen;\n• die genauen Preise aus der App nennen, bevor Sie starten;\n• Ihre Angebotsanfrage für ein Video von Studio Rudis vorbereiten.\nIch starte keine Generierung und verändere nie Ihr Guthaben.", es: "Esto es lo que hago por ti:\n• explicarte cada pestaña y cada motor (vídeo, canción, lip-sync, stems…);\n• proponerte prompts por género musical y revisar los tuyos;\n• darte los precios exactos que muestra la app, antes de que lances;\n• preparar tu petición de presupuesto para un videoclip realizado por Studio Rudis.\nNo lanzo ninguna generación y nunca toco tu saldo." },
+    admin: { fr: "Je ne peux pas t'aider sur ce point : cette partie est réservée au studio, et je ne donne jamais d'accès, de code ni de détail technique. Si tu as besoin d'une fonction Studio, Studio Rudis peut réaliser ton projet.", en: "I can't help with that: this part is reserved for the studio, and I never give access, codes or technical details. If you need a Studio feature, Studio Rudis can produce your project.", de: "Dabei kann ich nicht helfen: Dieser Bereich ist dem Studio vorbehalten, und ich gebe niemals Zugänge, Codes oder technische Details weiter. Wenn Sie eine Studio-Funktion brauchen, kann Studio Rudis Ihr Projekt umsetzen.", es: "No puedo ayudarte con eso: esta parte está reservada al estudio, y nunca doy accesos, códigos ni detalles técnicos. Si necesitas una función Studio, Studio Rudis puede realizar tu proyecto." },
+    inconnu: { fr: "Je ne trouve pas cette fonction dans le manuel StarClip, et je préfère ne pas inventer. Dis-moi ce que tu veux obtenir (vidéo, chanson, photo…) et je te montre l'outil qui s'en rapproche le plus ; sinon, l'équipe te répond sur WhatsApp.", en: "I can't find this feature in the StarClip manual, and I'd rather not make anything up. Tell me what you want to achieve (video, song, photo…) and I'll show you the closest tool; otherwise, the team will answer you on WhatsApp.", de: "Ich finde diese Funktion nicht im StarClip-Handbuch und möchte nichts erfinden. Sagen Sie mir, was Sie erreichen möchten (Video, Song, Foto…), und ich zeige Ihnen das passendste Werkzeug; andernfalls antwortet Ihnen das Team per WhatsApp.", es: "No encuentro esta función en el manual de StarClip, y prefiero no inventar. Dime qué quieres conseguir (vídeo, canción, foto…) y te muestro la herramienta más cercana; si no, el equipo te responde por WhatsApp." },
+    manuel: { fr: "D'après le manuel", en: "According to the manual", de: "Laut Handbuch", es: "Según el manual" },
+    pasapas: { fr: "Pas à pas", en: "Step by step", de: "Schritt für Schritt", es: "Paso a paso" },
+    lancer: { fr: "Je ne lance jamais moi-même une génération payante. Vérifie le prix affiché, puis touche toi-même le bouton de lancement quand tu es prêt(e).", en: "I never start a paid generation myself. Check the price shown, then tap the start button yourself when you're ready.", de: "Ich starte nie selbst eine kostenpflichtige Generierung. Prüfen Sie den angezeigten Preis und tippen Sie selbst auf Start, wenn Sie bereit sind.", es: "Nunca lanzo yo misma una generación de pago. Comprueba el precio que aparece y toca tú mismo el botón de lanzamiento cuando estés listo(a)." },
+    abonnement: { fr: "Aucun abonnement n'est nécessaire : tu paies à l'unité, avec un code StarClip ou un solde Premium que tu recharges.", en: "No subscription is required: you pay per use, with a StarClip code or a Premium balance you top up.", de: "Kein Abonnement nötig: Sie zahlen pro Nutzung, mit einem StarClip-Code oder einem aufladbaren Premium-Guthaben.", es: "No hace falta ninguna suscripción: pagas por unidad, con un código StarClip o un saldo Premium que recargas." },
+    paiement: { fr: "Pour payer : envoie le montant par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet 💳 Commander, puis envoie ta capture sur WhatsApp. Tu reçois ton CODE StarClip sur WhatsApp. Pas de carte bancaire pour l'instant.", en: "To pay: send the amount by Orange Money or MTN Mobile Money to the numbers shown in the « 💳 Commander » (Order) tab, then send your screenshot on WhatsApp. You receive your StarClip CODE on WhatsApp. No card payment for now.", de: "So bezahlen Sie: Senden Sie den Betrag per Orange Money oder MTN Mobile Money an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern und schicken Sie dann Ihren Screenshot per WhatsApp. Sie erhalten Ihren StarClip-CODE per WhatsApp. Kartenzahlung ist vorerst nicht möglich.", es: "Para pagar: envía el importe por Orange Money o MTN Mobile Money a los números que aparecen en la pestaña « 💳 Commander » (Pedir) y luego envía tu captura por WhatsApp. Recibes tu CÓDIGO StarClip por WhatsApp. Por ahora no hay pago con tarjeta." },
+    packs: { fr: "Packs affichés dans l'app", en: "Packs shown in the app", de: "In der App angezeigte Pakete", es: "Packs que muestra la app" },
+    signature: { fr: "Clips réalisés par Studio Rudis", en: "Videos made by Studio Rudis", de: "Videos von Studio Rudis", es: "Videoclips realizados por Studio Rudis" },
+    prix_moteur: { fr: "Prix affiché dans l'app pour {m}", en: "Price shown in the app for {m}", de: "In der App angezeigter Preis für {m}", es: "Precio que muestra la app para {m}" },
+    debite: { fr: "Débité seulement quand tu appuies toi-même sur le bouton de création.", en: "Charged only when you tap the create button yourself.", de: "Abgebucht erst, wenn Sie selbst auf Erstellen tippen.", es: "Solo se cobra cuando tocas tú mismo el botón de creación." },
+    prix_absent: { fr: "Je ne trouve pas ce prix dans l'app : ouvre l'onglet concerné, le prix exact s'y affiche avant tout lancement.", en: "I can't find this price in the app: open the tab concerned, the exact price is shown there before anything starts.", de: "Ich finde diesen Preis nicht in der App: Öffnen Sie den betreffenden Tab, dort wird der genaue Preis vor jedem Start angezeigt.", es: "No encuentro este precio en la app: abre la pestaña correspondiente, allí aparece el precio exacto antes de cualquier lanzamiento." },
+    reprise: { fr: "Améliorer ma démo en mode Reprise : 999 FCFA.", en: "« 🎙️ Améliorer ma démo » (Improve my demo), « Reprise » (Cover) mode: 999 FCFA.", de: "« 🎙️ Améliorer ma démo » (Meine Demo verbessern), Modus « Reprise » (Cover): 999 FCFA.", es: "« 🎙️ Améliorer ma démo » (Mejorar mi maqueta), modo « Reprise » (Versión): 999 FCFA." },
+    resume_prix: { fr: "Quelques prix affichés dans l'app (outils Premium, payés sur ton solde) :", en: "Some prices shown in the app (Premium tools, paid from your balance):", de: "Einige Preise aus der App (Premium-Werkzeuge, vom Guthaben bezahlt):", es: "Algunos precios que muestra la app (herramientas Premium, pagadas con tu saldo):" },
+    ouvrir: { fr: "Ouvrir", en: "Open", de: "Öffnen", es: "Abrir" },
+    ouvrir_cmd: { fr: "Ouvrir 💳 Commander", en: "Open 💳 Order", de: "💳 Bestellen öffnen", es: "Abrir 💳 Pedir" },
+    ouvrir_x: { fr: "Ouvrir {x}", en: "Open {x}", de: "{x} öffnen", es: "Abrir {x}" },
+    reference: { fr: "Référence", en: "Reference", de: "Referenz", es: "Referencia" },
+    genre_titre: { fr: "Exemples de prompt", en: "Prompt examples", de: "Prompt-Beispiele", es: "Ejemplos de prompt" },
+    ex_fr: { fr: "", en: "(examples written in French: the engine understands them)", de: "(Beispiele auf Französisch: Das Modell versteht sie)", es: "(ejemplos escritos en francés: el motor los entiende)" },
+    debutant_ex: { fr: "Débutant", en: "Beginner", de: "Einsteiger", es: "Principiante" },
+    pro_ex: { fr: "Pro", en: "Pro", de: "Profi", es: "Pro" },
+    charger: { fr: "Charger", en: "Load", de: "Laden", es: "Cargar" },
+    avec_paroles: { fr: "🎤 Avec paroles", en: "🎤 With lyrics", de: "🎤 Mit Text", es: "🎤 Con letra" },
+    instrumental: { fr: "🎹 Instrumental", en: "🎹 Instrumental", de: "🎹 Instrumental", es: "🎹 Instrumental" },
+    charger_titre: { fr: "Charger un exemple dans Chanson Pro (rien n'est lancé) :", en: "Load an example into Chanson Pro (nothing starts):", de: "Ein Beispiel in Chanson Pro laden (nichts wird gestartet):", es: "Cargar un ejemplo en Chanson Pro (no se lanza nada):" },
+    charge_ok: { fr: "C'est chargé dans Chanson Pro. Modifie-le librement : rien n'est lancé, le prix s'affiche sous le formulaire.", en: "Loaded into Chanson Pro. Edit it freely: nothing has started, the price is shown below the form.", de: "In Chanson Pro geladen. Ändern Sie es frei: Nichts wurde gestartet, der Preis steht unter dem Formular.", es: "Cargado en Chanson Pro. Modifícalo libremente: no se ha lanzado nada, el precio aparece bajo el formulario." },
+    charge_ko: { fr: "Je n'ai pas pu ouvrir Chanson Pro ici. Ouvre l'onglet 👑 Admin Premium 5.0, puis ⭐ Chanson Pro, choisis le genre et touche « ✨ Essayer un prompt exemple ».", en: "I couldn't open Chanson Pro here. Open the 👑 Admin Premium 5.0 tab, then ⭐ Chanson Pro, choose the genre and tap « ✨ Essayer un prompt exemple » (Try an example prompt).", de: "Ich konnte Chanson Pro hier nicht öffnen. Öffnen Sie den Tab 👑 Admin Premium 5.0, dann ⭐ Chanson Pro, wählen Sie das Genre und tippen Sie auf « ✨ Essayer un prompt exemple » (Beispiel-Prompt ausprobieren).", es: "No he podido abrir Chanson Pro aquí. Abre la pestaña 👑 Admin Premium 5.0, luego ⭐ Chanson Pro, elige el género y toca « ✨ Essayer un prompt exemple » (Probar un prompt de ejemplo)." },
+    genres_dispo: { fr: "Dis-moi le genre voulu, je te donne un exemple. Genres disponibles : ", en: "Tell me the genre you want and I'll give you an example. Available genres: ", de: "Nennen Sie mir das gewünschte Genre, ich gebe Ihnen ein Beispiel. Verfügbare Genres: ", es: "Dime el género que quieres y te doy un ejemplo. Géneros disponibles: " },
+    auth: { fr: "Le nom du genre ne garantit pas le résultat : écoute toujours ta chanson avant de la publier.", en: "The genre name does not guarantee the result: always listen to your song before publishing it.", de: "Der Genrename garantiert das Ergebnis nicht: Hören Sie Ihren Song immer an, bevor Sie ihn veröffentlichen.", es: "El nombre del género no garantiza el resultado: escucha siempre tu canción antes de publicarla." },
+    verif_titre: { fr: "Vérification de ton prompt", en: "Checking your prompt", de: "Prüfung Ihres Prompts", es: "Revisión de tu prompt" },
+    verif_bon: { fr: "Ça semble bon. Vérifie le prix affiché, puis lance toi-même.", en: "Looks good. Check the price shown, then start it yourself.", de: "Sieht gut aus. Prüfen Sie den angezeigten Preis und starten Sie selbst.", es: "Parece correcto. Comprueba el precio que aparece y lanza tú mismo." },
+    verif_aide: { fr: "Pour que je vérifie ton prompt, écris « vérifie : » suivi de ton texte.", en: "For me to check your prompt, write « check: » followed by your text.", de: "Damit ich Ihren Prompt prüfe, schreiben Sie « prüfe: » und dann Ihren Text.", es: "Para que revise tu prompt, escribe « revisa: » seguido de tu texto." },
+    dev_intro: { fr: "Studio Rudis réalise ton clip de A à Z : scénario, vidéos IA, montage, synchronisation et révisions. Je prépare ta demande ; c'est toi qui l'envoies sur WhatsApp.", en: "Studio Rudis produces your video from A to Z: script, AI videos, editing, sync and revisions. I prepare your request; you send it yourself on WhatsApp.", de: "Studio Rudis produziert Ihr Video von A bis Z: Drehbuch, KI-Videos, Schnitt, Synchronisierung und Korrekturen. Ich bereite Ihre Anfrage vor; Sie senden sie selbst per WhatsApp.", es: "Studio Rudis realiza tu videoclip de la A a la Z: guion, vídeos IA, montaje, sincronización y revisiones. Yo preparo tu petición; eres tú quien la envía por WhatsApp." },
+    dev_offre: { fr: "Offre", en: "Offer", de: "Angebot", es: "Oferta" },
+    dev_nsp: { fr: "Je ne sais pas encore", en: "Not sure yet", de: "Noch unsicher", es: "Todavía no lo sé" },
+    dev_nom: { fr: "Ton nom ou nom d'artiste", en: "Your name or artist name", de: "Ihr Name oder Künstlername", es: "Tu nombre o nombre artístico" },
+    dev_titre: { fr: "Titre et durée de la chanson", en: "Song title and length", de: "Songtitel und Länge", es: "Título y duración de la canción" },
+    dev_date: { fr: "Date souhaitée (indicative)", en: "Preferred date (indicative)", de: "Wunschtermin (unverbindlich)", es: "Fecha deseada (orientativa)" },
+    dev_idee: { fr: "Ton idée en quelques mots", en: "Your idea in a few words", de: "Ihre Idee in wenigen Worten", es: "Tu idea en pocas palabras" },
+    dev_preparer: { fr: "Préparer ma demande", en: "Prepare my request", de: "Anfrage vorbereiten", es: "Preparar mi petición" },
+    dev_pret: { fr: "Ta demande est prête. Relis-la, puis envoie-la toi-même : WhatsApp s'ouvre avec le texte, rien ne part sans ton geste.", en: "Your request is ready. Read it, then send it yourself: WhatsApp opens with the text, nothing is sent without you.", de: "Ihre Anfrage ist fertig. Lesen Sie sie und senden Sie sie selbst: WhatsApp öffnet sich mit dem Text, nichts wird ohne Sie gesendet.", es: "Tu petición está lista. Reléela y envíala tú mismo: WhatsApp se abre con el texto, no sale nada sin tu gesto." },
+    dev_envoyer: { fr: "Envoyer moi-même sur WhatsApp", en: "Send it myself on WhatsApp", de: "Selbst per WhatsApp senden", es: "Enviarla yo mismo por WhatsApp" },
+    dev_copier: { fr: "Copier le texte", en: "Copy the text", de: "Text kopieren", es: "Copiar el texto" },
+    copie: { fr: "Copié ✓", en: "Copied ✓", de: "Kopiert ✓", es: "Copiado ✓" },
+    dev_prix: { fr: "Prix affiché dans l'app : {p}. Le devis final, l'acompte et le délai sont confirmés par Studio Rudis ; aucun délai n'est garanti avant cette confirmation.", en: "Price shown in the app: {p}. The final quote, deposit and timing are confirmed by Studio Rudis; no deadline is guaranteed before that confirmation.", de: "In der App angezeigter Preis: {p}. Endgültiges Angebot, Anzahlung und Termin bestätigt Studio Rudis; vor dieser Bestätigung ist kein Termin garantiert.", es: "Precio que muestra la app: {p}. El presupuesto final, el anticipo y el plazo los confirma Studio Rudis; no se garantiza ningún plazo antes de esa confirmación." },
+    dev_wa_absent: { fr: "Je ne trouve pas le lien WhatsApp officiel dans l'app : copie le texte et envoie-le depuis l'onglet 💳 Commander.", en: "I can't find the official WhatsApp link in the app: copy the text and send it from the « 💳 Commander » (Order) tab.", de: "Ich finde den offiziellen WhatsApp-Link nicht in der App: Kopieren Sie den Text und senden Sie ihn über den Tab « 💳 Commander » (Bestellen).", es: "No encuentro el enlace oficial de WhatsApp en la app: copia el texto y envíalo desde la pestaña « 💳 Commander » (Pedir)." },
+    essai_fini: { fr: "La période de test de StarClip est terminée : il n'y a plus de code d'essai. Pour commencer :\n1. choisis ton pack dans l'onglet 💳 Commander ;\n2. paie par Orange Money ou MTN Mobile Money ;\n3. envoie la capture sur WhatsApp ;\n4. entre le code reçu en haut de l'app et touche OK. Ce code est ton compte : il garde tes crédits.", en: "The StarClip test period is over: there are no more trial codes. To get started:\n1. choose your pack in the « 💳 Commander » (Order) tab;\n2. pay with Orange Money or MTN Mobile Money;\n3. send the screenshot on WhatsApp;\n4. enter the code you receive at the top of the app and tap OK. This code is your account: it keeps your credits.", de: "Die Testphase von StarClip ist beendet: Es gibt keine Testcodes mehr. So fangen Sie an:\n1. Wählen Sie Ihr Paket im Tab « 💳 Commander » (Bestellen);\n2. bezahlen Sie mit Orange Money oder MTN Mobile Money;\n3. senden Sie den Screenshot per WhatsApp;\n4. geben Sie den erhaltenen Code oben in der App ein und tippen Sie auf OK. Dieser Code ist Ihr Konto: Er speichert Ihr Guthaben.", es: "El periodo de prueba de StarClip ha terminado: ya no hay códigos de prueba. Para empezar:\n1. elige tu pack en la pestaña « 💳 Commander » (Pedir);\n2. paga con Orange Money o MTN Mobile Money;\n3. envía la captura por WhatsApp;\n4. escribe el código recibido arriba en la app y toca OK. Este código es tu cuenta: guarda tus créditos." },
+    langue_auto: { fr: "Je passe en français.", en: "Switching to English.", de: "Ich wechsle zu Deutsch.", es: "Paso al español." },
+    voix_melanie: { fr: "🎙️ Voix de Naya : {n}", en: "🎙️ Naya's voice: {n}", de: "🎙️ Nayas Stimme: {n}", es: "🎙️ Voz de Naya: {n}" },
+    voix_secours: { fr: "Voix de secours de ton appareil ({n}) : la voix de Naya n'est pas disponible pour le moment.", en: "Backup voice from your device ({n}): Naya's voice is not available right now.", de: "Ersatzstimme Ihres Geräts ({n}): Nayas Stimme ist gerade nicht verfügbar.", es: "Voz de reserva de tu dispositivo ({n}): la voz de Naya no está disponible por el momento." },
+    voix_aucune: { fr: "La voix n'est pas disponible pour le moment sur cet appareil : la réponse reste écrite.", en: "The voice is not available on this device right now: the answer stays in writing.", de: "Die Stimme ist auf diesem Gerät gerade nicht verfügbar: Die Antwort bleibt schriftlich.", es: "La voz no está disponible por el momento en este dispositivo: la respuesta queda escrita." },
+    voix_indispo: { fr: "La voix de Naya (Mélanie) n'est pas disponible pour le moment : la réponse reste écrite.", en: "Naya's voice (Lara) is not available right now: the answer stays in writing.", de: "Nayas Stimme (Lea) ist gerade nicht verfügbar: Die Antwort bleibt schriftlich.", es: "La voz de Naya no está disponible por el momento: la respuesta queda escrita." },
+    voix_langue: { fr: "La voix de Naya n'est pas disponible pour cette réponse : elle reste écrite.", en: "Naya's voice is not available for this answer: it stays in writing.", de: "Nayas Stimme ist für diese Antwort nicht verfügbar: Sie bleibt schriftlich.", es: "La voz de Naya todavía no está disponible en español: la respuesta queda escrita." },
+    voix_touche: { fr: "Touche encore « Écouter » pour lancer la lecture.", en: "Tap « Listen » again to start playback.", de: "Tippen Sie erneut auf « Anhören », um die Wiedergabe zu starten.", es: "Toca otra vez « Escuchar » para iniciar la lectura." },
+    environ: { fr: "environ ", en: "about ", de: "etwa ", es: "unos " },
+    recharge_intro: { fr: "Les outils de l'onglet « 👑 Admin Premium 5.0 » se paient à l'unité sur ton solde Premium, avec ton même code StarClip. Voici les recharges affichées dans l'app :", en: "The tools in the « 👑 Admin Premium 5.0 » tab are paid per use from your Premium balance, with the same StarClip code. Here are the top-ups shown in the app:", de: "Die Werkzeuge im Tab « 👑 Admin Premium 5.0 » werden einzeln vom Premium-Guthaben bezahlt, mit demselben StarClip-Code. Hier die Aufladungen aus der App:", es: "Las herramientas de la pestaña « 👑 Admin Premium 5.0 » se pagan por unidad con tu saldo Premium, con tu mismo código StarClip. Estas son las recargas que muestra la app:" },
+    recharge_etapes: { fr: "Pour recharger :\n1. Envoie le montant choisi par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet « 💳 Commander ».\n2. Envoie ta capture et ton code StarClip sur WhatsApp (bouton « 💬 Recharger mon solde sur WhatsApp »). C'est toi qui envoies le message.\n3. Le studio crédite ton solde Premium sur ton code ; il s'affiche en haut de l'onglet 👑.", en: "To top up:\n1. Send the chosen amount by Orange Money or MTN Mobile Money to the numbers shown in the « 💳 Commander » (Order) tab.\n2. Send your screenshot and your StarClip code on WhatsApp (« 💬 Recharger mon solde sur WhatsApp » (Top up my balance on WhatsApp) button). You send the message yourself.\n3. The studio credits your Premium balance on your code; it shows at the top of the 👑 tab.", de: "So laden Sie auf:\n1. Senden Sie den gewählten Betrag per Orange Money oder MTN Mobile Money an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern.\n2. Senden Sie Ihren Screenshot und Ihren StarClip-Code per WhatsApp (Schaltfläche « 💬 Recharger mon solde sur WhatsApp » (Guthaben per WhatsApp aufladen)). Die Nachricht senden Sie selbst.\n3. Das Studio schreibt Ihr Premium-Guthaben Ihrem Code gut; es erscheint oben im Tab 👑.", es: "Para recargar:\n1. Envía el importe elegido por Orange Money o MTN Mobile Money a los números que aparecen en la pestaña « 💳 Commander » (Pedir).\n2. Envía tu captura y tu código StarClip por WhatsApp (botón « 💬 Recharger mon solde sur WhatsApp » (Recargar mi saldo por WhatsApp)). Eres tú quien envía el mensaje.\n3. El estudio acredita tu saldo Premium en tu código; aparece arriba en la pestaña 👑." },
+    recharge_ouvrir: { fr: "👑 Voir les recharges Premium", en: "👑 See Premium top-ups", de: "👑 Premium-Aufladungen ansehen", es: "👑 Ver las recargas Premium" },
+    securite: { fr: "Je suis Naya, l'assistante StarClip. Je peux vous expliquer comment utiliser nos outils, créer vos projets et choisir nos services. En revanche, le code interne, les accès administratifs et les informations confidentielles de StarClip ne sont pas communicables.", en: "I'm Naya, the StarClip assistant. I can explain how to use our tools, create your projects and choose our services. However, StarClip's internal code, administrative access and confidential information cannot be shared.", de: "Ich bin Naya, die StarClip-Assistentin. Ich erkläre Ihnen gern, wie Sie unsere Werkzeuge nutzen, Ihre Projekte erstellen und unsere Dienste auswählen. Interner Code, Administratorzugänge und vertrauliche Informationen von StarClip können jedoch nicht weitergegeben werden.", es: "Soy Naya, la asistente de StarClip. Puedo explicarte cómo usar nuestras herramientas, crear tus proyectos y elegir nuestros servicios. En cambio, el código interno, los accesos administrativos y la información confidencial de StarClip no se pueden comunicar." },
     // v41.160 : réponses guidées (faits repris du manuel et de l'app, jamais inventés)
-    guide_intro: { fr: "Bienvenue ! Voici comment utiliser StarClip, étape par étape.", en: "Welcome! Here is how to use StarClip, step by step.", de: "Willkommen! So nutzen Sie StarClip, Schritt für Schritt." },
-    guide_code: { fr: "1) Obtiens ton code StarClip : il donne accès aux outils et porte tes crédits.", en: "1) Get your StarClip code: it unlocks the tools and holds your credits.", de: "1) Holen Sie sich Ihren StarClip-Code: Er schaltet die Werkzeuge frei und enthält Ihr Guthaben." },
-    guide_etapes: { fr: "2) Crée ton clip, toujours dans le même ordre :", en: "2) Create your video, always in the same order:", de: "2) Erstellen Sie Ihr Video, immer in derselben Reihenfolge:" },
-    guide_premium: { fr: "3) Pour aller plus loin, les outils Premium (vidéo haut de gamme, chanson, Chanson Pro, stems…) sont dans l'onglet « 👑 Admin Premium 5.0 ». Ils se paient à l'unité sur ton solde Premium, et le prix s'affiche avant chaque lancement.", en: "3) To go further, the Premium tools (high-end video, song, Chanson Pro, stems…) are in the « 👑 Admin Premium 5.0 » tab. They are paid per use from your Premium balance, and the price is shown before each launch.", de: "3) Für mehr Möglichkeiten finden Sie die Premium-Werkzeuge (hochwertiges Video, Song, Chanson Pro, Stems…) im Tab « 👑 Admin Premium 5.0 ». Sie werden einzeln von Ihrem Premium-Guthaben bezahlt, und der Preis wird vor jedem Start angezeigt." },
-    guide_suite: { fr: "Dis-moi ce que tu veux créer, je te guide :", en: "Tell me what you want to create and I'll guide you:", de: "Sagen Sie mir, was Sie erstellen möchten – ich führe Sie:" },
-    achat_intro: { fr: "Pour utiliser StarClip, tu achètes un code StarClip : pas d'abonnement, pas de carte bancaire. Voici comment faire :", en: "To use StarClip, you buy a StarClip code: no subscription, no bank card. Here is how:", de: "Um StarClip zu nutzen, kaufen Sie einen StarClip-Code: kein Abo, keine Bankkarte. So geht's:" },
-    video_intro: { fr: "Pour créer une vidéo, tu as plusieurs possibilités :", en: "To create a video, you have several options:", de: "Für ein Video haben Sie mehrere Möglichkeiten:" },
-    video_fin: { fr: "Commence toujours par une bonne photo (onglet « 📸 Ta photo »). Le prix s'affiche avant chaque lancement.", en: "Always start with a good photo (« 📸 Ta photo » (Your photo) tab). The price is shown before each launch.", de: "Beginnen Sie immer mit einem guten Foto (Tab « 📸 Ta photo » (Ihr Foto)). Der Preis wird vor jedem Start angezeigt." },
-    chanson_intro: { fr: "Pour créer une chanson, deux outils (onglet « 👑 Admin Premium 5.0 ») :", en: "To create a song, two tools (« 👑 Admin Premium 5.0 » tab):", de: "Für einen Song gibt es zwei Werkzeuge (Tab « 👑 Admin Premium 5.0 »):" },
-    chanson_fin: { fr: "Dis-moi ton genre (makossa, bikutsi, afropop…) et je te propose un exemple de prompt.", en: "Tell me your genre (makossa, bikutsi, afropop…) and I'll suggest an example prompt.", de: "Nennen Sie mir Ihr Genre (Makossa, Bikutsi, Afropop…), und ich schlage Ihnen einen Beispiel-Prompt vor." },
-    moteur_intro: { fr: "Voici les moteurs et ce que fait chacun :", en: "Here are the engines and what each one does:", de: "Hier sind die Modelle und was jedes kann:" },
-    moteur_bref: { fr: "En bref : une vidéo avec ton propre visage → Seedance 2.5 ; sans visage réel → Seedance 2.0 Moteur A ; plusieurs plans → Multi-Shot Video ; modifier une vidéo existante → Aleph 2.0.", en: "In short: a video with your own face → Seedance 2.5; no real face → Seedance 2.0 Engine A; several shots → Multi-Shot Video; edit an existing video → Aleph 2.0.", de: "Kurz gesagt: Video mit Ihrem eigenen Gesicht → Seedance 2.5; ohne echtes Gesicht → Seedance 2.0 Modell A; mehrere Einstellungen → Multi-Shot Video; vorhandenes Video bearbeiten → Aleph 2.0." },
-    ici_intro: { fr: "Dans cet onglet ({o}) :", en: "In this tab ({o}):", de: "In diesem Tab ({o}):" },
-    clarif: { fr: "Avec plaisir ! Pour te répondre précisément, dis-moi ce que tu cherches :", en: "Happy to help! To answer precisely, tell me what you are looking for:", de: "Gern helfe ich Ihnen! Damit ich genau antworten kann: Was suchen Sie?" },
-    clarif_flou: { fr: "Je ne suis pas sûre d'avoir bien compris. Tu cherches plutôt :", en: "I'm not sure I understood. Are you looking for:", de: "Ich bin nicht sicher, ob ich Sie richtig verstanden habe. Suchen Sie eher:" },
-    op_debuter: { fr: "🚀 Débuter avec StarClip", en: "🚀 Get started with StarClip", de: "🚀 Erste Schritte mit StarClip" },
-    op_video: { fr: "🎬 Créer une vidéo", en: "🎬 Create a video", de: "🎬 Ein Video erstellen" },
-    op_chanson: { fr: "🎵 Créer une chanson", en: "🎵 Create a song", de: "🎵 Einen Song erstellen" },
-    op_moteur: { fr: "⚙️ Choisir un moteur", en: "⚙️ Choose an engine", de: "⚙️ Ein Modell wählen" },
-    op_prix: { fr: "💰 Voir les prix", en: "💰 See the prices", de: "💰 Preise ansehen" },
-    op_acheter: { fr: "💳 Acheter un code", en: "💳 Buy a code", de: "💳 Einen Code kaufen" },
-    op_signature: { fr: "🎬 Un clip réalisé par le studio", en: "🎬 A music video made by the studio", de: "🎬 Ein Musikvideo vom Studio" },
+    guide_intro: { fr: "Bienvenue ! Voici comment utiliser StarClip, étape par étape.", en: "Welcome! Here is how to use StarClip, step by step.", de: "Willkommen! So nutzen Sie StarClip, Schritt für Schritt.", es: "¡Bienvenido(a)! Así se usa StarClip, paso a paso." },
+    guide_code: { fr: "1) Obtiens ton code StarClip : il donne accès aux outils et porte tes crédits.", en: "1) Get your StarClip code: it unlocks the tools and holds your credits.", de: "1) Holen Sie sich Ihren StarClip-Code: Er schaltet die Werkzeuge frei und enthält Ihr Guthaben.", es: "1) Consigue tu código StarClip: da acceso a las herramientas y contiene tus créditos." },
+    guide_etapes: { fr: "2) Crée ton clip, toujours dans le même ordre :", en: "2) Create your video, always in the same order:", de: "2) Erstellen Sie Ihr Video, immer in derselben Reihenfolge:", es: "2) Crea tu videoclip, siempre en el mismo orden:" },
+    guide_premium: { fr: "3) Pour aller plus loin, les outils Premium (vidéo haut de gamme, chanson, Chanson Pro, stems…) sont dans l'onglet « 👑 Admin Premium 5.0 ». Ils se paient à l'unité sur ton solde Premium, et le prix s'affiche avant chaque lancement.", en: "3) To go further, the Premium tools (high-end video, song, Chanson Pro, stems…) are in the « 👑 Admin Premium 5.0 » tab. They are paid per use from your Premium balance, and the price is shown before each launch.", de: "3) Für mehr Möglichkeiten finden Sie die Premium-Werkzeuge (hochwertiges Video, Song, Chanson Pro, Stems…) im Tab « 👑 Admin Premium 5.0 ». Sie werden einzeln von Ihrem Premium-Guthaben bezahlt, und der Preis wird vor jedem Start angezeigt.", es: "3) Para ir más lejos, las herramientas Premium (vídeo de alta gama, canción, Chanson Pro, stems…) están en la pestaña « 👑 Admin Premium 5.0 ». Se pagan por unidad con tu saldo Premium, y el precio aparece antes de cada lanzamiento." },
+    guide_suite: { fr: "Dis-moi ce que tu veux créer, je te guide :", en: "Tell me what you want to create and I'll guide you:", de: "Sagen Sie mir, was Sie erstellen möchten – ich führe Sie:", es: "Dime qué quieres crear y te guío:" },
+    achat_intro: { fr: "Pour utiliser StarClip, tu achètes un code StarClip : pas d'abonnement, pas de carte bancaire. Voici comment faire :", en: "To use StarClip, you buy a StarClip code: no subscription, no bank card. Here is how:", de: "Um StarClip zu nutzen, kaufen Sie einen StarClip-Code: kein Abo, keine Bankkarte. So geht's:", es: "Para usar StarClip, compras un código StarClip: sin suscripción, sin tarjeta bancaria. Así se hace:" },
+    video_intro: { fr: "Pour créer une vidéo, tu as plusieurs possibilités :", en: "To create a video, you have several options:", de: "Für ein Video haben Sie mehrere Möglichkeiten:", es: "Para crear un vídeo, tienes varias opciones:" },
+    video_fin: { fr: "Commence toujours par une bonne photo (onglet « 📸 Ta photo »). Le prix s'affiche avant chaque lancement.", en: "Always start with a good photo (« 📸 Ta photo » (Your photo) tab). The price is shown before each launch.", de: "Beginnen Sie immer mit einem guten Foto (Tab « 📸 Ta photo » (Ihr Foto)). Der Preis wird vor jedem Start angezeigt.", es: "Empieza siempre con una buena foto (pestaña « 📸 Ta photo » (Tu foto)). El precio aparece antes de cada lanzamiento." },
+    chanson_intro: { fr: "Pour créer une chanson, deux outils (onglet « 👑 Admin Premium 5.0 ») :", en: "To create a song, two tools (« 👑 Admin Premium 5.0 » tab):", de: "Für einen Song gibt es zwei Werkzeuge (Tab « 👑 Admin Premium 5.0 »):", es: "Para crear una canción, dos herramientas (pestaña « 👑 Admin Premium 5.0 »):" },
+    chanson_fin: { fr: "Dis-moi ton genre (makossa, bikutsi, afropop…) et je te propose un exemple de prompt.", en: "Tell me your genre (makossa, bikutsi, afropop…) and I'll suggest an example prompt.", de: "Nennen Sie mir Ihr Genre (Makossa, Bikutsi, Afropop…), und ich schlage Ihnen einen Beispiel-Prompt vor.", es: "Dime tu género (makossa, bikutsi, afropop…) y te propongo un ejemplo de prompt." },
+    moteur_intro: { fr: "Voici les moteurs et ce que fait chacun :", en: "Here are the engines and what each one does:", de: "Hier sind die Modelle und was jedes kann:", es: "Estos son los motores y lo que hace cada uno:" },
+    moteur_bref: { fr: "En bref : une vidéo avec ton propre visage → Seedance 2.5 ; sans visage réel → Seedance 2.0 Moteur A ; plusieurs plans → Multi-Shot Video ; modifier une vidéo existante → Aleph 2.0.", en: "In short: a video with your own face → Seedance 2.5; no real face → Seedance 2.0 Engine A; several shots → Multi-Shot Video; edit an existing video → Aleph 2.0.", de: "Kurz gesagt: Video mit Ihrem eigenen Gesicht → Seedance 2.5; ohne echtes Gesicht → Seedance 2.0 Modell A; mehrere Einstellungen → Multi-Shot Video; vorhandenes Video bearbeiten → Aleph 2.0.", es: "En resumen: un vídeo con tu propio rostro → Seedance 2.5; sin rostro real → Seedance 2.0 Motor A; varios planos → Multi-Shot Video; modificar un vídeo existente → Aleph 2.0." },
+    ici_intro: { fr: "Dans cet onglet ({o}) :", en: "In this tab ({o}):", de: "In diesem Tab ({o}):", es: "En esta pestaña ({o}):" },
+    clarif: { fr: "Avec plaisir ! Pour te répondre précisément, dis-moi ce que tu cherches :", en: "Happy to help! To answer precisely, tell me what you are looking for:", de: "Gern helfe ich Ihnen! Damit ich genau antworten kann: Was suchen Sie?", es: "¡Con mucho gusto! Para responderte con precisión, dime qué buscas:" },
+    clarif_flou: { fr: "Je ne suis pas sûre d'avoir bien compris. Tu cherches plutôt :", en: "I'm not sure I understood. Are you looking for:", de: "Ich bin nicht sicher, ob ich Sie richtig verstanden habe. Suchen Sie eher:", es: "No estoy segura de haberte entendido. ¿Buscas más bien:" },
+    op_debuter: { fr: "🚀 Débuter avec StarClip", en: "🚀 Get started with StarClip", de: "🚀 Erste Schritte mit StarClip", es: "🚀 Empezar con StarClip" },
+    op_video: { fr: "🎬 Créer une vidéo", en: "🎬 Create a video", de: "🎬 Ein Video erstellen", es: "🎬 Crear un vídeo" },
+    op_chanson: { fr: "🎵 Créer une chanson", en: "🎵 Create a song", de: "🎵 Einen Song erstellen", es: "🎵 Crear una canción" },
+    op_moteur: { fr: "⚙️ Choisir un moteur", en: "⚙️ Choose an engine", de: "⚙️ Ein Modell wählen", es: "⚙️ Elegir un motor" },
+    op_prix: { fr: "💰 Voir les prix", en: "💰 See the prices", de: "💰 Preise ansehen", es: "💰 Ver los precios" },
+    op_acheter: { fr: "💳 Acheter un code", en: "💳 Buy a code", de: "💳 Einen Code kaufen", es: "💳 Comprar un código" },
+    op_signature: { fr: "🎬 Un clip réalisé par le studio", en: "🎬 A music video made by the studio", de: "🎬 Ein Musikvideo vom Studio", es: "🎬 Un videoclip realizado por el estudio" },
     // v41.160 : bandeau d'aide et micro
-    ban_txt: { fr: "Besoin d'aide ? Naya vous accompagne. Parlez à Naya ou écrivez-lui. Elle vous guidera pas à pas pour créer vos chansons, vidéos et clips professionnels.", en: "Need help? Naya is here for you. Talk to Naya or write to her. She will guide you step by step to create your songs, videos and professional music videos.", de: "Brauchen Sie Hilfe? Naya begleitet Sie. Sprechen Sie mit Naya oder schreiben Sie ihr. Sie führt Sie Schritt für Schritt zu Ihren Songs, Videos und professionellen Musikclips." },
-    ban_parler: { fr: "🎤 Parler à Naya", en: "🎤 Talk to Naya", de: "🎤 Mit Naya sprechen" },
-    ban_ecrire: { fr: "✍️ Écrire à Naya", en: "✍️ Write to Naya", de: "✍️ Naya schreiben" },
-    micro: { fr: "Parler à Naya", en: "Talk to Naya", de: "Mit Naya sprechen" },
-    micro_ecoute: { fr: "🎤 Je t'écoute… parle maintenant.", en: "🎤 I'm listening… speak now.", de: "🎤 Ich höre zu… sprechen Sie jetzt." },
-    micro_indispo: { fr: "La dictée n'est pas disponible dans ce navigateur : touche la zone de saisie, puis le micro 🎤 de ton clavier pour dicter ta question.", en: "Voice input isn't available in this browser: tap the text box, then the 🎤 microphone on your keyboard to dictate your question.", de: "Die Spracheingabe ist in diesem Browser nicht verfügbar: Tippen Sie in das Eingabefeld und dann auf das 🎤 Mikrofon Ihrer Tastatur." },
-    micro_refus: { fr: "Je n'ai pas accès au micro. Autorise le micro pour ce site dans les réglages du navigateur, ou écris ta question.", en: "I can't access the microphone. Allow the microphone for this site in your browser settings, or type your question.", de: "Ich habe keinen Zugriff auf das Mikrofon. Erlauben Sie das Mikrofon für diese Seite in den Browser-Einstellungen oder schreiben Sie Ihre Frage." },
-    micro_rien: { fr: "Je n'ai rien entendu. Touche 🎤 pour réessayer, ou écris ta question.", en: "I didn't hear anything. Tap 🎤 to try again, or type your question.", de: "Ich habe nichts gehört. Tippen Sie auf 🎤, um es erneut zu versuchen, oder schreiben Sie Ihre Frage." }
+    ban_txt: { fr: "Besoin d'aide ? Naya vous accompagne. Parlez à Naya ou écrivez-lui. Elle vous guidera pas à pas pour créer vos chansons, vidéos et clips professionnels.", en: "Need help? Naya is here for you. Talk to Naya or write to her. She will guide you step by step to create your songs, videos and professional music videos.", de: "Brauchen Sie Hilfe? Naya begleitet Sie. Sprechen Sie mit Naya oder schreiben Sie ihr. Sie führt Sie Schritt für Schritt zu Ihren Songs, Videos und professionellen Musikclips.", es: "¿Necesitas ayuda? Naya te acompaña. Habla con Naya o escríbele. Te guiará paso a paso para crear tus canciones, vídeos y videoclips profesionales." },
+    ban_parler: { fr: "🎤 Parler à Naya", en: "🎤 Talk to Naya", de: "🎤 Mit Naya sprechen", es: "🎤 Hablar con Naya" },
+    ban_ecrire: { fr: "✍️ Écrire à Naya", en: "✍️ Write to Naya", de: "✍️ Naya schreiben", es: "✍️ Escribir a Naya" },
+    micro: { fr: "Parler à Naya", en: "Talk to Naya", de: "Mit Naya sprechen", es: "Hablar con Naya" },
+    micro_ecoute: { fr: "🎤 Je t'écoute… parle maintenant.", en: "🎤 I'm listening… speak now.", de: "🎤 Ich höre zu… sprechen Sie jetzt.", es: "🎤 Te escucho… habla ahora." },
+    micro_indispo: { fr: "La dictée n'est pas disponible dans ce navigateur : touche la zone de saisie, puis le micro 🎤 de ton clavier pour dicter ta question.", en: "Voice input isn't available in this browser: tap the text box, then the 🎤 microphone on your keyboard to dictate your question.", de: "Die Spracheingabe ist in diesem Browser nicht verfügbar: Tippen Sie in das Eingabefeld und dann auf das 🎤 Mikrofon Ihrer Tastatur.", es: "El dictado no está disponible en este navegador: toca la zona de escritura y luego el micrófono 🎤 de tu teclado para dictar tu pregunta." },
+    micro_refus: { fr: "Je n'ai pas accès au micro. Autorise le micro pour ce site dans les réglages du navigateur, ou écris ta question.", en: "I can't access the microphone. Allow the microphone for this site in your browser settings, or type your question.", de: "Ich habe keinen Zugriff auf das Mikrofon. Erlauben Sie das Mikrofon für diese Seite in den Browser-Einstellungen oder schreiben Sie Ihre Frage.", es: "No tengo acceso al micrófono. Autoriza el micrófono para este sitio en los ajustes del navegador, o escribe tu pregunta." },
+    micro_rien: { fr: "Je n'ai rien entendu. Touche 🎤 pour réessayer, ou écris ta question.", en: "I didn't hear anything. Tap 🎤 to try again, or type your question.", de: "Ich habe nichts gehört. Tippen Sie auf 🎤, um es erneut zu versuchen, oder schreiben Sie Ihre Frage.", es: "No he oído nada. Toca 🎤 para volver a intentarlo, o escribe tu pregunta." }
   };
   // Langues pas encore prises en charge : une seule phrase, écrite à l'avance, puis réponse en français ou en anglais.
   var PAS_ENCORE = {
-    es: "Todavía no hablo español en StarClip: te respondo en {l}. Puedes elegir English o Deutsch arriba.",
-    pt: "Ainda não falo português no StarClip: respondo em {l}. Pode escolher English ou Deutsch acima.",
+    pt: "Ainda não falo português no StarClip: respondo em {l}. Pode escolher English, Deutsch ou Español acima.",
     ar: "لا أتحدث العربية بعد في StarClip، سأجيبك بـ{l}. يمكنك اختيار English أو Deutsch في الأعلى."
   };
-  var NOM_LG = { fr: "français", en: "English", de: "Deutsch" };
+  var NOM_LG = { fr: "français", en: "English", de: "Deutsch", es: "español" };
   // v41.160 : l'app est en français. En anglais et en allemand, Naya traduit les noms d'onglets, d'outils et de
   // genres qu'elle affiche, ainsi que les lignes de tarifs lues dans l'app (prix et noms de marque inchangés).
   var NOMS_APP = {
@@ -158,7 +157,13 @@
       "📝 Prompts": "📝 Prompts", "💡 Idées": "💡 Ideen", "📜 Tout voir": "📜 Alles anzeigen",
       "🎵 Chanson": "🎵 Song", "⭐ Chanson Pro — qualité studio": "⭐ Chanson Pro — Studioqualität", "🎙️ Améliorer ma démo": "🎙️ Meine Demo verbessern", "🎚️ Extraire les stems": "🎚️ Stems extrahieren",
       "🎷 Rumba congolaise": "🎷 Kongolesische Rumba", "🙏 Gospel africain": "🙏 Afrikanischer Gospel", "💔 Ballade": "💔 Ballade",
-      "👨 Voix d'homme": "👨 Männerstimme", "👩 Voix de femme": "👩 Frauenstimme", "👫 Duo H + F": "👫 Duo M + F", "🎙️ Avec chœur": "🎙️ Mit Chor" }
+      "👨 Voix d'homme": "👨 Männerstimme", "👩 Voix de femme": "👩 Frauenstimme", "👫 Duo H + F": "👫 Duo M + F", "🎙️ Avec chœur": "🎙️ Mit Chor" },
+    es: { "🎬 Accueil": "🎬 Inicio", "📸 Ta photo": "📸 Tu foto", "✨ Traitement": "✨ Efectos de foto", "👔 Habillage & Décor": "👔 Ropa y decorado",
+      "🎬 Scénario": "🎬 Guion", "🎞️ Mini-séries IA": "🎞️ Miniseries IA", "🔁 Remix": "🔁 Remix", "🎤 Finition": "🎤 Acabado", "💳 Commander": "💳 Pedir",
+      "📝 Prompts": "📝 Prompts", "💡 Idées": "💡 Ideas", "📜 Tout voir": "📜 Ver todo",
+      "🎵 Chanson": "🎵 Canción", "⭐ Chanson Pro — qualité studio": "⭐ Chanson Pro — calidad de estudio", "🎙️ Améliorer ma démo": "🎙️ Mejorar mi maqueta", "🎚️ Extraire les stems": "🎚️ Extraer stems",
+      "🎷 Rumba congolaise": "🎷 Rumba congoleña", "🙏 Gospel africain": "🙏 Gospel africano", "💔 Ballade": "💔 Balada",
+      "👨 Voix d'homme": "👨 Voz masculina", "👩 Voix de femme": "👩 Voz femenina", "👫 Duo H + F": "👫 Dúo H + M", "🎙️ Avec chœur": "🎙️ Con coro" }
   };
   var nomApp = function (x) { var d = NOMS_APP[etat.lg]; x = String(x || "").replace(/\s+/g, " ").trim(); return (d && d[x]) || x; };
   // Lignes de tarifs de l'onglet 💳 Commander (texte français de l'app) : seuls les mots descriptifs sont traduits.
@@ -168,7 +173,10 @@
       [/scénario élaboré, corrections/, "detailed script, revisions"], [/tu paies/, "you pay"], [/solde reçu/, "balance received"]],
     de: [[/\(chant \+ tenue\)/, "(Gesang + Outfit)"], [/(\d+) scènes? Éco/, "$1 Eco-Szene(n)"], [/(\d+) scènes? Pro/, "$1 Pro-Szenen"],
       [/\(jusqu'à (\d+) s\)/, "(bis zu $1 s)"], [/(\d+) à (\d+) minutes/, "$1 bis $2 Minuten"], [/plus de scènes, (\d+) formats/, "mehr Szenen, $1 Formate"],
-      [/scénario élaboré, corrections/, "ausgearbeitetes Drehbuch, Korrekturen"], [/tu paies/, "Sie zahlen"], [/solde reçu/, "erhaltenes Guthaben"]]
+      [/scénario élaboré, corrections/, "ausgearbeitetes Drehbuch, Korrekturen"], [/tu paies/, "Sie zahlen"], [/solde reçu/, "erhaltenes Guthaben"]],
+    es: [[/\(chant \+ tenue\)/, "(canto + ropa)"], [/(\d+) scènes? Éco/, "$1 escena(s) Eco"], [/(\d+) scènes? Pro/, "$1 escenas Pro"],
+      [/\(jusqu'à (\d+) s\)/, "(hasta $1 s)"], [/(\d+) à (\d+) minutes/, "de $1 a $2 minutos"], [/plus de scènes, (\d+) formats/, "más escenas, $1 formatos"],
+      [/scénario élaboré, corrections/, "guion elaborado, correcciones"], [/tu paies/, "pagas"], [/solde reçu/, "saldo recibido"]]
   };
   var tarifLg = function (x) { (TARIFS_TR[etat.lg] || []).forEach(function (r) { x = x.replace(r[0], r[1]); }); return x; };
   // Textes du cadre (interface) : 6 langues. Les réponses de Naya restent dans la langue de conversation (T, t()).
@@ -223,10 +231,10 @@
 
   // ───────────── Recherche dans le manuel (portage fidèle de la formatrice de Naya) ─────────────
   function plier(s) { return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ß/g, "ss"); }
-  var VIDES = {}; "le la les un une des de du et ou a au aux en dans pour sur avec que qui quoi comment est ce ces mon ma mes ton ta tes je tu il elle on the a an of to in on for with and or is how what my your i do does der die das ein eine und oder ist wie was mit fur zu im ich sie es".split(" ").forEach(function (m) { VIDES[m] = 1; });
+  var VIDES = {}; "le la les un une des de du et ou a au aux en dans pour sur avec que qui quoi comment est ce ces mon ma mes ton ta tes je tu il elle on the a an of to in on for with and or is how what my your i do does der die das ein eine und oder ist wie was mit fur zu im ich sie es el los las del al una unos unas para por con como mi mis tu tus yo esta este".split(" ").forEach(function (m) { VIDES[m] = 1; });
   function mots(s) { return plier(s).split(/[^a-z0-9]+/).filter(function (m) { return m.length > 1 && !VIDES[m]; }); }
-  var SYN = { prix: ["cout", "couts", "fcfa"], combien: ["cout", "couts"], price: ["cost", "costs", "fcfa"], much: ["cost", "costs"], preis: ["kosten", "fcfa"], kostet: ["kosten"], decor: ["decor", "kulisse", "setting"], voix: ["voix", "vocals"], vocals: ["stems"], gesang: ["stems"], download: ["telecharger"], herunterladen: ["telecharger"], erreur: ["depannage", "refus"], error: ["troubleshooting", "refusal"], fehler: ["fehlerbehebung", "ablehnung"] };
-  var GEN = {}; ("starclip naya app application appli video videos photo photos image mode modus fonction function funktion comment faire utiliser marche fonctionne activer est quoi peux puis veux dois mon ma mes ton ta tes avec dans pour une des les sur how can could use does work make want need what where why the and with into your for this that sert servent servir sers faut wie kann konnen machen nutzen meinen meinem meiner gebe geben benutzen funktioniert warum was wo ich mein meine mit einen eine der die das und fur").split(" ").forEach(function (m) { GEN[m] = 1; });
+  var SYN = { prix: ["cout", "couts", "fcfa"], combien: ["cout", "couts"], price: ["cost", "costs", "fcfa"], much: ["cost", "costs"], preis: ["kosten", "fcfa"], kostet: ["kosten"], decor: ["decor", "kulisse", "setting"], voix: ["voix", "vocals"], vocals: ["stems"], gesang: ["stems"], download: ["telecharger"], herunterladen: ["telecharger"], erreur: ["depannage", "refus"], error: ["troubleshooting", "refusal", "problemas", "rechazo"], fehler: ["fehlerbehebung", "ablehnung"], precio: ["coste", "costes", "fcfa"], cuanto: ["coste", "costes"], cuesta: ["coste", "costes"], descargar: ["descarga"], decorado: ["decorado"] };
+  var GEN = {}; ("starclip naya app application appli video videos photo photos image mode modus fonction function funktion comment faire utiliser marche fonctionne activer est quoi peux puis veux dois mon ma mes ton ta tes avec dans pour une des les sur how can could use does work make want need what where why the and with into your for this that sert servent servir sers faut wie kann konnen machen nutzen meinen meinem meiner gebe geben benutzen funktioniert warum was wo ich mein meine mit einen eine der die das und fur hacer hago usar uso utilizar funciona puedo puede quiero necesito donde porque cual esto para una los las del foto fotos imagen").split(" ").forEach(function (m) { GEN[m] = 1; });
   function termes(q) { var vu = {}; return plier(q).split(/[^a-z0-9]+/).filter(function (m) { if (m.length <= 2 || GEN[m] || vu[m]) return false; vu[m] = 1; return true; }); }
   var racine = function (x) { return x.slice(0, Math.min(5, x.length)); };
   var SEUIL = 4, COUV_MIN = 0.6, RUBRIQUES = { debutant: [5, 3, 1], pro: [6, 7, 3] };
@@ -252,7 +260,7 @@
     });
     return out;
   }
-  var VERBES_USAGE = {}; "utiliser utilise utilises fonctionne marche use using uses work works benutzen benutze benutzt nutzen nutze verwenden verwende arbeiten arbeite bedienen faire fais machen mache creer create make erstellen erstelle".split(" ").forEach(function (m) { VERBES_USAGE[m] = 1; });
+  var VERBES_USAGE = {}; "utiliser utilise utilises fonctionne marche use using uses work works benutzen benutze benutzt nutzen nutze verwenden verwende arbeiten arbeite bedienen faire fais machen mache creer create make erstellen erstelle usar uso utilizar funciona hacer hago crear".split(" ").forEach(function (m) { VERBES_USAGE[m] = 1; });
   function chercherManuel(k, q, chapitre) {
     var tt = termes(q); if (!tt.length) return null;
     // v41.161 : les verbes d'intention (« benutze », « use », « utiliser »…) ne doivent pas faire échouer la recherche.
@@ -282,7 +290,7 @@
     fr: "je tu vous le la les est comment pour avec une mon ma pas quoi combien bonjour merci et acheter commencer utiliser faire veux besoin aide quel quelle où".split(" "),
     en: "i you the is how for with my what can do does hello thanks please and it to buy get start use make want need help which where".split(" "),
     de: "ich sie du der die das ist wie für mit mein meine was kann hallo danke bitte und nicht kaufe kaufen anfangen arbeiten mache machen brauche hilfe welche welches wo".split(" "),
-    es: "yo el los las es cómo como para con mi qué puedo hola gracias por y".split(" "),
+    es: "yo el los las es cómo como para con mi qué puedo hola gracias por y quiero necesito ayuda cuánto cuanto cuesta precio precios hacer crear canción cancion comprar código codigo pagar dónde donde del una está estoy tengo hay mis tus también pero muy".split(" "),
     pt: "eu você o os as é como para com meu minha que posso olá obrigado obrigada e não".split(" ")
   };
   function detecterLangue(texte) {
@@ -299,7 +307,7 @@
   }
 
   // ───────────── Garde-fous ─────────────
-  var ADMIN = /(code ?pin|\bpin\b|mot de passe admin|admin password|passwort|cl[ée] api|api ?key|api-schl[üu]ssel|secret|(cr[ée]er|g[ée]n[ée]rer|create|generate|erstellen) (des |un |my |own |eigene )?(customer |client |clients? |kunden)?(codes?|kundencodes?)|(modifier|changer|augmenter|change|increase|ändern|erhöhen) (mon |le |my |das )?(solde|balance|guthaben)|(guthaben|solde|balance) (zu )?(ändern|erhöhen|modifier|changer|change|increase)|espace studio|studio space|studio-bereich|panneau admin|admin panel|console du directeur|(codes?|kundencodes?) (zu )?(erstellen|generieren|anlegen))/i;
+  var ADMIN = /(code ?pin|\bpin\b|mot de passe admin|admin password|passwort|cl[ée] api|api ?key|api-schl[üu]ssel|secret|(cr[ée]er|g[ée]n[ée]rer|create|generate|erstellen) (des |un |my |own |eigene )?(customer |client |clients? |kunden)?(codes?|kundencodes?)|(modifier|changer|augmenter|change|increase|ändern|erhöhen) (mon |le |my |das )?(solde|balance|guthaben)|(guthaben|solde|balance) (zu )?(ändern|erhöhen|modifier|changer|change|increase)|espace studio|studio space|studio-bereich|panneau admin|admin panel|console du directeur|(codes?|kundencodes?) (zu )?(erstellen|generieren|anlegen)|contrase[ñn]a|clave api|espacio studio|panel de admin|(crear|generar) (c[oó]digos|c[oó]digos de cliente)|(modificar|cambiar|aumentar) (mi |el )?saldo)/i;
 
   // ───────────── Données réelles de l'app ─────────────
   // Données et fonctions de l'app (déclarées au niveau global d'index.html), lues au moment de la question.
@@ -336,6 +344,8 @@
     var s = document.getElementById(idSection); if (!s) return [];
     var bloc = [].slice.call(s.querySelectorAll("div")).filter(function (d) { return /FCFA/.test(d.textContent) && /<br/i.test(d.innerHTML); })[0];
     if (!bloc) return [];
+    // v41.164 : texte d'origine (français) même si l'interface est traduite ; tarifLg le met dans la langue de la conversation.
+    try { if (window.StarClipI18n && StarClipI18n.source) bloc = StarClipI18n.source(bloc); } catch (_) {}
     return bloc.innerHTML.split(/<br\s*\/?>/i).map(function (h) { var x = document.createElement("div"); x.innerHTML = h; return x.textContent.replace(/\s+/g, " ").trim(); }).filter(Boolean);
   }
   function lienWhatsApp() {
@@ -364,19 +374,19 @@
 
   // Outil visé par la question (pour les prix et les prompts).
   var OUTILS_RE = [
-    ["chansonPro", /chanson ?pro|song pro|pro song|qualit[ée] studio|studio quality/],
-    ["demo", /am[ée]liorer ma d[ée]mo|\bd[ée]mo\b|my demo|meine demo/],
-    ["stems", /\bstems?\b|s[ée]parer (la|une|ma) chanson|separate|spuren/],
-    ["chanson", /chanson|\bsong\b|\blied\b|musique|\bmusic\b|musik/],
+    ["chansonPro", /chanson ?pro|song pro|pro song|qualit[ée] studio|studio quality|calidad (de )?estudio/],
+    ["demo", /am[ée]liorer ma d[ée]mo|\bd[ée]mo\b|my demo|meine demo|maqueta|mi demo/],
+    ["stems", /\bstems?\b|s[ée]parer (la|une|ma) chanson|separate|spuren|separar (la|una|mi) cancion|pistas/],
+    ["chanson", /chanson|\bsong\b|\blied\b|musique|\bmusic\b|musik|cancion|musica/],
     ["seedance25", /seedance ?2[.,]5/],
     ["multishot", /multi[- ]?shot(?! 3)/],
-    ["aleph", /aleph|modifier (une|ma) vid[ée]o|edit (a|my) video/],
-    ["seedance2", /seedance|moteur a\b|vid[ée]o [àa] partir d.une photo|video from (a )?photo/]
+    ["aleph", /aleph|modifier (une|ma) vid[ée]o|edit (a|my) video|modificar (un|mi) video/],
+    ["seedance2", /seedance|moteur a\b|motor a\b|vid[ée]o [àa] partir d.une photo|video from (a )?photo|video a partir de una foto/]
   ];
   function outilDe(q) { var p = plier(q); for (var i = 0; i < OUTILS_RE.length; i++) if (OUTILS_RE[i][1].test(p)) return OUTILS_RE[i][0]; return null; }
 
   // Genres de Chanson Pro (mêmes identifiants que l'app).
-  var ALIAS_GENRE = { "coupe decale": "coupe", "coupe-decale": "coupe", "r&b": "afrorb", "rnb": "afrorb", "afro r&b": "afrorb", "afro trap": "afrotrap", "afro jazz": "afrojazz", "ballad": "ballade", "slow": "ballade", "afrobeat": "afrobeats" };
+  var ALIAS_GENRE = { "coupe decale": "coupe", "coupe-decale": "coupe", "r&b": "afrorb", "rnb": "afrorb", "afro r&b": "afrorb", "afro trap": "afrotrap", "afro jazz": "afrojazz", "ballad": "ballade", "slow": "ballade", "afrobeat": "afrobeats", "balada": "ballade", "rumba congolena": "rumba", "gospel africano": "gospel" };
   function genreDe(q) {
     var E = window.CHP_EXEMPLES; if (!E) return null;
     var p = " " + plier(q).replace(/[^a-z0-9&]+/g, " ") + " ";
@@ -386,36 +396,36 @@
   }
   // v41.160 : description des genres (chanson-exemples.js est en français) ; les prompts restent en français (voir ex_fr).
   var DESC_GENRE = {
-    "afropop": { en: "Afropop is a family of African pop styles. This example aims at Cameroonian afropop: bright melody, clean guitars, singing bass, a chorus to sing along.", de: "Afropop ist eine Familie afrikanischer Popstile. Dieses Beispiel zielt auf kamerunischen Afropop: helle Melodie, klare Gitarren, singender Bass, ein Refrain zum Mitsingen." },
-    "afrobeats": { en: "Afrobeats is the modern pop from Nigeria and Ghana: supple programmed percussion, deep bass, a melodic voice with ad-libs. Not to be confused with 1970s afrobeat (big brass band).", de: "Afrobeats ist der moderne Pop aus Nigeria und Ghana: geschmeidige programmierte Perkussion, tiefer Bass, melodische Stimme mit Ad-libs. Nicht zu verwechseln mit dem Afrobeat der 1970er-Jahre (großes Bläserorchester)." },
-    "amapiano": { en: "Amapiano comes from South Africa: percussive « log drum » bass, jazzy piano chords, offbeat shakers, a deep and hypnotic house mood.", de: "Amapiano kommt aus Südafrika: perkussiver « Log-Drum »-Bass, jazzige Klavierakkorde, versetzte Shaker, eine tiefe, hypnotische House-Stimmung." },
-    "makossa": { en: "Makossa comes from Douala. Its heart is the dialogue between a melodic, syncopated electric bass, the drums, interlocking clean guitars and a voice answering the choir. A plain afrobeats rhythm is not enough.", de: "Makossa kommt aus Douala. Sein Kern ist der Dialog zwischen einem melodischen, synkopierten E-Bass, dem Schlagzeug, ineinandergreifenden klaren Gitarren und einer Stimme, die dem Chor antwortet. Ein einfacher Afrobeats-Rhythmus reicht nicht." },
-    "bikutsi": { en: "Bikutsi comes from Central Cameroon (Beti). It rests on a fast, hammering ternary rhythm cycle, muted-string guitars imitating the balafon, and energetic voices locking in with the percussion.", de: "Bikutsi kommt aus Zentralkamerun (Beti). Er beruht auf einem schnellen, hämmernden Dreierrhythmus, Gitarren mit abgedämpften Saiten, die das Balafon nachahmen, und energischen Stimmen, die mit der Perkussion verzahnt sind." },
-    "coupe": { en: "Coupé-décalé comes from Côte d'Ivoire: very dense electronic percussion, a slogan chorus, dance instructions and a party atmosphere.", de: "Coupé-décalé kommt aus der Elfenbeinküste: sehr dichte elektronische Perkussion, ein Slogan-Refrain, Tanzanweisungen und Partystimmung." },
-    "ndombolo": { en: "Ndombolo comes from Kinshasa: a sebene of fast lead guitars, tight drums, and a hype man calling out shouts and dance steps.", de: "Ndombolo kommt aus Kinshasa: ein Sebene aus schnellen Leadgitarren, knappes Schlagzeug und ein Animateur, der Rufe und Tanzschritte vorgibt." },
-    "rumba": { en: "Congolese rumba, on UNESCO's heritage list, is elegant and romantic: interwoven clean guitars, harmonised voices, then a more danceable sebene.", de: "Die kongolesische Rumba, UNESCO-Kulturerbe, ist elegant und romantisch: verflochtene klare Gitarren, mehrstimmiger Gesang, dann ein tanzbarerer Sebene." },
-    "highlife": { en: "Highlife comes from Ghana: bright melodic guitars, jazzy horns, a bell pattern and harmonised voices in a joyful colour.", de: "Highlife kommt aus Ghana: helle melodische Gitarren, jazzige Bläser, ein Glockenmuster und mehrstimmiger Gesang in fröhlicher Farbe." },
-    "gospel": { en: "African gospel celebrates faith: a powerful soloist, an answering choir, piano, organ, handclaps and a final build-up.", de: "Afrikanischer Gospel feiert den Glauben: kraftvolle Solostimme, antwortender Chor, Klavier, Orgel, Klatschen und eine Steigerung zum Schluss." },
-    "afrorb": { en: "Afro R&B blends the softness of R&B with light afro percussion: slow tempo, intimate voice, night-time mood.", de: "Afro R&B verbindet die Sanftheit des R&B mit leichter Afro-Perkussion: langsames Tempo, intime Stimme, nächtliche Stimmung." },
-    "kizomba": { en: "Kizomba, born in Angola, is slow, sensual music for couple dancing, with a deep synth bass and a soft electronic rhythm.", de: "Kizomba, in Angola entstanden, ist langsame, sinnliche Musik für den Paartanz, mit tiefem Synthbass und sanftem elektronischem Rhythmus." },
-    "afrotrap": { en: "Afro-trap mixes trap codes (rolling hi-hats, 808 bass) with afro percussion and guitars, with rapped verses and a sung chorus.", de: "Afro-Trap mischt Trap-Elemente (rollende Hi-Hats, 808-Bass) mit Afro-Perkussion und Gitarren, mit gerappten Strophen und gesungenem Refrain." },
-    "dancehall": { en: "Afro-dancehall combines Jamaica's dembow rhythm with afro percussion, with chanted vocals (toasting) and a melodic chorus.", de: "Afro-Dancehall verbindet den Dembow-Rhythmus Jamaikas mit Afro-Perkussion, mit skandiertem Gesang (Toasting) und melodischem Refrain." },
-    "afrojazz": { en: "Afro-jazz joins jazz harmony (extended chords, solos) with African rhythms, in an acoustic club sound.", de: "Afro-Jazz verbindet die Harmonik des Jazz (erweiterte Akkorde, Soli) mit afrikanischen Rhythmen, in einem akustischen Clubsound." },
-    "ballade": { en: "The African ballad is slow and moving: acoustic guitar, piano, soft strings and a voice that rises to a powerful final chorus.", de: "Die afrikanische Ballade ist langsam und bewegend: Akustikgitarre, Klavier, sanfte Streicher und eine Stimme, die sich bis zu einem kraftvollen Schlussrefrain steigert." }
+    "afropop": { en: "Afropop is a family of African pop styles. This example aims at Cameroonian afropop: bright melody, clean guitars, singing bass, a chorus to sing along.", de: "Afropop ist eine Familie afrikanischer Popstile. Dieses Beispiel zielt auf kamerunischen Afropop: helle Melodie, klare Gitarren, singender Bass, ein Refrain zum Mitsingen.", es: "El afropop es una familia de estilos pop africanos. Este ejemplo apunta al afropop camerunés: melodía luminosa, guitarras limpias, bajo cantante, un estribillo para cantar a coro." },
+    "afrobeats": { en: "Afrobeats is the modern pop from Nigeria and Ghana: supple programmed percussion, deep bass, a melodic voice with ad-libs. Not to be confused with 1970s afrobeat (big brass band).", de: "Afrobeats ist der moderne Pop aus Nigeria und Ghana: geschmeidige programmierte Perkussion, tiefer Bass, melodische Stimme mit Ad-libs. Nicht zu verwechseln mit dem Afrobeat der 1970er-Jahre (großes Bläserorchester).", es: "El afrobeats es el pop moderno de Nigeria y Ghana: percusiones programadas flexibles, bajo profundo, una voz melódica con ad-libs. No hay que confundirlo con el afrobeat de los años 70 (gran sección de metales)." },
+    "amapiano": { en: "Amapiano comes from South Africa: percussive « log drum » bass, jazzy piano chords, offbeat shakers, a deep and hypnotic house mood.", de: "Amapiano kommt aus Südafrika: perkussiver « Log-Drum »-Bass, jazzige Klavierakkorde, versetzte Shaker, eine tiefe, hypnotische House-Stimmung.", es: "El amapiano viene de Sudáfrica: bajo percusivo « log drum », acordes de piano jazzy, shakers a contratiempo, un ambiente house profundo e hipnótico." },
+    "makossa": { en: "Makossa comes from Douala. Its heart is the dialogue between a melodic, syncopated electric bass, the drums, interlocking clean guitars and a voice answering the choir. A plain afrobeats rhythm is not enough.", de: "Makossa kommt aus Douala. Sein Kern ist der Dialog zwischen einem melodischen, synkopierten E-Bass, dem Schlagzeug, ineinandergreifenden klaren Gitarren und einer Stimme, die dem Chor antwortet. Ein einfacher Afrobeats-Rhythmus reicht nicht.", es: "El makossa viene de Duala. Su corazón es el diálogo entre un bajo eléctrico melódico y sincopado, la batería, guitarras limpias entrelazadas y una voz que responde al coro. Un simple ritmo afrobeats no basta." },
+    "bikutsi": { en: "Bikutsi comes from Central Cameroon (Beti). It rests on a fast, hammering ternary rhythm cycle, muted-string guitars imitating the balafon, and energetic voices locking in with the percussion.", de: "Bikutsi kommt aus Zentralkamerun (Beti). Er beruht auf einem schnellen, hämmernden Dreierrhythmus, Gitarren mit abgedämpften Saiten, die das Balafon nachahmen, und energischen Stimmen, die mit der Perkussion verzahnt sind.", es: "El bikutsi viene del centro de Camerún (beti). Se apoya en un ciclo rítmico ternario rápido y martilleado, guitarras de cuerdas apagadas que imitan el balafón y voces enérgicas encajadas con la percusión." },
+    "coupe": { en: "Coupé-décalé comes from Côte d'Ivoire: very dense electronic percussion, a slogan chorus, dance instructions and a party atmosphere.", de: "Coupé-décalé kommt aus der Elfenbeinküste: sehr dichte elektronische Perkussion, ein Slogan-Refrain, Tanzanweisungen und Partystimmung.", es: "El coupé-décalé viene de Costa de Marfil: percusión electrónica muy densa, un estribillo eslogan, instrucciones de baile y ambiente de fiesta." },
+    "ndombolo": { en: "Ndombolo comes from Kinshasa: a sebene of fast lead guitars, tight drums, and a hype man calling out shouts and dance steps.", de: "Ndombolo kommt aus Kinshasa: ein Sebene aus schnellen Leadgitarren, knappes Schlagzeug und ein Animateur, der Rufe und Tanzschritte vorgibt.", es: "El ndombolo viene de Kinsasa: un sebene de guitarras solistas rápidas, batería precisa y un animador que lanza gritos y pasos de baile." },
+    "rumba": { en: "Congolese rumba, on UNESCO's heritage list, is elegant and romantic: interwoven clean guitars, harmonised voices, then a more danceable sebene.", de: "Die kongolesische Rumba, UNESCO-Kulturerbe, ist elegant und romantisch: verflochtene klare Gitarren, mehrstimmiger Gesang, dann ein tanzbarerer Sebene.", es: "La rumba congoleña, patrimonio de la UNESCO, es elegante y romántica: guitarras limpias entrelazadas, voces armonizadas y luego un sebene más bailable." },
+    "highlife": { en: "Highlife comes from Ghana: bright melodic guitars, jazzy horns, a bell pattern and harmonised voices in a joyful colour.", de: "Highlife kommt aus Ghana: helle melodische Gitarren, jazzige Bläser, ein Glockenmuster und mehrstimmiger Gesang in fröhlicher Farbe.", es: "El highlife viene de Ghana: guitarras melódicas luminosas, metales jazzy, un patrón de campana y voces armonizadas en un color alegre." },
+    "gospel": { en: "African gospel celebrates faith: a powerful soloist, an answering choir, piano, organ, handclaps and a final build-up.", de: "Afrikanischer Gospel feiert den Glauben: kraftvolle Solostimme, antwortender Chor, Klavier, Orgel, Klatschen und eine Steigerung zum Schluss.", es: "El gospel africano celebra la fe: un solista potente, un coro que responde, piano, órgano, palmas y una subida final." },
+    "afrorb": { en: "Afro R&B blends the softness of R&B with light afro percussion: slow tempo, intimate voice, night-time mood.", de: "Afro R&B verbindet die Sanftheit des R&B mit leichter Afro-Perkussion: langsames Tempo, intime Stimme, nächtliche Stimmung.", es: "El afro R&B une la suavidad del R&B con una percusión afro ligera: tempo lento, voz íntima, ambiente nocturno." },
+    "kizomba": { en: "Kizomba, born in Angola, is slow, sensual music for couple dancing, with a deep synth bass and a soft electronic rhythm.", de: "Kizomba, in Angola entstanden, ist langsame, sinnliche Musik für den Paartanz, mit tiefem Synthbass und sanftem elektronischem Rhythmus.", es: "La kizomba, nacida en Angola, es una música lenta y sensual para bailar en pareja, con un bajo de sintetizador profundo y un ritmo electrónico suave." },
+    "afrotrap": { en: "Afro-trap mixes trap codes (rolling hi-hats, 808 bass) with afro percussion and guitars, with rapped verses and a sung chorus.", de: "Afro-Trap mischt Trap-Elemente (rollende Hi-Hats, 808-Bass) mit Afro-Perkussion und Gitarren, mit gerappten Strophen und gesungenem Refrain.", es: "El afro-trap mezcla los códigos del trap (hi-hats en ráfaga, bajo 808) con percusiones y guitarras afro, con estrofas rapeadas y un estribillo cantado." },
+    "dancehall": { en: "Afro-dancehall combines Jamaica's dembow rhythm with afro percussion, with chanted vocals (toasting) and a melodic chorus.", de: "Afro-Dancehall verbindet den Dembow-Rhythmus Jamaikas mit Afro-Perkussion, mit skandiertem Gesang (Toasting) und melodischem Refrain.", es: "El afro-dancehall combina el ritmo dembow de Jamaica con percusiones afro, con una voz salmodiada (toasting) y un estribillo melódico." },
+    "afrojazz": { en: "Afro-jazz joins jazz harmony (extended chords, solos) with African rhythms, in an acoustic club sound.", de: "Afro-Jazz verbindet die Harmonik des Jazz (erweiterte Akkorde, Soli) mit afrikanischen Rhythmen, in einem akustischen Clubsound.", es: "El afro-jazz une la armonía del jazz (acordes extendidos, solos) con ritmos africanos, en un sonido acústico de club." },
+    "ballade": { en: "The African ballad is slow and moving: acoustic guitar, piano, soft strings and a voice that rises to a powerful final chorus.", de: "Die afrikanische Ballade ist langsam und bewegend: Akustikgitarre, Klavier, sanfte Streicher und eine Stimme, die sich bis zu einem kraftvollen Schlussrefrain steigert.", es: "La balada africana es lenta y emotiva: guitarra acústica, piano, cuerdas suaves y una voz que sube hasta un potente estribillo final." }
   };
   function libGenre(id) { var L = G("CHP_GENRES") || []; var g = L.filter(function (x) { return x.id === id; })[0]; return g ? nomApp(g.l) : id; }
 
   // ───────────── Vérification d'un prompt (règles du manuel et limites de l'app) ─────────────
   var LIM = { seedance2: 3500, seedance25: 15000 };
   var P = {
-    long: { fr: "Trop long : {n} caractères, le moteur en accepte {max}.", en: "Too long: {n} characters, the engine accepts {max}.", de: "Zu lang: {n} Zeichen, das Modell akzeptiert {max}." },
-    decor: { fr: "Ne redécris pas le décor ni la tenue : ils viennent déjà de ta photo. Concentre-toi sur l'action, l'émotion et la caméra.", en: "Don't describe the setting or outfit again: they come from your photo. Focus on action, emotion and camera.", de: "Beschreiben Sie Kulisse und Outfit nicht erneut: Sie kommen bereits aus Ihrem Foto. Konzentrieren Sie sich auf Handlung, Gefühl und Kamera." },
-    parle: { fr: "Les moteurs refusent parfois une personne qui « parle » : décris plutôt ce qu'elle fait (« elle sourit face caméra »).", en: "Engines sometimes refuse a person who « talks »: describe what they do instead (« she smiles at the camera »).", de: "Modelle lehnen manchmal eine Person ab, die « spricht »: Beschreiben Sie lieber, was sie tut (« sie lächelt in die Kamera »)." },
-    camera: { fr: "Ajoute un mouvement de caméra, par exemple « la caméra se rapproche lentement ».", en: "Add a camera movement, e.g. « the camera slowly moves closer ».", de: "Ergänzen Sie eine Kamerabewegung, z. B. « die Kamera nähert sich langsam »." },
-    pose: { fr: "Décris une pose stable plutôt qu'un mouvement en cours (« debout, une main sur la portière » plutôt que « en train de descendre »).", en: "Describe a stable pose rather than a movement in progress.", de: "Beschreiben Sie eine stabile Pose statt einer laufenden Bewegung." },
-    couplets: { fr: "Sépare tes couplets par une ligne vide : le bloc qui se répète devient le refrain.", en: "Separate verses with a blank line: the repeated block becomes the chorus.", de: "Trennen Sie die Strophen durch eine Leerzeile: Der wiederholte Block wird zum Refrain." },
-    artiste: { fr: "Évite les noms d'artistes : décris plutôt le son (instruments, tempo, ambiance). Un nom ne garantit pas l'imitation.", en: "Avoid artist names: describe the sound instead (instruments, tempo, mood). A name does not guarantee imitation.", de: "Vermeiden Sie Künstlernamen: Beschreiben Sie lieber den Klang (Instrumente, Tempo, Stimmung). Ein Name garantiert keine Nachahmung." },
-    court: { fr: "Un peu court : ajoute l'ambiance, les instruments ou l'action principale.", en: "A bit short: add the mood, instruments or main action.", de: "Etwas kurz: Ergänzen Sie Stimmung, Instrumente oder Haupthandlung." }
+    long: { fr: "Trop long : {n} caractères, le moteur en accepte {max}.", en: "Too long: {n} characters, the engine accepts {max}.", de: "Zu lang: {n} Zeichen, das Modell akzeptiert {max}.", es: "Demasiado largo: {n} caracteres, el motor acepta {max}." },
+    decor: { fr: "Ne redécris pas le décor ni la tenue : ils viennent déjà de ta photo. Concentre-toi sur l'action, l'émotion et la caméra.", en: "Don't describe the setting or outfit again: they come from your photo. Focus on action, emotion and camera.", de: "Beschreiben Sie Kulisse und Outfit nicht erneut: Sie kommen bereits aus Ihrem Foto. Konzentrieren Sie sich auf Handlung, Gefühl und Kamera.", es: "No vuelvas a describir el decorado ni la ropa: ya vienen de tu foto. Céntrate en la acción, la emoción y la cámara." },
+    parle: { fr: "Les moteurs refusent parfois une personne qui « parle » : décris plutôt ce qu'elle fait (« elle sourit face caméra »).", en: "Engines sometimes refuse a person who « talks »: describe what they do instead (« she smiles at the camera »).", de: "Modelle lehnen manchmal eine Person ab, die « spricht »: Beschreiben Sie lieber, was sie tut (« sie lächelt in die Kamera »).", es: "Los motores a veces rechazan a una persona que « habla »: describe mejor lo que hace (« sonríe mirando a la cámara »)." },
+    camera: { fr: "Ajoute un mouvement de caméra, par exemple « la caméra se rapproche lentement ».", en: "Add a camera movement, e.g. « the camera slowly moves closer ».", de: "Ergänzen Sie eine Kamerabewegung, z. B. « die Kamera nähert sich langsam ».", es: "Añade un movimiento de cámara, por ejemplo « la cámara se acerca lentamente »." },
+    pose: { fr: "Décris une pose stable plutôt qu'un mouvement en cours (« debout, une main sur la portière » plutôt que « en train de descendre »).", en: "Describe a stable pose rather than a movement in progress.", de: "Beschreiben Sie eine stabile Pose statt einer laufenden Bewegung.", es: "Describe una pose estable en lugar de un movimiento en curso (« de pie, una mano en la puerta del coche » en lugar de « bajando »)." },
+    couplets: { fr: "Sépare tes couplets par une ligne vide : le bloc qui se répète devient le refrain.", en: "Separate verses with a blank line: the repeated block becomes the chorus.", de: "Trennen Sie die Strophen durch eine Leerzeile: Der wiederholte Block wird zum Refrain.", es: "Separa tus estrofas con una línea vacía: el bloque que se repite se convierte en el estribillo." },
+    artiste: { fr: "Évite les noms d'artistes : décris plutôt le son (instruments, tempo, ambiance). Un nom ne garantit pas l'imitation.", en: "Avoid artist names: describe the sound instead (instruments, tempo, mood). A name does not guarantee imitation.", de: "Vermeiden Sie Künstlernamen: Beschreiben Sie lieber den Klang (Instrumente, Tempo, Stimmung). Ein Name garantiert keine Nachahmung.", es: "Evita los nombres de artistas: describe mejor el sonido (instrumentos, tempo, ambiente). Un nombre no garantiza la imitación." },
+    court: { fr: "Un peu court : ajoute l'ambiance, les instruments ou l'action principale.", en: "A bit short: add the mood, instruments or main action.", de: "Etwas kurz: Ergänzen Sie Stimmung, Instrumente oder Haupthandlung.", es: "Un poco corto: añade el ambiente, los instrumentos o la acción principal." }
   };
   var pp = function (k, v) { var s = P[k][etat.lg] || P[k].fr; return v ? s.replace(/\{(\w+)\}/g, function (_, x) { return v[x]; }) : s; };
   function verifierPrompt(texte, outil) {
@@ -424,27 +434,27 @@
     var video = !musique;
     if (LIM[outil] && x.length > LIM[outil]) c.push(pp("long", { n: x.length, max: LIM[outil] }));
     if (x.split(/\s+/).length < 6) c.push(pp("court"));
-    if (video && /(tenue|robe|costume|d[ée]cor|outfit|dress|setting|kleid|anzug|kulisse)/i.test(x)) c.push(pp("decor"));
-    if (video && /(parle|dit |dire|talk|speak|says|spricht|sagt|sprechen)/i.test(x)) c.push(pp("parle"));
-    if (video && !/(cam[ée]ra|kamera|plan |zoom|travelling|gros plan|close-up|nahaufnahme|se rapproche|moves|nähert)/i.test(x)) c.push(pp("camera"));
-    if (/(descendant|en train de|getting out|while |während)/i.test(x)) c.push(pp("pose"));
+    if (video && /(tenue|robe|costume|d[ée]cor|outfit|dress|setting|kleid|anzug|kulisse|ropa|vestido|traje|decorado)/i.test(x)) c.push(pp("decor"));
+    if (video && /(parle|dit |dire|talk|speak|says|spricht|sagt|sprechen|habla|hablar|dice |decir)/i.test(x)) c.push(pp("parle"));
+    if (video && !/(cam[ée]ra|c[aá]mara|kamera|plan |plano|zoom|travelling|gros plan|close-up|nahaufnahme|se rapproche|se acerca|moves|nähert)/i.test(x)) c.push(pp("camera"));
+    if (/(descendant|en train de|getting out|while |während|bajando|mientras)/i.test(x)) c.push(pp("pose"));
     if (musique && !/\n\s*\n/.test(x) && x.split("\n").length > 4) c.push(pp("couplets"));
-    if (musique && /(dans le style de|comme |style of|like |im stil von)\s*[A-Z][a-z]+/.test(x)) c.push(pp("artiste"));
+    if (musique && /(dans le style de|comme |style of|like |im stil von|al estilo de|como )\s*[A-Z][a-z]+/.test(x)) c.push(pp("artiste"));
     return c;
   }
 
   // ───────────── Intentions ─────────────
   var I = {
-    salut: /^(bonjour|bonsoir|salut|coucou|hello|hi|hey|hallo|guten (tag|morgen|abend))\b[\s!.,]*$/i,
-    capacites: /(tu (sais|peux) faire quoi|que (sais|peux)[- ]tu faire|qu.est-ce que tu (fais|sais faire)|what can you do|what do you do|was kannst du|was machst du)/i,
-    lancer: /(lance[- ](la|le|les|moi|pour moi)|g[ée]n[èe]re[- ](la|le|moi|pour moi)|cr[ée]e[- ](la|le|moi)|fais[- ](la|le)\b|start it|generate it|run it|make it for me|starte es|generiere es|erstelle es)/i,
-    deleguer: /(studio rudis|clip signature|premium cin[ée]ma|r[ée]alis[ée] par (le |un |des )?(studio|pro)|clip (pro|professionnel|complet)|(demander|commander|faire faire) un clip|professional (music )?video|professionelle?s? (musik)?video|fai(tes|s)[- ]le pour moi|d[ée]l[ée]guer|devis|une offre|\bquote\b|do it for me|made by the studio|music video made|angebot|vom studio|für mich (machen|erstellen))/i,
-    abonnement: /(abonnement|obligatoire|subscription|do i have to|\babo\b|pflicht)/i,
-    paiement: /(payer|paiement|orange money|\bmomo\b|mobile money|recharg|\bpacks?\b|essai star|\bpay\b|payment|top ?up|bezahlen|zahlung|aufladen|paket)/i,
-    prix: /(prix|co[uû]t|combien|tarif|price|cost|how much|kostet|kosten|preis)/i,
-    verifier: /^(v[ée]rifie|corrige|check|pr[üu]fe?)\s*:?\s*/i,
-    prompt: /(prompt|[ée]crire|r[ée]diger|d[ée]crire|exemple|example|beispiel|write|describe|schreiben|beschreiben)/i,
-    erreur: /(erreur|error|refus|refused|marche pas|bloqu|[ée]chou|failed|ne fonctionne|doesn.t work|fehler|abgelehnt|funktioniert nicht)/i
+    salut: /^[¡!]?(bonjour|bonsoir|salut|coucou|hello|hi|hey|hallo|guten (tag|morgen|abend)|hola|buenas|buenos d[ií]as|buenas (tardes|noches))\b[\s!.,]*$/i,
+    capacites: /(tu (sais|peux) faire quoi|que (sais|peux)[- ]tu faire|qu.est-ce que tu (fais|sais faire)|what can you do|what do you do|was kannst du|was machst du|qu[eé] (sabes|puedes) hacer|qu[eé] haces)/i,
+    lancer: /(lance[- ](la|le|les|moi|pour moi)|g[ée]n[èe]re[- ](la|le|moi|pour moi)|cr[ée]e[- ](la|le|moi)|fais[- ](la|le)\b|start it|generate it|run it|make it for me|starte es|generiere es|erstelle es|l[aá]nza(lo|la|me lo)\b|gen[eé]ra(lo|la|me lo)\b|cr[eé]a(lo|la)\b)/i,
+    deleguer: /(studio rudis|clip signature|premium cin[ée]ma|r[ée]alis[ée] par (le |un |des )?(studio|pro)|clip (pro|professionnel|complet)|(demander|commander|faire faire) un clip|professional (music )?video|professionelle?s? (musik)?video|fai(tes|s)[- ]le pour moi|d[ée]l[ée]guer|devis|une offre|\bquote\b|do it for me|made by the studio|music video made|angebot|vom studio|für mich (machen|erstellen)|realizado por (el |un )?(estudio|profesional)|(video)?clip (profesional|completo)|presupuesto|hazlo por m[ií]|encargar un (video)?clip|por el estudio)/i,
+    abonnement: /(abonnement|obligatoire|subscription|do i have to|\babo\b|pflicht|suscripci[oó]n|suscribirme|obligatori[oa])/i,
+    paiement: /(payer|paiement|orange money|\bmomo\b|mobile money|recharg|\bpacks?\b|essai star|\bpay\b|payment|top ?up|bezahlen|zahlung|aufladen|paket|pagar|\bpago\b|paquetes?)/i,
+    prix: /(prix|co[uû]t|combien|tarif|price|cost|how much|kostet|kosten|preis|precio|cu[aá]nto|cuesta|coste)/i,
+    verifier: /^(v[ée]rifie|corrige|check|pr[üu]fe?|revisa|comprueba)\s*:?\s*/i,
+    prompt: /(prompt|[ée]crire|r[ée]diger|d[ée]crire|exemple|example|beispiel|write|describe|schreiben|beschreiben|escribir|redactar|describir|ejemplo)/i,
+    erreur: /(erreur|error|refus|refused|marche pas|bloqu|[ée]chou|failed|ne fonctionne|doesn.t work|fehler|abgelehnt|funktioniert nicht|rechaz|no funciona|fall[oó]|falla)/i
   };
 
 
@@ -473,20 +483,30 @@
     "je suis (le |la |un |une )?(developpeu(r|se)|admin|administrat(eur|rice)|directeur|createur|proprietaire|patron|papy)",
     "i a?m (the |a |an )?(developer|dev|admin|administrator|owner|creator|director)", "ich bin (der |die |ein |eine )?(entwickler|admin|administrator|chef|inhaber|eigentumer)",
     "mode (admin|administrateur|developpeur|debug|dieu|god)", "(admin|developer|debug|god|dev|root) mode", "(admin|entwickler|debug)-?modus",
-    "^\\W*(system|systeme|assistant|admin)\\s*:", "\\[(system|systeme|admin|instructions?)\\]", "<\\s*/?\\s*system", "#+ ?system"
+    "^\\W*(system|systeme|assistant|admin)\\s*:", "\\[(system|systeme|admin|instructions?)\\]", "<\\s*/?\\s*system", "#+ ?system",
+    // v41.164 : les mêmes demandes en espagnol
+    "contrasena", "claves? (de )?(la )?api", "codigo fuente", "instrucciones (del |de )?sistema", "variables? de entorno", "base de datos",
+    "(muestra|ensena|dame|revela|repite|escribe|dime)\\w* (me |nos )?(tu|tus) (prompt|instrucciones|reglas|configuracion|sistema)",
+    "sin pagar", "ilimitad", "(modific|cambi|aument|edit|sub|anad|pon)\\w* (me |mis |mi |el |los )+(creditos?|saldo)", "(creditos?|saldo) (gratis|infinito|ilimitado)",
+    "(cuenta|codigo|datos|historial|proyectos?) de otr[oa]s? (cliente|usuario|persona)", "(lista|todos los) (de )?(codigos|clientes|usuarios)", "codigos de (los )?clientes",
+    "(acceso|derechos|privilegios) (de )?(admin|administrador)", "ser admin", "hacerme admin",
+    "ignora\\w* (tus |las |todas (las )?|las anteriores )+(instrucciones|reglas|consignas)", "olvida\\w* (tus |las |todas (las )?)+(instrucciones|reglas)",
+    "soy (el |la |un |una )?(desarrollador|desarrolladora|admin|administrador|administradora|director|directora|creador|creadora|dueno|duena|propietario|jefe)",
+    "modo (admin|administrador|desarrollador|depuracion|dios)", "\\bhackear", "saltar(me)? (el |la )?(pago|seguridad|limite)"
   ].join("|"));
   function demandeSensible(q) { var p = plier(q).replace(/['’`]/g, " ").replace(/admin premium( 5\.?0)?/g, " "); return SECURITE.test(p) || ADMIN.test(p); }
 
   // ───────────── v41.160 : compréhension des questions naturelles ─────────────
   // 1. Normalisation : minuscules sans accents, « star clip » → starclip, mots de remplissage de la dictée retirés,
   //    lettres répétées réduites, puis fautes de frappe corrigées vers le vocabulaire des intentions (distance d'édition).
-  var REMPLISSAGE = / (euh+|heu+|hmm+|ben|bah|um+|uh+|erm|ahm|aehm|also|bitte|please|stp|svp|s il (te|vous) plait|dis moi|sag mal|okay|ok|hey|naya)(?= )/g;
+  var REMPLISSAGE = / (euh+|heu+|hmm+|ben|bah|um+|uh+|erm|ahm|aehm|also|bitte|please|stp|svp|s il (te|vous) plait|dis moi|sag mal|okay|ok|hey|naya|por favor|oye|bueno|pues)(?= )/g;
   var VOCAB = ("acheter achat achete commander commande payer paiement abonnement buy purchase order payment kaufen bestellen bezahlen erwerben " +
     "commencer debuter demarrer debutant start started begin beginner anfangen beginnen starten loslegen einsteiger " +
     "utiliser utilise fonctionne use using work works arbeiten benutzen nutzen verwenden funktioniert " +
     "moteur moteurs engine engines modele modell modelle choisir choose welches " +
     "chanson chansons song songs musique music musik video videos clip clips creer erstellen machen " +
-    "prix tarif tarifs combien price prices preis preise kosten kostet aide aider help hilfe helfen signature studio starclip").split(" ");
+    "prix tarif tarifs combien price prices preis preise kosten kostet aide aider help hilfe helfen signature studio starclip " +
+    "comprar pedir pagar empezar comenzar utilizar funciona motor motores elegir cancion canciones musica crear hacer precio precios cuanto cuesta ayuda ayudar quiero necesito codigo").split(" ");
   var SANS_CORR = { words: 1, world: 1, model: 1, mode: 1, prise: 1, start: 1, using: 1, maker: 1, mache: 1, music: 1, video: 1, where: 1, there: 1, these: 1, those: 1, haben: 1, sagen: 1, bitte: 1, photo: 1, photos: 1 };
   function dist(a, b) {
     if (Math.abs(a.length - b.length) > 2) return 9;
@@ -517,18 +537,19 @@
   var INTENTIONS = {
     acheter: [[/ (acheter|achat|achete|achetes|buy|buying|purchase|kaufen|kaufe|kauft|erwerben|erwerbe|abonner|comprar|compro) /, 3], [/ (commander|commande|order|ordern|bestellen|bestelle) /, 2],
       [/ (obtenir|avoir|recevoir|get|bekommen|erhalten|kriege) (un |mon |ton |le |a |my |the |einen |meinen |den )?(code|acces|access|zugang) /, 3],
-      [/ (pack|packs|paket|pakete) /, 2], [/ (payer|paie|paiement|pay|payment|bezahlen|zahlen|zahlung|orange money|momo|mobile money|recharger|aufladen|top up) /, 2]],
+      [/ (pack|packs|paket|pakete|paquete|paquetes) /, 2], [/ (payer|paie|paiement|pay|payment|bezahlen|zahlen|zahlung|orange money|momo|mobile money|recharger|aufladen|top up|pagar|pago|recargar) /, 2],
+      [/ (pedir|pido|compra) /, 2], [/ (obtener|tener|recibir|conseguir) (un |mi |tu |el )?(codigo|acceso) /, 3]],
     debuter: [[/ (commencer|commence|debuter|debute|demarrer|demarre|debutant|debutante|start|started|starting|begin|beginner|anfangen|fange|anfanger|beginnen|starten|loslegen|einsteiger|einstieg) /, 3],
-      [/ (premiere fois|first time|erste mal|erstes mal|erste schritte|get started|nouveau ici|nouvelle ici|new here|neu hier) /, 3]],
+      [/ (premiere fois|first time|erste mal|erstes mal|erste schritte|get started|nouveau ici|nouvelle ici|new here|neu hier|primera vez|nuevo aqui|nueva aqui) /, 3], [/ (empezar|empiezo|comenzar|comienzo) /, 3]],
     utiliser: [[/ (utiliser|utilise|servir|fonctionne|marche|use|using|work|works|working|arbeiten|arbeite|benutzen|nutzen|verwenden|funktioniert|bedienen|bedient) /, 2],
-      [/ (starclip|app|appli|application|plateforme|platform|site) /, 1],
-      [/ (que (puis|peux|peut) (je|on) faire|qu est ce que (je|on) (peux|peut) faire|what can i do|what can you do|what do i do|was kann ich|was kann man|was mache ich|que faire) /, 3]],
-    moteur: [[/ (moteur|moteurs|engine|engines|modele|modeles|model|models|modell|modelle|outil|outils|tool|tools|werkzeug|werkzeuge) /, 2],
-      [/ (choisir|choix|lequel|laquelle|quel|quelle|which|choose|choice|best|meilleur|welche|welches|welcher|wahlen|nehmen|empfiehlst|empfehlen|recommend|recommande|conseilles) /, 2]],
-    chanson: [[/ (chanson|chansons|song|songs|lied|lieder|musique|music|musik|morceau|chanter|singen|cancion|canciones|musica) /, 2], [/ (creer|faire|composer|produire|ecrire|make|create|compose|produce|write|erstellen|machen|mache|komponieren|produzieren|schreiben) /, 1]],
-    video: [[/ (video|videos|clip|clips|film|filme|filmen|animer|animation|animate|musikvideo) /, 2], [/ (creer|faire|realiser|make|create|produce|erstellen|machen|mache|drehen|produzieren) /, 1]],
-    prix: [[/ (prix|cout|coute|coutent|combien|tarif|tarifs|price|prices|cost|costs|how much|kostet|kosten|preis|preise|teuer|cher) /, 3]],
-    aide: [[/ (aide|aider|help|hilfe|helfen|perdu|perdue|lost|verloren|comprends pas|understand|verstehe|bloque|stuck|weiss nicht|sais pas|don t know) /, 2]]
+      [/ (starclip|app|appli|application|plateforme|platform|site|plataforma|aplicacion) /, 1], [/ (usar|uso|utilizar|sirve) /, 2],
+      [/ (que (puis|peux|peut) (je|on) faire|qu est ce que (je|on) (peux|peut) faire|what can i do|what can you do|what do i do|was kann ich|was kann man|was mache ich|que faire|que puedo hacer|que se puede hacer) /, 3]],
+    moteur: [[/ (moteur|moteurs|engine|engines|modele|modeles|model|models|modell|modelle|outil|outils|tool|tools|werkzeug|werkzeuge|motor|motores|herramienta|herramientas|modelo|modelos) /, 2],
+      [/ (choisir|choix|lequel|laquelle|quel|quelle|which|choose|choice|best|meilleur|welche|welches|welcher|wahlen|nehmen|empfiehlst|empfehlen|recommend|recommande|conseilles|elegir|elijo|cual|cuales|mejor|recomiendas|aconsejas) /, 2]],
+    chanson: [[/ (chanson|chansons|song|songs|lied|lieder|musique|music|musik|morceau|chanter|singen|cancion|canciones|musica|cantar) /, 2], [/ (creer|faire|composer|produire|ecrire|make|create|compose|produce|write|erstellen|machen|mache|komponieren|produzieren|schreiben|crear|hacer|hago|creo|componer|producir|escribir) /, 1]],
+    video: [[/ (video|videos|clip|clips|film|filme|filmen|animer|animation|animate|musikvideo|videoclip|animar) /, 2], [/ (creer|faire|realiser|make|create|produce|erstellen|machen|mache|drehen|produzieren|crear|hacer|hago|creo|realizar|producir) /, 1]],
+    prix: [[/ (prix|cout|coute|coutent|combien|tarif|tarifs|price|prices|cost|costs|how much|kostet|kosten|preis|preise|teuer|cher|precio|precios|cuanto|cuesta|cuestan|coste|tarifa|caro) /, 3]],
+    aide: [[/ (aide|aider|help|hilfe|helfen|perdu|perdue|lost|verloren|comprends pas|understand|verstehe|bloque|stuck|weiss nicht|sais pas|don t know|ayuda|ayudame|ayudar|perdido|perdida|no entiendo|no se|atascado) /, 2]]
   };
   var PRIORITE = ["acheter", "prix", "chanson", "video", "moteur", "debuter", "utiliser", "aide"];
   function intentionDe(q) {
@@ -536,7 +557,7 @@
     PRIORITE.forEach(function (k) { sc[k] = INTENTIONS[k].reduce(function (a, c) { return a + (c[0].test(n) ? c[1] : 0); }, 0); });
     var best = null;
     PRIORITE.forEach(function (k) { if (sc[k] >= 2 && (!best || sc[k] > sc[best])) best = k; });
-    return { id: best, scores: sc, ici: / (ici|here|hier|cet onglet|this tab|diesem tab) /.test(n) };
+    return { id: best, scores: sc, ici: / (ici|here|hier|cet onglet|this tab|diesem tab|aqui|esta pestana) /.test(n) };
   }
 
   // 3. Textes du manuel réutilisés tels quels (dans la langue de la réponse), sans l'en-tête de rubrique.
@@ -556,7 +577,8 @@
   // Noms d'onglets et de boutons de l'app (en français) : en EN / DE, suivis de leur traduction, comme dans le manuel.
   var UI_TR = {
     en: { "Ton code StarClip": "Your StarClip code", "💬 Commander sur WhatsApp": "Order on WhatsApp", "Copier": "Copy" },
-    de: { "Ton code StarClip": "Ihr StarClip-Code", "💬 Commander sur WhatsApp": "Auf WhatsApp bestellen", "Copier": "Kopieren" }
+    de: { "Ton code StarClip": "Ihr StarClip-Code", "💬 Commander sur WhatsApp": "Auf WhatsApp bestellen", "Copier": "Kopieren" },
+    es: { "Ton code StarClip": "Tu código StarClip", "💬 Commander sur WhatsApp": "Pedir por WhatsApp", "Copier": "Copiar" }
   };
   function annoter(x) {
     if (etat.lg === "fr") return x;
@@ -584,8 +606,8 @@
   var $ = function (sel) { try { return document.querySelector(sel); } catch (_) { return null; } };
   var visible = function (e) { return !!(e && e.getClientRects().length && !e.closest(".hidden,[hidden]")); };
   var aClasse = function (sel, c) { var e = $(sel); return !!(e && e.classList.contains(c)); };
-  // v41.162 : le guide parle la langue choisie pour l'interface quand Naya la connaît (FR / EN / DE), sinon celle de la conversation.
-  var lgGuide = function () { var li = lgInterface(); return ACTIVES.indexOf(li) >= 0 || li === "es" ? li : etat.lg; };   // v41.163 : guide aussi en espagnol
+  // v41.164 : le guide parle la langue de la CONVERSATION (choisie dans Naya ou celle du client), jamais imposée par l'interface.
+  var lgGuide = function () { return etat.lg; };
   var tg = function (o, v) { var s0 = (o && (o[lgGuide()] || o.fr)) || ""; return v ? s0.replace(/\{(\w+)\}/g, function (_, k) { return k in v ? v[k] : ""; }) : s0; };
   var GT = {
     titre: { fr: "🧭 Guide interactif", en: "🧭 Interactive guide", de: "🧭 Interaktiver Guide", es: "🧭 Guía interactiva" },
@@ -793,7 +815,7 @@
       [option("op_video"), option("op_chanson"), option("op_prix"), option("op_acheter")], { intention: "guide" });
   }
   // v41.162 : recharges du solde Premium (bloc « 👑 Recharger mon solde Premium » de l'onglet Commander, lu dans l'app).
-  var RECHARGE = / (recharg\w*|top up|topup|top ups|aufladen|aufladung|auflade) | (solde|balance|guthaben) premium | premium (solde|balance|guthaben)|premiumguthaben|premium guthaben /;
+  var RECHARGE = / (recharg\w*|recarg\w*|top up|topup|top ups|aufladen|aufladung|auflade) | (solde|balance|guthaben|saldo) premium | premium (solde|balance|guthaben|saldo)|premiumguthaben|premium guthaben /;
   function ouvrirRecharge() { ouvrirOnglet("commander"); setTimeout(function () { var s0 = $("#sec-recharge"); if (s0) try { s0.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) {} }, 150); }
   function reponseRecharge(r) {
     var l = lignesTarifs("sec-recharge").map(function (x) { return "• " + tarifLg(x); });
@@ -839,18 +861,18 @@
   (DEMANDE_GUIDE.source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; });
   // v41.161 : noms d'onglets et de volets tels que les clients les disent (FR / EN / DE) → chapitre du manuel.
   var NOMS_CHAP = [
-    [/ (ta photo|ton photo|your photo|ihr foto|photo de depart|starting photo|ausgangsfoto) /, "photo"],
-    [/ (traitement|effets? photo|photo effects?|effekte|fotoeffekte|enhancement|bearbeitung) /, "traitement"],
-    [/ (habillage|tenue|outfit|kulisse|changer (de )?decor|change (the )?setting) /, "look"],
-    [/ (scenario|drehbuch|script) /, "scenario"],
-    [/ (danses?|dances?|dance style|tanz|tanze|tanzstil) /, "danses"],
-    [/ (multi plans|multiplans|mehrfach einstellungen) /, "multiplans"],
+    [/ (ta photo|ton photo|your photo|ihr foto|photo de depart|starting photo|ausgangsfoto|tu foto|foto inicial) /, "photo"],
+    [/ (traitement|effets? photo|photo effects?|effekte|fotoeffekte|enhancement|bearbeitung|efectos (de )?foto|tratamiento) /, "traitement"],
+    [/ (habillage|tenue|outfit|kulisse|changer (de )?decor|change (the )?setting|vestuario|cambiar (el )?decorado) /, "look"],
+    [/ (scenario|drehbuch|script|guion) /, "scenario"],
+    [/ (danses?|dances?|dance style|tanz|tanze|tanzstil|bailes?|estilo de baile) /, "danses"],
+    [/ (multi plans|multiplans|mehrfach einstellungen|multiplanos) /, "multiplans"],
     [/ (mini series|miniseries|miniserien|mini serie|ki miniserien|ai mini series) /, "miniseriesClient"],
-    [/ (finition|finishing|feinschliff|lip sync|lipsync|changer le format|change (the )?format|format andern|format meines) /, "finition"],
+    [/ (finition|finishing|feinschliff|lip sync|lipsync|changer le format|change (the )?format|format andern|format meines|acabado|cambiar (el )?formato) /, "finition"],
     [/ (remix) /, "remix"],
-    [/ (accueil|home tab|startseite|ton code starclip|your starclip code|ihr starclip code|code starclip|starclip code) /, "accueil"],
-    [/ (prompts?|idees|ideas|ideen|tout voir|see all|alles anzeigen) /, "ressources"],
-    [/ (ca ne marche pas|ne fonctionne pas|doesn t work|not working|funktioniert nicht|depannage|troubleshooting|fehlerbehebung|wenn etwas nicht) /, "depannage"]
+    [/ (accueil|home tab|startseite|ton code starclip|your starclip code|ihr starclip code|code starclip|starclip code|inicio|tu codigo starclip|codigo starclip) /, "accueil"],
+    [/ (prompts?|idees|ideas|ideen|tout voir|see all|alles anzeigen|ver todo) /, "ressources"],
+    [/ (ca ne marche pas|ne fonctionne pas|doesn t work|not working|funktioniert nicht|depannage|troubleshooting|fehlerbehebung|wenn etwas nicht|no funciona|solucion de problemas) /, "depannage"]
   ];
   function chapitreNomme(k, q) {
     var n0 = normaliser(q).replace(/-/g, " ");
@@ -863,7 +885,7 @@
   // v41.160 : questions commerciales, comparaisons et objections → chapitre « Pourquoi StarClip » du manuel.
   // Naya répond avec la question fréquente la plus proche, ajoute le paragraphe honnête sur le service cité,
   // et ne prétend jamais que StarClip est moins cher ou meilleur (le manuel ne le dit pas).
-  var POURQUOI = / (pourquoi (choisir|payer|utiliser|prendre|commander|starclip)|why (should i |would i |to |not )?(choose|use|pay|pick|order|starclip)|warum (sollte ich |soll ich )?(starclip|wahlen|bezahlen|nutzen|bestellen)|plutot que|rather than|instead of|statt|anstatt|comparaison|comparer|compare|vergleich|versus|remplace|replace|ersetzt|moins cher|cheaper|billiger|gunstiger|meilleur que|better than|besser als|avantages?|advantages?|vorteile?|meme endroit|same place|selben ort|einem ort|suno|higgsfield|elevenlabs|eleven labs|runway|kling|concurren|competitor|konkurren|propre (ia|technologie|moteur)|own (ai|technology|model|engine)|eigene (ki|technologie|modell)) /;
+  var POURQUOI = / (pourquoi (choisir|payer|utiliser|prendre|commander|starclip)|why (should i |would i |to |not )?(choose|use|pay|pick|order|starclip)|warum (sollte ich |soll ich )?(starclip|wahlen|bezahlen|nutzen|bestellen)|plutot que|rather than|instead of|statt|anstatt|comparaison|comparer|compare|vergleich|versus|remplace|replace|ersetzt|moins cher|cheaper|billiger|gunstiger|meilleur que|better than|besser als|avantages?|advantages?|vorteile?|meme endroit|same place|selben ort|einem ort|suno|higgsfield|elevenlabs|eleven labs|runway|kling|concurren|competitor|konkurren|propre (ia|technologie|moteur)|own (ai|technology|model|engine)|eigene (ki|technologie|modell)|por que (elegir|escoger|pagar|usar|pedir|starclip)|en lugar de|en vez de|comparacion|sustituye|reemplaza|mas barato|mejor que|ventajas?|mismo lugar|competencia|propia (ia|tecnologia)|propio (motor|modelo)) /;
   var SERVICES = ["suno", "higgsfield", "elevenlabs", "runway", "kling"];
   function reponsePourquoi(k, q, r) {
     var n = normaliser(q), cite = SERVICES.filter(function (x) { return n.indexOf(" " + x + " ") >= 0 || (x === "elevenlabs" && / eleven labs /.test(n)); })[0];
@@ -873,7 +895,7 @@
       .sort(function (a, b) { return b.sc - a.sc; })[0];
     var texte;
     // « Est-ce votre propre IA ? » → la phrase du manuel sur les moteurs partenaires, et la suivante.
-    if (/ (propre|own|eigene) /.test(n)) texte = ((rubrique(k, "pourquoi", 1).match(/[^.]*(partenaires|partners|Partnern)[^.]*\.[^.]*\./) || [""])[0]).trim();
+    if (/ (propre|own|eigene|propia|propio) /.test(n)) texte = ((rubrique(k, "pourquoi", 1).match(/[^.]*(partenaires|partners|Partnern|socios)[^.]*\.[^.]*\./) || [""])[0]).trim();
     if (!texte) texte = (best && best.sc > 0 ? best.f : faq[0] || { a: phrases(rubrique(k, "pourquoi", 1), 2) }).a;
     if (cite && plier(texte).indexOf(cite) < 0) {
       var para = rubrique(k, "pourquoi", 5).split("\n").filter(function (l) { return plier(l).indexOf(cite) >= 0; })[0];
@@ -901,7 +923,7 @@
   }
   function repondre2(q, k, r) {
     // Fin de la période de test : une demande de code d'essai reçoit le vrai mode d'emploi, pas un refus.
-    if (/(essai gratuit|code (d.essai|de test|test|gratuit|offert|b[êe]ta)|(acc[èe]s|version) (test|b[êe]ta)|free (trial|code)|trial code|test code|beta code|kostenlos(e|er)? (test|code)|testcode|probecode|probeversion|(cr[ée]dits?|g[ée]n[ée]rations?|vid[ée]os?) (gratuit|offert)|free (credits?|generations?|videos?)|(kostenlose?n?|gratis) (guthaben|credits?|videos?|generierung))/i.test(q))
+    if (/(essai gratuit|code (d.essai|de test|test|gratuit|offert|b[êe]ta)|(acc[èe]s|version) (test|b[êe]ta)|free (trial|code)|trial code|test code|beta code|kostenlos(e|er)? (test|code)|testcode|probecode|probeversion|(cr[ée]dits?|g[ée]n[ée]rations?|vid[ée]os?) (gratuit|offert)|free (credits?|generations?|videos?)|(kostenlose?n?|gratis) (guthaben|credits?|videos?|generierung)|c[oó]digo (de prueba|gratis|gratuito)|prueba (gratis|gratuita)|(cr[eé]ditos?|v[ií]deos?|generaciones?) (gratis|gratuit[oa]s?))/i.test(q))
       return r(t("essai_fini"), [{ lib: t("ouvrir_cmd"), fn: function () { ouvrirOnglet("commander"); } }], { intention: "essai_fini" });
     var abs = (k.absentes || []).filter(function (f) { return new RegExp(f.motif, "i").test(q); })[0];
     if (abs) return r(abs.texte, [], { intention: "fonction_absente" });
@@ -911,7 +933,7 @@
     if (I.verifier.test(q.trim())) {
       var txt = q.trim().replace(I.verifier, "");
       if (txt.length < 3) return r(t("verif_aide"), [], { intention: "verifier" });
-      var o = outilDe(txt) || panneauOuvert() || (/(couplet|refrain|verse|chorus|strophe|bpm|guitare|guitar|basse|bass)/i.test(txt) ? "chansonPro" : "seedance2");
+      var o = outilDe(txt) || panneauOuvert() || (/(couplet|refrain|verse|chorus|strophe|bpm|guitare|guitar|basse|bass|estrofa|estribillo|guitarra|bajo)/i.test(txt) ? "chansonPro" : "seedance2");
       var c = verifierPrompt(txt, o);
       return r(t("verif_titre") + " :\n" + (c.length ? c.map(function (x) { return "• " + x; }).join("\n") : t("verif_bon")), [], { intention: "verifier", conseils: c.length });
     }
@@ -925,7 +947,7 @@
     if (I.prix.test(q) && (outil || !I.paiement.test(q))) return reponsePrix(outil || panneauOuvert(), r);
     if (RECHARGE.test(normaliser(q))) { var rc = reponseRecharge(r); if (rc) return rc; }
     if (I.paiement.test(q)) return reponseAchat(k, r);
-    if (genre || (/(prompt|exemple|example|beispiel|genre)/i.test(q) && /(chanson|song|lied|musique|music|musik|genre)/i.test(plier(q)))) return reponseGenre(genre, r);
+    if (genre || (/(prompt|exemple|example|beispiel|genre|ejemplo|g[eé]nero)/i.test(q) && /(chanson|song|lied|musique|music|musik|genre|cancion|musica|genero)/i.test(plier(q)))) return reponseGenre(genre, r);
     if (I.erreur.test(q)) {
       var e = (k.erreurs || []).filter(function (x) { return new RegExp(x.motif, "i").test(q); })[0];
       if (e) return r(e.texte, [], { intention: "erreur" });
@@ -965,7 +987,10 @@
     else if (PM_IDS.indexOf(m.chapitre) >= 0) act.push({ lib: t("ouvrir_x", { x: nomMoteur(m.chapitre) }), fn: function () { ouvrirOutil(m.chapitre); } });
     return r(ent + " (" + m.titre + ") :\n" + annoter(m.texte), act, { intention: "manuel", source: m.chapitre + "#" + m.rubrique });
   }
-  function ongletLib(tab) { var a = document.querySelector('#tabbar .qnav[data-tab="' + tab + '"]'); return a ? (a.childNodes[0].textContent || "").trim() : tab; }
+  // Nom d'origine (français) de l'onglet ; nomApp() le met dans la langue de la conversation, quelle que soit celle de l'interface.
+  var ONGLETS_FR = { accueil: "🎬 Accueil", photo: "📸 Ta photo", traitement: "✨ Traitement", look: "👔 Habillage & Décor", scenario: "🎬 Scénario", miniseries: "🎞️ Mini-séries IA",
+    remix: "🔁 Remix", finition: "🎤 Finition", commander: "💳 Commander", premium: "👑 Admin Premium 5.0", prompts: "📝 Prompts", idees: "💡 Idées", tout: "📜 Tout voir" };
+  function ongletLib(tab) { if (ONGLETS_FR[tab]) return ONGLETS_FR[tab]; var a = document.querySelector('#tabbar .qnav[data-tab="' + tab + '"]'); return a ? (a.childNodes[0].textContent || "").trim() : tab; }
   function nomMoteur(id) { var m = moteurs().filter(function (x) { return x.id === id; })[0]; return m ? nomApp(m.nom) : id; }
 
   function reponsePrix(outil, r) {
@@ -1255,7 +1280,7 @@
   // v41.160 : dictée. Chrome (Mac) et Safari (iPhone) proposent la reconnaissance vocale ; le navigateur demande
   // l'autorisation du micro. Sans elle : message clair et curseur dans la zone de saisie (micro du clavier).
   var reco = null;
-  var LOCALE_DICTEE = { fr: "fr-FR", en: "en-US", de: "de-DE" };
+  var LOCALE_DICTEE = { fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES" };
   function noteMicro(cle) { ajouter("naya", { texte: t(cle), intention: "micro", sansVoix: true }, true); }
   function dicter() {
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1281,6 +1306,8 @@
   function lireAVoix(texte, bouton, lgTexte) {
     arreterVoix();
     var lg = lgTexte || etat.lg, srv = serveurVoix(), refusLangue = false;
+    // v41.164 : pas de voix validée pour cette langue (espagnol) → réponse écrite, sans aucun appel au serveur.
+    if (!LANGUE_VOIX[lg]) { noteVoix(bouton, t("voix_langue")); return; }
     var essai = srv ? fetch(srv + "/naya/voix", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texte: String(texte).slice(0, 1200), langue: lg }) })
       .then(function (r) { if (r.status === 409) refusLangue = true; return r.ok && /audio/.test(r.headers.get("Content-Type") || "") ? r.blob().then(function (b) { return { blob: b, nom: decodeURIComponent(r.headers.get("X-Naya-Voix") || "Naya") }; }) : null; })
       .catch(function () { return null; }) : Promise.resolve(null);

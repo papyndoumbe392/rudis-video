@@ -64,11 +64,12 @@
        border-radius:999px;padding:11px 22px;font-size:15px;font-weight:800;
        font-family:inherit;margin:0 0 4px}
   .retourbar{display:flex;justify-content:center;margin:16px 0 0}
-  .langbar{display:flex;justify-content:center;gap:8px;margin:14px 0 0}
+  .langbar{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:14px 0 0}
   .langbar button{background:var(--up);border:1px solid var(--line);color:var(--text);
        border-radius:999px;padding:8px 18px;font-size:15px;cursor:pointer;
        font-family:inherit;transition:.15s}
   .langbar button.on{background:var(--gold);border-color:var(--gold);color:#20160a;font-weight:700}
+  @media (max-width:480px){.langbar{gap:6px}.langbar button{padding:7px 12px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -76,10 +77,12 @@
 <header>
   <h1>StarClip Studio</h1>
   <p>Studio Rudis, Douala · WhatsApp 695 535 475</p>
-  <div class="retourbar"><a class="retour" href="index.html">← Retour à l'app · Back to the app</a></div>
+  <div class="retourbar"><a class="retour" href="index.html">← Retour à l'app</a></div>
   <div class="langbar">
-    <button id="btnFr" class="on" type="button">🇫🇷 Français</button>
-    <button id="btnEn" type="button">🇬🇧 English</button>
+    <button id="btnFr" class="on" type="button" lang="fr">🇫🇷 Français</button>
+    <button id="btnEn" type="button" lang="en">🇬🇧 English</button>
+    <button id="btnEs" type="button" lang="es">🇪🇸 Español</button>
+    <button id="btnDe" type="button" lang="de">🇩🇪 Deutsch</button>
   </div>
 </header>
 
@@ -984,38 +987,973 @@ The others stay silent, lips closed.</pre>
 
 </div>
 
+<div class="wrap hidden" id="guideEs">
+
+
+<div class="card gold">
+  <h2><span class="num">🗺️</span> El recorrido en 4 tiempos</h2>
+  <p>La app sigue siempre el mismo orden. Cada panel cambia <b>una sola cosa</b>:
+     eso es lo que hace que los resultados sean previsibles.</p>
+  <ol class="steps">
+    <li><b>Tu foto</b>: la base de todo, y el rostro que la app va a proteger.</li>
+    <li><b>La imagen</b>: ropa, decorado, postura, retoques. Fabricas la imagen perfecta.</li>
+    <li><b>El vídeo</b>: guion, multiplano, lip-sync, formato.</li>
+    <li><b>Compartir</b>: descargas y publicas.</li>
+  </ol>
+  <div class="tip">Regla de oro: no pases al vídeo hasta que la imagen te guste de verdad.
+    Un vídeo cuesta un crédito; una imagen no cuesta casi nada.</div>
+</div>
+
+<div class="card toc">
+  <h2><span class="num">📑</span> Índice</h2>
+  <a href="#es-code">🎟️ Tu código StarClip</a>
+  <a href="#es-essai">🚀 Cómo empezar</a>
+  <a href="#es-photo">1 · Tu foto y tus rostros de referencia</a>
+  <a href="#es-tenue">👔 Ropa: cambiar la vestimenta</a>
+  <a href="#es-decor">🏛️ Decorado: cambiar el lugar</a>
+  <a href="#es-posture">🕺 Cambiar la postura</a>
+  <a href="#es-retouche">🧹 Retocar una imagen</a>
+  <a href="#es-recoller">🎯 Recuperar el rostro real</a>
+  <a href="#es-studio">🎨 Studio Images</a>
+  <a href="#es-traitement">✨ Efectos de foto en un gesto</a>
+  <a href="#es-scenario">2 · Guion del clip</a>
+  <a href="#es-multi">🎬 Multiplano</a>
+  <a href="#es-lipsync">3 · Lip-sync: hacer cantar</a>
+  <a href="#es-format">🔄 Cambiar el formato</a>
+  <a href="#es-prompts">📝 Prompts listos para usar</a>
+  <a href="#es-premium">👑 Admin Premium 5.0: los motores pro</a>
+  <a href="#es-chanson">🎵 Crear una canción (Estándar y ⭐ Pro)</a>
+  <a href="#es-astuces">💡 Los trucos que lo cambian todo</a>
+  <a href="#es-problemes">🛠️ Si algo no funciona</a>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-code">
+  <h2><span class="num">🎟️</span> Tu código StarClip</h2>
+  <p>Recibes tu código por WhatsApp después de tu pago con Orange Money o MTN MoMo.
+     Escríbelo arriba en la app y confirma: la línea verde te indica lo que te queda.</p>
+  <table>
+    <tr><th>Lo que ves</th><th>Lo que significa</th></tr>
+    <tr><td>3 vídeos restantes de 5</td><td>Tus créditos de vídeo</td></tr>
+    <tr><td>· 45 imágenes incluidas</td><td>Ropa, decorados, posturas, retoques: casi gratis</td></tr>
+    <tr><td>· 9 lip-sync Estándar</td><td>Sincronizaciones gratuitas incluidas</td></tr>
+  </table>
+  <div class="tip">Un mismo código funciona en varios dispositivos. Guárdalo bien:
+    es el que contiene tus créditos.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card gold" id="es-essai">
+  <h2><span class="num">🚀</span> Cómo empezar</h2>
+  <p>No hay ningún registro que rellenar: tu <b>código StarClip</b> es tu cuenta. Guarda tus créditos.</p>
+  <table>
+    <tr><th>Paso</th><th>Lo que haces</th></tr>
+    <tr><td>1</td><td>Elige tu pack en la pestaña <b>💳 Pedir</b>.</td></tr>
+    <tr><td>2</td><td>Paga con <b>Orange Money</b> o <b>MTN Mobile Money</b> (sin tarjeta bancaria).</td></tr>
+    <tr><td>3</td><td>Envía la captura de tu pago por <b>WhatsApp</b>.</td></tr>
+    <tr><td>4</td><td>Recibe tu código, escríbelo arriba en la app y toca <b>OK</b>.</td></tr>
+  </table>
+  <div class="tip">Para las herramientas Premium (Chanson Pro, Seedance…), el mismo código recibe un saldo en FCFA:
+    el precio aparece siempre antes de que lances. ¿Necesitas ayuda? Toca <b>✦ Naya</b>.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-photo">
+  <h2><span class="num">1</span> Tu foto y tus rostros de referencia</h2>
+
+
+<div class="sub">
+<h3>La foto inicial</h3>
+  <p>Es la que da el cuerpo, la ropa y la escena. Elígela bien:</p>
+  <ul>
+    <li>Rostro <b>nítido y bien iluminado</b>: es lo más importante.</li>
+    <li>El sujeto <b>bien separado del fondo</b> (que no se confunda con el decorado de detrás).</li>
+    <li>Encuadre <b>de cintura o plano americano</b> si quieres cambiar de decorado después.</li>
+  </ul>
+  <div class="warn"><b>Ten en cuenta:</b> cuanto más <b>pequeño</b> sea tu rostro en la imagen,
+    más riesgo hay de que se deforme al cambiar el decorado. En un plano de cuerpo entero dentro de
+    una escena amplia, la IA tiene pocos píxeles para reconstruir tu rostro.
+    Solución: parte de una foto cercana, o usa
+    <a href="#es-recoller" style="color:var(--gold)">🎯 Recuperar el rostro real</a> después.</div>
+</div>
+
+<div class="sub">
+<h3>Las referencias del rostro</h3>
+  <p>Añade de 1 a 3 retratos nítidos tuyos. Sirven para <b>fijar tu identidad</b>
+     en los vídeos. Es mucho más eficaz que escribir « conserva mi rostro » en el texto.</p>
+</div>
+
+<div class="sub">
+<h3>💑 Segunda persona</h3>
+  <p>Si tu vídeo muestra a <b>dos personas</b> (tu pareja, un dúo), añade también
+     <b>sus</b> fotos en el segundo grupo. Sin ellas, la app conserva tu rostro pero
+     <b>inventa el suyo</b>, y puede cambiar de un plano a otro.</p>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-tenue">
+  <h2><span class="num">👔</span> Ropa: cambiar la vestimenta</h2>
+  <p>Elige una prenda de la lista, o <b>importa la foto de una prenda</b> para probártela.</p>
+  <p>Este panel cambia <b>solo la ropa</b>. Tu rostro, tu complexión, tu postura
+     y el decorado siguen idénticos.</p>
+  <p><b>Más de 20 conjuntos</b>: Toghu real, trajes (azul a cuadros, negro y crema,
+     blanco, beige), esmoquin, tela wax, vestidos de baile y de noche, camisetas ajustadas,
+     chándales de lujo, <b>bañadores de hombre y de mujer</b>, camisa de playa…</p>
+  <div class="tip">Orden recomendado: la ropa <b>antes</b> que el decorado. Los dos se acumulan.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-decor">
+  <h2><span class="num">🏛️</span> Decorado: cambiar el lugar</h2>
+  <p>Casi 30 lugares: palacio, villa con piscina, jet privado, primera clase,
+     discoteca, superdeportivos, azotea, Mónaco…</p>
+
+
+<div class="sub">
+<h3>🎯 Decorado fiel: tu rostro sigue siendo el tuyo</h3>
+  <p>Dos botones para cambiar de lugar, y <b>no</b> hacen lo mismo:</p>
+  <ul>
+    <li><b>🎨 Crear el decorado con IA</b>: la IA vuelve a dibujar toda la imagen. Puede añadir
+        objetos a tu alrededor (un coche, un sillón), pero tu rostro puede
+        <b>cambiar ligeramente</b>.</li>
+    <li><b>🎯 Decorado fiel</b>: tu rostro, tu sombrero y tu ropa se conservan
+        <b>píxel a píxel</b>: solo se sustituye el fondo. Es el botón que debes
+        usar cuando tienes que reconocerte sin falta.</li>
+  </ul>
+  <div class="tip">Para un artista que debe seguir siendo reconocible: <b>🎯 Decorado fiel</b>.</div>
+</div>
+
+<div class="sub">
+<h3>🖼️ A partir de una imagen</h3>
+  <p>¿Has encontrado un ambiente que te gusta? Toca este botón e
+     <b>importa simplemente la imagen</b>: no hay que escribir nada. La app crea un decorado
+     <b>con ese espíritu</b> (mismo tipo de lugar, mismos colores, misma luz),
+     sin copiarlo y sin ninguna marca visible.</p>
+</div>
+
+<div class="sub">
+<h3>🕺 Cambiar también la postura</h3>
+  <p>Marca la casilla y describe la pose que quieres. Si no marcas nada,
+     tu pose se adapta con naturalidad al nuevo lugar.</p>
+  <div class="warn"><b>La trampa de la postura:</b> describe siempre una pose
+    <b>estable y mantenida</b>, nunca un movimiento en curso.<br>
+    ❌ « bajando del coche » → cuerpo agachado extraño<br>
+    ✅ « de pie junto a la puerta abierta, con una mano apoyada en ella, mirando hacia la entrada »</div>
+
+  <p>Lo que el decorado conserva automáticamente: <b>todas</b> las personas de la foto,
+     sus rostros, su ropa, su complexión y el apoyo en el suelo
+     (pies apoyados, sentados de verdad, sombras de contacto, escala correcta).</p>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-posture">
+  <h2><span class="num">🕺</span> Cambiar la postura</h2>
+  <p>Panel dedicado, con 10 poses listas para usar (manos en los bolsillos, brazos cruzados,
+     sentado, apoyado, caminando, cantando…) o tu propia descripción.</p>
+  <p>Aquí solo cambia la <b>pose</b>: rostro, ropa, complexión y decorado quedan bloqueados.</p>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-retouche">
+  <h2><span class="num">🧹</span> Retocar una imagen</h2>
+  <p>Quita o añade un elemento <b>sin rehacer toda la escena</b>.</p>
+
+
+<div class="sub">
+<h3>Correcciones rápidas</h3>
+  <p>Cuatro botones escriben por ti las formulaciones que funcionan:</p>
+  <table>
+    <tr><th>Botón</th><th>Cuándo usarlo</th></tr>
+    <tr><td>💡 Armonizar la luz</td><td>Pareces « pegado » en la escena:
+        tu luz no coincide con la del decorado</td></tr>
+    <tr><td>📏 Corregir mi estatura</td><td>Pareces demasiado alto o demasiado bajo
+        respecto a las demás personas</td></tr>
+    <tr><td>🧹 Limpiar marcas</td><td>Bordes de recorte visibles, silueta doble</td></tr>
+    <tr><td>✨ Más realista</td><td>A la imagen le falta homogeneidad (grano, nitidez)</td></tr>
+  </table>
+</div>
+
+<div class="sub">
+<h3>Añadir personas</h3>
+  <p>Elige primero <b>el aspecto de los figurantes</b>: negros, mestizos, blancos,
+     latinos, asiáticos o grupo mixto. Esta elección solo afecta a las personas
+     <b>añadidas</b>: las que ya están en la foto nunca cambian.</p>
+  <pre>añade a mi alrededor cuatro amigos elegantes que caminan hacia la entrada:
+dos hombres con traje de noche y dos mujeres con vestido de lentejuelas,
+sonrientes, dejándome bien visible en primer plano</pre>
+</div>
+
+<div class="sub">
+<h3>Quitar a alguien</h3>
+  <p>Sé <b>muy preciso</b> si hay varias personas parecidas:</p>
+  <pre>quita a la mujer del vestido dorado que está de pie delante del coche negro a la derecha</pre>
+  <div class="tip">¿Quitar a dos personas? Hazlo <b>en dos veces</b>, con
+    « 🔄 Retocar de nuevo » entre ambas. Cada retoque es más pequeño, y por tanto más limpio.</div>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-recoller">
+  <h2><span class="num">🎯</span> Recuperar el rostro real</h2>
+  <p>La red de seguridad. Si un decorado ha <b>cambiado ligeramente tu rostro</b>, este panel
+     vuelve a poner tu <b>rostro real</b> a partir de tu foto original, conservando la escena,
+     la ropa, el sombrero y la luz.</p>
+  <ol class="steps">
+    <li>Elige la imagen que quieres corregir (se propone automáticamente el último decorado).</li>
+    <li>Indica si se trata de un hombre o de una mujer.</li>
+    <li>Toca <b>Recuperar el rostro real</b> y espera de 20 a 60 segundos.</li>
+  </ol>
+  <div class="tip">Esa es <b>la</b> diferencia con otras herramientas: vuelven a dibujar
+    tu rostro y fallan. StarClip parte de tu foto real.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-studio">
+  <h2><span class="num">🎨</span> Studio Images</h2>
+  <p>Crea una imagen <b>solo a partir de un texto</b>, sin foto inicial: decorados,
+     bailarines, ambientes. Útil para fabricar planos de recurso para tu clip.</p>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="es-traitement">
+  <h2><span class="num">✨</span> Efectos de foto en un gesto</h2>
+  <p>En la pestaña <b>✨ Efectos de foto</b>, mejoras o transformas una foto <b>antes</b>
+     de crear tu vídeo, tocando un simple botón-código.</p>
+  <ol class="steps">
+    <li>Pon tu foto en el <b>cuadro de la izquierda</b> (toca el cuadro, o « Poner la foto del panel 1 a la izquierda »).</li>
+    <li>Toca <b>de 1 a 3 efectos</b>.</li>
+    <li>Añade una indicación si quieres, y lanza. Tu rostro sigue siendo el mismo.</li>
+  </ol>
+  <table>
+    <tr><th>Familia</th><th>Ejemplos de códigos</th></tr>
+    <tr><td>Calidad de la imagen</td><td>/4K · /cinematic · /repairhd (foto antigua) · /fullcolour (colorear)</td></tr>
+    <tr><td>Rostro</td><td>/portrait · /whiteteeth · /wrinkless</td></tr>
+    <tr><td>Puesta en escena</td><td>/transfer + lugar · /métier · /together · /transferoutfit · /fullbody</td></tr>
+    <tr><td>Ángulos de cámara</td><td>/droneview · /lowangle · /sideview · /wideangle · /overtheshoulder</td></tr>
+    <tr><td>Formatos listos para publicar</td><td>/magazinecover · /ytthumbnail · /albumcover · /concertposter</td></tr>
+    <tr><td>Luz y ambiente</td><td>/goldenhour · /studiolight · /neon · /night · /rain</td></tr>
+    <tr><td>Música y escenario</td><td>/stage · /crowd · /recordingstudio · /smoke · /spotlight</td></tr>
+    <tr><td>África chic</td><td>/wax · /beach · /rooftop · /luxury</td></tr>
+    <tr><td>Estilo artístico</td><td>/cartoon · /oilpainting · /sketch · /vintage · /blackwhite</td></tr>
+  </table>
+  <div class="sub">
+    <h3>👫 /together: reunir a dos personas</h3>
+    <p>Persona 1 en el cuadro de la izquierda, persona 2 en el cuadro de la derecha. Aparece un recuadro
+       dorado: elige <b>cómo</b> están (mirando a cámara, selfi, abrazados, bailando…) y
+       <b>dónde</b> (coche, playa, escenario, restaurante, calle de Duala… o « Describo el lugar »).
+       La casilla de indicación se vuelve <b>amarilla con 👉</b>: añade por ejemplo « ropa de noche ».</p>
+  </div>
+  <div class="sub">
+    <h3>👔 /transferoutfit: copiar una prenda</h3>
+    <p>A la izquierda, <b>la ropa que quieres copiar</b>. A la derecha, <b>la persona a la que vestir</b>. Solo
+       la ropa pasa de una foto a otra: la persona de la derecha conserva su rostro y su cuerpo.</p>
+  </div>
+  <div class="tip">Los textos escritos en la imagen (títulos, fechas): reléelos siempre, la IA a veces
+    comete errores. La <b>guía PDF</b> de los códigos se puede descargar al final del panel.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="es-scenario">
+  <h2><span class="num">2</span> Guion del clip</h2>
+  <p>Describe lo que tiene que pasar. Tienes hasta <b>2 500 caracteres</b>: espacio
+     para ser preciso con la emoción y el movimiento de cámara.</p>
+  <div class="tip">No vuelvas a describir el decorado, la ropa ni los rostros: ya vienen
+    de tu foto. Centra tu texto en <b>la acción, la emoción y la cámara</b>.</div>
+  <p>Modos disponibles:</p>
+  <ul>
+    <li><b>Eco</b>: rápido y económico</li>
+    <li><b>Pro</b>: mejor calidad de imagen</li>
+    <li><b>⭐ Rostro estable</b>: usa tus referencias del rostro. Es el preferible
+        en cuanto se te ve con claridad.</li>
+  </ul>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="es-multi">
+  <h2><span class="num">🎬</span> Multiplano</h2>
+  <p>Encadena de 2 a 6 planos en un solo vídeo, de hasta 15 segundos. Cada plano puede
+     tener <b>su propia foto</b>. Coste: 2 créditos.</p>
+  <div class="warn"><b>Muy importante:</b> cada plano está limitado a unos
+    <b>139 caracteres</b> cuando tiene su propia foto (203 si no). Más allá, la IA
+    <b>comprime tu texto</b> e improvisa: es la primera causa de resultados fallidos.
+    Escribe corto y preciso.</div>
+  <pre>Camera moves slowly closer to his face. He brings one hand
+to his heart, still singing, eyes full of sadness.</pre>
+
+
+<div class="sub">
+<h3>Hacer cantar a la persona correcta</h3>
+  <p>Señala al cantante por su <b>ropa o su posición</b>, y precisa que los demás
+     no cantan:</p>
+  <pre>The man in the black hat sings, mouth open.
+The others stay silent, lips closed.</pre>
+  <p>Con dos personas de referencia, puedes escribir directamente
+     <code>@Element1</code> y <code>@Element2</code>.</p>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="es-lipsync">
+  <h2><span class="num">3</span> Lip-sync: hacer cantar tu vídeo</h2>
+  <p>Envía tu vídeo y tu audio: la boca se sincroniza con la voz.</p>
+  <table>
+    <tr><th>Modo</th><th>Duración</th><th>Coste</th></tr>
+    <tr><td>Estándar</td><td>de 2 a 10 segundos</td><td>Gratis (cuota incluida)</td></tr>
+    <tr><td>⭐ Pro</td><td>hasta 15 s, 80 MB</td><td>1 crédito: mucho mejor</td></tr>
+  </table>
+  <div class="warn"><b>El secreto de un buen lip-sync:</b> da un
+    <b>stem de voz sola</b>: la voz principal sin instrumentos ni coros.
+    Una mezcla completa ahoga la voz bajo el bajo, y la boca no articula.
+    Vuelves a poner la mezcla completa después, en el montaje.</div>
+  <div class="tip">Un rostro <b>grande en la imagen</b> da siempre una articulación mucho
+    mejor que un plano amplio.</div>
+  <div class="tip">🎤 <b>Novedad:</b> la casilla <b>« Aislar la voz antes del lip-sync »</b> está marcada
+    por defecto. La app quita ella misma los instrumentos, sincroniza los labios con <b>la voz sola</b>
+    y luego vuelve a poner tu canción completa en el vídeo. Ya no necesitas preparar un stem de voz.
+    Desmárcala solo si tu audio ya es una voz sola.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="es-format">
+  <h2><span class="num">🔄</span> Cambiar el formato</h2>
+  <p>Transforma un vídeo horizontal en vertical, o al revés. La IA
+     <b>reconstruye de verdad</b> los bordes que faltan: sin bandas negras, sin desenfoque.</p>
+  <p>Formatos: 📱 9:16 vertical · 🖥️ 16:9 horizontal · ◻️ 1:1 cuadrado. Coste: 2 créditos.</p>
+  <div class="tip">El uso más rentable: hacer tu clip en 16:9 y luego convertirlo
+    a 9:16 para el estado de WhatsApp, TikTok y Reels. Dos formatos, un solo rodaje.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-prompts">
+  <h2><span class="num">📝</span> Prompts listos para usar</h2>
+  <p>La pestaña <b>📝 Prompts</b> contiene textos escritos por el estudio para probar cada panel:
+     ropa, decorado, postura, retoque, efectos de foto, Studio Images, decorado de vídeo, guion, multiplano.</p>
+  <ol class="steps">
+    <li>Elige tu idioma una vez: <b>🇫🇷 Francés</b> o <b>🇬🇧 English</b>.</li>
+    <li>Toca <b>✨ Usar</b>: la app abre la pestaña correcta y rellena la casilla por ti.</li>
+    <li><b>Modifica el texto a tu gusto</b> antes de lanzar: color de la ropa, lugar, luz…</li>
+  </ol>
+  <div class="tip">Estos prompts son <b>puntos de partida</b>, no obligaciones. Cuanto más se parezca
+    tu texto a ti, más se parecerá el resultado a ti.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="es-premium">
+  <h2><span class="num">👑</span> Admin Premium 5.0: los motores pro</h2>
+  <p>La pestaña de color <b>👑 Admin Premium 5.0</b> abre a los creadores exigentes los motores que usa
+     el estudio. Se pagan por unidad, con tu <b>saldo Premium en FCFA</b>, con el mismo código STAR-XXXX.
+     Tu saldo aparece arriba en la pestaña en cuanto se valida tu código.</p>
+  <p>Cada motor es una <b>tarjeta</b>: tócala para abrirla. En ordenador, los ajustes están
+     a la izquierda y el resultado a la derecha. « ← Todos los motores » te devuelve a las tarjetas.</p>
+  <table>
+    <tr><th>Motor</th><th>Lo que hace</th><th>Precio</th></tr>
+    <tr><td>🌱 Seedance 2.0</td><td>Vídeo a partir de una foto (o de un texto)</td><td style="white-space:nowrap;">5&nbsp;s&nbsp;:&nbsp;3&nbsp;499<br>10&nbsp;s&nbsp;:&nbsp;5&nbsp;499<br>15&nbsp;s&nbsp;:&nbsp;8&nbsp;499</td></tr>
+    <tr><td>✨ Seedance 2.5</td><td>Vídeo de alta gama 1080p, a partir de una foto</td><td style="white-space:nowrap;">5&nbsp;s&nbsp;:&nbsp;6&nbsp;499<br>10&nbsp;s&nbsp;:&nbsp;12&nbsp;499</td></tr>
+    <tr><td>🎞️ Aleph 2.0</td><td>Modifica un vídeo existente (quitar un elemento, cambiar el decorado)</td><td style="white-space:nowrap;">≤&nbsp;5&nbsp;s&nbsp;:&nbsp;3&nbsp;499<br>≤&nbsp;10&nbsp;s&nbsp;:&nbsp;5&nbsp;499</td></tr>
+    <tr><td>🎬 Multi-Shot Video</td><td>Miniclip de varios planos en una sola generación</td><td style="white-space:nowrap;">5&nbsp;s&nbsp;:&nbsp;1&nbsp;499<br>10&nbsp;s&nbsp;:&nbsp;2&nbsp;499<br>15&nbsp;s&nbsp;:&nbsp;4&nbsp;499</td></tr>
+    <tr><td>🎵 Canción</td><td>Canción completa, 2 versiones</td><td style="white-space:nowrap;">499</td></tr>
+    <tr><td>⭐ Chanson Pro</td><td>Calidad de estudio, nuestro motor de alta gama, 1 versión</td><td style="white-space:nowrap;">2&nbsp;min&nbsp;:&nbsp;999<br>3&nbsp;min&nbsp;:&nbsp;1&nbsp;499<br>3&nbsp;min&nbsp;50&nbsp;:&nbsp;1&nbsp;999</td></tr>
+    <tr><td>🎙️ Mejorar mi maqueta</td><td><b>Versión</b>: tu maqueta producida como en un estudio, conservando melodía y letra, 2 versiones<br><b>Referencia</b>: nueva canción con el estilo de un fragmento de 30 s de tu maqueta</td><td style="white-space:nowrap;">Versión&nbsp;:&nbsp;999<br>Referencia&nbsp;:<br>2&nbsp;min&nbsp;1&nbsp;999<br>3&nbsp;min&nbsp;2&nbsp;999<br>3&nbsp;min&nbsp;50&nbsp;3&nbsp;999</td></tr>
+    <tr><td>🎚️ Extraer stems</td><td>Separa una canción en 4 o 6 pistas (voz, batería, bajo, guitarra, piano, otros), en MP3, WAV o ambos</td><td style="white-space:nowrap;">499</td></tr>
+  </table>
+  <table>
+    <tr><th>Pack Premium</th><th>Pagas</th><th>Saldo recibido</th></tr>
+    <tr><td>Descubrimiento</td><td style="white-space:nowrap;">10&nbsp;499&nbsp;FCFA</td><td style="white-space:nowrap;">10&nbsp;499&nbsp;FCFA</td></tr>
+    <tr><td>Creador</td><td style="white-space:nowrap;">24&nbsp;999&nbsp;FCFA</td><td style="white-space:nowrap;">27&nbsp;499&nbsp;FCFA<br>(+10 %)</td></tr>
+    <tr><td>Studio</td><td style="white-space:nowrap;">49&nbsp;999&nbsp;FCFA</td><td style="white-space:nowrap;">57&nbsp;499&nbsp;FCFA<br>(+15 %)</td></tr>
+    <tr><td>Importe libre</td><td>desde 1 499 FCFA</td><td>el mismo importe</td></tr>
+  </table>
+  <div class="warn"><b>Ten en cuenta:</b> un <b>rechazo del motor durante la creación
+    no se reembolsa</b> en Seedance 2.5, Aleph y Multi-Shot. Si el motor rechaza tu petición
+    <b>antes</b> de empezar, no se descuenta nada de tu saldo.</div>
+  <div class="tip">Los motores bloquean a veces las fotos de rostros <b>generados por IA</b> o las
+    peticiones en las que la persona « habla ». Usa una foto real y nítida, y describe mejor lo que
+    hace la persona (« sonríe mirando a la cámara »).</div>
+  <div class="tip">Para Aleph, la app lee sola la duración de tu vídeo (10 s como máximo) y muestra el
+    precio correspondiente antes de lanzar.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card gold" id="es-chanson">
+  <h2><span class="num">🎵</span> Crear una canción (Estándar y ⭐ Pro)</h2>
+  <p>Dos motores, el mismo método:</p>
+  <table>
+    <tr><th></th><th>🎵 Canción</th><th>⭐ Chanson Pro</th></tr>
+    <tr><td>Motor</td><td>Estándar</td><td>Alta gama (calidad de estudio)</td></tr>
+    <tr><td>Versiones</td><td>2</td><td>1</td></tr>
+    <tr><td>Duración</td><td>la decide el motor</td><td>a elegir: 2 min, 3 min o 3 min 50</td></tr>
+    <tr><td>Precio</td><td style="white-space:nowrap;">499&nbsp;FCFA</td><td style="white-space:nowrap;">999 / 1&nbsp;499 / 1&nbsp;999&nbsp;FCFA</td></tr>
+  </table>
+  <ol class="steps">
+    <li><b>Género</b>: Afropop, Afrobeats, Amapiano, Makossa, Bikutsi, Coupé-décalé, Ndombolo,
+        Rumba congoleña, Highlife, Gospel africano, Afro R&amp;B, Zouk/Kizomba, Afro-trap,
+        Afro-dancehall, Afro-jazz, Balada.</li>
+    <li><b>Voz</b>: hombre, mujer, dúo, con coro.</li>
+    <li><b>Idioma del canto</b>: francés, inglés, ambos, pidgin, duala + francés.</li>
+    <li><b>Ambiente</b>: festivo, romántico, espiritual, melancólico, motivación.</li>
+    <li><b>Tus indicaciones</b> en francés (opcional): « para mi boda, estribillo muy pegadizo ».</li>
+    <li><b>Letra</b>: pega la tuya, o déjala vacía para que la IA la escriba.</li>
+  </ol>
+  <div class="tip">🎛️ <b>El Productor IA</b> convierte todas estas elecciones en una consigna de estudio
+    detallada, en inglés, fiel a las raíces africanas del género. Eso es lo que hace que el estilo sea el correcto,
+    en lugar de un simple « afro pop » que el motor tendría que adivinar.</div>
+  <div class="tip">Pega tu letra <b>separando las estrofas con una línea vacía</b>. El bloque que se
+    repite se convierte automáticamente en el <b>estribillo</b>: no hace falta escribir las etiquetas [Verse] / [Chorus].</div>
+  <div class="tip">🎙️ <b>¿Ya tienes una maqueta?</b> Tarjeta <b>« Mejorar mi maqueta »</b>: en <b>Versión</b>, se conservan tu
+    melodía y tu letra y se produce como en un estudio (aunque esté grabada con el teléfono); en <b>Referencia</b>, se crea
+    una nueva canción con el sonido y el ambiente de tu maqueta. Solo tu propia música: las canciones ya publicadas
+    por otros se rechazan.</div>
+  <div class="tip">🎚️ Bajo cada canción creada, el botón <b>« Extraer los stems »</b> la envía directamente
+    a la tarjeta Stems: elige 4 o 6 pistas, MP3, WAV o ambos (499 FCFA). También puedes importar
+    cualquier archivo de audio. Descarga tus pistas pronto: los enlaces caducan al cabo de unos días.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card gold" id="es-astuces">
+  <h2><span class="num">💡</span> Los trucos que lo cambian todo</h2>
+  <ol class="steps">
+    <li><b>Una cosa cada vez.</b> Ropa → decorado → postura → retoques. Cada panel
+        solo toca un elemento: eso es lo que hace que el resultado sea previsible.</li>
+    <li><b>Poses estables.</b> Nunca un movimiento en curso. « De pie, con una mano en
+        la puerta del coche » mejor que « bajando ».</li>
+    <li><b>Rostro grande = rostro fiel.</b> Para los cambios de decorado,
+        parte de un plano de cintura mejor que de un plano de cuerpo entero.</li>
+    <li><b>Perfecciona la imagen antes del vídeo.</b> Las imágenes están incluidas,
+        los vídeos cuestan un crédito.</li>
+    <li><b>Sé preciso al señalar a alguien.</b> « La mujer del vestido dorado
+        delante del coche negro a la derecha », no « la mujer ».</li>
+    <li><b>Revisa la luz.</b> Si el personaje parece pegado, casi siempre
+        es la luz: usa 💡 Armonizar la luz.</li>
+  </ol>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="es-problemes">
+  <h2><span class="num">🛠️</span> Si algo no funciona</h2>
+  <table>
+    <tr><th>El problema</th><th>La solución</th></tr>
+    <tr><td>Mi rostro ha cambiado un poco</td><td>🎯 Recuperar el rostro real</td></tr>
+    <tr><td>Parezco pegado en el decorado</td><td>🧹 Retoque → 💡 Armonizar la luz</td></tr>
+    <tr><td>Soy demasiado alto respecto a los demás</td><td>🧹 Retoque → 📏 Corregir mi estatura</td></tr>
+    <tr><td>Un personaje duplicado</td><td>🧹 Retoque → 🧹 Limpiar marcas</td></tr>
+    <tr><td>La boca no articula</td><td>Da un stem de voz sola, y pasa a ⭐ Pro</td></tr>
+    <tr><td>El resultado ignora mi texto</td><td>Tu plano supera el límite de caracteres: acórtalo</td></tr>
+    <tr><td>El vídeo sale con el formato equivocado</td><td>Revisa el botón Formato, o usa 🔄 Cambiar el formato</td></tr>
+    <tr><td>« Rechazado por la moderación del proveedor »</td><td>Cambia de foto (una foto real y nítida) y reformula sin « hablar »: ese rechazo no te cuesta nada</td></tr>
+    <tr><td>Saldo Premium insuficiente</td><td>Recarga un pack Premium por WhatsApp</td></tr>
+    <tr><td>El estilo de mi canción no es el correcto</td><td>Elige un <b>género</b> en los botones en lugar de escribirlo tú</td></tr>
+    <tr><td>La app parece bloqueada en una versión antigua</td><td>iPhone: Ajustes → Safari → Borrar historial y datos</td></tr>
+  </table>
+  <div class="tip">Si una generación facturada falla, tus créditos te
+    <b>se devuelven automáticamente</b>. No tienes que reclamar nada.</div>
+</div>
+</div>
+
+<div class="wrap hidden" id="guideDe">
+
+
+<div class="card gold">
+  <h2><span class="num">🗺️</span> Der Ablauf in 4 Schritten</h2>
+  <p>Die App folgt immer derselben Reihenfolge. Jeder Bereich ändert <b>nur eine einzige Sache</b>:
+     Genau das macht die Ergebnisse vorhersehbar.</p>
+  <ol class="steps">
+    <li><b>Ihr Foto</b>: die Grundlage von allem und das Gesicht, das die App schützt.</li>
+    <li><b>Das Bild</b>: Outfit, Kulisse, Pose, Retuschen. Sie bauen das perfekte Bild.</li>
+    <li><b>Das Video</b>: Drehbuch, Mehrfach-Einstellungen, Lip-Sync, Format.</li>
+    <li><b>Das Teilen</b>: Sie laden herunter und veröffentlichen.</li>
+  </ol>
+  <div class="tip">Goldene Regel: Gehen Sie erst zum Video über, wenn Ihnen das Bild wirklich gefällt.
+    Ein Video kostet ein Guthaben; ein Bild kostet fast nichts.</div>
+</div>
+
+<div class="card toc">
+  <h2><span class="num">📑</span> Inhalt</h2>
+  <a href="#de-code">🎟️ Ihr StarClip-Code</a>
+  <a href="#de-essai">🚀 So fangen Sie an</a>
+  <a href="#de-photo">1 · Ihr Foto und Ihre Gesichtsreferenzen</a>
+  <a href="#de-tenue">👔 Outfit: die Kleidung ändern</a>
+  <a href="#de-decor">🏛️ Kulisse: den Ort ändern</a>
+  <a href="#de-posture">🕺 Die Pose ändern</a>
+  <a href="#de-retouche">🧹 Ein Bild retuschieren</a>
+  <a href="#de-recoller">🎯 Echtes Gesicht wiederherstellen</a>
+  <a href="#de-studio">🎨 Studio Images</a>
+  <a href="#de-traitement">✨ Fotoeffekte mit einem Tipp</a>
+  <a href="#de-scenario">2 · Drehbuch des Clips</a>
+  <a href="#de-multi">🎬 Mehrfach-Einstellungen</a>
+  <a href="#de-lipsync">3 · Lip-Sync: singen lassen</a>
+  <a href="#de-format">🔄 Das Format ändern</a>
+  <a href="#de-prompts">📝 Fertige Prompts</a>
+  <a href="#de-premium">👑 Admin Premium 5.0: die Profi-Modelle</a>
+  <a href="#de-chanson">🎵 Einen Song erstellen (Standard und ⭐ Pro)</a>
+  <a href="#de-astuces">💡 Die Tipps, die alles verändern</a>
+  <a href="#de-problemes">🛠️ Wenn etwas nicht funktioniert</a>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-code">
+  <h2><span class="num">🎟️</span> Ihr StarClip-Code</h2>
+  <p>Sie erhalten Ihren Code per WhatsApp nach Ihrer Zahlung mit Orange Money oder MTN MoMo.
+     Geben Sie ihn oben in der App ein und bestätigen Sie: Die grüne Zeile zeigt, was Ihnen noch bleibt.</p>
+  <table>
+    <tr><th>Was Sie sehen</th><th>Was es bedeutet</th></tr>
+    <tr><td>3 von 5 Videos übrig</td><td>Ihr Video-Guthaben</td></tr>
+    <tr><td>· 45 Bilder inklusive</td><td>Outfits, Kulissen, Posen, Retuschen: fast kostenlos</td></tr>
+    <tr><td>· 9 Standard-Lip-Syncs</td><td>Kostenlose Synchronisierungen inklusive</td></tr>
+  </table>
+  <div class="tip">Ein Code funktioniert auf mehreren Geräten. Bewahren Sie ihn gut auf:
+    Er enthält Ihr Guthaben.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card gold" id="de-essai">
+  <h2><span class="num">🚀</span> So fangen Sie an</h2>
+  <p>Sie müssen sich nirgends registrieren: Ihr <b>StarClip-Code</b> ist Ihr Konto. Er speichert Ihr Guthaben.</p>
+  <table>
+    <tr><th>Schritt</th><th>Was Sie tun</th></tr>
+    <tr><td>1</td><td>Wählen Sie Ihr Paket im Tab <b>💳 Bestellen</b>.</td></tr>
+    <tr><td>2</td><td>Bezahlen Sie mit <b>Orange Money</b> oder <b>MTN Mobile Money</b> (ohne Bankkarte).</td></tr>
+    <tr><td>3</td><td>Senden Sie den Screenshot Ihrer Zahlung per <b>WhatsApp</b>.</td></tr>
+    <tr><td>4</td><td>Sie erhalten Ihren Code, geben ihn oben in der App ein und tippen auf <b>OK</b>.</td></tr>
+  </table>
+  <div class="tip">Für die Premium-Werkzeuge (Chanson Pro, Seedance…) erhält derselbe Code ein Guthaben in FCFA:
+    Der Preis wird immer angezeigt, bevor Sie starten. Brauchen Sie Hilfe? Tippen Sie auf <b>✦ Naya</b>.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-photo">
+  <h2><span class="num">1</span> Ihr Foto und Ihre Gesichtsreferenzen</h2>
+
+
+<div class="sub">
+<h3>Das Ausgangsfoto</h3>
+  <p>Es liefert den Körper, das Outfit und die Szene. Wählen Sie es sorgfältig:</p>
+  <ul>
+    <li>Gesicht <b>scharf und gut beleuchtet</b>: Das ist der wichtigste Punkt.</li>
+    <li>Die Person <b>klar vom Hintergrund getrennt</b> (nicht mit der Kulisse dahinter verschmolzen).</li>
+    <li><b>Halbnah- oder Amerikanische Einstellung</b>, wenn Sie danach die Kulisse ändern möchten.</li>
+  </ul>
+  <div class="warn"><b>Gut zu wissen:</b> Je <b>kleiner</b> Ihr Gesicht im Bild ist,
+    desto eher wird es beim Ändern der Kulisse verzerrt. Bei einer Ganzkörperaufnahme in
+    einer großen Szene hat die KI nur wenige Pixel, um Ihr Gesicht nachzubilden.
+    Lösung: Beginnen Sie mit einem näheren Foto oder nutzen Sie danach
+    <a href="#de-recoller" style="color:var(--gold)">🎯 Echtes Gesicht wiederherstellen</a>.</div>
+</div>
+
+<div class="sub">
+<h3>Die Gesichtsreferenzen</h3>
+  <p>Fügen Sie 1 bis 3 scharfe Porträts von sich hinzu. Sie dienen dazu, <b>Ihre Identität</b>
+     in den Videos festzuhalten. Das wirkt viel besser, als « behalte mein Gesicht » in den Text zu schreiben.</p>
+</div>
+
+<div class="sub">
+<h3>💑 Zweite Person</h3>
+  <p>Zeigt Ihr Video <b>zwei Personen</b> (Ihren Partner oder Ihre Partnerin, ein Duo), fügen Sie auch
+     <b>deren</b> Fotos in der zweiten Gruppe hinzu. Ohne sie behält die App Ihr Gesicht, aber
+     <b>erfindet das andere</b>, und es kann sich von Einstellung zu Einstellung ändern.</p>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-tenue">
+  <h2><span class="num">👔</span> Outfit: die Kleidung ändern</h2>
+  <p>Wählen Sie ein Outfit aus der Liste oder <b>importieren Sie das Foto eines Kleidungsstücks</b>, um es anzuprobieren.</p>
+  <p>Dieser Bereich ändert <b>nur die Kleidung</b>. Ihr Gesicht, Ihre Statur, Ihre Pose
+     und die Kulisse bleiben gleich.</p>
+  <p><b>Mehr als 20 Outfits</b>: königlicher Toghu, Anzüge (blau kariert, schwarz &amp; creme,
+     weiß, beige), Smoking, Wax-Stoff, Ball- und Abendkleider, enge T-Shirts,
+     Luxus-Jogginganzüge, <b>Badekleidung für Herren und Damen</b>, Strandhemd…</p>
+  <div class="tip">Empfohlene Reihenfolge: das Outfit <b>vor</b> der Kulisse. Beides lässt sich kombinieren.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-decor">
+  <h2><span class="num">🏛️</span> Kulisse: den Ort ändern</h2>
+  <p>Fast 30 Orte: Palast, Villa mit Pool, Privatjet, erste Klasse,
+     Nachtclub, Supersportwagen, Dachterrasse, Monaco…</p>
+
+
+<div class="sub">
+<h3>🎯 Originalgetreue Kulisse: Ihr Gesicht bleibt Ihres</h3>
+  <p>Zwei Schaltflächen ändern den Ort, und sie tun <b>nicht</b> dasselbe:</p>
+  <ul>
+    <li><b>🎨 Kulisse mit KI erstellen</b>: Die KI zeichnet das ganze Bild neu. Sie kann
+        Objekte um Sie herum hinzufügen (ein Auto, einen Sessel), aber Ihr Gesicht kann sich
+        <b>leicht verändern</b>.</li>
+    <li><b>🎯 Originalgetreue Kulisse</b>: Ihr Gesicht, Ihr Hut und Ihr Outfit bleiben
+        <b>Pixel für Pixel</b> erhalten: Nur der Hintergrund wird ersetzt. Das ist die Schaltfläche,
+        wenn Sie sich unbedingt wiedererkennen müssen.</li>
+  </ul>
+  <div class="tip">Für Künstler, die erkennbar bleiben müssen: <b>🎯 Originalgetreue Kulisse</b>.</div>
+</div>
+
+<div class="sub">
+<h3>🖼️ Nach einem Bild</h3>
+  <p>Sie haben eine Stimmung gefunden, die Ihnen gefällt? Tippen Sie auf diese Schaltfläche und
+     <b>importieren Sie einfach das Bild</b>: Sie müssen nichts schreiben. Die App erstellt eine Kulisse
+     <b>in diesem Stil</b> (gleiche Art von Ort, gleiche Farben, gleiches Licht),
+     ohne sie zu kopieren und ohne sichtbare Marke.</p>
+</div>
+
+<div class="sub">
+<h3>🕺 Auch die Pose ändern</h3>
+  <p>Setzen Sie das Häkchen und beschreiben Sie die gewünschte Pose. Ohne Häkchen
+     passt sich Ihre Pose natürlich an den neuen Ort an.</p>
+  <div class="warn"><b>Die Falle bei der Pose:</b> Beschreiben Sie immer eine
+    <b>stabile, gehaltene</b> Pose, nie eine laufende Bewegung.<br>
+    ❌ « steigt aus dem Auto » → seltsam gekrümmter Körper<br>
+    ✅ « steht neben der offenen Autotür, eine Hand darauf gelegt, Blick zum Eingang »</div>
+
+  <p>Was die Kulisse automatisch bewahrt: <b>alle</b> Personen auf dem Foto,
+     ihre Gesichter, ihre Outfits, ihre Statur und den Bodenkontakt
+     (Füße am Boden, wirklich sitzend, Kontaktschatten, richtige Größe).</p>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-posture">
+  <h2><span class="num">🕺</span> Die Pose ändern</h2>
+  <p>Eigener Bereich mit 10 fertigen Posen (Hände in den Taschen, Arme verschränkt,
+     sitzend, angelehnt, gehend, singend…) oder Ihrer eigenen Beschreibung.</p>
+  <p>Hier ändert sich nur die <b>Pose</b>: Gesicht, Outfit, Statur und Kulisse bleiben fixiert.</p>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-retouche">
+  <h2><span class="num">🧹</span> Ein Bild retuschieren</h2>
+  <p>Entfernen oder ergänzen Sie ein Element, <b>ohne die ganze Szene neu zu erstellen</b>.</p>
+
+
+<div class="sub">
+<h3>Schnelle Korrekturen</h3>
+  <p>Vier Schaltflächen schreiben für Sie die Formulierungen, die funktionieren:</p>
+  <table>
+    <tr><th>Schaltfläche</th><th>Wann verwenden</th></tr>
+    <tr><td>💡 Licht angleichen</td><td>Sie wirken wie « aufgeklebt »:
+        Ihr Licht passt nicht zu dem der Kulisse</td></tr>
+    <tr><td>📏 Meine Größe korrigieren</td><td>Sie wirken zu groß oder zu klein
+        im Vergleich zu den anderen Personen</td></tr>
+    <tr><td>🧹 Spuren entfernen</td><td>Sichtbare Schnittkanten, doppelte Silhouette</td></tr>
+    <tr><td>✨ Realistischer</td><td>Dem Bild fehlt es an Einheitlichkeit (Körnung, Schärfe)</td></tr>
+  </table>
+</div>
+
+<div class="sub">
+<h3>Personen hinzufügen</h3>
+  <p>Wählen Sie zuerst <b>das Aussehen der Statisten</b>: Schwarze, Mixed, Weiße,
+     Latinos, Asiaten oder eine gemischte Gruppe. Diese Wahl betrifft nur die
+     <b>hinzugefügten</b> Personen: Die bereits auf dem Foto bleiben immer unverändert.</p>
+  <pre>füge um mich herum vier elegante Freunde hinzu, die zum Eingang gehen:
+zwei Männer im Abendanzug und zwei Frauen im Paillettenkleid,
+lächelnd, ich bleibe im Vordergrund gut sichtbar</pre>
+</div>
+
+<div class="sub">
+<h3>Jemanden entfernen</h3>
+  <p>Seien Sie <b>sehr genau</b>, wenn es mehrere ähnliche Personen gibt:</p>
+  <pre>entferne die Frau im goldenen Kleid, die rechts vor dem schwarzen Auto steht</pre>
+  <div class="tip">Zwei Personen entfernen? Machen Sie es <b>in zwei Durchgängen</b>, mit
+    « 🔄 Erneut retuschieren » dazwischen. Jede Retusche ist kleiner und daher sauberer.</div>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-recoller">
+  <h2><span class="num">🎯</span> Echtes Gesicht wiederherstellen</h2>
+  <p>Das Sicherheitsnetz. Hat eine Kulisse <b>Ihr Gesicht leicht verändert</b>, setzt dieser Bereich
+     Ihr <b>echtes Gesicht</b> aus Ihrem Originalfoto wieder ein und behält dabei Szene,
+     Outfit, Hut und Licht.</p>
+  <ol class="steps">
+    <li>Wählen Sie das zu korrigierende Bild (die letzte Kulisse wird automatisch vorgeschlagen).</li>
+    <li>Geben Sie an, ob es sich um einen Mann oder eine Frau handelt.</li>
+    <li>Tippen Sie auf <b>Echtes Gesicht wiederherstellen</b> und warten Sie 20 bis 60 Sekunden.</li>
+  </ol>
+  <div class="tip">Das ist <b>der</b> Unterschied zu anderen Werkzeugen: Sie zeichnen
+    Ihr Gesicht neu und verfehlen es. StarClip geht von Ihrem echten Foto aus.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-studio">
+  <h2><span class="num">🎨</span> Studio Images</h2>
+  <p>Erstellen Sie ein Bild <b>allein aus einem Text</b>, ohne Ausgangsfoto: Kulissen,
+     Tänzer, Stimmungen. Nützlich für Zwischenschnitte in Ihrem Clip.</p>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="de-traitement">
+  <h2><span class="num">✨</span> Fotoeffekte mit einem Tipp</h2>
+  <p>Im Tab <b>✨ Fotoeffekte</b> verbessern oder verwandeln Sie ein Foto, <b>bevor</b>
+     Sie Ihr Video erstellen, mit einem einfachen Code-Knopf.</p>
+  <ol class="steps">
+    <li>Legen Sie Ihr Foto in das <b>linke Feld</b> (Feld antippen oder « Foto aus Bereich 1 links einsetzen »).</li>
+    <li>Tippen Sie auf <b>1 bis 3 Effekte</b>.</li>
+    <li>Fügen Sie bei Bedarf eine Angabe hinzu und starten Sie. Ihr Gesicht bleibt gleich.</li>
+  </ol>
+  <table>
+    <tr><th>Gruppe</th><th>Beispiel-Codes</th></tr>
+    <tr><td>Bildqualität</td><td>/4K · /cinematic · /repairhd (altes Foto) · /fullcolour (einfärben)</td></tr>
+    <tr><td>Gesicht</td><td>/portrait · /whiteteeth · /wrinkless</td></tr>
+    <tr><td>Inszenierung</td><td>/transfer + Ort · /métier · /together · /transferoutfit · /fullbody</td></tr>
+    <tr><td>Kamerawinkel</td><td>/droneview · /lowangle · /sideview · /wideangle · /overtheshoulder</td></tr>
+    <tr><td>Fertige Formate zum Veröffentlichen</td><td>/magazinecover · /ytthumbnail · /albumcover · /concertposter</td></tr>
+    <tr><td>Licht und Stimmung</td><td>/goldenhour · /studiolight · /neon · /night · /rain</td></tr>
+    <tr><td>Musik und Bühne</td><td>/stage · /crowd · /recordingstudio · /smoke · /spotlight</td></tr>
+    <tr><td>Afrika chic</td><td>/wax · /beach · /rooftop · /luxury</td></tr>
+    <tr><td>Künstlerischer Stil</td><td>/cartoon · /oilpainting · /sketch · /vintage · /blackwhite</td></tr>
+  </table>
+  <div class="sub">
+    <h3>👫 /together: zwei Personen zusammenbringen</h3>
+    <p>Person 1 im linken Feld, Person 2 im rechten Feld. Ein goldener Rahmen
+       erscheint: Wählen Sie, <b>wie</b> sie sind (in die Kamera, Selfie, umarmt, tanzend…) und
+       <b>wo</b> (Auto, Strand, Bühne, Restaurant, Straße in Douala… oder « Ich beschreibe den Ort »).
+       Das Angabefeld wird <b>gelb mit 👉</b>: Ergänzen Sie dort zum Beispiel « Abendgarderobe ».</p>
+  </div>
+  <div class="sub">
+    <h3>👔 /transferoutfit: ein Outfit übernehmen</h3>
+    <p>Links <b>das zu übernehmende Outfit</b>. Rechts <b>die Person, die eingekleidet wird</b>. Nur
+       die Kleidung wechselt von einem Foto zum anderen: Die Person rechts behält Gesicht und Körper.</p>
+  </div>
+  <div class="tip">Texte im Bild (Titel, Daten): Lesen Sie sie immer nach, die KI macht
+    manchmal Fehler. Die <b>PDF-Anleitung</b> der Codes können Sie unten im Bereich herunterladen.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="de-scenario">
+  <h2><span class="num">2</span> Drehbuch des Clips</h2>
+  <p>Beschreiben Sie, was passieren soll. Sie haben bis zu <b>2 500 Zeichen</b>: Platz,
+     um Gefühl und Kamerabewegung genau zu beschreiben.</p>
+  <div class="tip">Beschreiben Sie Kulisse, Outfits und Gesichter nicht erneut: Sie kommen
+    bereits aus Ihrem Foto. Konzentrieren Sie Ihren Text auf <b>Handlung, Gefühl und Kamera</b>.</div>
+  <p>Verfügbare Modi:</p>
+  <ul>
+    <li><b>Eco</b>: schnell und günstig</li>
+    <li><b>Pro</b>: bessere Bildqualität</li>
+    <li><b>⭐ Stabiles Gesicht</b>: nutzt Ihre Gesichtsreferenzen. Erste Wahl,
+        sobald man Sie deutlich sieht.</li>
+  </ul>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="de-multi">
+  <h2><span class="num">🎬</span> Mehrfach-Einstellungen</h2>
+  <p>Verketten Sie 2 bis 6 Einstellungen in einem einzigen Video von bis zu 15 Sekunden. Jede Einstellung kann
+     <b>ihr eigenes Foto</b> haben. Kosten: 2 Guthaben.</p>
+  <div class="warn"><b>Sehr wichtig:</b> Jede Einstellung ist auf etwa
+    <b>139 Zeichen</b> begrenzt, wenn sie ein eigenes Foto hat (sonst 203). Darüber hinaus
+    <b>komprimiert die KI Ihren Text</b> und improvisiert: Das ist die häufigste Ursache misslungener Ergebnisse.
+    Schreiben Sie kurz und genau.</div>
+  <pre>Camera moves slowly closer to his face. He brings one hand
+to his heart, still singing, eyes full of sadness.</pre>
+
+
+<div class="sub">
+<h3>Die richtige Person singen lassen</h3>
+  <p>Bezeichnen Sie den Sänger über sein <b>Outfit oder seine Position</b> und geben Sie an, dass die anderen
+     nicht singen:</p>
+  <pre>The man in the black hat sings, mouth open.
+The others stay silent, lips closed.</pre>
+  <p>Mit zwei Referenzpersonen können Sie direkt
+     <code>@Element1</code> und <code>@Element2</code> schreiben.</p>
+</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="de-lipsync">
+  <h2><span class="num">3</span> Lip-Sync: Ihr Video singen lassen</h2>
+  <p>Senden Sie Ihr Video und Ihr Audio: Der Mund wird mit der Stimme synchronisiert.</p>
+  <table>
+    <tr><th>Modus</th><th>Dauer</th><th>Kosten</th></tr>
+    <tr><td>Standard</td><td>2 bis 10 Sekunden</td><td>Kostenlos (Kontingent inklusive)</td></tr>
+    <tr><td>⭐ Pro</td><td>bis zu 15 s, 80 MB</td><td>1 Guthaben: deutlich besser</td></tr>
+  </table>
+  <div class="warn"><b>Das Geheimnis eines guten Lip-Syncs:</b> Geben Sie einen
+    <b>Stem nur mit Gesang</b>: die Leadstimme ohne Instrumente und Chor.
+    Ein kompletter Mix lässt die Stimme unter dem Bass untergehen, und der Mund artikuliert nicht.
+    Den kompletten Mix legen Sie danach im Schnitt wieder an.</div>
+  <div class="tip">Ein <b>großes Gesicht im Bild</b> ergibt immer eine deutlich bessere
+    Artikulation als eine weite Einstellung.</div>
+  <div class="tip">🎤 <b>Neu:</b> Das Kästchen <b>« Stimme vor dem Lip-Sync isolieren »</b> ist
+    standardmäßig aktiviert. Die App entfernt selbst die Instrumente, synchronisiert die Lippen mit <b>der reinen Stimme</b>
+    und legt danach Ihren kompletten Song wieder auf das Video. Sie müssen keinen Gesangs-Stem mehr vorbereiten.
+    Deaktivieren Sie es nur, wenn Ihr Audio bereits nur Gesang enthält.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="de-format">
+  <h2><span class="num">🔄</span> Das Format ändern</h2>
+  <p>Verwandeln Sie ein horizontales Video in ein vertikales oder umgekehrt. Die KI
+     <b>rekonstruiert die fehlenden Ränder wirklich</b>: keine schwarzen Balken, keine Unschärfe.</p>
+  <p>Formate: 📱 9:16 vertikal · 🖥️ 16:9 horizontal · ◻️ 1:1 quadratisch. Kosten: 2 Guthaben.</p>
+  <div class="tip">Die lohnendste Nutzung: Ihren Clip in 16:9 erstellen und dann
+    in 9:16 für den WhatsApp-Status, TikTok und Reels umwandeln. Zwei Formate, ein einziger Dreh.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-prompts">
+  <h2><span class="num">📝</span> Fertige Prompts</h2>
+  <p>Der Tab <b>📝 Prompts</b> enthält vom Studio geschriebene Texte, um jeden Bereich auszuprobieren:
+     Outfit, Kulisse, Pose, Retusche, Fotoeffekte, Studio Images, Videokulisse, Drehbuch, Mehrfach-Einstellungen.</p>
+  <ol class="steps">
+    <li>Wählen Sie einmal Ihre Sprache: <b>🇫🇷 Französisch</b> oder <b>🇬🇧 English</b>.</li>
+    <li>Tippen Sie auf <b>✨ Verwenden</b>: Die App öffnet den richtigen Tab und füllt das Feld für Sie aus.</li>
+    <li><b>Ändern Sie den Text nach Belieben</b>, bevor Sie starten: Farbe der Kleidung, Ort, Licht…</li>
+  </ol>
+  <div class="tip">Diese Prompts sind <b>Ausgangspunkte</b>, keine Pflicht. Je mehr Ihr Text
+    Ihnen entspricht, desto mehr entspricht Ihnen das Ergebnis.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card violet" id="de-premium">
+  <h2><span class="num">👑</span> Admin Premium 5.0: die Profi-Modelle</h2>
+  <p>Der farbige Tab <b>👑 Admin Premium 5.0</b> öffnet anspruchsvollen Kreativen die Modelle, die
+     das Studio verwendet. Sie werden einzeln bezahlt, von Ihrem <b>Premium-Guthaben in FCFA</b>, mit demselben Code STAR-XXXX.
+     Ihr Guthaben erscheint oben im Tab, sobald Ihr Code bestätigt ist.</p>
+  <p>Jedes Modell ist eine <b>Kachel</b>: Tippen Sie darauf, um sie zu öffnen. Am Computer sind die Einstellungen
+     links und das Ergebnis rechts. « ← Alle Modelle » bringt Sie zu den Kacheln zurück.</p>
+  <table>
+    <tr><th>Modell</th><th>Was es macht</th><th>Preis</th></tr>
+    <tr><td>🌱 Seedance 2.0</td><td>Video aus einem Foto (oder einem Text)</td><td style="white-space:nowrap;">5&nbsp;s&nbsp;:&nbsp;3&nbsp;499<br>10&nbsp;s&nbsp;:&nbsp;5&nbsp;499<br>15&nbsp;s&nbsp;:&nbsp;8&nbsp;499</td></tr>
+    <tr><td>✨ Seedance 2.5</td><td>Hochwertiges 1080p-Video aus einem Foto</td><td style="white-space:nowrap;">5&nbsp;s&nbsp;:&nbsp;6&nbsp;499<br>10&nbsp;s&nbsp;:&nbsp;12&nbsp;499</td></tr>
+    <tr><td>🎞️ Aleph 2.0</td><td>Bearbeitet ein vorhandenes Video (ein Element entfernen, die Kulisse ändern)</td><td style="white-space:nowrap;">≤&nbsp;5&nbsp;s&nbsp;:&nbsp;3&nbsp;499<br>≤&nbsp;10&nbsp;s&nbsp;:&nbsp;5&nbsp;499</td></tr>
+    <tr><td>🎬 Multi-Shot Video</td><td>Mini-Clip mit mehreren Einstellungen in einer Generierung</td><td style="white-space:nowrap;">5&nbsp;s&nbsp;:&nbsp;1&nbsp;499<br>10&nbsp;s&nbsp;:&nbsp;2&nbsp;499<br>15&nbsp;s&nbsp;:&nbsp;4&nbsp;499</td></tr>
+    <tr><td>🎵 Song</td><td>Kompletter Song, 2 Versionen</td><td style="white-space:nowrap;">499</td></tr>
+    <tr><td>⭐ Chanson Pro</td><td>Studioqualität, unser Spitzenmodell, 1 Version</td><td style="white-space:nowrap;">2&nbsp;min&nbsp;:&nbsp;999<br>3&nbsp;min&nbsp;:&nbsp;1&nbsp;499<br>3&nbsp;min&nbsp;50&nbsp;:&nbsp;1&nbsp;999</td></tr>
+    <tr><td>🎙️ Meine Demo verbessern</td><td><b>Cover</b>: Ihre Demo wie im Studio produziert, Melodie und Text bleiben erhalten, 2 Versionen<br><b>Referenz</b>: neuer Song im Stil eines 30-s-Ausschnitts Ihrer Demo</td><td style="white-space:nowrap;">Cover&nbsp;:&nbsp;999<br>Referenz&nbsp;:<br>2&nbsp;min&nbsp;1&nbsp;999<br>3&nbsp;min&nbsp;2&nbsp;999<br>3&nbsp;min&nbsp;50&nbsp;3&nbsp;999</td></tr>
+    <tr><td>🎚️ Stems extrahieren</td><td>Trennt einen Song in 4 oder 6 Spuren (Gesang, Schlagzeug, Bass, Gitarre, Klavier, Sonstiges), als MP3, WAV oder beides</td><td style="white-space:nowrap;">499</td></tr>
+  </table>
+  <table>
+    <tr><th>Premium-Paket</th><th>Sie zahlen</th><th>Erhaltenes Guthaben</th></tr>
+    <tr><td>Entdeckung</td><td style="white-space:nowrap;">10&nbsp;499&nbsp;FCFA</td><td style="white-space:nowrap;">10&nbsp;499&nbsp;FCFA</td></tr>
+    <tr><td>Creator</td><td style="white-space:nowrap;">24&nbsp;999&nbsp;FCFA</td><td style="white-space:nowrap;">27&nbsp;499&nbsp;FCFA<br>(+10 %)</td></tr>
+    <tr><td>Studio</td><td style="white-space:nowrap;">49&nbsp;999&nbsp;FCFA</td><td style="white-space:nowrap;">57&nbsp;499&nbsp;FCFA<br>(+15 %)</td></tr>
+    <tr><td>Freier Betrag</td><td>ab 1 499 FCFA</td><td>derselbe Betrag</td></tr>
+  </table>
+  <div class="warn"><b>Gut zu wissen:</b> Eine <b>Ablehnung durch das Modell während der Erstellung
+    wird nicht erstattet</b> bei Seedance 2.5, Aleph und Multi-Shot. Lehnt das Modell Ihre Anfrage
+    <b>vor</b> dem Start ab, wird Ihr Guthaben nicht belastet.</div>
+  <div class="tip">Die Modelle blockieren manchmal Fotos von <b>KI-generierten</b> Gesichtern oder
+    Anfragen, in denen die Person « spricht ». Verwenden Sie ein echtes, scharfes Foto und beschreiben Sie lieber,
+    was die Person tut (« sie lächelt in die Kamera »).</div>
+  <div class="tip">Bei Aleph liest die App die Länge Ihres Videos selbst aus (maximal 10 s) und zeigt den
+    passenden Preis vor dem Start an.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card gold" id="de-chanson">
+  <h2><span class="num">🎵</span> Einen Song erstellen (Standard und ⭐ Pro)</h2>
+  <p>Zwei Modelle, dieselbe Methode:</p>
+  <table>
+    <tr><th></th><th>🎵 Song</th><th>⭐ Chanson Pro</th></tr>
+    <tr><td>Modell</td><td>Standard</td><td>Spitzenklasse (Studioqualität)</td></tr>
+    <tr><td>Versionen</td><td>2</td><td>1</td></tr>
+    <tr><td>Dauer</td><td>vom Modell bestimmt</td><td>wählbar: 2 min, 3 min oder 3 min 50</td></tr>
+    <tr><td>Preis</td><td style="white-space:nowrap;">499&nbsp;FCFA</td><td style="white-space:nowrap;">999 / 1&nbsp;499 / 1&nbsp;999&nbsp;FCFA</td></tr>
+  </table>
+  <ol class="steps">
+    <li><b>Genre</b>: Afropop, Afrobeats, Amapiano, Makossa, Bikutsi, Coupé-décalé, Ndombolo,
+        Kongolesische Rumba, Highlife, Afrikanischer Gospel, Afro R&amp;B, Zouk/Kizomba, Afro-Trap,
+        Afro-Dancehall, Afro-Jazz, Ballade.</li>
+    <li><b>Stimme</b>: Mann, Frau, Duo, mit Chor.</li>
+    <li><b>Gesangssprache</b>: Französisch, Englisch, beides, Pidgin, Duala + Französisch.</li>
+    <li><b>Stimmung</b>: festlich, romantisch, spirituell, melancholisch, motivierend.</li>
+    <li><b>Ihre Angaben</b> auf Französisch (optional): « für meine Hochzeit, sehr eingängiger Refrain ».</li>
+    <li><b>Songtext</b>: Fügen Sie Ihren eigenen ein oder lassen Sie das Feld leer, damit die KI ihn schreibt.</li>
+  </ol>
+  <div class="tip">🎛️ <b>Der KI-Produzent</b> verwandelt all diese Entscheidungen in eine detaillierte
+    Studio-Anweisung auf Englisch, treu zu den afrikanischen Wurzeln des Genres. Das macht den Stil stimmig,
+    statt eines bloßen « Afro-Pop », den das Modell erraten müsste.</div>
+  <div class="tip">Fügen Sie Ihren Songtext ein und <b>trennen Sie die Strophen durch eine Leerzeile</b>. Der Block, der sich
+    wiederholt, wird automatisch zum <b>Refrain</b>: Sie müssen keine Markierungen [Verse] / [Chorus] schreiben.</div>
+  <div class="tip">🎙️ <b>Sie haben schon eine Demo?</b> Kachel <b>« Meine Demo verbessern »</b>: Bei <b>Cover</b> bleiben Ihre
+    Melodie und Ihr Text erhalten, und die Demo wird wie im Studio produziert (auch wenn sie mit dem Handy aufgenommen wurde); bei <b>Referenz</b> entsteht
+    ein neuer Song mit dem Klang und der Stimmung Ihrer Demo. Nur Ihre eigene Musik: Bereits von anderen veröffentlichte
+    Titel werden abgelehnt.</div>
+  <div class="tip">🎚️ Unter jedem erstellten Song schickt die Schaltfläche <b>« Stems dieses Songs extrahieren »</b> ihn direkt
+    zur Kachel Stems: Wählen Sie 4 oder 6 Spuren, MP3, WAV oder beides (499 FCFA). Sie können dort auch
+    jede beliebige Audiodatei importieren. Laden Sie Ihre Spuren schnell herunter: Die Links laufen nach einigen Tagen ab.</div>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card gold" id="de-astuces">
+  <h2><span class="num">💡</span> Die Tipps, die alles verändern</h2>
+  <ol class="steps">
+    <li><b>Eins nach dem anderen.</b> Outfit → Kulisse → Pose → Retuschen. Jeder Bereich
+        ändert nur ein Element: Das macht das Ergebnis vorhersehbar.</li>
+    <li><b>Stabile Posen.</b> Nie eine laufende Bewegung. « Steht, eine Hand an
+        der Autotür » statt « steigt gerade aus ».</li>
+    <li><b>Großes Gesicht = treues Gesicht.</b> Für Kulissenwechsel
+        beginnen Sie besser mit einer Halbnahen als mit einer Ganzkörperaufnahme.</li>
+    <li><b>Perfektionieren Sie das Bild vor dem Video.</b> Bilder sind inklusive,
+        Videos kosten ein Guthaben.</li>
+    <li><b>Bezeichnen Sie Personen genau.</b> « Die Frau im goldenen Kleid
+        rechts vor dem schwarzen Auto », nicht « die Frau ».</li>
+    <li><b>Prüfen Sie das Licht.</b> Wirkt die Figur aufgeklebt, liegt es fast
+        immer am Licht: Nutzen Sie 💡 Licht angleichen.</li>
+  </ol>
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<div class="card" id="de-problemes">
+  <h2><span class="num">🛠️</span> Wenn etwas nicht funktioniert</h2>
+  <table>
+    <tr><th>Das Problem</th><th>Die Lösung</th></tr>
+    <tr><td>Mein Gesicht hat sich etwas verändert</td><td>🎯 Echtes Gesicht wiederherstellen</td></tr>
+    <tr><td>Ich wirke wie auf die Kulisse geklebt</td><td>🧹 Retusche → 💡 Licht angleichen</td></tr>
+    <tr><td>Ich bin zu groß im Vergleich zu den anderen</td><td>🧹 Retusche → 📏 Meine Größe korrigieren</td></tr>
+    <tr><td>Eine Figur ist doppelt</td><td>🧹 Retusche → 🧹 Spuren entfernen</td></tr>
+    <tr><td>Der Mund artikuliert nicht</td><td>Geben Sie einen Gesangs-Stem und wechseln Sie zu ⭐ Pro</td></tr>
+    <tr><td>Das Ergebnis ignoriert meinen Text</td><td>Ihre Einstellung überschreitet die Zeichengrenze: kürzen Sie</td></tr>
+    <tr><td>Das Video hat das falsche Format</td><td>Prüfen Sie die Format-Schaltfläche oder nutzen Sie 🔄 Das Format ändern</td></tr>
+    <tr><td>« Von der Moderation des Anbieters abgelehnt »</td><td>Wechseln Sie das Foto (echtes, scharfes Foto) und formulieren Sie ohne « sprechen » um: Diese Ablehnung kostet Sie nichts</td></tr>
+    <tr><td>Premium-Guthaben reicht nicht</td><td>Laden Sie ein Premium-Paket per WhatsApp auf</td></tr>
+    <tr><td>Der Stil meines Songs stimmt nicht</td><td>Wählen Sie ein <b>Genre</b> über die Schaltflächen, statt es nur zu schreiben</td></tr>
+    <tr><td>Die App scheint auf einer alten Version festzuhängen</td><td>iPhone: Einstellungen → Safari → Verlauf und Websitedaten löschen</td></tr>
+  </table>
+  <div class="tip">Schlägt eine berechnete Generierung fehl, wird Ihr Guthaben
+    <b>automatisch zurückgebucht</b>. Sie müssen nichts reklamieren.</div>
+</div>
+</div>
+
 <footer>
   StarClip Studio — Studio Rudis, Douala<br>
   WhatsApp <b>695 535 475</b>
 </footer>
 
 <script>
-function setLang(l) {
-  var fr = (l === "fr");
-  document.getElementById("guideFr").classList.toggle("hidden", !fr);
-  document.getElementById("guideEn").classList.toggle("hidden", fr);
-  document.getElementById("btnFr").classList.toggle("on", fr);
-  document.getElementById("btnEn").classList.toggle("on", !fr);
+// v41.164 : guide en 4 langues (français, anglais, espagnol, allemand). Même choix de langue que l'app
+// (localStorage « starclip_langue ») : un bouton choisi ici est mémorisé pour tout StarClip.
+var GUIDE = {
+  fr: { bloc: "guideFr", btn: "btnFr", titre: "Guide StarClip Studio \u2014 Studio Rudis, Douala", retour: "\u2190 Retour \u00e0 l'app" },
+  en: { bloc: "guideEn", btn: "btnEn", titre: "StarClip Studio Guide \u2014 Studio Rudis, Douala", retour: "\u2190 Back to the app" },
+  es: { bloc: "guideEs", btn: "btnEs", titre: "Gu\u00eda de StarClip Studio \u2014 Studio Rudis, Duala", retour: "\u2190 Volver a la app" },
+  de: { bloc: "guideDe", btn: "btnDe", titre: "StarClip Studio \u2013 Anleitung \u2014 Studio Rudis, Douala", retour: "\u2190 Zur\u00fcck zur App" }
+};
+function setLang(l, memoriser) {
+  if (!GUIDE[l]) l = "fr";
+  Object.keys(GUIDE).forEach(function (k) {
+    document.getElementById(GUIDE[k].bloc).classList.toggle("hidden", k !== l);
+    document.getElementById(GUIDE[k].btn).classList.toggle("on", k === l);
+    document.getElementById(GUIDE[k].btn).setAttribute("aria-pressed", String(k === l));
+  });
   document.documentElement.lang = l;
-  document.title = fr
-    ? "Guide StarClip Studio \u2014 Studio Rudis, Douala"
-    : "StarClip Studio Guide \u2014 Studio Rudis, Douala";
-  try { localStorage.setItem("starclipGuideLang", l); } catch (e) {}
-  window.scrollTo(0, 0);
+  document.title = GUIDE[l].titre;
+  [].forEach.call(document.querySelectorAll("a.retour"), function (a) { a.textContent = GUIDE[l].retour; });
+  if (memoriser) { try { localStorage.setItem("starclip_langue", l); localStorage.setItem("starclipGuideLang", l); } catch (e) {} }
 }
-document.getElementById("btnFr").addEventListener("click", function () { setLang("fr"); });
-document.getElementById("btnEn").addEventListener("click", function () { setLang("en"); });
-// Langue de d\u00E9part : celle d\u00E9j\u00E0 choisie, sinon celle du t\u00E9l\u00E9phone, sinon fran\u00E7ais.
+Object.keys(GUIDE).forEach(function (k) {
+  document.getElementById(GUIDE[k].btn).addEventListener("click", function () { setLang(k, true); window.scrollTo(0, 0); });
+});
+// Langue de d\u00e9part : ?lang= (lien de l'app, pour cette visite), sinon celle choisie dans StarClip, sinon celle du t\u00e9l\u00e9phone, sinon fran\u00e7ais.
 (function () {
-  var l = null;
-  // v41.120 : le lien « English version » de l'app (guide.html?lang=en) passe en priorité.
-  try { var q = new URLSearchParams(location.search).get("lang"); if (q === "en" || q === "fr") l = q; } catch (e) {}
-  if (!l) { try { l = localStorage.getItem("starclipGuideLang"); } catch (e) {} }
-  if (!l) l = ((navigator.language || "fr").toLowerCase().indexOf("en") === 0) ? "en" : "fr";
-  if (l === "en") setLang("en");
+  var l = null, ok = function (x) { return x && GUIDE[x] ? x : null; };
+  try { l = ok(new URLSearchParams(location.search).get("lang")); } catch (e) {}
+  if (!l) { try { l = ok(localStorage.getItem("starclip_langue")) || ok(localStorage.getItem("starclipGuideLang")); } catch (e) {} }
+  if (!l) l = ok(String(navigator.language || "fr").slice(0, 2).toLowerCase()) || "fr";
+  setLang(l, false);
 })();
 </script>
 
-<div class="retourbar" style="margin:8px 0 40px"><a class="retour" href="index.html">← Retour à l'app · Back to the app</a></div>
+<div class="retourbar" style="margin:8px 0 40px"><a class="retour" href="index.html">← Retour à l'app</a></div>
 </body>
 </html>

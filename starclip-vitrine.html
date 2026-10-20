@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080912">
   <meta name="description" content="StarClip transforme vos photos en clips vidéo captivants.">
+  <script>/* v1.7 : langue choisie (même clé que l'app StarClip) posée dès le départ */try{var l0=new URLSearchParams(location.search).get("lang")||localStorage.getItem("starclip_langue");if(/^(fr|en|es|de)$/.test(l0))document.documentElement.lang=l0;}catch(e){}</script>
   <title>StarClip — Vos photos prennent vie</title>
   <style>
     :root {
@@ -106,6 +107,10 @@
     .button-secondary { border-color: var(--line); background: rgba(255,255,255,.05); }
     .button-secondary:hover { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.09); }
     .button-small { min-height: 43px; border-radius: 999px; padding-inline: 17px; font-size: 13px; }
+    /* v1.7 : sélecteur de langue (FR / EN / ES / DE), même choix que l'app StarClip */
+    .lang { display: inline-flex; align-items: center; gap: 6px; min-height: 43px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); font-size: 13px; font-weight: 650; margin-left: auto; }
+    .lang select { background: transparent; color: inherit; border: 0; font: inherit; cursor: pointer; max-width: 118px; }
+    .lang select option { color: #111; }
 
     .hero {
       min-height: 720px;
@@ -386,6 +391,9 @@
       .container { width: min(100% - 28px, var(--max)); }
       .nav { min-height: 68px; }
       .nav .button { padding-inline: 13px; font-size: 11px; }
+      .nav { gap: 10px; }
+      .lang { padding: 0 8px; font-size: 12px; min-height: 38px; }
+      .lang select { max-width: 64px; }
       .hero { min-height: auto; gap: 25px; padding-block: 68px 55px; }
       h1 { font-size: clamp(45px, 14vw, 65px); }
       .lead { font-size: 16px; }
@@ -416,37 +424,34 @@
 <body>
   <header class="header">
     <div class="container nav">
-      <a class="brand" href="#accueil" aria-label="StarClip, accueil">
+      <a class="brand" href="#accueil" aria-label="StarClip, accueil" data-ta="aria-label:a_brand">
         <span class="brand-mark" aria-hidden="true"></span>
         <span>StarClip</span>
       </a>
-      <nav class="links" aria-label="Navigation principale">
-        <a href="#fonctionnalites">Fonctionnalités</a>
-        <a href="#exemples">Exemples</a>
-        <a href="#tarifs">Tarifs</a>
+      <nav class="links" aria-label="Navigation principale" data-ta="aria-label:a_nav">
+        <a href="#fonctionnalites" data-t="nav_f">Fonctionnalités</a>
+        <a href="#exemples" data-t="nav_e">Exemples</a>
+        <a href="#tarifs" data-t="nav_t">Tarifs</a>
       </nav>
-      <a class="button button-secondary button-small" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer">
-        Ouvrir StarClip <span aria-hidden="true">↗</span>
-      </a>
+      <label class="lang" title="Langue · Language · Idioma · Sprache"><span aria-hidden="true">🌐</span><select id="langue" aria-label="Langue · Language · Idioma · Sprache"><option value="fr">FR · Français</option><option value="en">EN · English</option><option value="es">ES · Español</option><option value="de">DE · Deutsch</option></select></label>
+      <a class="button button-secondary button-small" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer" data-t="ouvrir_h">Ouvrir StarClip <span aria-hidden="true">↗</span></a>
     </div>
   </header>
 
   <main>
     <section class="container hero" id="accueil">
       <div class="hero-copy">
-        <p class="eyebrow">✦ La création vidéo, réinventée</p>
-        <h1>Vos photos.<br><span class="gradient-text">Maintenant vivantes.</span></h1>
-        <p class="lead">Transformez une simple photo en clip vidéo captivant. Faites chanter, danser et voyager vos images en quelques instants.</p>
+        <p class="eyebrow" data-t="hero_eye">✦ La création vidéo, réinventée</p>
+        <h1 data-t="h1">Vos photos.<br><span class="gradient-text">Maintenant vivantes.</span></h1>
+        <p class="lead" data-t="lead">Transformez une simple photo en clip vidéo captivant. Faites chanter, danser et voyager vos images en quelques instants.</p>
         <div class="actions">
-          <a class="button button-primary" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer">
-            Ouvrir StarClip <span aria-hidden="true">→</span>
-          </a>
-          <a class="button button-secondary" href="#exemples">Voir les exemples</a>
+          <a class="button button-primary" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer" data-t="ouvrir_hero">Ouvrir StarClip <span aria-hidden="true">→</span></a>
+          <a class="button button-secondary" href="#exemples" data-t="voir">Voir les exemples</a>
         </div>
-        <p class="proof"><b>✓</b> Photo vers vidéo &nbsp;•&nbsp; Pensé pour les réseaux sociaux</p>
+        <p class="proof" data-t="proof"><b>✓</b> Photo vers vidéo &nbsp;•&nbsp; Pensé pour les réseaux sociaux</p>
       </div>
 
-      <div class="app-card" aria-label="Illustration de l’interface StarClip">
+      <div class="app-card" aria-label="Illustration de l’interface StarClip" data-ta="aria-label:a_card">
         <div class="mockup">
           <div class="mockbar"><span>✦ &nbsp; StarClip Studio</span><span class="dots">● ● ●</span></div>
           <div class="stage">
@@ -454,8 +459,8 @@
               <span class="tool active">✦</span><span class="tool">◫</span><span class="tool">♫</span><span class="tool">⚙</span>
             </div>
             <div class="canvas">
-              <div class="canvas-label">APERÇU DU CLIP</div>
-              <div class="scene scene-video" id="heroScene" title="Voir le clip en entier">
+              <div class="canvas-label" data-t="apercu">APERÇU DU CLIP</div>
+              <div class="scene scene-video" id="heroScene" title="Voir le clip en entier" data-ta="title:a_hero">
                 <video id="heroClip" src="obiate-teaser.mp4" muted loop autoplay playsinline preload="metadata"></video>
               </div>
               <div class="timeline"><span></span></div>
@@ -468,15 +473,15 @@
     <section class="section" id="fonctionnalites">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Les possibilités</p>
-          <h2>Une photo. Une idée.<br><span class="gradient-text">Votre prochain clip.</span></h2>
-          <p>StarClip vous accompagne de l’image au mouvement avec des outils pensés pour les artistes, les créateurs et les réseaux sociaux.</p>
+          <p class="eyebrow" data-t="f_eye">Les possibilités</p>
+          <h2 data-t="f_h2">Une photo. Une idée.<br><span class="gradient-text">Votre prochain clip.</span></h2>
+          <p data-t="f_p">StarClip vous accompagne de l’image au mouvement avec des outils pensés pour les artistes, les créateurs et les réseaux sociaux.</p>
         </div>
         <div class="features">
-          <article class="feature"><span class="feature-number">01</span><div class="feature-icon">◉</div><h3>Photo vers vidéo</h3><p>Transformez une photo en une séquence fluide, expressive et prête à partager.</p></article>
-          <article class="feature"><span class="feature-number">02</span><div class="feature-icon">♫</div><h3>Chant & synchronisation</h3><p>Donnez une performance à votre image et synchronisez-la avec votre univers musical.</p></article>
-          <article class="feature"><span class="feature-number">03</span><div class="feature-icon">↗</div><h3>Danse & mouvement</h3><p>Choisissez un rythme et une énergie pour créer un mouvement naturel et maîtrisé.</p></article>
-          <article class="feature"><span class="feature-number">04</span><div class="feature-icon">✦</div><h3>Styles & décors</h3><p>Adaptez l’ambiance, la tenue ou le décor à votre direction artistique.</p></article>
+          <article class="feature"><span class="feature-number">01</span><div class="feature-icon">◉</div><h3 data-t="f1t">Photo vers vidéo</h3><p data-t="f1p">Transformez une photo en une séquence fluide, expressive et prête à partager.</p></article>
+          <article class="feature"><span class="feature-number">02</span><div class="feature-icon">♫</div><h3 data-t="f2t">Chant & synchronisation</h3><p data-t="f2p">Donnez une performance à votre image et synchronisez-la avec votre univers musical.</p></article>
+          <article class="feature"><span class="feature-number">03</span><div class="feature-icon">↗</div><h3 data-t="f3t">Danse & mouvement</h3><p data-t="f3p">Choisissez un rythme et une énergie pour créer un mouvement naturel et maîtrisé.</p></article>
+          <article class="feature"><span class="feature-number">04</span><div class="feature-icon">✦</div><h3 data-t="f4t">Styles & décors</h3><p data-t="f4p">Adaptez l’ambiance, la tenue ou le décor à votre direction artistique.</p></article>
         </div>
       </div>
     </section>
@@ -484,9 +489,9 @@
     <section class="section" id="exemples">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Nos vrais clips</p>
-          <h2>Regardez la qualité.<br><span class="gradient-text">Créée avec StarClip.</span></h2>
-          <p>Des clips réellement générés avec StarClip à partir d’une simple photo. Touchez une vignette : la vidéo s’ouvre en grand, avec le son 🔊.</p>
+          <p class="eyebrow" data-t="ex_eye">Nos vrais clips</p>
+          <h2 data-t="ex_h2">Regardez la qualité.<br><span class="gradient-text">Créée avec StarClip.</span></h2>
+          <p data-t="ex_p">Des clips réellement générés avec StarClip à partir d’une simple photo. Touchez une vignette : la vidéo s’ouvre en grand, avec le son 🔊.</p>
         </div>
         <div class="video-grid" id="videoGrid"></div>
       </div>
@@ -495,49 +500,49 @@
     <section class="section" id="tarifs">
       <div class="container">
         <div class="section-head">
-          <p class="eyebrow">Offres StarClip</p>
-          <h2>Choisissez votre<br><span class="gradient-text">rythme de création.</span></h2>
-          <p>Paiement simple par Orange Money ou MTN Mobile Money — recevez votre code StarClip sur WhatsApp et créez vos vidéos vous-même.</p>
+          <p class="eyebrow" data-t="t_eye">Offres StarClip</p>
+          <h2 data-t="t_h2">Choisissez votre<br><span class="gradient-text">rythme de création.</span></h2>
+          <p data-t="t_p">Paiement simple par Orange Money ou MTN Mobile Money — recevez votre code StarClip sur WhatsApp et créez vos vidéos vous-même.</p>
         </div>
         <div class="pricing">
           <article class="plan">
-            <h3>⭐ Essai Star</h3><p class="plan-desc">Pour essayer la création avec StarClip.</p>
-            <p class="price">1 500 FCFA</p><span class="unit">1 vidéo — chant + tenue inclus</span>
-            <ul><li>Création photo vers vidéo</li><li>Chant (lip-sync) inclus</li><li>Changement de tenue inclus</li></ul>
-            <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander</a>
+            <h3>⭐ Essai Star</h3><p class="plan-desc" data-t="p1d">Pour essayer la création avec StarClip.</p>
+            <p class="price">1 500 FCFA</p><span class="unit" data-t="p1u">1 vidéo — chant + tenue inclus</span>
+            <ul data-t="p1l"><li>Création photo vers vidéo</li><li>Chant (lip-sync) inclus</li><li>Changement de tenue inclus</li></ul>
+            <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer" data-t="cmd">Commander</a>
           </article>
           <article class="plan featured">
-            <span class="badge">POPULAIRE</span>
-            <h3>🎟️ Codes vidéos</h3><p class="plan-desc">Pour créer régulièrement, à votre rythme.</p>
-            <p class="price">6 000 FCFA</p><span class="unit">Code 5 vidéos · ou 12 vidéos pour 12 000 FCFA</span>
-            <ul><li>Tout Essai Star</li><li>Multi-plans (mini-clip jusqu’à 15 s)</li><li>Mode Visage stable</li></ul>
-            <a class="button button-primary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander</a>
+            <span class="badge" data-t="badge">POPULAIRE</span>
+            <h3 data-t="p2t">🎟️ Codes vidéos</h3><p class="plan-desc" data-t="p2d">Pour créer régulièrement, à votre rythme.</p>
+            <p class="price">6 000 FCFA</p><span class="unit" data-t="p2u">Code 5 vidéos · ou 12 vidéos pour 12 000 FCFA</span>
+            <ul data-t="p2l"><li>Tout Essai Star</li><li>Multi-plans (mini-clip jusqu’à 15 s)</li><li>Mode Visage stable</li></ul>
+            <a class="button button-primary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer" data-t="cmd">Commander</a>
           </article>
           <article class="plan">
-            <h3>🏆 Clips par le studio</h3><p class="plan-desc">Le studio crée votre clip pour vous.</p>
-            <p class="price">10 000 FCFA</p><span class="unit">Clip Découverte (5 scènes) · Clip Premium 15 scènes : 25 000 FCFA</span>
-            <ul><li>Scènes montées par le studio</li><li>Qualité cinéma (Premium)</li><li>Livraison sur WhatsApp</li></ul>
-            <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander</a>
+            <h3 data-t="p3t">🏆 Clips par le studio</h3><p class="plan-desc" data-t="p3d">Le studio crée votre clip pour vous.</p>
+            <p class="price">10 000 FCFA</p><span class="unit" data-t="p3u">Clip Découverte (5 scènes) · Clip Premium 15 scènes : 25 000 FCFA</span>
+            <ul data-t="p3l"><li>Scènes montées par le studio</li><li>Qualité cinéma (Premium)</li><li>Livraison sur WhatsApp</li></ul>
+            <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer" data-t="cmd">Commander</a>
           </article>
         </div>
       </div>
     </section>
 
     <section class="container cta">
-      <p class="eyebrow">Prêt à donner vie à vos images ?</p>
-      <h2>Votre prochain clip commence avec <span class="gradient-text">une photo.</span></h2>
-      <p>Ouvrez l’application ou contactez-nous directement sur WhatsApp.</p>
+      <p class="eyebrow" data-t="c_eye">Prêt à donner vie à vos images ?</p>
+      <h2 data-t="c_h2">Votre prochain clip commence avec <span class="gradient-text">une photo.</span></h2>
+      <p data-t="c_p">Ouvrez l’application ou contactez-nous directement sur WhatsApp.</p>
       <div class="actions">
-        <a class="button button-primary" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer">Ouvrir StarClip ↗</a>
-        <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer">Commander sur WhatsApp →</a>
+        <a class="button button-primary" href="https://papyndoumbe392.github.io/rudis-video/" target="_blank" rel="noopener noreferrer" data-t="c_ouvrir">Ouvrir StarClip ↗</a>
+        <a class="button button-secondary" href="https://wa.me/237695535475" target="_blank" rel="noopener noreferrer" data-t="c_wa">Commander sur WhatsApp →</a>
       </div>
     </section>
   </main>
 
   <footer>
     <div class="container footer-inner">
-      <span>© 2026 StarClip Studio · <b style="color:#9b73f6">v1.6 — clip Ö Bia Tè dans la maquette</b></span>
-      <span>Création vidéo à partir de vos images</span>
+      <span>© 2026 StarClip Studio · <b style="color:#9b73f6" data-t="ft_v">v1.7 — clip Ö Bia Tè dans la maquette</b></span>
+      <span data-t="ft_t">Création vidéo à partir de vos images</span>
     </div>
   </footer>
 <script>
@@ -550,7 +555,7 @@
 
   var lb = document.createElement("div");
   lb.className = "vg-lightbox";
-  lb.innerHTML = '<button class="vg-back" type="button">\u2190 Retour</button><div class="vg-stage"></div>';
+  lb.innerHTML = '<button class="vg-back" type="button" data-t="vg_retour">\u2190 Retour</button><div class="vg-stage"></div>';
   document.body.appendChild(lb);
   var stage = lb.querySelector(".vg-stage");
 
@@ -567,7 +572,7 @@
   function qualite(){ var q = null; try { q = localStorage.getItem(CLE_Q); } catch(e){} return q === "hd" || q === "leger" ? q : (connexionLente() ? "leger" : "hd"); }
   var qbar = document.createElement("div");
   qbar.className = "vg-q";
-  qbar.innerHTML = '<button type="button" data-q="hd">HD</button><button type="button" data-q="leger">Léger</button>';
+  qbar.innerHTML = '<button type="button" data-q="hd">HD</button><button type="button" data-q="leger" data-t="vg_leger">Léger</button>';
   lb.appendChild(qbar);
   function ouvrir(leger, hd){
     stage.innerHTML = "";
@@ -615,6 +620,32 @@
     card.addEventListener("click", function(){ ouvrir(base, "vitrine-hd/" + n + ".mp4"); });
     grid.appendChild(card);
   });
+})();
+</script>
+<script>
+// v1.7 : page vitrine en 4 langues (français, anglais, espagnol, allemand). Le choix est le même que dans l'app
+// StarClip (localStorage « starclip_langue ») ; ?lang=xx l'impose pour cette visite. Changement immédiat, sans rechargement.
+(function () {
+  var LANGUES = ["fr", "en", "es", "de"], CLE = "starclip_langue";
+  var T = {"nav_f": {"fr": "Fonctionnalités", "en": "Features", "es": "Funciones", "de": "Funktionen"}, "nav_e": {"fr": "Exemples", "en": "Examples", "es": "Ejemplos", "de": "Beispiele"}, "nav_t": {"fr": "Tarifs", "en": "Pricing", "es": "Precios", "de": "Preise"}, "ouvrir_h": {"fr": "Ouvrir StarClip <span aria-hidden=\"true\">↗</span>", "en": "Open StarClip <span aria-hidden=\"true\">↗</span>", "es": "Abrir StarClip <span aria-hidden=\"true\">↗</span>", "de": "StarClip öffnen <span aria-hidden=\"true\">↗</span>"}, "hero_eye": {"fr": "✦ La création vidéo, réinventée", "en": "✦ Video creation, reinvented", "es": "✦ La creación de vídeo, reinventada", "de": "✦ Videoerstellung, neu erfunden"}, "h1": {"fr": "Vos photos.<br><span class=\"gradient-text\">Maintenant vivantes.</span>", "en": "Your photos.<br><span class=\"gradient-text\">Now alive.</span>", "es": "Tus fotos.<br><span class=\"gradient-text\">Ahora con vida.</span>", "de": "Ihre Fotos.<br><span class=\"gradient-text\">Jetzt lebendig.</span>"}, "lead": {"fr": "Transformez une simple photo en clip vidéo captivant. Faites chanter, danser et voyager vos images en quelques instants.", "en": "Turn a simple photo into a captivating video clip. Make your pictures sing, dance and travel in moments.", "es": "Convierte una simple foto en un videoclip cautivador. Haz que tus imágenes canten, bailen y viajen en unos instantes.", "de": "Verwandeln Sie ein einfaches Foto in einen fesselnden Videoclip. Lassen Sie Ihre Bilder in wenigen Augenblicken singen, tanzen und reisen."}, "ouvrir_hero": {"fr": "Ouvrir StarClip <span aria-hidden=\"true\">→</span>", "en": "Open StarClip <span aria-hidden=\"true\">→</span>", "es": "Abrir StarClip <span aria-hidden=\"true\">→</span>", "de": "StarClip öffnen <span aria-hidden=\"true\">→</span>"}, "voir": {"fr": "Voir les exemples", "en": "See the examples", "es": "Ver los ejemplos", "de": "Beispiele ansehen"}, "proof": {"fr": "<b>✓</b> Photo vers vidéo &nbsp;•&nbsp; Pensé pour les réseaux sociaux", "en": "<b>✓</b> Photo to video &nbsp;•&nbsp; Made for social media", "es": "<b>✓</b> De foto a vídeo &nbsp;•&nbsp; Pensado para las redes sociales", "de": "<b>✓</b> Foto zu Video &nbsp;•&nbsp; Gemacht für soziale Netzwerke"}, "apercu": {"fr": "APERÇU DU CLIP", "en": "CLIP PREVIEW", "es": "VISTA PREVIA DEL CLIP", "de": "CLIP-VORSCHAU"}, "f_eye": {"fr": "Les possibilités", "en": "What you can do", "es": "Las posibilidades", "de": "Die Möglichkeiten"}, "f_h2": {"fr": "Une photo. Une idée.<br><span class=\"gradient-text\">Votre prochain clip.</span>", "en": "One photo. One idea.<br><span class=\"gradient-text\">Your next clip.</span>", "es": "Una foto. Una idea.<br><span class=\"gradient-text\">Tu próximo clip.</span>", "de": "Ein Foto. Eine Idee.<br><span class=\"gradient-text\">Ihr nächster Clip.</span>"}, "f_p": {"fr": "StarClip vous accompagne de l’image au mouvement avec des outils pensés pour les artistes, les créateurs et les réseaux sociaux.", "en": "StarClip takes you from image to motion with tools designed for artists, creators and social media.", "es": "StarClip te acompaña de la imagen al movimiento con herramientas pensadas para artistas, creadores y redes sociales.", "de": "StarClip begleitet Sie vom Bild zur Bewegung, mit Werkzeugen für Künstler, Kreative und soziale Netzwerke."}, "f1t": {"fr": "Photo vers vidéo", "en": "Photo to video", "es": "De foto a vídeo", "de": "Foto zu Video"}, "f1p": {"fr": "Transformez une photo en une séquence fluide, expressive et prête à partager.", "en": "Turn a photo into a smooth, expressive sequence that is ready to share.", "es": "Convierte una foto en una secuencia fluida, expresiva y lista para compartir.", "de": "Verwandeln Sie ein Foto in eine flüssige, ausdrucksstarke Sequenz, bereit zum Teilen."}, "f2t": {"fr": "Chant & synchronisation", "en": "Singing & sync", "es": "Canto y sincronización", "de": "Gesang & Synchronisierung"}, "f2p": {"fr": "Donnez une performance à votre image et synchronisez-la avec votre univers musical.", "en": "Give your image a performance and sync it with your musical world.", "es": "Dale una actuación a tu imagen y sincronízala con tu universo musical.", "de": "Geben Sie Ihrem Bild eine Performance und synchronisieren Sie es mit Ihrer Musikwelt."}, "f3t": {"fr": "Danse & mouvement", "en": "Dance & movement", "es": "Baile y movimiento", "de": "Tanz & Bewegung"}, "f3p": {"fr": "Choisissez un rythme et une énergie pour créer un mouvement naturel et maîtrisé.", "en": "Choose a rhythm and an energy to create natural, controlled movement.", "es": "Elige un ritmo y una energía para crear un movimiento natural y controlado.", "de": "Wählen Sie Rhythmus und Energie für eine natürliche, kontrollierte Bewegung."}, "f4t": {"fr": "Styles & décors", "en": "Styles & settings", "es": "Estilos y decorados", "de": "Stile & Kulissen"}, "f4p": {"fr": "Adaptez l’ambiance, la tenue ou le décor à votre direction artistique.", "en": "Adapt the mood, the outfit or the setting to your artistic direction.", "es": "Adapta el ambiente, la ropa o el decorado a tu dirección artística.", "de": "Passen Sie Stimmung, Outfit oder Kulisse an Ihre künstlerische Richtung an."}, "ex_eye": {"fr": "Nos vrais clips", "en": "Our real clips", "es": "Nuestros clips reales", "de": "Unsere echten Clips"}, "ex_h2": {"fr": "Regardez la qualité.<br><span class=\"gradient-text\">Créée avec StarClip.</span>", "en": "See the quality.<br><span class=\"gradient-text\">Made with StarClip.</span>", "es": "Mira la calidad.<br><span class=\"gradient-text\">Creada con StarClip.</span>", "de": "Sehen Sie die Qualität.<br><span class=\"gradient-text\">Erstellt mit StarClip.</span>"}, "ex_p": {"fr": "Des clips réellement générés avec StarClip à partir d’une simple photo. Touchez une vignette : la vidéo s’ouvre en grand, avec le son 🔊.", "en": "Clips really generated with StarClip from a simple photo. Tap a thumbnail: the video opens full size, with sound 🔊.", "es": "Clips generados de verdad con StarClip a partir de una simple foto. Toca una miniatura: el vídeo se abre en grande, con sonido 🔊.", "de": "Clips, die wirklich mit StarClip aus einem einfachen Foto erzeugt wurden. Tippen Sie auf ein Vorschaubild: Das Video öffnet sich groß, mit Ton 🔊."}, "t_eye": {"fr": "Offres StarClip", "en": "StarClip offers", "es": "Ofertas StarClip", "de": "StarClip-Angebote"}, "t_h2": {"fr": "Choisissez votre<br><span class=\"gradient-text\">rythme de création.</span>", "en": "Choose your<br><span class=\"gradient-text\">creative pace.</span>", "es": "Elige tu<br><span class=\"gradient-text\">ritmo de creación.</span>", "de": "Wählen Sie Ihr<br><span class=\"gradient-text\">Schaffenstempo.</span>"}, "t_p": {"fr": "Paiement simple par Orange Money ou MTN Mobile Money — recevez votre code StarClip sur WhatsApp et créez vos vidéos vous-même.", "en": "Simple payment by Orange Money or MTN Mobile Money — receive your StarClip code on WhatsApp and create your videos yourself.", "es": "Pago sencillo con Orange Money o MTN Mobile Money: recibe tu código StarClip por WhatsApp y crea tus vídeos tú mismo.", "de": "Einfache Zahlung per Orange Money oder MTN Mobile Money — erhalten Sie Ihren StarClip-Code per WhatsApp und erstellen Sie Ihre Videos selbst."}, "p1d": {"fr": "Pour essayer la création avec StarClip.", "en": "To try creating with StarClip.", "es": "Para probar la creación con StarClip.", "de": "Um das Erstellen mit StarClip auszuprobieren."}, "p1u": {"fr": "1 vidéo — chant + tenue inclus", "en": "1 video — singing + outfit included", "es": "1 vídeo — canto + ropa incluidos", "de": "1 Video — Gesang + Outfit inklusive"}, "p1l": {"fr": "<li>Création photo vers vidéo</li><li>Chant (lip-sync) inclus</li><li>Changement de tenue inclus</li>", "en": "<li>Photo-to-video creation</li><li>Singing (lip-sync) included</li><li>Outfit change included</li>", "es": "<li>Creación de foto a vídeo</li><li>Canto (lip-sync) incluido</li><li>Cambio de ropa incluido</li>", "de": "<li>Erstellung Foto zu Video</li><li>Gesang (Lip-Sync) inklusive</li><li>Outfit-Wechsel inklusive</li>"}, "badge": {"fr": "POPULAIRE", "en": "POPULAR", "es": "POPULAR", "de": "BELIEBT"}, "p2t": {"fr": "🎟️ Codes vidéos", "en": "🎟️ Video codes", "es": "🎟️ Códigos de vídeo", "de": "🎟️ Video-Codes"}, "p2d": {"fr": "Pour créer régulièrement, à votre rythme.", "en": "To create regularly, at your own pace.", "es": "Para crear con regularidad, a tu ritmo.", "de": "Um regelmäßig zu erstellen, in Ihrem Tempo."}, "p2u": {"fr": "Code 5 vidéos · ou 12 vidéos pour 12 000 FCFA", "en": "5-video code · or 12 videos for 12 000 FCFA", "es": "Código de 5 vídeos · o 12 vídeos por 12 000 FCFA", "de": "Code für 5 Videos · oder 12 Videos für 12 000 FCFA"}, "p2l": {"fr": "<li>Tout Essai Star</li><li>Multi-plans (mini-clip jusqu’à 15 s)</li><li>Mode Visage stable</li>", "en": "<li>Everything in Essai Star</li><li>Multi-shot (mini-clip up to 15 s)</li><li>Stable face mode</li>", "es": "<li>Todo lo de Essai Star</li><li>Multiplano (miniclip de hasta 15 s)</li><li>Modo Rostro estable</li>", "de": "<li>Alles aus Essai Star</li><li>Mehrfach-Einstellungen (Mini-Clip bis 15 s)</li><li>Modus Stabiles Gesicht</li>"}, "p3t": {"fr": "🏆 Clips par le studio", "en": "🏆 Clips by the studio", "es": "🏆 Clips del estudio", "de": "🏆 Clips vom Studio"}, "p3d": {"fr": "Le studio crée votre clip pour vous.", "en": "The studio creates your clip for you.", "es": "El estudio crea tu clip por ti.", "de": "Das Studio erstellt Ihren Clip für Sie."}, "p3u": {"fr": "Clip Découverte (5 scènes) · Clip Premium 15 scènes : 25 000 FCFA", "en": "Discovery clip (5 scenes) · Premium clip, 15 scenes: 25 000 FCFA", "es": "Clip Descubrimiento (5 escenas) · Clip Premium de 15 escenas: 25 000 FCFA", "de": "Entdeckungs-Clip (5 Szenen) · Premium-Clip mit 15 Szenen: 25 000 FCFA"}, "p3l": {"fr": "<li>Scènes montées par le studio</li><li>Qualité cinéma (Premium)</li><li>Livraison sur WhatsApp</li>", "en": "<li>Scenes edited by the studio</li><li>Cinema quality (Premium)</li><li>Delivery on WhatsApp</li>", "es": "<li>Escenas montadas por el estudio</li><li>Calidad de cine (Premium)</li><li>Entrega por WhatsApp</li>", "de": "<li>Vom Studio geschnittene Szenen</li><li>Kinoqualität (Premium)</li><li>Lieferung per WhatsApp</li>"}, "cmd": {"fr": "Commander", "en": "Order", "es": "Pedir", "de": "Bestellen"}, "c_eye": {"fr": "Prêt à donner vie à vos images ?", "en": "Ready to bring your images to life?", "es": "¿Listo para dar vida a tus imágenes?", "de": "Bereit, Ihre Bilder zum Leben zu erwecken?"}, "c_h2": {"fr": "Votre prochain clip commence avec <span class=\"gradient-text\">une photo.</span>", "en": "Your next clip starts with <span class=\"gradient-text\">a photo.</span>", "es": "Tu próximo clip empieza con <span class=\"gradient-text\">una foto.</span>", "de": "Ihr nächster Clip beginnt mit <span class=\"gradient-text\">einem Foto.</span>"}, "c_p": {"fr": "Ouvrez l’application ou contactez-nous directement sur WhatsApp.", "en": "Open the app or contact us directly on WhatsApp.", "es": "Abre la aplicación o contáctanos directamente por WhatsApp.", "de": "Öffnen Sie die App oder kontaktieren Sie uns direkt per WhatsApp."}, "c_ouvrir": {"fr": "Ouvrir StarClip ↗", "en": "Open StarClip ↗", "es": "Abrir StarClip ↗", "de": "StarClip öffnen ↗"}, "c_wa": {"fr": "Commander sur WhatsApp →", "en": "Order on WhatsApp →", "es": "Pedir por WhatsApp →", "de": "Auf WhatsApp bestellen →"}, "ft_v": {"fr": "v1.7 — clip Ö Bia Tè dans la maquette", "en": "v1.7 — Ö Bia Tè clip in the mockup", "es": "v1.7 — clip Ö Bia Tè en la maqueta", "de": "v1.7 — Clip Ö Bia Tè im Mockup"}, "ft_t": {"fr": "Création vidéo à partir de vos images", "en": "Video creation from your images", "es": "Creación de vídeo a partir de tus imágenes", "de": "Videoerstellung aus Ihren Bildern"}, "vg_retour": {"fr": "← Retour", "en": "← Back", "es": "← Volver", "de": "← Zurück"}, "vg_leger": {"fr": "Léger", "en": "Light", "es": "Ligero", "de": "Leicht"}};
+  var A = {"a_brand": {"fr": "StarClip, accueil", "en": "StarClip, home", "es": "StarClip, inicio", "de": "StarClip, Startseite"}, "a_nav": {"fr": "Navigation principale", "en": "Main navigation", "es": "Navegación principal", "de": "Hauptnavigation"}, "a_card": {"fr": "Illustration de l’interface StarClip", "en": "Illustration of the StarClip interface", "es": "Ilustración de la interfaz de StarClip", "de": "Illustration der StarClip-Oberfläche"}, "a_hero": {"fr": "Voir le clip en entier", "en": "Watch the full clip", "es": "Ver el clip completo", "de": "Den ganzen Clip ansehen"}};
+  var META = {"titre": {"fr": "StarClip — Vos photos prennent vie", "en": "StarClip — Your photos come to life", "es": "StarClip — Tus fotos cobran vida", "de": "StarClip — Ihre Fotos werden lebendig"}, "desc": {"fr": "StarClip transforme vos photos en clips vidéo captivants.", "en": "StarClip turns your photos into captivating video clips.", "es": "StarClip convierte tus fotos en videoclips cautivadores.", "de": "StarClip verwandelt Ihre Fotos in fesselnde Videoclips."}};
+  var ok = function (x) { return LANGUES.indexOf(x) >= 0 ? x : null; };
+  function appliquer(l) {
+    [].forEach.call(document.querySelectorAll("[data-t]"), function (e) { var d = T[e.getAttribute("data-t")]; if (d && d[l] !== undefined && e.innerHTML !== d[l]) e.innerHTML = d[l]; });
+    [].forEach.call(document.querySelectorAll("[data-ta]"), function (e) { var p = e.getAttribute("data-ta").split(":"), d = A[p[1]]; if (d) e.setAttribute(p[0], d[l]); });
+    document.documentElement.lang = l; document.title = META.titre[l];
+    var m = document.querySelector('meta[name="description"]'); if (m) m.setAttribute("content", META.desc[l]);
+    var s = document.getElementById("langue"); if (s) s.value = l;
+  }
+  var l = null;
+  try { l = ok(new URLSearchParams(location.search).get("lang")); } catch (e) {}
+  if (!l) { try { l = ok(localStorage.getItem(CLE)); } catch (e) {} }
+  if (!l) l = ok(String(navigator.language || "fr").slice(0, 2).toLowerCase()) || "fr";
+  appliquer(l);
+  var sel = document.getElementById("langue");
+  if (sel) sel.addEventListener("change", function () { var n = ok(sel.value) || "fr"; try { localStorage.setItem(CLE, n); } catch (e) {} appliquer(n); });
+  window.StarClipVitrine = { langue: function () { return document.documentElement.lang; }, changer: function (n) { n = ok(n) || "fr"; try { localStorage.setItem(CLE, n); } catch (e) {} appliquer(n); } };
 })();
 </script>
 </body>
