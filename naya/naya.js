@@ -1,4 +1,4 @@
-// v41.156 : NAYA, l'assistante StarClip, dans l'application cliente. v41.164 : conversation aussi en espagnol.
+// v41.156 : NAYA, l'assistante StarClip, dans l'application cliente. v41.164 : conversation aussi en espagnol. v41.167 : conseillère commerciale.
 // Tout se passe dans le navigateur : aucun serveur, aucune IA payante, aucun appel réseau autre que le
 // chargement de sa base (le manuel StarClip vérifié, en FR / EN / DE / ES). Les prix sont lus dans l'app elle-même
 // (PM_MOTEURS, onglet 💳 Commander) : Naya n'invente jamais un chiffre. Elle ne lance JAMAIS une génération,
@@ -914,6 +914,222 @@
     return (i > max * 0.5 ? c.slice(0, i) : c.replace(/\s+\S*$/, "")).trim() + " …";
   }
 
+
+  // ───────────── v41.167 : Naya commerciale (chantier 1, étapes 1 à 4) ─────────────
+  // Accueil → besoin → proposition → tarif → objections → commande → confirmation ou transfert au responsable.
+  // Règles : prix lus dans l'app (onglet 💳 Commander) ; aucun prix, délai, remise ni fonction inventés ; aucun envoi
+  // ni clic automatique (les messages WhatsApp sont préparés, c'est le client qui les envoie) ; aucune donnée personnelle
+  // conservée (seul le besoin et le service choisis restent dans la session de l'onglet).
+  var TC = {
+    offre: { fr: "StarClip vous permet de créer vous-même des vidéos et des chansons par IA, ou de confier votre clip à Studio Rudis.\n• Créer vous-même : packs de scènes vidéo{packs} et outils Premium à l'unité.\n• Faire réaliser : Clip Signature{sig}.\n• Essayer : Essai Star{essai}.\nQue voulez-vous créer ?",
+      en: "StarClip lets you create AI videos and songs yourself, or have Studio Rudis make your music video.\n• Create it yourself: video scene packs{packs} and Premium tools paid per use.\n• Have it made: Clip Signature{sig}.\n• Try it: Essai Star{essai}.\nWhat would you like to create?",
+      es: "Con StarClip creas tú mismo vídeos y canciones con IA, o encargas tu videoclip a Studio Rudis.\n• Crearlo tú mismo: packs de escenas de vídeo{packs} y herramientas Premium por unidad.\n• Encargarlo: Clip Signature{sig}.\n• Probar: Essai Star{essai}.\n¿Qué quieres crear?",
+      de: "Mit StarClip erstellen Sie KI-Videos und Songs selbst oder lassen Ihr Musikvideo von Studio Rudis produzieren.\n• Selbst erstellen: Videoszenen-Pakete{packs} und Premium-Werkzeuge pro Nutzung.\n• Produzieren lassen: Clip Signature{sig}.\n• Ausprobieren: Essai Star{essai}.\nWas möchten Sie erstellen?" },
+    des: { fr: " (dès {p})", en: " (from {p})", es: " (desde {p})", de: " (ab {p})" },
+    a_prix: { fr: " ({p})", en: " ({p})", es: " ({p})", de: " ({p})" },
+    b_clip: { fr: "🎬 Un clip pour ma chanson", en: "🎬 A music video for my song", es: "🎬 Un videoclip para mi canción", de: "🎬 Ein Musikvideo für meinen Song" },
+    b_chanson: { fr: "🎵 Créer une chanson", en: "🎵 Create a song", es: "🎵 Crear una canción", de: "🎵 Einen Song erstellen" },
+    b_pub: { fr: "📣 Une vidéo publicitaire", en: "📣 An advertising video", es: "📣 Un vídeo publicitario", de: "📣 Ein Werbevideo" },
+    b_demo: { fr: "🎞️ Voir des exemples", en: "🎞️ See examples", es: "🎞️ Ver ejemplos", de: "🎞️ Beispiele ansehen" },
+    b_mesure: { fr: "🤝 Un projet sur mesure", en: "🤝 A custom project", es: "🤝 Un proyecto a medida", de: "🤝 Ein individuelles Projekt" },
+    clip: { fr: "Pour un clip, deux possibilités :\n• Le créer vous-même avec des scènes vidéo IA, à assembler avec votre chanson : packs{packs}.\n• Le faire réaliser de A à Z par Studio Rudis (scénario, vidéos IA, montage, synchronisation, révisions) : Clip Signature{sig}.\nLaquelle vous convient ?",
+      en: "For a music video, two options:\n• Make it yourself with AI video scenes, assembled with your song: packs{packs}.\n• Have Studio Rudis make it from A to Z (script, AI videos, editing, sync, revisions): Clip Signature{sig}.\nWhich suits you?",
+      es: "Para un videoclip, dos opciones:\n• Crearlo tú mismo con escenas de vídeo IA, para montar con tu canción: packs{packs}.\n• Que lo realice Studio Rudis de la A a la Z (guion, vídeos IA, montaje, sincronización, revisiones): Clip Signature{sig}.\n¿Cuál prefieres?",
+      de: "Für ein Musikvideo gibt es zwei Möglichkeiten:\n• Selbst erstellen mit KI-Videoszenen, die Sie mit Ihrem Song zusammenfügen: Pakete{packs}.\n• Von Studio Rudis von A bis Z produzieren lassen (Drehbuch, KI-Videos, Schnitt, Synchronisierung, Korrekturen): Clip Signature{sig}.\nWas passt zu Ihnen?" },
+    b_moimeme: { fr: "🎟️ Je le crée moi-même", en: "🎟️ I'll make it myself", es: "🎟️ Lo creo yo mismo", de: "🎟️ Ich erstelle es selbst" },
+    b_signature: { fr: "🎬 Clip Signature (devis)", en: "🎬 Clip Signature (quote)", es: "🎬 Clip Signature (presupuesto)", de: "🎬 Clip Signature (Angebot)" },
+    pub: { fr: "Pour une vidéo publicitaire, vous pouvez la créer vous-même avec les outils vidéo de StarClip (photo vers vidéo, Multi-plans, Seedance 2.5…) : le prix s'affiche avant chaque création. StarClip n'affiche pas d'offre publicitaire réalisée par le studio : pour une publicité sur mesure, le responsable vous répond directement.",
+      en: "For an advertising video, you can create it yourself with StarClip's video tools (photo to video, Multi-plans, Seedance 2.5…): the price is shown before each creation. StarClip does not list an advertising offer made by the studio: for a custom ad, the manager will answer you directly.",
+      es: "Para un vídeo publicitario, puedes crearlo tú mismo con las herramientas de vídeo de StarClip (foto a vídeo, Multi-plans, Seedance 2.5…): el precio aparece antes de cada creación. StarClip no muestra una oferta publicitaria realizada por el estudio: para una publicidad a medida, el responsable te responde directamente.",
+      de: "Ein Werbevideo können Sie selbst mit den Videowerkzeugen von StarClip erstellen (Foto zu Video, Multi-plans, Seedance 2.5…): Der Preis wird vor jeder Erstellung angezeigt. StarClip zeigt kein vom Studio produziertes Werbeangebot an: Für Werbung nach Maß antwortet Ihnen der Verantwortliche direkt." },
+    demo: { fr: "Jugez par vous-même : les clips d'exemple de l'Accueil ont été créés avec StarClip. Touchez une vignette : la vidéo s'ouvre en grand, avec le son. Le résultat dépend de votre photo et de votre texte ; pour essayer, il y a l'Essai Star{essai}.",
+      en: "See for yourself: the example clips on the Home tab were made with StarClip. Tap a thumbnail: the video opens full size, with sound. The result depends on your photo and text; to try it, there is Essai Star{essai}.",
+      es: "Compruébalo tú mismo: los clips de ejemplo del Inicio se crearon con StarClip. Toca una miniatura: el vídeo se abre en grande, con sonido. El resultado depende de tu foto y de tu texto; para probar, está el Essai Star{essai}.",
+      de: "Überzeugen Sie sich selbst: Die Beispielclips auf der Startseite wurden mit StarClip erstellt. Tippen Sie auf ein Vorschaubild: Das Video öffnet sich groß, mit Ton. Das Ergebnis hängt von Ihrem Foto und Text ab; zum Ausprobieren gibt es Essai Star{essai}." },
+    b_voir_demo: { fr: "🎞️ Voir les clips d'exemple", en: "🎞️ See the example clips", es: "🎞️ Ver los clips de ejemplo", de: "🎞️ Beispielclips ansehen" },
+    b_essai: { fr: "⭐ Commander l'Essai Star", en: "⭐ Order Essai Star", es: "⭐ Pedir el Essai Star", de: "⭐ Essai Star bestellen" },
+    objection: { fr: "Je comprends. Vous pouvez commencer petit : l'Essai Star coûte{essai_n}, sans abonnement, et vous payez chaque création à l'unité. Rien n'est débité avant que vous lanciez vous-même une création. Pour un budget particulier, le responsable vous répond.",
+      en: "I understand. You can start small: Essai Star costs{essai_n}, with no subscription, and you pay per creation. Nothing is charged before you start a creation yourself. For a specific budget, the manager will answer you.",
+      es: "Lo entiendo. Puedes empezar poco a poco: el Essai Star cuesta{essai_n}, sin suscripción, y pagas cada creación por unidad. No se cobra nada antes de que tú mismo lances una creación. Para un presupuesto especial, el responsable te responde.",
+      de: "Verstehe. Sie können klein anfangen: Essai Star kostet{essai_n}, ohne Abo, und Sie zahlen pro Erstellung. Nichts wird abgebucht, bevor Sie selbst eine Erstellung starten. Für ein besonderes Budget antwortet Ihnen der Verantwortliche." },
+    hesite: { fr: "C'est normal de vouloir être sûr. Quelques repères vérifiables :\n• Les outils Premium ne débitent rien avant que vous lanciez vous-même une création, et le prix s'affiche avant.\n• Pour un pack, vous payez uniquement aux numéros affichés dans l'onglet 💳 Commander, puis vous recevez votre code sur WhatsApp.\n• Vous pouvez regarder nos clips d'exemple et commencer par l'Essai Star{essai}.",
+      en: "It's normal to want to be sure. A few things you can check:\n• Premium tools charge nothing before you start a creation yourself, and the price is shown first.\n• For a pack, you pay only to the numbers shown in the « 💳 Commander » (Order) tab, then receive your code on WhatsApp.\n• You can watch our example clips and start with Essai Star{essai}.",
+      es: "Es normal querer estar seguro. Algunos puntos que puedes comprobar:\n• Las herramientas Premium no cobran nada antes de que tú mismo lances una creación, y el precio aparece antes.\n• Para un pack, pagas solo a los números que aparecen en la pestaña « 💳 Commander » (Pedir) y recibes tu código por WhatsApp.\n• Puedes ver nuestros clips de ejemplo y empezar con el Essai Star{essai}.",
+      de: "Es ist normal, sicher sein zu wollen. Einige überprüfbare Punkte:\n• Premium-Werkzeuge buchen nichts ab, bevor Sie selbst eine Erstellung starten, und der Preis wird vorher angezeigt.\n• Für ein Paket zahlen Sie nur an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern und erhalten Ihren Code per WhatsApp.\n• Sie können unsere Beispielclips ansehen und mit Essai Star{essai} beginnen." },
+    remise: { fr: "Je ne peux accorder aucune remise ni modifier un prix : les tarifs sont ceux affichés dans l'onglet 💳 Commander. Pour un budget particulier ou une commande importante, le responsable vous répond directement.",
+      en: "I can't give any discount or change a price: the prices are those shown in the « 💳 Commander » (Order) tab. For a specific budget or a large order, the manager will answer you directly.",
+      es: "No puedo conceder ningún descuento ni cambiar un precio: los precios son los que aparecen en la pestaña « 💳 Commander » (Pedir). Para un presupuesto especial o un pedido grande, el responsable te responde directamente.",
+      de: "Ich kann keinen Rabatt gewähren und keinen Preis ändern: Es gelten die Preise im Tab « 💳 Commander » (Bestellen). Für ein besonderes Budget oder eine große Bestellung antwortet Ihnen der Verantwortliche direkt." },
+    paye: { fr: "Votre code StarClip arrive sur WhatsApp en quelques minutes, après vérification du paiement. Vérifiez que vous avez bien envoyé la capture de votre paiement sur WhatsApp, et payé uniquement aux numéros affichés dans l'onglet 💳 Commander. Si rien n'arrive, je prépare votre message au responsable.",
+      en: "Your StarClip code arrives on WhatsApp within a few minutes, after the payment is checked. Make sure you sent the screenshot of your payment on WhatsApp, and paid only to the numbers shown in the « 💳 Commander » (Order) tab. If nothing arrives, I'll prepare your message to the manager.",
+      es: "Tu código StarClip llega por WhatsApp en pocos minutos, tras verificar el pago. Comprueba que enviaste la captura de tu pago por WhatsApp y que pagaste solo a los números que aparecen en la pestaña « 💳 Commander » (Pedir). Si no llega nada, preparo tu mensaje al responsable.",
+      de: "Ihr StarClip-Code kommt per WhatsApp innerhalb weniger Minuten, nach Prüfung der Zahlung. Prüfen Sie, ob Sie den Screenshot Ihrer Zahlung per WhatsApp gesendet und nur an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern bezahlt haben. Kommt nichts an, bereite ich Ihre Nachricht an den Verantwortlichen vor." },
+    delai_sig: { fr: "Pour un Clip Signature, le délai est confirmé par Studio Rudis avec le devis : aucun délai n'est garanti avant cette confirmation. Je peux préparer votre demande de devis.",
+      en: "For a Clip Signature, the timing is confirmed by Studio Rudis with the quote: no deadline is guaranteed before that confirmation. I can prepare your quote request.",
+      es: "Para un Clip Signature, el plazo lo confirma Studio Rudis con el presupuesto: no se garantiza ningún plazo antes de esa confirmación. Puedo preparar tu petición de presupuesto.",
+      de: "Beim Clip Signature bestätigt Studio Rudis den Termin mit dem Angebot: Vor dieser Bestätigung ist kein Termin garantiert. Ich kann Ihre Angebotsanfrage vorbereiten." },
+    confid: { fr: "Votre conversation avec moi reste sur votre appareil : je n'enregistre rien. Téléchargez vos résultats rapidement, car certains liens expirent au bout de quelques jours. Pour toute question précise sur le traitement de vos photos et de vos fichiers, le responsable vous répond.",
+      en: "Your conversation with me stays on your device: I don't save anything. Download your results quickly, as some links expire after a few days. For any specific question about how your photos and files are handled, the manager will answer you.",
+      es: "Tu conversación conmigo se queda en tu dispositivo: no guardo nada. Descarga tus resultados pronto, porque algunos enlaces caducan al cabo de unos días. Para cualquier pregunta concreta sobre el tratamiento de tus fotos y archivos, el responsable te responde.",
+      de: "Ihr Gespräch mit mir bleibt auf Ihrem Gerät: Ich speichere nichts. Laden Sie Ihre Ergebnisse schnell herunter, da manche Links nach einigen Tagen ablaufen. Für konkrete Fragen zur Verarbeitung Ihrer Fotos und Dateien antwortet Ihnen der Verantwortliche." },
+    pro: { fr: "Pour un label, une agence, plusieurs artistes ou un projet sur mesure, le responsable vous fait une proposition adaptée. Je prépare votre message ; vous pouvez aussi remplir une demande de devis Clip Signature.",
+      en: "For a label, an agency, several artists or a custom project, the manager will make you a suitable proposal. I'll prepare your message; you can also fill in a Clip Signature quote request.",
+      es: "Para un sello, una agencia, varios artistas o un proyecto a medida, el responsable te hace una propuesta adaptada. Preparo tu mensaje; también puedes rellenar una petición de presupuesto Clip Signature.",
+      de: "Für ein Label, eine Agentur, mehrere Künstler oder ein individuelles Projekt macht Ihnen der Verantwortliche ein passendes Angebot. Ich bereite Ihre Nachricht vor; Sie können auch eine Clip-Signature-Angebotsanfrage ausfüllen." },
+    rappel: { fr: "Je ne peux ni appeler ni rappeler. Écrivez au responsable sur WhatsApp : je prépare le message, c'est vous qui l'envoyez.",
+      en: "I can't call or call back. Write to the manager on WhatsApp: I'll prepare the message, you send it yourself.",
+      es: "No puedo llamar ni devolver llamadas. Escribe al responsable por WhatsApp: preparo el mensaje y tú lo envías.",
+      de: "Ich kann weder anrufen noch zurückrufen. Schreiben Sie dem Verantwortlichen per WhatsApp: Ich bereite die Nachricht vor, Sie senden sie selbst." },
+    reseaux: { fr: "Je n'ai pas de lien Instagram ou TikTok officiel à vous donner dans l'app. Pour joindre l'équipe, le plus simple est WhatsApp : je prépare votre message.",
+      en: "I don't have an official Instagram or TikTok link to give you in the app. To reach the team, WhatsApp is the easiest: I'll prepare your message.",
+      es: "No tengo un enlace oficial de Instagram o TikTok que darte en la app. Para contactar con el equipo, lo más sencillo es WhatsApp: preparo tu mensaje.",
+      de: "Ich habe in der App keinen offiziellen Instagram- oder TikTok-Link für Sie. Am einfachsten erreichen Sie das Team per WhatsApp: Ich bereite Ihre Nachricht vor." },
+    etranger: { fr: "Le paiement se fait par Orange Money ou MTN Mobile Money aux numéros affichés dans l'onglet 💳 Commander. Pour payer depuis l'étranger, le responsable vous indique la solution possible : je prépare votre message.",
+      en: "Payment is made by Orange Money or MTN Mobile Money to the numbers shown in the « 💳 Commander » (Order) tab. To pay from abroad, the manager will tell you the possible solution: I'll prepare your message.",
+      es: "El pago se hace con Orange Money o MTN Mobile Money a los números que aparecen en la pestaña « 💳 Commander » (Pedir). Para pagar desde el extranjero, el responsable te indica la solución posible: preparo tu mensaje.",
+      de: "Bezahlt wird per Orange Money oder MTN Mobile Money an die im Tab « 💳 Commander » (Bestellen) angezeigten Nummern. Für Zahlungen aus dem Ausland nennt Ihnen der Verantwortliche die mögliche Lösung: Ich bereite Ihre Nachricht vor." },
+    humain: { fr: "Bien sûr. Le responsable de Studio Rudis vous répond sur WhatsApp. J'ai préparé un message avec votre demande : touchez le bouton, relisez-le, puis envoyez-le vous-même.",
+      en: "Of course. The Studio Rudis manager will answer you on WhatsApp. I've prepared a message with your request: tap the button, read it, then send it yourself.",
+      es: "Por supuesto. El responsable de Studio Rudis te responde por WhatsApp. He preparado un mensaje con tu solicitud: toca el botón, reléelo y envíalo tú mismo.",
+      de: "Natürlich. Der Verantwortliche von Studio Rudis antwortet Ihnen per WhatsApp. Ich habe eine Nachricht mit Ihrer Anfrage vorbereitet: Tippen Sie auf die Schaltfläche, lesen Sie sie und senden Sie sie selbst." },
+    b_responsable: { fr: "💬 Parler au responsable", en: "💬 Talk to the manager", es: "💬 Hablar con el responsable", de: "💬 Mit dem Verantwortlichen sprechen" },
+    b_copier_msg: { fr: "Copier le message", en: "Copy the message", es: "Copiar el mensaje", de: "Nachricht kopieren" },
+    wa_absent: { fr: "Je ne trouve pas le lien WhatsApp officiel dans l'app : copiez le message et envoyez-le depuis l'onglet 💳 Commander.", en: "I can't find the official WhatsApp link in the app: copy the message and send it from the « 💳 Commander » (Order) tab.", es: "No encuentro el enlace oficial de WhatsApp en la app: copia el mensaje y envíalo desde la pestaña « 💳 Commander » (Pedir).", de: "Ich finde den offiziellen WhatsApp-Link nicht in der App: Kopieren Sie die Nachricht und senden Sie sie über den Tab « 💳 Commander » (Bestellen)." },
+    recap: { fr: "Récapitulatif de votre commande : {ligne}.", en: "Your order summary: {ligne}.", es: "Resumen de tu pedido: {ligne}.", de: "Ihre Bestellübersicht: {ligne}." },
+    cmd_etapes: { fr: "1. J'ouvre l'onglet 💳 Commander et je mets en évidence les numéros Orange Money et MTN Mobile Money.\n2. Envoyez exactement {prix} depuis votre téléphone, uniquement à ces numéros.\n3. Après le paiement, touchez « 📲 Envoyer ma preuve » : le message WhatsApp est prêt avec votre pack ; ajoutez la capture et envoyez-le vous-même.\n4. Votre code arrive sur WhatsApp après vérification du paiement ; tapez-le en haut de l'app.",
+      en: "1. I open the « 💳 Commander » (Order) tab and highlight the Orange Money and MTN Mobile Money numbers.\n2. Send exactly {prix} from your phone, only to these numbers.\n3. After paying, tap « 📲 Send my proof »: the WhatsApp message is ready with your pack; add the screenshot and send it yourself.\n4. Your code arrives on WhatsApp after the payment is checked; enter it at the top of the app.",
+      es: "1. Abro la pestaña « 💳 Commander » (Pedir) y resalto los números de Orange Money y MTN Mobile Money.\n2. Envía exactamente {prix} desde tu teléfono, solo a esos números.\n3. Después de pagar, toca « 📲 Enviar mi comprobante »: el mensaje de WhatsApp está listo con tu pack; añade la captura y envíalo tú mismo.\n4. Tu código llega por WhatsApp tras verificar el pago; escríbelo arriba en la app.",
+      de: "1. Ich öffne den Tab « 💳 Commander » (Bestellen) und hebe die Nummern von Orange Money und MTN Mobile Money hervor.\n2. Senden Sie genau {prix} von Ihrem Telefon, nur an diese Nummern.\n3. Tippen Sie nach der Zahlung auf « 📲 Meinen Nachweis senden »: Die WhatsApp-Nachricht mit Ihrem Paket ist fertig; fügen Sie den Screenshot hinzu und senden Sie sie selbst.\n4. Ihr Code kommt nach Prüfung der Zahlung per WhatsApp; geben Sie ihn oben in der App ein." },
+    cmd_verif: { fr: "À vérifier avant de payer : un pack donne des scènes vidéo séparées, à assembler vous-même avec votre chanson. Pour un clip complet réalisé par le studio, choisissez plutôt le Clip Signature.",
+      en: "Check before paying: a pack gives separate video scenes, to assemble yourself with your song. For a complete music video made by the studio, choose the Clip Signature instead.",
+      es: "Comprueba antes de pagar: un pack da escenas de vídeo separadas, para montar tú mismo con tu canción. Para un videoclip completo realizado por el estudio, elige mejor el Clip Signature.",
+      de: "Vor dem Bezahlen prüfen: Ein Paket enthält einzelne Videoszenen, die Sie selbst mit Ihrem Song zusammenfügen. Für ein komplettes, vom Studio produziertes Musikvideo wählen Sie besser den Clip Signature." },
+    b_ouvrir_paiement: { fr: "💳 Ouvrir Commander (numéros)", en: "💳 Open Order (numbers)", es: "💳 Abrir Pedir (números)", de: "💳 Bestellen öffnen (Nummern)" },
+    b_preuve: { fr: "📲 Envoyer ma preuve (après paiement)", en: "📲 Send my proof (after paying)", es: "📲 Enviar mi comprobante (tras pagar)", de: "📲 Meinen Nachweis senden (nach Zahlung)" }
+  };
+  for (var cleTC in TC) T[cleTC] = TC[cleTC];
+
+  // Profil de la session (besoin et service choisis) : jamais de nom ni de numéro ; effacé à la fermeture de l'onglet.
+  var LS_PROFIL = "starclip_naya_profil";
+  function profil(maj) {
+    var p = {}; try { p = JSON.parse(sessionStorage.getItem(LS_PROFIL) || "{}") || {}; } catch (_) {}
+    if (maj) { for (var x in maj) p[x] = maj[x]; try { sessionStorage.setItem(LS_PROFIL, JSON.stringify(p)); } catch (_) {} }
+    return p;
+  }
+  // Prix lus dans l'onglet Commander (jamais saisis à la main).
+  function montantLigne(l) { var m = String(l).match(/(\d[\d\s  ]*)\s*FCFA/); return m ? Number(m[1].replace(/\D/g, "")) : null; }
+  function prixCommerciaux() {
+    var pk = lignesTarifs("sec-auto9"), sg = lignesTarifs("sec-auto10");
+    var essai = pk.filter(function (l) { return /Essai Star/i.test(l); }).map(montantLigne)[0];
+    var packs = pk.filter(function (l) { return /\bPack\b/.test(l); }).map(montantLigne).filter(Boolean);
+    var sig = sg.map(montantLigne).filter(Boolean);
+    var f = function (cle, n) { return n ? t(cle, { p: fmt(n) }) : ""; };
+    return { essai: f("a_prix", essai), essai_n: essai ? " " + fmt(essai) : "", packs: f("des", packs.length ? Math.min.apply(null, packs) : null), sig: f("des", sig.length ? Math.min.apply(null, sig) : null), lignesPacks: pk, lignesSig: sg };
+  }
+  // Packs de l'onglet Commander : nom (« Essai Star », « Pack Pro Plus »…), ligne affichée, montant.
+  function packsCommander() {
+    return lignesTarifs("sec-auto9").map(function (l) {
+      var nom = l.split(" — ")[0].replace(/^[^A-Za-zÀ-ÿ]+/, "").trim();
+      return { nom: nom, cle: " " + plier(nom).replace(/[^a-z0-9]+/g, " ").trim() + " ", ligne: l, prix: montantLigne(l) };
+    }).filter(function (p) { return p.prix; }).sort(function (a, b) { return b.cle.length - a.cle.length; });
+  }
+  // Message WhatsApp préparé pour le responsable (en français, langue du studio) : le client le relit et l'envoie lui-même.
+  function messageResponsable(sujet, q) {
+    var p = profil();
+    return ["Bonjour Studio Rudis, message préparé avec Naya (StarClip).", "Sujet : " + sujet,
+      p.besoin ? "Besoin : " + p.besoin : "", p.service ? "Service envisagé : " + p.service : "",
+      q ? "Ma question : « " + String(q).slice(0, 300) + " »" : "", "Langue de réponse souhaitée : " + NOM_LG[etat.lg]].filter(Boolean).join("\n");
+  }
+  function actionsWhatsApp(texte, libelle) {
+    var wa = lienWhatsApp(), act = [];
+    if (wa) act.push({ lib: libelle || t("b_responsable"), fn: function () { window.open(wa + "?text=" + encodeURIComponent(texte), "_blank", "noopener"); }, classe: "naya-wa" });
+    act.push({ lib: t("b_copier_msg"), fn: function (b) { copier(texte, b); } });
+    return act;
+  }
+  var SUJETS = { humain: "parler à un responsable", rappel: "demande de rappel", reseaux: "réseaux sociaux de StarClip", remise: "remise / budget particulier",
+    etranger: "paiement depuis l'étranger", paye: "paiement effectué, code non reçu", confid: "confidentialité des fichiers", pro: "projet professionnel ou sur mesure",
+    pub: "vidéo publicitaire sur mesure", delai: "délai d'un Clip Signature", objection: "budget" };
+  function transfert(raison, q, r, texte, extra) {
+    var msg = messageResponsable(SUJETS[raison] || raison, q);
+    var o = { intention: "transfert", raison: raison };
+    for (var x in extra || {}) o[x] = extra[x];
+    return r((texte || t("humain")) + (lienWhatsApp() ? "" : "\n" + t("wa_absent")), actionsWhatsApp(msg), o);
+  }
+  function actionDemo() { return { lib: t("b_voir_demo"), fn: function () { if (ouvrirOnglet("accueil")) setTimeout(function () { surligner("#sec-auto1"); }, 150); } }; }
+  function actionEssai() { return { lib: t("b_essai"), fn: function () { envoyer(t("b_essai").replace(/^\S+\s/, "")); } }; }
+  function actionDevis() { return { lib: t("b_signature"), fn: function () { profil({ service: "Clip Signature" }); ajouter("naya", { texte: t("dev_intro"), formulaire: true, intention: "devis" }); } }; }
+
+  // Reconnaissance (texte sans accents, mots séparés par des espaces).
+  var COM = {
+    humain: / (un humain|un etre humain|une vraie personne|une personne reelle|un conseiller|une conseillere|le responsable|au responsable|un responsable|le directeur|au directeur|quelqu un de (l equipe|chez vous|starclip)|parler a quelqu un|a human|a real person|real human|a person|talk to someone|speak to someone|speak with someone|talk with someone|the manager|customer service|an agent|a live agent|una persona|un humano|una persona real|el responsable|alguien del equipo|hablar con alguien|un agente|einem menschen|einen menschen|mit jemandem|mitarbeiter|mitarbeiterin|verantwortlichen|kundenservice) /,
+    paye: / (j ai paye|j ai deja paye|deja paye|j ai fait le paiement|j ai envoye l argent|paiement (fait|effectue|envoye)|i (have )?paid|already paid|i ve paid|i sent the money|ya pague|he pagado|ya he pagado|ich habe (bezahlt|gezahlt|uberwiesen)|schon bezahlt|bereits bezahlt) /,
+    rappel: / (rappelez|rappelle moi|rappeler|appelez moi|appelle moi|m appeler|call me|call me back|ring me|phone me|llamame|llamadme|me llamen|ruf mich an|rufen sie mich|zuruckrufen|ruf mich zuruck|rufen sie mich zuruck) /,
+    reseaux: / ((avez vous|etes vous|vous etes|are you|do you have|tienen|estan en|teneis|seid ihr|sind sie|habt ihr) .*(instagram|tiktok|facebook|reseaux sociaux|social media|redes sociales|sozialen medien|soziale medien|sozialen netzwerken)|(starclip|naya|studio rudis) (est |is |esta |ist )?(on|sur|en|auf) (instagram|tiktok|facebook)|(instagram|tiktok|facebook) (de|of|von) (starclip|studio rudis|naya)) /,
+    remise: / (remise|reduction|reductions|rabais|ristourne|code promo|negocier|negociation|prix special|tarif special|discount|discounts|coupon|promo code|special price|negotiate|descuento|descuentos|rebaja|cupon|precio especial|negociar|rabatt|nachlass|gutschein|sonderpreis|verhandeln) /,
+    etranger: / (depuis l etranger|de l etranger|a l etranger|depuis (la france|la belgique|l europe|l allemagne|les usa|les etats unis|le canada|la suisse|le royaume uni)|from abroad|from outside cameroon|outside cameroon|from (france|europe|germany|the us|the usa|the uk|canada|belgium)|desde el extranjero|desde (francia|espana|europa|alemania|estados unidos)|aus dem ausland|aus (deutschland|frankreich|europa|der schweiz|osterreich)) /,
+    confid: / (confidentialite|confidentiality|confidencialidad|vertraulichkeit|datenschutz|privacy|privacidad|vie privee|mes donnees|my data|mis datos|meine daten|qui (voit|peut voir) mes|who (can )?sees? my|quien (ve|puede ver) mis|wer sieht meine|((photos?|fichiers?|images?|videos?|donnees|files?|data|fotos?|archivos?|datos|dateien|daten|bilder) .*(prive|privee|prives|privees|private|privado|privada|privados|privadas|privat|confidentiel\w*|confidential|confidencial\w*|vertraulich|securite|safe|seguros?|sicher))|((prive|privee|private|privado|privada|privat|confidentiel\w*|confidential|confidencial\w*|vertraulich) .*(photos?|fichiers?|images?|videos?|donnees|files?|data|fotos?|archivos?|datos|dateien|daten|bilder))) /,
+    delai: / (delai|delais|turnaround|delivery time|lead time|plazo|plazos|lieferzeit|bearbeitungszeit|((combien de temps|en combien de temps|how long|how much time|cuanto (tarda|tiempo)|cuanto se tarda|wie lange|wann) .*(clip signature|signature|studio rudis|le studio|the studio|el estudio|das studio|livr|deliver|entreg|liefer|recevoir mon clip|my video ready|fertig))) /,
+    pro: / (label|labels|maison de disques?|record label|sello|sello discografico|plattenlabel|agence|agency|agencia|agentur|plusieurs artistes|several artists|many artists|varios artistas|mehrere kunstler|\d+ (artistes|artists|artistas|kunstler|kunstlern)|sur mesure|custom project|bespoke|a medida|personalizado|massgeschneidert|individuelles projekt|projet personnalise) /,
+    offre: / (que proposez vous|qu est ce que vous (proposez|faites|vendez)|que faites vous|vos services|vos offres|c est quoi starclip|qu est ce que starclip|what do you offer|what do you (do|sell)|your services|what is starclip|what s starclip|que ofrecen|que ofreces|que ofreceis|que es starclip|sus servicios|vuestros servicios|was bieten sie|was bietet ihr|was ist starclip|ihre (dienste|leistungen|angebote)|was macht ihr) /,
+    pub: / (publicite|publicites|publicitaire|pub|spot publicitaire|annonce publicitaire|video promo|advert|advertising|advertisement|an ad|ads|commercial video|promo video|promotional video|anuncio|anuncios|publicidad|publicitario|spot|werbung|werbespot|werbevideo|reklame) /,
+    demo: / ((montre|montrez|show|muestra|muestrame|ensename|zeig|zeigen)\w* (moi |me |mir |uns )?(des |some |your |vos |unos |tus |sus |ein |ihre |eure )?(exemples?|examples?|ejemplos?|beispiel\w*|realisations?|demos?|clips?|videos?)|(voir|see|ver|sehen|anschauen) (des |some |unos |vos |your |ihre )?(exemples?|examples?|ejemplos?|beispiel\w*|realisations?|demos?)|(exemples?|examples?|ejemplos?|beispiel\w*) (de |of |von )?(clips?|videos?|realisations?|musikvideos?)|beispielvideos?|beispielclips?|vos realisations|your work|portfolio|(de bonne|bonne|good|buena|gute) (qualite|quality|calidad|qualitat)|(qualite|quality|calidad|qualitat) (des|of|de|der) (clips|videos|realisations|resultats|results|resultados|ergebnisse)) /,
+    hesite: / (j hesite|je ne suis pas (sur|sure|convaincu|convaincue)|pas sur de payer|est ce (fiable|serieux|une arnaque)|arnaque|faire confiance|i m not sure|not sure if|hesitant|is it (safe|legit|reliable|a scam)|scam|can i trust|dudo|no estoy seguro|no estoy segura|es (fiable|seguro|una estafa)|estafa|puedo confiar|zogere|bin mir nicht sicher|ist das (serios|sicher|betrug)|betrug|vertrauen) /,
+    objection: / (trop cher|c est cher|tres cher|cher pour moi|pas les moyens|hors de (mon )?budget|too expensive|so expensive|very expensive|it s expensive|expensive|can t afford|cannot afford|too much money|demasiado caro|muy caro|es caro|no puedo pagar|no me alcanza|zu teuer|sehr teuer|ist teuer|kann mir das nicht leisten|nicht leisten) /,
+    clip: / (clip|clips|videoclip|videoclips|music video|music videos|musikvideo|musikvideos|video musical|video clip) /,
+    commander: / (commander|commande|acheter|achete|prendre|prends|prend|veux|voudrais|choisis|choisir|payer|combien|order|buy|take|want|get|choose|pay|how much|price|pedir|comprar|quiero|quisiera|tomo|elijo|pagar|cuanto|precio|bestellen|kaufen|nehme|mochte|will|wahle|bezahlen|kostet|preis) /
+  };
+  function texteNorm(q) { return " " + plier(q).replace(/['’`]/g, " ").replace(/star[\s.-]*cl[iy]p+e?s?(?![a-z])/g, "starclip").replace(/[^a-z0-9]+/g, " ").trim() + " "; }
+
+  // 1er passage : demandes à transférer et réponses d'assistance (avant l'argumentaire et le devis).
+  function commercialAvant(q, k, r) {
+    var n = texteNorm(q);
+    if (COM.humain.test(n)) return transfert("humain", q, r);
+    if (COM.paye.test(n)) return transfert("paye", q, r, t("paye"), { intention: "paiement_fait" });
+    if (COM.rappel.test(n)) return transfert("rappel", q, r, t("rappel"));
+    if (COM.reseaux.test(n)) return transfert("reseaux", q, r, t("reseaux"));
+    if (COM.remise.test(n)) return transfert("remise", q, r, t("remise"), { intention: "remise" });
+    if (COM.etranger.test(n)) return transfert("etranger", q, r, t("etranger"));
+    if (COM.confid.test(n)) return transfert("confid", q, r, t("confid"), { intention: "confidentialite" });
+    if (COM.delai.test(n) && !/ (depasse|expire|timeout) /.test(n)) { profil({ service: "Clip Signature" }); var o = transfert("delai", q, r, t("delai_sig"), { intention: "delai" }); o.actions.unshift(actionDevis()); return o; }
+    if (COM.pro.test(n)) { var p0 = transfert("pro", q, r, t("pro"), { intention: "pro" }); p0.actions.push(actionDevis()); return p0; }
+    return null;
+  }
+  // 2e passage (après l'argumentaire et le devis) : commande d'un pack, présentation, démonstration, objections, clip.
+  function commercialApres(q, k, r) {
+    var n = texteNorm(q), P = prixCommerciaux();
+    var pack = COM.commander.test(n) && packsCommander().filter(function (p) { return n.indexOf(p.cle) >= 0; })[0];
+    if (pack) return reponseCommande(pack, r);
+    if (COM.offre.test(n)) return r(t("offre", P), [opt2("b_clip"), opt2("b_chanson"), opt2("b_pub"), actionDemo(), opt2("b_mesure")], { intention: "offre" });
+    if (COM.demo.test(n) && !/ prompt/.test(n)) return r(t("demo", P), [actionDemo(), actionEssai()], { intention: "demo" });
+    if (COM.pub.test(n)) { profil({ besoin: "vidéo publicitaire" }); var pb = transfert("pub", q, r, t("pub"), { intention: "publicite" }); pb.actions.unshift({ lib: t("ouvrir_x", { x: nomApp(ongletLib("scenario")) }), fn: function () { ouvrirOnglet("scenario"); } }); return pb; }
+    if (COM.hesite.test(n)) return r(t("hesite", P), [actionDemo(), actionEssai(), { lib: t("b_responsable"), fn: function () { ajouter("naya", transfert("humain", q, rAjout)); } }], { intention: "hesitation" });
+    if (COM.objection.test(n)) return r(t("objection", P), [actionEssai(), actionDemo(), { lib: t("b_responsable"), fn: function () { ajouter("naya", transfert("objection", q, rAjout)); } }], { intention: "objection_prix" });
+    var nn = normaliser(q);
+    // Le client nomme un onglet (« Scénario du clip », « Guion del clip »…) : c'est une question d'utilisation, pas une demande de clip.
+    var ongletNomme = NOMS_CHAP.some(function (c) { return c[0].test(nn.replace(/-/g, " ")); });
+    if (COM.clip.test(n) && !ongletNomme && !DEMANDE_GUIDE.test(nn) && !/ (mini clip|multi|lip sync|lipsync) /.test(n) && !I.erreur.test(q)) {
+      profil({ besoin: "clip pour une chanson" });
+      var txt = t("clip", P);
+      if (I.prix.test(q) || COM.commander.test(n) && /(combien|how much|price|cuanto|precio|kostet|preis)/.test(n)) {
+        txt += "\n\n" + t("packs") + " :\n" + P.lignesPacks.map(function (x) { return "• " + tarifLg(x); }).join("\n") + "\n\n" + t("signature") + " :\n" + P.lignesSig.map(function (x) { return "• " + tarifLg(x); }).join("\n");
+      }
+      return r(txt, [{ lib: t("b_moimeme"), fn: function () { profil({ service: "pack de scènes" }); ouvrirOnglet("commander"); setTimeout(function () { surligner("#sec-auto9"); }, 150); } }, actionDevis(), actionDemo()], { intention: "clip" });
+    }
+    return null;
+  }
+  function rAjout(texte, actions, extra) { var o = { texte: propre(texte), actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; }
+  function opt2(cle) { return { lib: t(cle), fn: function () { envoyer(t(cle).replace(/^\S+\s/, "")); } }; }
+  // Commande d'un pack : récapitulatif, numéros mis en évidence, message de preuve préparé (envoyé par le client).
+  function reponseCommande(pack, r) {
+    profil({ service: pack.nom });
+    var prix = fmt(pack.prix), ligne = tarifLg(pack.ligne);
+    var preuve = "Bonjour Studio Rudis ! Je viens de payer " + pack.ligne + " — voici ma preuve. Je veux mon CODE StarClip ! (commande préparée avec Naya)";
+    var wa = lienWhatsApp(), act = [{ lib: t("b_ouvrir_paiement"), fn: function () { if (ouvrirOnglet("commander")) setTimeout(function () { surligner("#omNum", true); }, 150); } }];
+    if (wa) act.push({ lib: t("b_preuve"), fn: function () { window.open(wa + "?text=" + encodeURIComponent(preuve), "_blank", "noopener"); }, classe: "naya-wa" });
+    act.push({ lib: t("b_copier_msg"), fn: function (b) { copier(preuve, b); } });
+    return r(t("recap", { ligne: ligne }) + "\n\n" + t("cmd_etapes", { prix: prix }) + "\n\n" + t("cmd_verif") + "\n" + (wa ? "" : t("wa_absent")), act, { intention: "commande", pack: pack.nom, prix: pack.prix, message: preuve });
+  }
+
   // Chaque réponse : { texte, actions: [{lib, fn}], html? }. Aucune action ne lance une génération ni n'envoie rien.
   function repondre(q, k) {
     var r = function (texte, actions, extra) { var o = { texte: propre(texte), actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; };
@@ -939,12 +1155,16 @@
       var c = verifierPrompt(txt, o);
       return r(t("verif_titre") + " :\n" + (c.length ? c.map(function (x) { return "• " + x; }).join("\n") : t("verif_bon")), [], { intention: "verifier", conseils: c.length });
     }
+    // v41.167 : transfert au responsable (humain, remise, rappel, paiement…), confidentialité, délais, professionnels.
+    var com1 = commercialAvant(q, k, r); if (com1) return com1;
     if (POURQUOI.test(normaliser(q)) && k.sections.some(function (x) { return x.c === "pourquoi"; })) return reponsePourquoi(k, q, r);
     if (I.deleguer.test(q)) {
       // v41.166 : « combien coûte un Clip Signature ? » → les prix affichés dans l'onglet Commander, puis la demande de devis.
       var sg0 = I.prix.test(q) ? lignesTarifs("sec-auto10").map(function (x) { return "• " + tarifLg(x); }) : [];
       return r((sg0.length ? t("signature") + " :\n" + sg0.join("\n") + "\n\n" : "") + t("dev_intro"), [], { intention: "devis", formulaire: true });
     }
+    // v41.167 : commande d'un pack nommé, présentation de l'offre, démonstrations, objections, clip pour une chanson.
+    var com2 = commercialApres(q, k, r); if (com2) return com2;
     // v41.160 : « accompagne-moi », « ma première chanson », « step by step »… → réponse, puis proposition du guide interactif.
     var pg = !guide && parcoursDe(intentionDe(q).id, q);
     if (pg) return proposerGuide(pg, r, pg === "chanson" ? reponseChanson(k, r) : pg === "video" ? reponseVideo(k, r) : reponseAchat(k, r));
