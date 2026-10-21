@@ -45,6 +45,7 @@
     q_payer: { fr: "Comment payer ?", en: "How do I pay?", de: "Wie bezahle ich?", es: "¿Cómo pago?" },
     capacites: { fr: "Voici ce que je fais pour toi :\n• expliquer chaque onglet et chaque moteur (vidéo, chanson, lip-sync, stems…) ;\n• te proposer des prompts par genre musical et vérifier les tiens ;\n• te donner les prix exacts affichés dans l'app, avant que tu lances ;\n• préparer ta demande de devis pour un clip réalisé par Studio Rudis.\nJe ne lance aucune génération et je ne touche jamais à ton solde.", en: "Here is what I do for you:\n• explain every tab and every engine (video, song, lip-sync, stems…);\n• suggest prompts by music genre and check yours;\n• give you the exact prices shown in the app, before you start;\n• prepare your quote request for a video made by Studio Rudis.\nI never start a generation and never touch your balance.", de: "Das mache ich für Sie:\n• jeden Tab und jedes Modell erklären (Video, Song, Lip-Sync, Stems…);\n• Prompts nach Musikgenre vorschlagen und Ihre prüfen;\n• die genauen Preise aus der App nennen, bevor Sie starten;\n• Ihre Angebotsanfrage für ein Video von Studio Rudis vorbereiten.\nIch starte keine Generierung und verändere nie Ihr Guthaben.", es: "Esto es lo que hago por ti:\n• explicarte cada pestaña y cada motor (vídeo, canción, lip-sync, stems…);\n• proponerte prompts por género musical y revisar los tuyos;\n• darte los precios exactos que muestra la app, antes de que lances;\n• preparar tu petición de presupuesto para un videoclip realizado por Studio Rudis.\nNo lanzo ninguna generación y nunca toco tu saldo." },
     admin: { fr: "Je ne peux pas t'aider sur ce point : cette partie est réservée au studio, et je ne donne jamais d'accès, de code ni de détail technique. Si tu as besoin d'une fonction Studio, Studio Rudis peut réaliser ton projet.", en: "I can't help with that: this part is reserved for the studio, and I never give access, codes or technical details. If you need a Studio feature, Studio Rudis can produce your project.", de: "Dabei kann ich nicht helfen: Dieser Bereich ist dem Studio vorbehalten, und ich gebe niemals Zugänge, Codes oder technische Details weiter. Wenn Sie eine Studio-Funktion brauchen, kann Studio Rudis Ihr Projekt umsetzen.", es: "No puedo ayudarte con eso: esta parte está reservada al estudio, y nunca doy accesos, códigos ni detalles técnicos. Si necesitas una función Studio, Studio Rudis puede realizar tu proyecto." },
+    base_ko: { fr: "Ma connexion est lente en ce moment et je n'ai pas pu charger tout le guide StarClip. Dites-moi ce que vous cherchez ; pour acheter un code, touchez « 💳 Acheter un code ».", en: "My connection is slow right now and I couldn't load the full StarClip guide. Tell me what you're looking for; to buy a code, tap « 💳 Buy a code ».", es: "Mi conexión va lenta ahora y no he podido cargar toda la guía de StarClip. Dime qué buscas; para comprar un código, toca « 💳 Comprar un código ».", de: "Meine Verbindung ist gerade langsam, ich konnte nicht die ganze StarClip-Anleitung laden. Sagen Sie mir, was Sie suchen; um einen Code zu kaufen, tippen Sie auf « 💳 Einen Code kaufen »." },
     inconnu: { fr: "Je ne trouve pas cette fonction dans le manuel StarClip, et je préfère ne pas inventer. Dis-moi ce que tu veux obtenir (vidéo, chanson, photo…) et je te montre l'outil qui s'en rapproche le plus ; sinon, l'équipe te répond sur WhatsApp.", en: "I can't find this feature in the StarClip manual, and I'd rather not make anything up. Tell me what you want to achieve (video, song, photo…) and I'll show you the closest tool; otherwise, the team will answer you on WhatsApp.", de: "Ich finde diese Funktion nicht im StarClip-Handbuch und möchte nichts erfinden. Sagen Sie mir, was Sie erreichen möchten (Video, Song, Foto…), und ich zeige Ihnen das passendste Werkzeug; andernfalls antwortet Ihnen das Team per WhatsApp.", es: "No encuentro esta función en el manual de StarClip, y prefiero no inventar. Dime qué quieres conseguir (vídeo, canción, foto…) y te muestro la herramienta más cercana; si no, el equipo te responde por WhatsApp." },
     manuel: { fr: "D'après le manuel", en: "According to the manual", de: "Laut Handbuch", es: "Según el manual" },
     pasapas: { fr: "Pas à pas", en: "Step by step", de: "Schritt für Schritt", es: "Paso a paso" },
@@ -218,7 +219,7 @@
       s.src = dossier + "naya-kb-" + lg + ".js" + version;
       s.onload = function () {
         var k = window.NAYA_KB && window.NAYA_KB[lg];
-        if (!k) return ko(new Error("base absente"));
+        if (!k) { chargements[lg] = null; return ko(new Error("base absente")); }
         k.docs = k.sections.map(function (x) { var c = plier(x.x); return { s: x, corps: c, titre: plier(x.t), plein: plier(x.t + " " + x.x), long: mots(x.x).length || 1 }; });
         k.moy = k.docs.reduce(function (a, d) { return a + d.long; }, 0) / k.docs.length;
         KB[lg] = k; ok(k);
@@ -1571,9 +1572,22 @@
     var lg = detecterLangue(q), note = "";
     if (BIENTOT[lg]) { ajouter("naya", { texte: PAS_ENCORE[lg].replace("{l}", NOM_LG[etat.lg]), intention: "langue_non_prise_en_charge" }); return; }
     else if (lg !== etat.lg && ACTIVES.indexOf(lg) >= 0) { changerLangue(lg); note = t("langue_auto") + "\n\n"; }
-    chargerKB(etat.lg).then(function (k) {
-      var rep = repondre(q, k); rep.texte = note + rep.texte; ajouter("naya", rep);
-    }, function () { ajouter("naya", { texte: note + t("inconnu") }); });
+    chargerKB(etat.lg).then(function (k) { repondreEtAfficher(q, k, note, false); },
+      function () {
+        // v41.168 : base indisponible (connexion lente ou coupée) → réponse sans le manuel (offres, prix lus dans l'app,
+        // Commander, transfert au responsable), puis nouvel essai de chargement en arrière-plan.
+        repondreEtAfficher(q, baseVide(), note, true);
+        setTimeout(function () { chargerKB(etat.lg).catch(function () {}); }, 2000);
+      });
+  }
+  function baseVide() { return { langue: etat.lg, sections: [], docs: [], moy: 1, absentes: [], outils: [], erreurs: [] }; }
+  function repondreEtAfficher(q, k, note, sansBase) {
+    var rep;
+    try { rep = repondre(q, k); } catch (_) { rep = null; }
+    if (!rep || (sansBase && rep.intention === "clarification")) {
+      rep = { texte: t(sansBase ? "base_ko" : "clarif"), actions: OPTIONS.map(option), intention: "clarification" };
+    }
+    rep.texte = note + rep.texte; ajouter("naya", rep);
   }
 
   function demarrer() {
@@ -1582,6 +1596,14 @@
     // v41.162 : le cadre de Naya suit la langue de l'interface StarClip en direct (attribut lang de la page, ou
     // événement « starclip:langue » si un sélecteur de langue global est ajouté), sans rechargement.
     try { new MutationObserver(function () { libelles(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] }); } catch (_) {}
+    // v41.168 : base préchargée après l'affichage de l'app, pour répondre sans attente même sur un réseau lent.
+    setTimeout(function () { chargerKB(etat.lg).catch(function () {}); }, 2500);
+    // v41.168 : un choix fait par le client dans le sélecteur 🌐 de l'app vaut aussi pour Naya (choix explicite, mémorisé).
+    // Le simple chargement de la page n'impose rien : seul le geste du client compte.
+    document.addEventListener("change", function (ev) {
+      var s0 = ev.target; if (!s0 || !s0.closest || !s0.closest(".sc-langue")) return;
+      if (ACTIVES.indexOf(s0.value) >= 0 && s0.value !== etat.lg) changerLangue(s0.value, true);
+    });
     window.addEventListener("starclip:langue", function (ev) { if (ev && ev.detail) document.documentElement.setAttribute("lang", String(ev.detail)); libelles(); });
     // Point d'accès pour les tests automatiques et pour l'aide contextuelle des autres onglets.
     window.Naya = { ouvrir: function () { basculer(true); }, fermer: function () { basculer(false); }, demander: function (q) { basculer(true); envoyer(q); },
