@@ -121,6 +121,14 @@
     ici_intro: { fr: "Dans cet onglet ({o}) :", en: "In this tab ({o}):", de: "In diesem Tab ({o}):", es: "En esta pestaña ({o}):" },
     clarif: { fr: "Avec plaisir ! Pour te répondre précisément, dis-moi ce que tu cherches :", en: "Happy to help! To answer precisely, tell me what you are looking for:", de: "Gern helfe ich Ihnen! Damit ich genau antworten kann: Was suchen Sie?", es: "¡Con mucho gusto! Para responderte con precisión, dime qué buscas:" },
     clarif_flou: { fr: "Je ne suis pas sûre d'avoir bien compris. Tu cherches plutôt :", en: "I'm not sure I understood. Are you looking for:", de: "Ich bin nicht sicher, ob ich Sie richtig verstanden habe. Suchen Sie eher:", es: "No estoy segura de haberte entendido. ¿Buscas más bien:" },
+    clarif_suite: { fr: "Tu veux continuer quoi ? Choisis un sujet ci-dessous, ou dis-moi en une phrase ce que tu veux faire :", en: "What would you like to continue? Pick a topic below, or tell me in one sentence what you want to do:", de: "Was möchten Sie fortsetzen? Wählen Sie unten ein Thema oder sagen Sie mir in einem Satz, was Sie vorhaben:", es: "¿Qué quieres continuar? Elige un tema abajo o dime en una frase qué quieres hacer:" },
+    clarif_oui: { fr: "Je veux être sûre de bien t'aider : dis-moi en une phrase ce que tu veux faire, ou choisis un sujet :", en: "I want to be sure I help you properly: tell me in one sentence what you want to do, or pick a topic:", de: "Ich möchte sicher sein, dass ich Ihnen richtig helfe: Sagen Sie mir in einem Satz, was Sie vorhaben, oder wählen Sie ein Thema:", es: "Quiero asegurarme de ayudarte bien: dime en una frase qué quieres hacer o elige un tema:" },
+    pas_de_guide: { fr: "Aucun guide n'est en cours. Dis-moi ce que tu veux faire, ou choisis un sujet :", en: "No guide is running. Tell me what you want to do, or pick a topic:", de: "Es läuft kein Guide. Sagen Sie mir, was Sie vorhaben, oder wählen Sie ein Thema:", es: "No hay ninguna guía en curso. Dime qué quieres hacer o elige un tema:" },
+    dep_intro: { fr: "Je suis là pour t'aider à comprendre. Dis-moi ce qui se passe :", en: "I'm here to help you understand. Tell me what is happening:", de: "Ich helfe Ihnen gern, das zu verstehen. Was passiert genau?", es: "Estoy aquí para ayudarte a entenderlo. Dime qué pasa:" },
+    dep_refus: { fr: "⛔ Un message de refus s'affiche", en: "⛔ A refusal message appears", de: "⛔ Eine Ablehnung wird angezeigt", es: "⛔ Aparece un mensaje de rechazo" },
+    dep_fige: { fr: "🔄 L'app reste figée ou rien ne se lance", en: "🔄 The app is frozen or nothing starts", de: "🔄 Die App hängt oder nichts startet", es: "🔄 La app se queda congelada o no arranca nada" },
+    dep_echec: { fr: "❌ La génération a échoué", en: "❌ The generation failed", de: "❌ Die Erzeugung ist fehlgeschlagen", es: "❌ La generación falló" },
+    dep_visage: { fr: "🙂 Le résultat ne me plaît pas (visage différent)", en: "🙂 I don't like the result (different face)", de: "🙂 Das Ergebnis gefällt mir nicht (anderes Gesicht)", es: "🙂 No me gusta el resultado (cara distinta)" },
     op_debuter: { fr: "🚀 Débuter avec StarClip", en: "🚀 Get started with StarClip", de: "🚀 Erste Schritte mit StarClip", es: "🚀 Empezar con StarClip" },
     op_video: { fr: "🎬 Créer une vidéo", en: "🎬 Create a video", de: "🎬 Ein Video erstellen", es: "🎬 Crear un vídeo" },
     op_chanson: { fr: "🎵 Créer une chanson", en: "🎵 Create a song", de: "🎵 Einen Song erstellen", es: "🎵 Crear una canción" },
@@ -455,7 +463,7 @@
     prix: /(prix|co[uû]t|combien|tarif|price|cost|how much|kostet|kosten|preis|precio|cu[aá]nto|cuesta|coste)/i,
     verifier: /^(v[ée]rifie|corrige|check|pr[üu]fe?|revisa|comprueba)\s*:?\s*/i,
     prompt: /(prompt|[ée]crire|r[ée]diger|d[ée]crire|exemple|example|beispiel|write|describe|schreiben|beschreiben|escribir|redactar|describir|ejemplo)/i,
-    erreur: /(erreur|error|refus|refused|marche pas|bloqu|[ée]chou|failed|ne fonctionne|doesn.t work|fehler|abgelehnt|funktioniert nicht|rechaz|no funciona|fall[oó]|falla)/i
+    erreur: /(erreur|error|refus|refused|marche pas|bloqu|[ée]chou|failed|ne fonctionne|doesn.t work|fehler|abgelehnt|funktioniert nicht|rechaz|no funciona|fall[oó]|falla|ne (d[ée]marre|commence|se lance|s.ouvre|charge|r[ée]pond)\w*( \w+)? (pas|plus)\b|n.arrive(nt)? (pas|plus)|impossible de (lancer|commencer|d[ée]marrer)|(est|reste|devient) (tr[èe]s |trop |super )?lente?\b|trop lente?\b|met (trop |beaucoup )?longtemps|prend (trop|beaucoup) de temps|(won.?t|doesn.?t|does not|isn.?t|is not|didn.?t|can.?t|cannot) .{0,25}(start|work|load|open|launch|starting|working|loading)|(is|are|so|very|too|really) slow\b|takes? (too )?long|taking (too )?long|startet .{0,25}nicht|klappt nicht|h[äa]ngt\b|(ist|so|sehr|zu) langsam|dauert (zu |sehr )?lange|kann nicht (starten|beginnen|[öo]ffnen|anfangen)|no (arranca|empieza|carga|abre)\b|no puedo (empezar|iniciar|lanzar|abrir)|(est[áa]|muy|demasiado|tan) lent[oa]|tarda (mucho|demasiado))/i
   };
 
 
@@ -622,6 +630,7 @@
     verif_manu: { fr: "Je ne peux pas vérifier cette étape moi-même : dis « suivant » quand c'est fait.", en: "I can't check this step myself: say « next » when it's done.", de: "Diesen Schritt kann ich nicht selbst prüfen: Sagen Sie « weiter », wenn er erledigt ist.", es: "No puedo comprobar este paso yo misma: di « siguiente » cuando esté hecho." },
     bravo: { fr: "✓ Parfait, c'est fait !", en: "✓ Great, that's done!", de: "✓ Perfekt, erledigt!", es: "✓ ¡Perfecto, hecho!" },
     pas_encore: { fr: "Je ne vois pas encore cette étape terminée dans l'app. Prends ton temps ; si tu veux continuer quand même, dis « passe cette étape ».", en: "I don't see this step completed in the app yet. Take your time; to continue anyway, say « skip this step ».", de: "Ich sehe diesen Schritt in der App noch nicht als erledigt. Lassen Sie sich Zeit; um trotzdem weiterzumachen, sagen Sie « Schritt überspringen ».", es: "Todavía no veo este paso terminado en la app. Tómate tu tiempo; si quieres continuar de todos modos, di « salta este paso »." },
+  reprise: { fr: "On reprend là où on en était. Pour avancer sans faire cette étape, dis « passe cette étape ».", en: "Let's pick up where we left off. To move on without doing this step, say « skip this step ».", de: "Wir machen dort weiter, wo wir aufgehört haben. Um diesen Schritt zu überspringen, sagen Sie « Schritt überspringen ».", es: "Retomamos donde lo dejamos. Para avanzar sin hacer este paso, di « salta este paso »." },
     fini: { fr: "🎉 Bravo, le parcours « {p} » est terminé ! Ton résultat apparaîtra dans la zone Résultats. Je reste là si tu as une question.", en: "🎉 Well done, the « {p} » guide is complete! Your result will appear in the Results area. I'm here if you have a question.", de: "🎉 Glückwunsch, der Guide « {p} » ist abgeschlossen! Ihr Ergebnis erscheint im Ergebnisbereich. Ich bin da, wenn Sie eine Frage haben.", es: "🎉 ¡Bravo, el recorrido « {p} » ha terminado! Tu resultado aparecerá en la zona Resultados. Sigo aquí si tienes alguna pregunta." },
     arret: { fr: "Guide arrêté. Tu pourras le reprendre quand tu veux : dis par exemple « accompagne-moi pour ma première chanson ».", en: "Guide stopped. You can restart it any time: say for example « guide me through my first song ».", de: "Guide beendet. Sie können ihn jederzeit neu starten: Sagen Sie zum Beispiel « begleite mich bei meinem ersten Song ».", es: "Guía detenida. Puedes retomarla cuando quieras: di por ejemplo « acompáñame en mi primera canción »." },
     debut_deja: { fr: "Nous sommes déjà à la première étape.", en: "We're already at the first step.", de: "Wir sind schon beim ersten Schritt.", es: "Ya estamos en el primer paso." },
@@ -799,7 +808,7 @@
     if (CMD.autre.test(n)) return repEtape(r, "", true);
     if (CMD.repeter.test(n)) return repEtape(r);
     if (CMD.suivant.test(n) && n.split(" ").filter(Boolean).length <= 6) {
-      if (/ (continue|continuer|reprendre|reprend) /.test(n)) return repEtape(r);
+      if (/ (continue|continuer|reprendre|reprend) /.test(n)) return repEtape(r, tg(GT.reprise));   // v41.170 : dit quoi faire pour avancer
       if (e.fait && !e.fait()) return r(tg(GT.pas_encore), boutonsGuide(), { intention: "guide_attente", guide: guide.id, etape: guide.i });
       return avancer(r, e.fait ? tg(GT.bravo) : "");
     }
@@ -860,6 +869,8 @@
   Object.keys(INTENTIONS).forEach(function (k) { INTENTIONS[k].forEach(function (c) { (c[0].source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; }); }); });
   VOCAB.concat(Object.keys(GEN)).forEach(function (m) { MOTS_INTENTION[m] = 1; });
   (DEMANDE_GUIDE.source.match(/[a-z]+/g) || []).forEach(function (m) { MOTS_INTENTION[m] = 1; });
+  // v41.171 : mots génériques présents par hasard dans un titre de chapitre (« Pourquoi choisir StarClip… ») : ils ne nomment pas ce chapitre.
+  ["pourquoi", "why", "warum", "porque", "explique", "expliquer", "explain", "erklare", "explica"].forEach(function (m) { MOTS_INTENTION[m] = 1; });
   // v41.161 : noms d'onglets et de volets tels que les clients les disent (FR / EN / DE) → chapitre du manuel.
   var NOMS_CHAP = [
     [/ (ta photo|ton photo|your photo|ihr foto|photo de depart|starting photo|ausgangsfoto|tu foto|foto inicial) /, "photo"],
@@ -890,6 +901,44 @@
   // et ne prétend jamais que StarClip est moins cher ou meilleur (le manuel ne le dit pas).
   var POURQUOI = / (pourquoi (choisir|payer|utiliser|prendre|commander|starclip)|why (should i |would i |to |not )?(choose|use|pay|pick|order|starclip)|warum (sollte ich |soll ich )?(starclip|wahlen|bezahlen|nutzen|bestellen)|plutot que|rather than|instead of|statt|anstatt|comparaison|comparer|compare|vergleich|versus|remplace|replace|ersetzt|moins cher|cheaper|billiger|gunstiger|meilleur que|better than|besser als|avantages?|advantages?|vorteile?|meme endroit|same place|selben ort|einem ort|suno|higgsfield|elevenlabs|eleven labs|runway|kling|concurren|competitor|konkurren|propre (ia|technologie|moteur)|own (ai|technology|model|engine)|eigene (ki|technologie|modell)|por que (elegir|escoger|pagar|usar|pedir|encargar|contratar|starclip)|en lugar de|en vez de|comparacion|sustituye|reemplaza|mas barato|mejor que|ventajas?|mismo lugar|competencia|propia (ia|tecnologia)|propio (motor|modelo)) /;
   var SERVICES = ["suno", "higgsfield", "elevenlabs", "runway", "kling"];
+  // v41.171 : « pourquoi / why / warum / por qué + commencer / débuter… avec StarClip » est une demande de démarrage : guide de démarrage
+  // (avant : un passage du manuel choisi au hasard, souvent la rubrique « Prix »). Les vraies questions « pourquoi choisir / payer… »,
+  // les comparaisons (Suno, Higgsfield…) et les questions de prix gardent leur chemin habituel ; une phrase avec une négation
+  // (« pourquoi ma vidéo ne commence pas ») n'est pas une demande de démarrage.
+  var DEM_POURQUOI = / (pourquoi|why|warum|por que|porque) /;
+  var DEM_VERBE = / (commencer|debuter|demarrer|(start|starting|begin|beginning) (with|using)|anfangen|beginnen|loslegen|empezar|comenzar) /;
+  var DEM_NEG = / (pas|jamais|impossible|erreur|bug|probleme|not|cant|cannot|nicht|kein|keine|error|fehler|problema|no puedo|no puede) /;
+  function demandeDemarrage(n) { return DEM_POURQUOI.test(n) && DEM_VERBE.test(n) && / starclip /.test(n) && !DEM_NEG.test(n); }
+  // v41.172 : « pourquoi commencer… avec StarClip » → les avantages de StarClip (réponse du manuel), puis le bouton « Débuter avec StarClip ».
+  function reponseAvantagesDebut(k, r) {
+    var faq = rubrique(k, "pourquoi", 8).split("\n").filter(function (l) { return /^- /.test(l) && l.indexOf(" — ") > 0; }).map(function (l) { var i = l.indexOf(" — "); return { q: l.slice(2, i), a: l.slice(i + 3) }; });
+    var av = faq.filter(function (f) { return /(avantage|advantage|vorteil|ventaja)/.test(plier(f.q)); })[0] || faq[0];
+    return r(annoter(av ? av.a : ""), [option("op_debuter")], { intention: "pourquoi_debuter" });
+  }
+  // v41.172 : « oui », « non », « yes », « ja », « sí »… écrits seuls, sans question en attente : jamais un passage de manuel au hasard.
+  var OUI_NON = { oui: 1, ouais: 1, ouep: 1, non: 1, nan: 1, accord: 1, d: 1, yes: 1, yeah: 1, yep: 1, yup: 1, sure: 1, no: 1, nope: 1, ja: 1, jawohl: 1, klar: 1, gerne: 1, nein: 1, nee: 1, si: 1, vale: 1, claro: 1 };
+  var POLI = { merci: 1, thanks: 1, thank: 1, you: 1, danke: 1, gracias: 1, svp: 1, please: 1, bitte: 1, favor: 1, por: 1 };
+  function estReponseSeule(q) {
+    var m = plier(q).replace(/[^a-z]+/g, " ").trim().split(" ").filter(Boolean);
+    return m.length > 0 && m.length <= 3 && m.every(function (x) { return OUI_NON[x] || POLI[x]; }) && m.some(function (x) { return OUI_NON[x]; });
+  }
+  // v41.172 : « arrête le guide » sans guide en cours : réponse claire.
+  function estArretSansGuide(q) {
+    var n = normaliser(q); return CMD.arret.test(n) && n.trim().split(/\s+/).length <= 4 && / (guide|guia|tutoriel|tutorial|parcours|anleitung) /.test(n);
+  }
+  // v41.172 : dépannage reconnu comme tel : Naya demande ce qui se passe, avec des réponses déjà vérifiées du manuel (pas de procédure inventée).
+  function reponseDepannage(k, q, r) {
+    var er = k.erreurs || [], par = function (mot) { return er.filter(function (x) { return plier(x.motif).indexOf(mot) >= 0; })[0]; };
+    var montre = function (texte, extra) { return function () { ajouter("naya", { texte: propre(texte), actions: [], intention: "erreur" }); }; };
+    var act = [], e1 = par("moderation"), e2 = par("bloqu"), e3 = par("echou");
+    if (e1) act.push({ lib: t("dep_refus"), fn: montre(e1.texte) });
+    if (e2) act.push({ lib: t("dep_fige"), fn: montre(e2.texte) });
+    if (e3) act.push({ lib: t("dep_echec"), fn: montre(e3.texte) });
+    var ph = k.sections.filter(function (s) { return s.c === "photo" && s.r === 5 && s.x; })[0];
+    if (ph) act.push({ lib: t("dep_visage"), fn: montre(t("pasapas") + " (" + ph.t + ") :\n" + annoter(ph.x)) });
+    act.push({ lib: t("b_responsable"), fn: function () { ajouter("naya", transfert("humain", q, rAjout)); } });
+    return r(t("dep_intro"), act, { intention: "depannage" });
+  }
   function reponsePourquoi(k, q, r) {
     var n = normaliser(q), cite = SERVICES.filter(function (x) { return n.indexOf(" " + x + " ") >= 0 || (x === "elevenlabs" && / eleven labs /.test(n)); })[0];
     var faq = rubrique(k, "pourquoi", 8).split("\n").filter(function (l) { return /^- /.test(l) && l.indexOf(" — ") > 0; }).map(function (l) { var i = l.indexOf(" — "); return { q: l.slice(2, i), a: l.slice(i + 3) }; });
@@ -1146,6 +1195,16 @@
     if (guide) { var rep0 = repondre2(q, k, r); rep0.texte += "\n\n" + tg(GT.rappel, { n: guide.i + 1, N: PARCOURS[guide.id].etapes.length }); return rep0; }
     return repondre2(q, k, r);
   }
+  // v41.170 : « continue », « suite », « ensuite »… écrits seuls, sans guide en cours, ne cherchent plus dans le manuel
+  // (ils renvoyaient un passage au hasard) : Naya demande ce que le client veut continuer.
+  var MOTS_SUITE = { continue: 1, continues: 1, continuer: 1, continuez: 1, continua: 1, continuar: 1, suite: 1, ensuite: 1, apres: 1, encore: 1, alors: 1,
+    next: 1, then: 1, go: 1, on: 1, keep: 1, going: 1, more: 1, weiter: 1, danach: 1, dann: 1, siguiente: 1, luego: 1, despues: 1,
+    et: 1, and: 1, und: 1, y: 1, la: 1, le: 1, svp: 1, please: 1, bitte: 1, favor: 1, por: 1 };
+  function estContinuation(q) {
+    var m = normaliser(q).split(" ").filter(Boolean);
+    return m.length > 0 && m.length <= 4 && m.every(function (x) { return MOTS_SUITE[x]; }) &&
+      m.some(function (x) { return /^(continu|suite|ensuite|apres|encore|next|then|keep|weiter|danach|dann|siguiente|luego|despues)/.test(x); });
+  }
   function repondre2(q, k, r) {
     // Fin de la période de test : une demande de code d'essai reçoit le vrai mode d'emploi, pas un refus.
     if (/(essai gratuit|code (d.essai|de test|test|gratuit|offert|b[êe]ta)|(acc[èe]s|version) (test|b[êe]ta)|free (trial|code)|trial code|test code|beta code|kostenlos(e|er)? (test|code)|testcode|probecode|probeversion|(cr[ée]dits?|g[ée]n[ée]rations?|vid[ée]os?) (gratuit|offert)|free (credits?|generations?|videos?)|(kostenlose?n?|gratis) (guthaben|credits?|videos?|generierung)|c[oó]digo (de prueba|gratis|gratuito)|prueba (gratis|gratuita)|(cr[eé]ditos?|v[ií]deos?|generaciones?) (gratis|gratuit[oa]s?))/i.test(q))
@@ -1165,6 +1224,7 @@
     // v41.167 : transfert au responsable (humain, remise, rappel, paiement…), confidentialité, délais, professionnels.
     var com1 = commercialAvant(q, k, r); if (com1) return com1;
     if (POURQUOI.test(normaliser(q)) && k.sections.some(function (x) { return x.c === "pourquoi"; })) return reponsePourquoi(k, q, r);
+    if (demandeDemarrage(normaliser(q))) { var itd = intentionDe(q); if (itd.id !== "prix" && itd.id !== "acheter" && !I.prix.test(q)) return reponseAvantagesDebut(k, r); }   // v41.171 → v41.172 : avantages de StarClip + bouton « Débuter »
     if (I.deleguer.test(q)) {
       // v41.166 : « combien coûte un Clip Signature ? » → les prix affichés dans l'onglet Commander, puis la demande de devis.
       var sg0 = I.prix.test(q) ? lignesTarifs("sec-auto10").map(function (x) { return "• " + tarifLg(x); }) : [];
@@ -1180,10 +1240,11 @@
     if (I.prix.test(q) && (outil || !I.paiement.test(q))) return reponsePrix(outil || panneauOuvert(), r);
     if (RECHARGE.test(normaliser(q))) { var rc = reponseRecharge(r); if (rc) return rc; }
     if (I.paiement.test(q)) return reponseAchat(k, r);
-    if (genre || (/(prompt|exemple|example|beispiel|genre|ejemplo|g[eé]nero)/i.test(q) && /(chanson|song|lied|musique|music|musik|genre|cancion|musica|genero)/i.test(plier(q)))) return reponseGenre(genre, r);
+    if ((genre && !I.erreur.test(q)) || (/(prompt|exemple|example|beispiel|genre|ejemplo|g[eé]nero)/i.test(q) && /(chanson|song|lied|musique|music|musik|genre|cancion|musica|genero)/i.test(plier(q)))) return reponseGenre(genre, r);
     if (I.erreur.test(q)) {
       var e = (k.erreurs || []).filter(function (x) { return new RegExp(x.motif, "i").test(q); })[0];
       if (e) return r(e.texte, [], { intention: "erreur" });
+      return reponseDepannage(k, q, r);   // v41.172 : problème non répertorié → on demande ce qui se passe
     }
     if (I.prompt.test(q)) {
       var oc = outil || panneauOuvert();
@@ -1205,6 +1266,9 @@
       if (it.id === "aide") return clarification(false, r);
     }
     var nomme = (outil && outil !== "chanson" && k.sections.some(function (x) { return x.c === outil; }) ? outil : null) || chapitreNomme(k, q);
+    if (!nomme && !(outil && outil !== "chanson") && estReponseSeule(q)) return r(t("clarif_oui"), OPTIONS.map(option), { intention: "clarification_oui" });   // v41.172
+    if (!guide && estArretSansGuide(q)) return r(t("pas_de_guide"), OPTIONS.map(option), { intention: "pas_de_guide" });   // v41.172
+    if (!guide && !nomme && !(outil && outil !== "chanson") && estContinuation(q)) return r(t("clarif_suite"), OPTIONS.map(option), { intention: "clarification_suite" });   // v41.170
     var m = chercherManuel(k, q, nomme || outil || panneauOuvert() || TAB_CHAP[ongletActif()]);
     // v41.161 : le client a nommé un onglet ou un outil → on répond sur ce chapitre (tutoriel), même si les mots de la
     // question ne se retrouvent pas tels quels dans le texte.
