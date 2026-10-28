@@ -334,6 +334,11 @@
         // v41.160 : le guide sait seulement SI un code est saisi (oui / non), jamais lequel.
         case "codePresent": return typeof getCode !== "undefined" ? !!getCode() : false;
         case "pmChargerExemple": return typeof pmChargerExemple !== "undefined" ? pmChargerExemple : null;
+        // v41.173 : guide « Mini Clip IA » (Multi-plans 3.0). Naya lit seulement SI une photo existe, COMBIEN de photos de
+        // référence, et pour chaque plan s'il est rempli et sa durée — jamais les photos ni les textes eux-mêmes.
+        case "photoPresente": return typeof photoDataUrl !== "undefined" ? !!photoDataUrl : null;
+        case "refsVisage": return typeof faceRefUrls !== "undefined" && faceRefUrls ? faceRefUrls.filter(Boolean).length : null;
+        case "msEtat": return typeof msPlans !== "undefined" && msPlans ? msPlans.map(function (p) { return { rempli: String(p.prompt || "").trim().length > 5, d: Number(p.d) || 0 }; }) : null;
       }
     } catch (_) {}
     return null;
@@ -643,7 +648,27 @@
     // Commandes envoyées par les boutons (reconnues ensuite comme si le client les avait écrites)
     c_suivant: { fr: "suivant", en: "next", de: "weiter", es: "siguiente" }, c_autre: { fr: "explique autrement", en: "explain differently", de: "anders erklären", es: "explícalo de otra forma" },
     c_retour: { fr: "reviens en arrière", en: "go back", de: "zurück", es: "vuelve atrás" }, c_passer: { fr: "passe cette étape", en: "skip this step", de: "Schritt überspringen", es: "salta este paso" },
-    c_arret: { fr: "arrête le guide", en: "stop the guide", de: "Guide beenden", es: "para la guía" }
+    c_arret: { fr: "arrête le guide", en: "stop the guide", de: "Guide beenden", es: "para la guía" },
+    // v41.173 : guide « Mini Clip IA » (Multi-plans 3.0)
+    mc_intro: { fr: "Un mini-clip, c'est une petite histoire de 2 à 6 plans dans une seule vidéo (15 s au maximum), avec ton visage fidèle d'un plan à l'autre grâce à tes photos de référence. Dans StarClip, l'outil s'appelle « 🎬 Multi-plans 3.0 — ton mini-clip » (onglet 🎬 Scénario) ; il débite 2 vidéos de ton code.", en: "A mini clip is a short story of 2 to 6 shots in a single video (15 s maximum), with your face kept faithful from shot to shot thanks to your reference photos. In StarClip the tool is called « 🎬 Multi-plans 3.0 — ton mini-clip » (🎬 Scénario tab); it uses 2 videos from your code.", de: "Ein Mini-Clip ist eine kleine Geschichte aus 2 bis 6 Einstellungen in einem einzigen Video (höchstens 15 s), bei der Ihr Gesicht dank Ihrer Referenzfotos von Einstellung zu Einstellung gleich bleibt. In StarClip heißt das Werkzeug « 🎬 Multi-plans 3.0 — ton mini-clip » (Tab 🎬 Scénario); es verbraucht 2 Videos Ihres Codes.", es: "Un miniclip es una pequeña historia de 2 a 6 planos en un solo vídeo (15 s como máximo), con tu rostro fiel de un plano a otro gracias a tus fotos de referencia. En StarClip la herramienta se llama « 🎬 Multi-plans 3.0 — ton mini-clip » (pestaña 🎬 Scénario); descuenta 2 vídeos de tu código." },
+    mc_quel: { fr: "Tu parles de quel outil ?", en: "Which tool do you mean?", de: "Welches Werkzeug meinen Sie?", es: "¿De qué herramienta hablas?" },
+    mc_b_mp: { fr: "🎬 Multi-plans 3.0 (mini-clip)", en: "🎬 Multi-plans 3.0 (mini clip)", de: "🎬 Multi-plans 3.0 (Mini-Clip)", es: "🎬 Multi-plans 3.0 (miniclip)" },
+    mc_b_ms: { fr: "🎞️ Mini-séries IA", en: "🎞️ AI mini-series", de: "🎞️ KI-Miniserien", es: "🎞️ Miniseries IA" },
+    mc_b_shot: { fr: "🎬 Multi-Shot Video (Premium)", en: "🎬 Multi-Shot Video (Premium)", de: "🎬 Multi-Shot Video (Premium)", es: "🎬 Multi-Shot Video (Premium)" },
+    mc_manque: { fr: "D'après l'état de l'app, il manque encore :", en: "According to the app, still missing:", de: "Laut App fehlt noch:", es: "Según la app, todavía falta:" },
+    mc_rien: { fr: "D'après l'état de l'app, tout est prêt de ton côté.", en: "According to the app, everything is ready on your side.", de: "Laut App ist auf Ihrer Seite alles bereit.", es: "Según la app, todo está listo por tu parte." },
+    mc_m_code: { fr: "ton code StarClip (étape 1)", en: "your StarClip code (step 1)", de: "Ihr StarClip-Code (Schritt 1)", es: "tu código StarClip (paso 1)" },
+    mc_m_photo: { fr: "ta photo principale (étape 2)", en: "your main photo (step 2)", de: "Ihr Hauptfoto (Schritt 2)", es: "tu foto principal (paso 2)" },
+    mc_m_ref: { fr: "au moins 1 photo de référence visage (étape 3)", en: "at least 1 face reference photo (step 3)", de: "mindestens 1 Gesichts-Referenzfoto (Schritt 3)", es: "al menos 1 foto de referencia del rostro (paso 3)" },
+    mc_m_plan: { fr: "le texte du plan {n} (plus de 5 caractères)", en: "the text of shot {n} (more than 5 characters)", de: "der Text von Einstellung {n} (mehr als 5 Zeichen)", es: "el texto del plano {n} (más de 5 caracteres)" },
+    mc_m_duree: { fr: "un total de 15 s au maximum (actuellement {t} s) : réduis la durée d'un plan", en: "a total of 15 s maximum (currently {t} s): shorten one shot", de: "insgesamt höchstens 15 s (derzeit {t} s): kürzen Sie eine Einstellung", es: "un total de 15 s como máximo (ahora {t} s): acorta un plano" },
+    mc_m_deux: { fr: "au moins 2 plans", en: "at least 2 shots", de: "mindestens 2 Einstellungen", es: "al menos 2 planos" },
+    // v41.174 : 5 modèles de mini-clip (3 plans chacun, prêts à copier)
+    mc_gab_intro: { fr: "Besoin d'idées ? Touche un modèle ci-dessous : je t'affiche ses 3 plans, prêts à copier.", en: "Need ideas? Tap a template below: I'll show you its 3 shots, ready to copy.", de: "Brauchen Sie Ideen? Tippen Sie unten auf eine Vorlage: Ich zeige Ihnen ihre 3 Einstellungen, bereit zum Kopieren.", es: "¿Necesitas ideas? Toca un modelo abajo: te muestro sus 3 planos, listos para copiar." },
+    mc_gab_note: { fr: "Copie chaque plan dans sa case. Les plans 1 et 2 durent 5 s (déjà réglés) ; le plan 3 s'ajoute avec « ＋ Ajouter un plan » et dure 3 s. Total : 13 s sur 15 s max. Tu peux changer les mots comme tu veux.", en: "Copy each shot into its box. Shots 1 and 2 last 5 s (already set); shot 3 is added with « ＋ Ajouter un plan » (add a shot) and lasts 3 s. Total: 13 s out of 15 s max. Feel free to change the words.", de: "Kopieren Sie jede Einstellung in ihr Feld. Einstellungen 1 und 2 dauern 5 s (bereits eingestellt); Einstellung 3 fügen Sie mit « ＋ Ajouter un plan » (Einstellung hinzufügen) hinzu, sie dauert 3 s. Gesamt: 13 s von höchstens 15 s. Sie können die Wörter frei ändern.", es: "Copia cada plano en su casilla. Los planos 1 y 2 duran 5 s (ya ajustados); el plano 3 se añade con « ＋ Ajouter un plan » (añadir un plano) y dura 3 s. Total: 13 s de 15 s como máximo. Puedes cambiar las palabras como quieras." },
+    mc_gab_en: { fr: "", en: "", de: "Die Einstellungen sind auf Englisch: Die App versteht Französisch oder Englisch.", es: "Los planos están en inglés: la app entiende francés o inglés." },
+    mc_plan_n: { fr: "Plan {n}", en: "Shot {n}", de: "Einstellung {n}", es: "Plano {n}" },
+    mc_copier: { fr: "📋 Copier le plan {n}", en: "📋 Copy shot {n}", de: "📋 Einstellung {n} kopieren", es: "📋 Copiar el plano {n}" }
   };
   // Commandes reconnues pendant un parcours (texte normalisé, FR / EN / DE, y compris dictée).
   var CMD = {
@@ -729,10 +754,55 @@
           fait: function () { return aClasse("#dotKey", "on"); } }
       ]
     }
+    ,
+    // v41.173 : « Mini Clip IA » = 🎬 Multi-plans 3.0 — ton mini-clip (onglet Scénario). Étapes et libellés lus dans l'app.
+    miniclip: {
+      nom: { fr: "créer ton mini-clip (Multi-plans 3.0)", en: "create your mini clip (Multi-plans 3.0)", de: "Ihren Mini-Clip erstellen (Multi-plans 3.0)", es: "crear tu miniclip (Multi-plans 3.0)" },
+      etapes: [
+        { t: { fr: "Ton code StarClip", en: "Your StarClip code", de: "Ihr StarClip-Code", es: "Tu código StarClip" }, onglet: "accueil", cible: "#starCode",
+          x: { fr: "Entre ton code StarClip dans la case mise en évidence, puis touche OK. Pas encore de code ? Dis « acheter un code ».", en: "Enter your StarClip code in the highlighted box, then tap OK. No code yet? Say « buy a code ».", de: "Geben Sie Ihren StarClip-Code in das hervorgehobene Feld ein und tippen Sie auf OK. Noch kein Code? Sagen Sie « Code kaufen ».", es: "Escribe tu código StarClip en la casilla resaltada y toca OK. ¿Aún no tienes código? Di « comprar un código »." },
+          a: { fr: "Ton code ressemble à STAR-7K3M. Tape-le sans espace dans la case qui clignote, puis OK. Le mini-clip débite 2 vidéos de ce code.", en: "Your code looks like STAR-7K3M. Type it without spaces into the flashing box, then OK. The mini clip uses 2 videos from this code.", de: "Ihr Code sieht aus wie STAR-7K3M. Tippen Sie ihn ohne Leerzeichen in das blinkende Feld, dann OK. Der Mini-Clip verbraucht 2 Videos dieses Codes.", es: "Tu código se parece a STAR-7K3M. Escríbelo sin espacios en la casilla que parpadea y toca OK. El miniclip descuenta 2 vídeos de este código." },
+          fait: function () { return aClasse("#dotKey", "on"); } },
+        { t: { fr: "Ta photo", en: "Your photo", de: "Ihr Foto", es: "Tu foto" }, onglet: "photo", cible: "#photoBtn",
+          x: { fr: "Touche « Choisir une photo » et prends une photo nette, de face et bien éclairée : elle sert de départ aux plans qui n'ont pas leur propre photo.", en: "Tap « Choisir une photo » (Choose a photo) and pick a sharp, front-facing, well-lit photo: it is the starting image for every shot that has no photo of its own.", de: "Tippen Sie auf « Choisir une photo » (Foto wählen) und nehmen Sie ein scharfes, frontales, gut beleuchtetes Foto: Es ist das Startbild für jede Einstellung ohne eigenes Foto.", es: "Toca « Choisir une photo » (Elegir una foto) y elige una foto nítida, de frente y bien iluminada: es la imagen de partida de los planos que no tienen foto propia." },
+          a: { fr: "Visage bien visible, pas de lunettes de soleil, lumière du jour si possible. Touche le bouton qui clignote pour choisir la photo dans ta galerie.", en: "Face clearly visible, no sunglasses, daylight if possible. Tap the flashing button to pick the photo from your gallery.", de: "Gesicht gut sichtbar, keine Sonnenbrille, möglichst Tageslicht. Tippen Sie auf die blinkende Schaltfläche, um das Foto aus Ihrer Galerie zu wählen.", es: "Rostro bien visible, sin gafas de sol, luz de día si es posible. Toca el botón que parpadea para elegir la foto en tu galería." },
+          fait: function () { return aClasse("#dot1", "on"); } },
+        { t: { fr: "Ta photo de référence visage", en: "Your face reference photo", de: "Ihr Gesichts-Referenzfoto", es: "Tu foto de referencia del rostro" }, onglet: "photo", cible: "#faceRefBtn",
+          x: { fr: "Touche le bouton violet « 👤 + Ajouter des photos de référence visage », sous ta photo, puis ajoute 1 à 3 photos nettes de ton visage. Pour le mini-clip, il en faut au moins une : c'est elle qui garde ton visage identique d'un plan à l'autre.", en: "Tap the purple button « 👤 + Ajouter des photos de référence visage » (add face reference photos) under your photo, then add 1 to 3 sharp photos of your face. The mini clip needs at least one: it keeps your face identical from one shot to the next.", de: "Tippen Sie unter Ihrem Foto auf die violette Schaltfläche « 👤 + Ajouter des photos de référence visage » (Gesichts-Referenzfotos hinzufügen) und fügen Sie 1 bis 3 scharfe Fotos Ihres Gesichts hinzu. Der Mini-Clip braucht mindestens eines: Es hält Ihr Gesicht von Einstellung zu Einstellung gleich.", es: "Toca el botón violeta « 👤 + Ajouter des photos de référence visage » (añadir fotos de referencia del rostro), debajo de tu foto, y añade de 1 a 3 fotos nítidas de tu rostro. El miniclip necesita al menos una: mantiene tu rostro idéntico de un plano a otro." },
+          a: { fr: "Ce bouton n'apparaît qu'après le choix de ta photo (étape 2). Choisis des photos où ton visage est bien net, de face si possible. Une seule suffit pour commencer.", en: "This button only appears once your photo is chosen (step 2). Pick photos where your face is sharp, front-facing if possible. One is enough to start.", de: "Diese Schaltfläche erscheint erst, wenn Ihr Foto gewählt ist (Schritt 2). Wählen Sie Fotos mit scharfem Gesicht, möglichst frontal. Eines genügt für den Anfang.", es: "Este botón solo aparece después de elegir tu foto (paso 2). Elige fotos en las que tu rostro esté nítido, de frente si es posible. Con una basta para empezar." },
+          verif: function () { return G("refsVisage") !== null; }, fait: function () { return (G("refsVisage") || 0) >= 1; } },
+        { t: { fr: "Le plan 1", en: "Shot 1", de: "Einstellung 1", es: "El plano 1" }, onglet: "scenario", cible: '#msPlans textarea[data-idx="0"]',
+          x: { fr: "J'ouvre l'onglet 🎬 Scénario, carte « 🎬 Multi-plans 3.0 — ton mini-clip ». Dans la case « Plan 1 », décris en une phrase ce que tu fais dans la première scène, en français ou en anglais. Exemple du manuel : « arrive en voiture devant le club ». Sa durée se règle juste dessous : 3, 4 ou 5 s (5 s par défaut).", en: "I'm opening the 🎬 Scénario tab, card « 🎬 Multi-plans 3.0 — ton mini-clip ». In the « Plan 1 » (Shot 1) box, describe in one sentence what you do in the first scene, in French or English. Example from the manual: « arrives by car in front of the club ». Its length is set just below: 3, 4 or 5 s (5 s by default).", de: "Ich öffne den Tab 🎬 Scénario, Karte « 🎬 Multi-plans 3.0 — ton mini-clip ». Beschreiben Sie im Feld « Plan 1 » (Einstellung 1) in einem Satz, was Sie in der ersten Szene tun, auf Französisch oder Englisch. Beispiel aus dem Handbuch: « kommt mit dem Auto vor dem Club an ». Die Dauer stellen Sie direkt darunter ein: 3, 4 oder 5 s (standardmäßig 5 s).", es: "Abro la pestaña 🎬 Scénario, tarjeta « 🎬 Multi-plans 3.0 — ton mini-clip ». En la casilla « Plan 1 » (Plano 1), describe en una frase lo que haces en la primera escena, en francés o en inglés. Ejemplo del manual: « llega en coche ante el club ». Su duración se ajusta justo debajo: 3, 4 o 5 s (5 s por defecto)." },
+          a: { fr: "Un plan, c'est une scène de 3 à 5 secondes. Décris surtout l'action, ce que tu fais ; ton visage vient de tes photos de référence. Une phrase simple suffit : l'app la met en forme toute seule.", en: "A shot is a scene of 3 to 5 seconds. Mainly describe the action, what you do; your face comes from your reference photos. One simple sentence is enough: the app formats it by itself.", de: "Eine Einstellung ist eine Szene von 3 bis 5 Sekunden. Beschreiben Sie vor allem die Handlung, was Sie tun; Ihr Gesicht kommt von Ihren Referenzfotos. Ein einfacher Satz genügt: Die App bringt ihn selbst in Form.", es: "Un plano es una escena de 3 a 5 segundos. Describe sobre todo la acción, lo que haces; tu rostro viene de tus fotos de referencia. Basta una frase sencilla: la app le da forma sola." },
+          gabarits: true, verif: function () { return G("msEtat") !== null; }, fait: function () { var m = G("msEtat"); return !!(m && m[0] && m[0].rempli); } },
+        { t: { fr: "Le plan 2", en: "Shot 2", de: "Einstellung 2", es: "El plano 2" }, onglet: "scenario", cible: '#msPlans textarea[data-idx="1"]',
+          x: { fr: "Dans la case « Plan 2 », décris la scène suivante. Exemple du manuel : « salue la foule ». Le total s'affiche sous les plans (« Total : … s sur 15 s max ») : il ne doit pas dépasser 15 s.", en: "In the « Plan 2 » (Shot 2) box, describe the next scene. Example from the manual: « greets the crowd ». The total is shown under the shots (« Total : … s sur 15 s max »): it must not exceed 15 s.", de: "Beschreiben Sie im Feld « Plan 2 » (Einstellung 2) die nächste Szene. Beispiel aus dem Handbuch: « grüßt die Menge ». Die Gesamtdauer steht unter den Einstellungen (« Total : … s sur 15 s max »): höchstens 15 s.", es: "En la casilla « Plan 2 » (Plano 2), describe la escena siguiente. Ejemplo del manual: « saluda al público ». El total aparece debajo de los planos (« Total : … s sur 15 s max »): no debe pasar de 15 s." },
+          a: { fr: "Pense ton mini-clip comme une petite histoire : plan 1, puis plan 2, puis la suite. Chaque case décrit une seule action.", en: "Think of your mini clip as a short story: shot 1, then shot 2, then what follows. Each box describes a single action.", de: "Denken Sie Ihren Mini-Clip als kleine Geschichte: Einstellung 1, dann Einstellung 2, dann der Rest. Jedes Feld beschreibt eine einzige Handlung.", es: "Piensa tu miniclip como una pequeña historia: plano 1, luego plano 2, luego lo demás. Cada casilla describe una sola acción." },
+          verif: function () { return G("msEtat") !== null; }, fait: function () { var m = G("msEtat"); return !!(m && m[1] && m[1].rempli); } },
+        { t: { fr: "D'autres plans (facultatif)", en: "More shots (optional)", de: "Weitere Einstellungen (optional)", es: "Más planos (opcional)" }, onglet: "scenario", cible: "#msAdd",
+          x: { fr: "Tu veux plus de 2 plans ? Touche « ＋ Ajouter un plan » : jusqu'à 6 plans et 15 s au total (un plan ajouté dure 3 s). Facultatif aussi : « 💃 Style de danse pour tous les plans » et « 📷 Photo pour ce plan ». Je ne peux pas deviner combien de plans tu veux.", en: "Want more than 2 shots? Tap « ＋ Ajouter un plan » (add a shot): up to 6 shots and 15 s in total (an added shot lasts 3 s). Also optional: « 💃 Style de danse pour tous les plans » (dance style for all shots) and « 📷 Photo pour ce plan » (photo for this shot). I can't guess how many shots you want.", de: "Mehr als 2 Einstellungen? Tippen Sie auf « ＋ Ajouter un plan » (Einstellung hinzufügen): bis zu 6 Einstellungen und insgesamt 15 s (eine hinzugefügte Einstellung dauert 3 s). Ebenfalls optional: « 💃 Style de danse pour tous les plans » (Tanzstil für alle Einstellungen) und « 📷 Photo pour ce plan » (Foto für diese Einstellung). Wie viele Einstellungen Sie möchten, kann ich nicht erraten.", es: "¿Quieres más de 2 planos? Toca « ＋ Ajouter un plan » (añadir un plano): hasta 6 planos y 15 s en total (un plano añadido dura 3 s). También opcional: « 💃 Style de danse pour tous les plans » (estilo de baile para todos los planos) y « 📷 Photo pour ce plan » (foto para este plano). No puedo adivinar cuántos planos quieres." },
+          a: { fr: "Exemple du manuel pour un 3e plan : « danse avec ses amis sur la piste ». Si le total dépasse 15 s, mets un plan à 4 ou 3 s, ou retire-le avec « ✕ Retirer ».", en: "Example from the manual for a 3rd shot: « dances with friends on the dance floor ». If the total goes over 15 s, set a shot to 4 or 3 s, or remove it with « ✕ Retirer » (remove).", de: "Beispiel aus dem Handbuch für eine 3. Einstellung: « tanzt mit Freunden auf der Tanzfläche ». Liegt die Summe über 15 s, stellen Sie eine Einstellung auf 4 oder 3 s oder entfernen Sie sie mit « ✕ Retirer » (entfernen).", es: "Ejemplo del manual para un 3.er plano: « baila con sus amigos en la pista ». Si el total pasa de 15 s, pon un plano en 4 o 3 s, o quítalo con « ✕ Retirer » (quitar)." } },
+        { t: { fr: "Vérifier le bouton et le coût", en: "Check the button and the cost", de: "Schaltfläche und Kosten prüfen", es: "Comprobar el botón y el coste" }, onglet: "scenario", cible: "#msGo",
+          x: { fr: "Regarde le bouton doré mis en évidence. Quand il affiche « 🎬 Générer le multi-plans (− 2 vidéos de ton code) », tout est prêt : ce mini-clip débite 2 vidéos de ton code.\n{manque}", en: "Look at the highlighted gold button. When it shows « 🎬 Générer le multi-plans (− 2 vidéos de ton code) » (generate the multi-shot, minus 2 videos from your code), everything is ready: this mini clip uses 2 videos from your code.\n{manque}", de: "Sehen Sie sich die hervorgehobene goldene Schaltfläche an. Zeigt sie « 🎬 Générer le multi-plans (− 2 vidéos de ton code) » (Multi-plans erzeugen, minus 2 Videos Ihres Codes), ist alles bereit: Dieser Mini-Clip verbraucht 2 Videos Ihres Codes.\n{manque}", es: "Mira el botón dorado resaltado. Cuando muestre « 🎬 Générer le multi-plans (− 2 vidéos de ton code) » (generar el multiplano, menos 2 vídeos de tu código), todo está listo: este miniclip descuenta 2 vídeos de tu código.\n{manque}" },
+          a: { fr: "S'il affiche encore « Complète les plans du mini-clip », il manque quelque chose.\n{manque}", en: "If it still shows « Complète les plans du mini-clip » (complete your shots), something is missing.\n{manque}", de: "Zeigt sie noch « Complète les plans du mini-clip » (Einstellungen vervollständigen), fehlt etwas.\n{manque}", es: "Si todavía muestra « Complète les plans du mini-clip » (completa tus planos), falta algo.\n{manque}" },
+          fait: function () { var b0 = $("#msGo"); return !!(b0 && !b0.disabled); } },
+        { t: { fr: "Lancer (toi-même)", en: "Start it (yourself)", de: "Starten (selbst)", es: "Lanzar (tú mismo)" }, onglet: "scenario", cible: "#msGo",
+          x: { fr: "Quand tu es prêt(e), touche toi-même le bouton « 🎬 Générer le multi-plans ». Je ne lance jamais rien à ta place. L'app affiche ensuite « Kling 3.0 tourne tes plans… (2 à 8 min) ».", en: "When you're ready, tap the « 🎬 Générer le multi-plans » button yourself. I never start anything for you. The app then shows « Kling 3.0 tourne tes plans… (2 à 8 min) » (Kling 3.0 is filming your shots, 2 to 8 min).", de: "Wenn Sie bereit sind, tippen Sie selbst auf « 🎬 Générer le multi-plans ». Ich starte nie etwas für Sie. Die App zeigt dann « Kling 3.0 tourne tes plans… (2 à 8 min) » (Kling 3.0 dreht Ihre Einstellungen, 2 bis 8 Min.).", es: "Cuando estés listo(a), toca tú mismo el botón « 🎬 Générer le multi-plans ». Nunca lanzo nada en tu lugar. Después la app muestra « Kling 3.0 tourne tes plans… (2 à 8 min) » (Kling 3.0 rueda tus planos, de 2 a 8 min)." },
+          a: { fr: "Les 2 vidéos sont débitées quand TU touches le bouton ; avant, rien n'est débité.", en: "The 2 videos are charged when YOU tap the button; before that, nothing is charged.", de: "Die 2 Videos werden abgebucht, wenn SIE auf die Schaltfläche tippen; vorher wird nichts abgebucht.", es: "Los 2 vídeos se descuentan cuando TÚ tocas el botón; antes, no se descuenta nada." },
+          // lancement en cours : statut affiché ET bouton bloqué par l'app pendant la création (un ancien statut ne suffit pas)
+          fait: function () { var b0 = $("#msGo"); return aClasse("#msStatus", "show") && !!(b0 && b0.disabled); } },
+        { t: { fr: "Récupérer ton mini-clip", en: "Get your mini clip", de: "Ihren Mini-Clip abholen", es: "Recuperar tu miniclip" }, onglet: "scenario", cible: "#msResultZone",
+          x: { fr: "La création prend en général 2 à 8 minutes (durée affichée par l'app). Ton mini-clip apparaît ensuite dans la carte « 🎬 Ton mini-clip multi-plans », sous le bouton, et dans la colonne « Résultats », avec « Télécharger ».", en: "Creation usually takes 2 to 8 minutes (as shown by the app). Your mini clip then appears in the « 🎬 Ton mini-clip multi-plans » card under the button, and in the « Résultats » (Results) column, with « Télécharger » (Download).", de: "Die Erstellung dauert meist 2 bis 8 Minuten (laut App). Ihr Mini-Clip erscheint dann in der Karte « 🎬 Ton mini-clip multi-plans » unter der Schaltfläche und in der Spalte « Résultats » (Ergebnisse), mit « Télécharger » (Herunterladen).", es: "La creación suele tardar de 2 a 8 minutos (según la app). Tu miniclip aparece después en la tarjeta « 🎬 Ton mini-clip multi-plans », debajo del botón, y en la columna « Résultats » (Resultados), con « Télécharger » (Descargar)." },
+          a: { fr: "Si une génération facturée échoue pour une raison technique, tes crédits te sont rendus automatiquement.", en: "If a paid generation fails for a technical reason, your credits are refunded automatically.", de: "Scheitert eine bezahlte Generierung aus technischen Gründen, wird Ihr Guthaben automatisch erstattet.", es: "Si una generación cobrada falla por una razón técnica, tus créditos se te devuelven automáticamente." },
+          // un NOUVEAU résultat : vidéo différente de celle présente au début de l'étape (un ancien mini-clip ne compte pas)
+          base: function () { var v = $("#msResultZone video"); return v ? (v.currentSrc || v.src || "x") : null; },
+          fait: function () { var v = $("#msResultZone video"); if (!v) return false; var s0 = v.currentSrc || v.src || "x"; return baseEtape === null || s0 !== baseEtape; } }
+      ]
+    }
   };
   var LS_GUIDE = "starclip_naya_guide";   // contexte du parcours, pour la session seulement (sessionStorage)
   var guide = (function () { try { var g = JSON.parse(sessionStorage.getItem(LS_GUIDE) || "null"); return g && PARCOURS[g.id] ? g : null; } catch (_) { return null; } })();
-  var propose = null, surveillance = null, signale = -1;
+  var propose = null, surveillance = null, signale = -1, baseEtape = null;   // v41.173 : baseEtape = état de l'app au début de l'étape
   function memoGuide() { try { if (guide) sessionStorage.setItem(LS_GUIDE, JSON.stringify(guide)); else sessionStorage.removeItem(LS_GUIDE); } catch (_) {} }
   function surligner(sel, parent) {
     [].forEach.call(document.querySelectorAll(".naya-surligne"), function (e) { e.classList.remove("naya-surligne"); });
@@ -746,12 +816,29 @@
     return true;
   }
   function etapeCourante() { return guide && PARCOURS[guide.id].etapes[guide.i]; }
+  // v41.173 : si une donnée lue dans l'app n'existe plus (variable renommée…), l'étape devient « dis-moi quand c'est fait ».
+  function peutVerifier(e) { return !!(e && e.fait && (!e.verif || e.verif())); }
+  // v41.173 : ce qui manque encore pour lancer le mini-clip, d'après l'état réel de l'app (rien n'est deviné).
+  function manqueMiniClip() {
+    var m = [], ms = G("msEtat");
+    if (!aClasse("#dotKey", "on")) m.push(tg(GT.mc_m_code));
+    if (G("photoPresente") === false) m.push(tg(GT.mc_m_photo));
+    if (G("refsVisage") === 0) m.push(tg(GT.mc_m_ref));
+    if (ms) {
+      ms.forEach(function (p, i) { if (!p.rempli) m.push(tg(GT.mc_m_plan, { n: i + 1 })); });
+      var tot = ms.reduce(function (a0, p) { return a0 + p.d; }, 0);
+      if (tot > 15) m.push(tg(GT.mc_m_duree, { t: tot }));
+      if (ms.length < 2) m.push(tg(GT.mc_m_deux));
+    }
+    return m.length ? tg(GT.mc_manque) + "\n" + m.map(function (x) { return "• " + x; }).join("\n") : tg(GT.mc_rien);
+  }
   function appliquerEtape() {
     var e = etapeCourante(); if (!e) return;
     if (e.onglet) ouvrirOnglet(e.onglet);
     if (e.prep) try { e.prep(); } catch (_) {}
     var cible = e.cibleSiFait && e.fait && e.fait() ? e.cibleSiFait : e.cible;
     surligner(cible, e.cibleParent);
+    baseEtape = e.base ? e.base() : null;
     if (el.pan) el.pan.classList.add("naya-guide");
     surveiller();
   }
@@ -759,14 +846,20 @@
     var P = PARCOURS[guide.id], e = P.etapes[guide.i];
     var prix = ($("#pmPrix_chanson") || {}).textContent || "…";
     var packs = lignesTarifs("sec-auto9").map(function (x) { return "• " + tarifLg(x); }).join("\n");
-    var corps = tg(autrement ? e.a : e.x, { prix: prix, packs: packs });
-    return tg(GT.titre) + " · " + tg(GT.etape, { n: guide.i + 1, N: P.etapes.length, t: tg(e.t) }) + "\n" + corps + "\n\n" + (e.fait ? tg(GT.verif_auto) : tg(GT.verif_manu));
+    var corps = tg(autrement ? e.a : e.x, { prix: prix, packs: packs, manque: guide.id === "miniclip" ? manqueMiniClip() : "" });
+    if (e.gabarits) corps += "\n\n" + tg(GT.mc_gab_intro);   // v41.174
+    return tg(GT.titre) + " · " + tg(GT.etape, { n: guide.i + 1, N: P.etapes.length, t: tg(e.t) }) + "\n" + corps + "\n\n" + (peutVerifier(e) ? tg(GT.verif_auto) : tg(GT.verif_manu));
   }
   function boutonsGuide() {
     var b = function (lib, cmd) { return { lib: tg(GT[lib]), fn: function () { envoyer(tg(GT[cmd])); } }; };
     return [b("b_suivant", "c_suivant"), b("b_autre", "c_autre"), b("b_retour", "c_retour"), b("b_passer", "c_passer"), b("b_arret", "c_arret")];
   }
-  function repEtape(r, prefixe, autrement) { appliquerEtape(); return r((prefixe ? prefixe + "\n\n" : "") + texteEtape(autrement), boutonsGuide(), { intention: "guide_etape", guide: guide.id, etape: guide.i }); }
+  function repEtape(r, prefixe, autrement) {
+    appliquerEtape();
+    var e0 = etapeCourante(), act = boutonsGuide();
+    if (e0 && e0.gabarits) act = MC_GABARITS.map(function (g) { return { lib: tg(g.nom), fn: function () { ajouter("naya", reponseGabarit(g)); } }; }).concat(act);   // v41.174
+    return r((prefixe ? prefixe + "\n\n" : "") + texteEtape(autrement), act, { intention: "guide_etape", guide: guide.id, etape: guide.i });
+  }
   function finirGuide(r, termine) {
     var nom = guide ? tg(PARCOURS[guide.id].nom) : "";
     guide = null; memoGuide(); surligner(null); if (el.pan) el.pan.classList.remove("naya-guide");
@@ -783,7 +876,7 @@
     if (surveillance) clearInterval(surveillance);
     surveillance = setInterval(function () {
       var e = etapeCourante(); if (!e) { clearInterval(surveillance); surveillance = null; return; }
-      if (e.fait && signale !== guide.i && e.fait()) {
+      if (peutVerifier(e) && signale !== guide.i && e.fait()) {
         signale = guide.i;
         var r0 = function (texte, actions, extra) { var o = { texte: propre(texte), actions: actions || [] }; for (var x in extra || {}) o[x] = extra[x]; return o; };
         ajouter("naya", avancer(r0, tg(GT.bravo)));
@@ -809,10 +902,46 @@
     if (CMD.repeter.test(n)) return repEtape(r);
     if (CMD.suivant.test(n) && n.split(" ").filter(Boolean).length <= 6) {
       if (/ (continue|continuer|reprendre|reprend) /.test(n)) return repEtape(r, tg(GT.reprise));   // v41.170 : dit quoi faire pour avancer
-      if (e.fait && !e.fait()) return r(tg(GT.pas_encore), boutonsGuide(), { intention: "guide_attente", guide: guide.id, etape: guide.i });
-      return avancer(r, e.fait ? tg(GT.bravo) : "");
+      if (peutVerifier(e) && !e.fait()) return r(tg(GT.pas_encore), boutonsGuide(), { intention: "guide_attente", guide: guide.id, etape: guide.i });
+      return avancer(r, peutVerifier(e) ? tg(GT.bravo) : "");
     }
     return null;
+  }
+  // v41.174 : 5 modèles de mini-clip rédigés selon les règles de prompts du studio (aucun nom propre, formulations positives,
+  // aucun minutage, aucun « gauche / droite »). Plans en français (conversation en français) ou en anglais (autres langues),
+  // les deux langues acceptées par Multi-plans. Le modèle 1 reprend l'exemple vérifié du manuel.
+  var MC_GABARITS = [
+    { nom: { fr: "🎉 Soirée au club", en: "🎉 Club night", de: "🎉 Clubnacht", es: "🎉 Noche de club" },
+      fr: ["arrive en voiture devant le club", "salue la foule", "danse avec ses amis sur la piste"],
+      en: ["arrives by car in front of the club", "greets the crowd", "dances with friends on the dance floor"] },
+    { nom: { fr: "💃 Ma danse", en: "💃 My dance", de: "💃 Mein Tanz", es: "💃 Mi baile" },
+      fr: ["danse face caméra sous des lumières colorées, mouvements des épaules et des hanches", "la caméra tourne lentement autour de la personne qui danse", "finit par une pose fière face caméra, avec un grand sourire"],
+      en: ["dances facing the camera under colourful lights, moving shoulders and hips", "the camera slowly circles around the dancer", "ends with a proud pose facing the camera, with a big smile"] },
+    { nom: { fr: "🥂 Entre amis", en: "🥂 With friends", de: "🥂 Mit Freunden", es: "🥂 Entre amigos" },
+      fr: ["assis à table avec des amis dans un restaurant chic, tout le monde rit", "lève son verre vers la caméra avec un sourire", "danse avec ses amis autour de la table"],
+      en: ["sits at a table with friends in a chic restaurant, everyone laughing", "raises a glass toward the camera with a smile", "dances with friends around the table"] },
+    { nom: { fr: "🎤 Sur scène", en: "🎤 On stage", de: "🎤 Auf der Bühne", es: "🎤 En el escenario" },
+      fr: ["chante face caméra sur une grande scène, bouche bien ouverte, sous des projecteurs dorés", "avance lentement vers le public en chantant", "lève le bras vers la foule qui applaudit"],
+      en: ["sings facing the camera on a big stage, mouth wide open, under golden spotlights", "walks slowly toward the audience while singing", "raises an arm toward the cheering crowd"] },
+    { nom: { fr: "🌅 Plage au coucher du soleil", en: "🌅 Beach at sunset", de: "🌅 Strand bei Sonnenuntergang", es: "🌅 Playa al atardecer" },
+      fr: ["marche vers la caméra sur la plage au coucher du soleil", "danse doucement au bord de l'eau, les vêtements dans le vent", "regarde l'horizon et sourit, plan large sur le soleil couchant"],
+      en: ["walks toward the camera on the beach at sunset", "dances gently at the water's edge, clothes moving in the wind", "looks at the horizon and smiles, wide shot of the setting sun"] }
+  ];
+  function reponseGabarit(g) {
+    var plans = lgGuide() === "fr" ? g.fr : g.en, note = tg(GT.mc_gab_en);
+    var texte = tg(g.nom) + " :\n" + plans.map(function (p0, i) { return tg(GT.mc_plan_n, { n: i + 1 }) + " : « " + p0 + " »"; }).join("\n") + "\n\n" + tg(GT.mc_gab_note) + (note ? "\n" + note : "");
+    return { texte: propre(texte), actions: plans.map(function (p0, i) { return { lib: tg(GT.mc_copier, { n: i + 1 }), fn: function (b0) { copier(p0, b0); } }; }), intention: "miniclip_gabarit" };
+  }
+  // v41.173 : noms donnés par les clients à 🎬 Multi-plans 3.0 — ton mini-clip ; « série / épisode / multi-shot » → on demande lequel.
+  var MINICLIP = / (mini clip|mini clips|miniclip|miniclips|multi plans|multiplans|multiplanos|mehrfach einstellungen|plusieurs plans|plusieurs scenes|several shots|multiple shots|mehrere einstellungen|varios planos|storyboard) /;
+  var MINICLIP_AMBIGU = / (serie|series|serien|episode|episodes|episodio|episodios|folge|multi shot|multishot) /;
+  var MINICLIP_APPRENDRE = / (comprends|comprend|explique|expliquer|explication|c est quoi|qu est ce|comment|utiliser|marche|fonctionne|aide|understand|explain|what is|how|use|works|help|verstehe|erklar|erklare|was ist|wie|benutze|funktioniert|hilfe|entiendo|explica|explicame|que es|como|usar|funciona|ayuda) /;
+  function reponseMiniClipQuel(r) {
+    var r0 = function (t0, a0, x) { var o = { texte: propre(t0), actions: a0 || [] }; for (var k0 in x || {}) o[k0] = x[k0]; return o; };
+    return r(tg(GT.mc_quel), [
+      { lib: tg(GT.mc_b_mp), fn: function () { ajouter("naya", proposerGuide("miniclip", r0, r0(tg(GT.mc_intro), [], { intention: "miniclip" }))); } },
+      { lib: tg(GT.mc_b_ms), fn: function () { envoyer("Mini-séries IA"); } },
+      { lib: tg(GT.mc_b_shot), fn: function () { envoyer("Multi-Shot Video"); } }], { intention: "miniclip_quel" });
   }
   function parcoursDe(id, q) { var n = normaliser(q); if (!DEMANDE_GUIDE.test(n)) return null; return { chanson: "chanson", video: "video", acheter: "pack" }[id] || null; }
 
@@ -1232,6 +1361,12 @@
     }
     // v41.167 : commande d'un pack nommé, présentation de l'offre, démonstrations, objections, clip pour une chanson.
     var com2 = commercialApres(q, k, r); if (com2) return com2;
+    // v41.173 : « Mini Clip IA », « mini-clip », « multi-plans »… → explication courte, puis proposition du guide Mini Clip IA.
+    var nmc = normaliser(q.replace(/-/g, " "));
+    if (!guide && MINICLIP.test(nmc)) {
+      if (MINICLIP_AMBIGU.test(nmc)) return reponseMiniClipQuel(r);
+      if (!I.prix.test(q) && !I.erreur.test(q) && (DEMANDE_GUIDE.test(nmc) || MINICLIP_APPRENDRE.test(nmc) || nmc.trim().split(/\s+/).length <= 4)) return proposerGuide("miniclip", r, r(tg(GT.mc_intro), [], { intention: "miniclip" }));
+    }
     // v41.160 : « accompagne-moi », « ma première chanson », « step by step »… → réponse, puis proposition du guide interactif.
     var pg = !guide && parcoursDe(intentionDe(q).id, q);
     if (pg) return proposerGuide(pg, r, pg === "chanson" ? reponseChanson(k, r) : pg === "video" ? reponseVideo(k, r) : reponseAchat(k, r));
