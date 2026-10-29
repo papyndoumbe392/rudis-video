@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.174 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.175 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -417,9 +417,16 @@
   <!-- RÉGLAGES / CLÉ -->
   <section class="card" id="sec-auto2">
     <h2><span class="num" id="numKey">🎟️</span> Ton code StarClip <span class="dot" id="dotKey"></span></h2>
-    <div class="keyrow">
+    <!-- v41.175 : le code du client peut être masqué (personne ne le lit sur l'écran ni sur une photo de l'écran). -->
+    <div class="keyrow" id="codeSaisie">
       <input type="text" id="starCode" placeholder="Ex : STAR-7K3M" autocapitalize="characters" autocomplete="off">
       <button class="btn" id="saveCode">OK</button>
+      <button class="btn" id="codeMasquer" type="button" style="display:none;" title="Masquer mon code · Hide my code">🙈</button>
+    </div>
+    <div class="keyrow" id="codeMasque" style="display:none; align-items:center; flex-wrap:wrap;">
+      <span style="flex:1; min-width:180px;">🔒 Code enregistré : <b>STAR-••••</b> · <i style="color:var(--dim);">Code saved</i></span>
+      <button class="btn" id="codeVoir" type="button">👁️ Afficher · Show</button>
+      <button class="btn" id="codeChanger" type="button">✏️ Changer · Change</button>
     </div>
     <div class="estimate" id="codeInfo"></div>
     <div class="estimate" id="commentCommencer" style="line-height:1.7;">
@@ -1166,10 +1173,16 @@
     <!-- v41.127 : le code se tape AUSSI ici — un client qui arrive directement
          sur l'onglet Premium n'a pas à retourner sur l'Accueil. C'est le même
          code partout : il est mémorisé et utilisé dans tous les onglets. -->
-    <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+    <div id="pmMasque" style="display:none; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+      <span style="flex:1; min-width:180px;">🔒 Code enregistré : <b>STAR-••••</b> · <i style="color:var(--dim);">Code saved</i></span>
+      <button class="btn small" type="button" data-code="voir">👁️ Afficher · Show</button>
+      <button class="btn small" type="button" data-code="changer">✏️ Changer · Change</button>
+    </div>
+    <div id="pmSaisie" style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
       <input type="text" id="pmCode" placeholder="Ton code STAR-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false"
         style="flex:1; min-width:180px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; text-transform:uppercase;">
       <button class="btn small" id="pmCodeOk">OK</button>
+      <button class="btn small" type="button" data-code="masquer" style="display:none;" title="Masquer mon code · Hide my code">🙈</button>
     </div>
     <div class="estimate" id="pmCodeInfo" style="margin-top:4px;"></div>
     <div class="estimate" style="margin-top:8px;">
@@ -2455,7 +2468,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.174</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.175</span>
 
   </footer>
 </div>
@@ -2704,7 +2717,7 @@ async function checkCode() {
   const code = getCode();
   localStorage.setItem("starCode", code);
   const info = document.getElementById("codeInfo");
-  if (!code) { info.textContent = ""; refresh(); return; }
+  if (!code) { info.textContent = ""; codeAffiche = false; majMasqueCode(); refresh(); return; }
   if (WORKER_URL.includes("COLLE_ICI")) { info.innerHTML = "<span class='err'>⚙️ Serveur non configuré — remplis le fichier config.js.</span>"; refresh(); return; }
   info.textContent = "Vérification du code…";
   try {
@@ -2721,13 +2734,38 @@ async function checkCode() {
     // v36.8 : afficher aussi le solde de lip-sync Standard, désormais plafonné
     const lipTxt = (typeof d.lipLeft === "number") ? ` · ${d.lipLeft} lip-sync Standard` : "";
     info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}${badge}${imgTxt}${lipTxt}</span>`;
+    codeAffiche = false; majMasqueCode();   // v41.175 : code validé → case fermée
     if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.123 : solde Admin Premium 5.0
     appliquerPlan();
     if (d.essai && d.left > 0) essaiPreparer();   // v41.123 : Éco + 5 s pour l'essai
-  } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
+  } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; codeAffiche = true; majMasqueCode(); }   // v41.175 : code refusé → case ouverte
   refresh();
 }
 document.getElementById("saveCode").onclick = checkCode;
+// v41.175 : masquage du code. Code validé (ou déjà mémorisé) → case fermée « 🔒 STAR-•••• » ; code refusé → case ouverte.
+let codeAffiche = false;
+function majMasqueCode() {
+  const aCode = !!(localStorage.getItem("starCode") || "").trim();
+  const masque = aCode && !codeAffiche;
+  [["codeSaisie", "codeMasque"], ["pmSaisie", "pmMasque"]].forEach(function (p) {
+    const es = document.getElementById(p[0]), em = document.getElementById(p[1]);
+    if (es) es.style.display = masque ? "none" : "flex";
+    if (em) em.style.display = masque ? "flex" : "none";
+  });
+  const bm = document.getElementById("codeMasquer");
+  if (bm) bm.style.display = (aCode && codeAffiche) ? "" : "none";
+  document.querySelectorAll('[data-code="masquer"]').forEach(function (b0) { b0.style.display = (aCode && codeAffiche) ? "" : "none"; });
+}
+function voirCode() { codeAffiche = true; majMasqueCode(); }
+function masquerCode() { codeAffiche = false; majMasqueCode(); }
+function changerCode(champ) { codeAffiche = true; majMasqueCode(); const c = champ || codeInput; try { c.focus(); c.select(); } catch (_) {} }
+document.getElementById("codeVoir").onclick = voirCode;
+document.getElementById("codeMasquer").onclick = masquerCode;
+document.getElementById("codeChanger").onclick = function () { changerCode(codeInput); };
+document.querySelectorAll('[data-code="voir"]').forEach(function (b0) { b0.onclick = voirCode; });
+document.querySelectorAll('[data-code="masquer"]').forEach(function (b0) { b0.onclick = masquerCode; });
+document.querySelectorAll('[data-code="changer"]').forEach(function (b0) { b0.onclick = function () { changerCode(document.getElementById("pmCode")); }; });
+majMasqueCode();
 codeInput.addEventListener("input", refresh);
 if (codeInput.value) checkCode();
 
