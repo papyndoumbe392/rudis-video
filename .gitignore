@@ -1,0 +1,5 @@
+# Configuration locale — ne jamais pousser sur GitHub
+config.js
+
+# Fichiers système macOS
+.DS_Store

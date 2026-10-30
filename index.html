@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.175 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.174 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -417,16 +417,9 @@
   <!-- RÉGLAGES / CLÉ -->
   <section class="card" id="sec-auto2">
     <h2><span class="num" id="numKey">🎟️</span> Ton code StarClip <span class="dot" id="dotKey"></span></h2>
-    <!-- v41.175 : le code du client peut être masqué (personne ne le lit sur l'écran ni sur une photo de l'écran). -->
-    <div class="keyrow" id="codeSaisie">
+    <div class="keyrow">
       <input type="text" id="starCode" placeholder="Ex : STAR-7K3M" autocapitalize="characters" autocomplete="off">
       <button class="btn" id="saveCode">OK</button>
-      <button class="btn" id="codeMasquer" type="button" style="display:none;" title="Masquer mon code · Hide my code">🙈</button>
-    </div>
-    <div class="keyrow" id="codeMasque" style="display:none; align-items:center; flex-wrap:wrap;">
-      <span style="flex:1; min-width:180px;">🔒 Code enregistré : <b>STAR-••••</b> · <i style="color:var(--dim);">Code saved</i></span>
-      <button class="btn" id="codeVoir" type="button">👁️ Afficher · Show</button>
-      <button class="btn" id="codeChanger" type="button">✏️ Changer · Change</button>
     </div>
     <div class="estimate" id="codeInfo"></div>
     <div class="estimate" id="commentCommencer" style="line-height:1.7;">
@@ -1173,16 +1166,10 @@
     <!-- v41.127 : le code se tape AUSSI ici — un client qui arrive directement
          sur l'onglet Premium n'a pas à retourner sur l'Accueil. C'est le même
          code partout : il est mémorisé et utilisé dans tous les onglets. -->
-    <div id="pmMasque" style="display:none; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
-      <span style="flex:1; min-width:180px;">🔒 Code enregistré : <b>STAR-••••</b> · <i style="color:var(--dim);">Code saved</i></span>
-      <button class="btn small" type="button" data-code="voir">👁️ Afficher · Show</button>
-      <button class="btn small" type="button" data-code="changer">✏️ Changer · Change</button>
-    </div>
-    <div id="pmSaisie" style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+    <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
       <input type="text" id="pmCode" placeholder="Ton code STAR-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false"
         style="flex:1; min-width:180px; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px; text-transform:uppercase;">
       <button class="btn small" id="pmCodeOk">OK</button>
-      <button class="btn small" type="button" data-code="masquer" style="display:none;" title="Masquer mon code · Hide my code">🙈</button>
     </div>
     <div class="estimate" id="pmCodeInfo" style="margin-top:4px;"></div>
     <div class="estimate" style="margin-top:8px;">
@@ -1195,6 +1182,9 @@
   <section class="card" id="sec-msr" style="border-color:var(--gold);">
     <h2><span class="num" style="background:var(--gold); color:#1a1204;">&#127902;</span> Mini-séries IA &mdash; ton épisode pilote</h2>
     <p class="sub" style="margin:0 0 12px;">Raconte ton idée : StarClip écrit un <b>épisode pilote de 30 à 60 secondes</b>, découpé en scènes de 5 ou 10 secondes. <b>Tu valides chaque étape</b> avant que la moindre vidéo soit créée, et chaque scène est lancée une par une, avec ta confirmation.</p>
+    <div style="margin-bottom:10px;">
+      <button id="fpBtnOuvrir" class="btn small" style="border-color:var(--violet);color:var(--violet);">👤 Créer une fiche personnage</button>
+    </div>
     <div id="msrBarre"></div>
     <div id="msrEtapes"></div>
     <div id="msrMsg" class="estimate" style="min-height:0;"></div>
@@ -1202,6 +1192,32 @@
     <div id="msrCorps"></div>
     <input type="file" id="msrFichier" accept="image/*" class="hidden">
     <div class="estimate" style="margin-top:14px;">&#9888;&#65039; Les visages ne sont jamais parfaitement identiques d'une scène à l'autre : utilise des images de référence nettes et vérifie chaque scène. Ton projet est gardé sur cet appareil.</div>
+
+    <!-- v41.174 — 👤 Fiche personnage : masqué par défaut, affiché via le bouton ci-dessus -->
+    <input type="file" id="fpFichier" accept="image/*" class="hidden">
+    <div id="fpPanneau" class="hidden">
+      <div style="margin-top:16px;padding-top:14px;border-top:2px solid var(--violet);">
+        <h3 style="margin:0 0 6px;font-size:15px;color:var(--violet);">👤 Fiche personnage — planche 3 portraits</h3>
+        <p class="sub" style="margin:0 0 10px;">Importe une photo de référence et génère 3 portraits cohérents (face serrée, trois-quarts, profil). Chaque vue utilise <b>1 crédit image</b>.</p>
+        <div class="estimate" style="margin:0 0 12px;border:1px solid var(--gold);border-radius:8px;padding:8px 10px;color:var(--gold);">⚠️ Cohérence du visage non garantie d'un portrait à l'autre — vérifie chaque vue.</div>
+        <div class="msr-grille" style="margin-bottom:10px;">
+          <div class="msr-bloc">
+            <div class="label">Photo de référence</div>
+            <div id="fpSlot" style="width:100%;max-width:180px;height:160px;border:2px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--dim);font-size:30px;overflow:hidden;background:var(--up);background-size:cover;background-position:center;margin:8px 0;">&#43;</div>
+            <button id="fpBtnPhoto" class="btn small">&#128193; Importer une photo</button>
+          </div>
+          <div class="msr-bloc">
+            <label class="label" for="fpTenueInput">Tenue / accessoires <span class="estimate">(facultatif)</span></label>
+            <input type="text" id="fpTenueInput" placeholder="ex. chapeau fedora rouge, lunettes rondes bleues à monture rose-gold" style="margin-top:6px;">
+            <div class="estimate" style="margin-top:6px;">Décris la tenue pour renforcer la cohérence entre les 3 vues.</div>
+          </div>
+        </div>
+        <button id="fpBtnGen" class="btn" style="width:100%;margin-bottom:12px;" disabled>&#127912; Générer les 3 portraits (analyse + 3 vues)</button>
+        <div id="fpEtat" style="text-align:center;min-height:0;"></div>
+        <div id="fpResultats"></div>
+        <div id="fpFichesListe" style="margin-top:10px;"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ═══ v41.153 · onglet REMIX (APERÇU DU DESIGN, style DramaWave) ═══
@@ -2468,7 +2484,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.175</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.174</span>
 
   </footer>
 </div>
@@ -2717,7 +2733,7 @@ async function checkCode() {
   const code = getCode();
   localStorage.setItem("starCode", code);
   const info = document.getElementById("codeInfo");
-  if (!code) { info.textContent = ""; codeAffiche = false; majMasqueCode(); refresh(); return; }
+  if (!code) { info.textContent = ""; refresh(); return; }
   if (WORKER_URL.includes("COLLE_ICI")) { info.innerHTML = "<span class='err'>⚙️ Serveur non configuré — remplis le fichier config.js.</span>"; refresh(); return; }
   info.textContent = "Vérification du code…";
   try {
@@ -2734,38 +2750,13 @@ async function checkCode() {
     // v36.8 : afficher aussi le solde de lip-sync Standard, désormais plafonné
     const lipTxt = (typeof d.lipLeft === "number") ? ` · ${d.lipLeft} lip-sync Standard` : "";
     info.innerHTML = `<span style="color:var(--ok)">✓ Code valide — ${d.left} vidéo${d.left > 1 ? "s" : ""} restante${d.left > 1 ? "s" : ""} sur ${d.total}${badge}${imgTxt}${lipTxt}</span>`;
-    codeAffiche = false; majMasqueCode();   // v41.175 : code validé → case fermée
     if (typeof pmAfficherSolde === "function") pmAfficherSolde(d);   // v41.123 : solde Admin Premium 5.0
     appliquerPlan();
     if (d.essai && d.left > 0) essaiPreparer();   // v41.123 : Éco + 5 s pour l'essai
-  } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; codeAffiche = true; majMasqueCode(); }   // v41.175 : code refusé → case ouverte
+  } catch (e) { info.innerHTML = `<span class="err">✗ ${e.message}</span>`; }
   refresh();
 }
 document.getElementById("saveCode").onclick = checkCode;
-// v41.175 : masquage du code. Code validé (ou déjà mémorisé) → case fermée « 🔒 STAR-•••• » ; code refusé → case ouverte.
-let codeAffiche = false;
-function majMasqueCode() {
-  const aCode = !!(localStorage.getItem("starCode") || "").trim();
-  const masque = aCode && !codeAffiche;
-  [["codeSaisie", "codeMasque"], ["pmSaisie", "pmMasque"]].forEach(function (p) {
-    const es = document.getElementById(p[0]), em = document.getElementById(p[1]);
-    if (es) es.style.display = masque ? "none" : "flex";
-    if (em) em.style.display = masque ? "flex" : "none";
-  });
-  const bm = document.getElementById("codeMasquer");
-  if (bm) bm.style.display = (aCode && codeAffiche) ? "" : "none";
-  document.querySelectorAll('[data-code="masquer"]').forEach(function (b0) { b0.style.display = (aCode && codeAffiche) ? "" : "none"; });
-}
-function voirCode() { codeAffiche = true; majMasqueCode(); }
-function masquerCode() { codeAffiche = false; majMasqueCode(); }
-function changerCode(champ) { codeAffiche = true; majMasqueCode(); const c = champ || codeInput; try { c.focus(); c.select(); } catch (_) {} }
-document.getElementById("codeVoir").onclick = voirCode;
-document.getElementById("codeMasquer").onclick = masquerCode;
-document.getElementById("codeChanger").onclick = function () { changerCode(codeInput); };
-document.querySelectorAll('[data-code="voir"]').forEach(function (b0) { b0.onclick = voirCode; });
-document.querySelectorAll('[data-code="masquer"]').forEach(function (b0) { b0.onclick = masquerCode; });
-document.querySelectorAll('[data-code="changer"]').forEach(function (b0) { b0.onclick = function () { changerCode(document.getElementById("pmCode")); }; });
-majMasqueCode();
 codeInput.addEventListener("input", refresh);
 if (codeInput.value) checkCode();
 
@@ -15175,6 +15166,402 @@ const SCENARIO_EXEMPLES = [
   } catch (err) {
     console.error("[StarClip] Mini-séries IA : module désactivé —", err);
   }
+})();
+</script>
+<script>
+// ═══ v41.174 — 👤 FICHE PERSONNAGE · planche 3 portraits cohérents ═══
+// Flux : photo importée → 3 appels nano-banana-pro/edit (1 crédit image chacun)
+// → triptyque face / trois-quarts / profil → téléchargement séparé ou ZIP
+// → sauvegarde locale pour réutilisation dans les scènes de la série.
+(function fichePersonnage() {
+  "use strict";
+
+  var CLE = "starclip_fp_v1";
+  var MAX_FICHES = 10;
+
+  var VUES = [
+    {
+      nom: "Face serrée",
+      court: "face",
+      // cadrage neutre — genre, barbe/glabre et traits injectés avant par l'analyse IA
+      cadrage: "Portrait rapproché, visage et buste, face à la caméra, regard vers l'objectif, fond gris uni neutre, lumière douce de studio. Même coiffure et mêmes accessoires que sur la référence."
+    },
+    {
+      nom: "Trois-quarts",
+      court: "3quarts",
+      cadrage: "Portrait vu de trois-quarts, tête légèrement tournée vers la droite, fond gris uni neutre, lumière douce de studio. Même coiffure et mêmes accessoires."
+    },
+    {
+      nom: "Profil",
+      court: "profil",
+      cadrage: "Portrait vu de profil, tête tournée sur le côté, fond gris uni neutre, lumière douce de studio. Même coiffure et mêmes accessoires."
+    }
+  ];
+
+  var fpPhoto = null;
+  var fpResultats = [null, null, null];
+  var fpFiches = [];
+  var fpEnCours = false;
+
+  var btnOuvrir = document.getElementById("fpBtnOuvrir");
+  var panneau   = document.getElementById("fpPanneau");
+  var inputFich = document.getElementById("fpFichier");
+  if (!btnOuvrir || !panneau || !inputFich) return;
+
+  var $ = function(id) { return document.getElementById(id); };
+  var esc = function(t) {
+    return String(t == null ? "" : t).replace(/[&<>"']/g, function(c) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  };
+  var sleep = function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
+
+  // ── Persistance ──────────────────────────────────────────────
+  function chargerFiches() {
+    try { fpFiches = JSON.parse(localStorage.getItem(CLE) || "[]"); } catch (_) { fpFiches = []; }
+    if (!Array.isArray(fpFiches)) fpFiches = [];
+  }
+  function sauverFiches() {
+    try { localStorage.setItem(CLE, JSON.stringify(fpFiches.slice(0, MAX_FICHES))); } catch (_) {}
+  }
+
+  // ── Prompt ───────────────────────────────────────────────────
+  // Ordre : description IA (genre, barbe…) · cadrage de la vue · tenue · @Image1
+  // description = "" si l'analyse a échoué → prompt sans préfixe, génération continue
+  function construirePrompt(vue, description, tenue) {
+    var parties = [];
+    if (description && description.trim()) parties.push(description.trim() + ".");
+    parties.push(vue.cadrage);
+    if (tenue && tenue.trim()) parties.push("Tenue et accessoires : " + tenue.trim() + ".");
+    return parties.join(" ") + " @Image1";
+  }
+
+  // ── Spinner (même style que le reste de l'app) ───────────────
+  function rondHtml(id, etape) {
+    var t0 = Date.now();
+    return '<div class="rwRond tourne" data-msr-t0="' + t0 + '" style="margin:10px auto;display:inline-flex;">'
+      + '<div style="position:relative;width:132px;height:132px;">'
+      + '<svg width="132" height="132" viewBox="0 0 132 132">'
+      + '<circle class="piste" cx="66" cy="66" r="58"></circle>'
+      + '<circle class="arc" cx="66" cy="66" r="58" stroke-dasharray="364.4" stroke-dashoffset="262.4"></circle>'
+      + '</svg>'
+      + '<div class="rwRondTexte"><div class="rwRondPct">\u2026</div><div class="rwRondChrono">00:00</div></div>'
+      + '</div>'
+      + '<div class="rwRondEtape" id="fp-etat-' + id + '">' + esc(etape) + '</div></div>';
+  }
+
+  // ── UI helpers ───────────────────────────────────────────────
+  function majEtat(html) { var z = $("fpEtat"); if (z) z.innerHTML = html || ""; }
+
+  function majSlot() {
+    var slot = $("fpSlot"), btnGen = $("fpBtnGen");
+    if (!slot) return;
+    if (fpPhoto) {
+      slot.style.backgroundImage = "url(" + fpPhoto + ")";
+      slot.style.backgroundSize = "cover";
+      slot.style.backgroundPosition = "center";
+      slot.textContent = "";
+      if (btnGen) btnGen.disabled = fpEnCours;
+    } else {
+      slot.style.backgroundImage = "";
+      slot.textContent = "+";
+      if (btnGen) btnGen.disabled = true;
+    }
+  }
+
+  // ── Affichage triptyque ───────────────────────────────────────
+  function afficherResultats() {
+    var z = $("fpResultats");
+    if (!z) return;
+    var tous = fpResultats.filter(Boolean);
+    if (!tous.length) { z.innerHTML = ""; return; }
+
+    var h = '<div class="msr-titre" style="margin-top:14px;">Triptyque \u2014 '
+      + tous.length + '/3 vue' + (tous.length > 1 ? "s" : "") + '</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">';
+
+    VUES.forEach(function(v, i) {
+      h += '<div style="flex:1 1 120px;min-width:100px;text-align:center;">';
+      if (fpResultats[i]) {
+        h += '<img src="' + esc(fpResultats[i]) + '" alt="' + esc(v.nom)
+          + '" style="width:100%;border-radius:10px;border:1px solid var(--line);display:block;">'
+          + '<div style="font-size:11px;color:var(--dim);margin-top:4px;">' + esc(v.nom) + '</div>'
+          + '<button class="btn small" data-fp-dl="' + i + '" style="margin-top:5px;">\u2b07\ufe0f T\xe9l\xe9charger</button>';
+      } else {
+        h += '<div style="width:100%;padding-top:100%;border:1px dashed var(--line);border-radius:10px;position:relative;">'
+          + '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:11px;">En attente</span></div>'
+          + '<div style="font-size:11px;color:var(--dim);margin-top:4px;">' + esc(v.nom) + '</div>';
+      }
+      h += '</div>';
+    });
+    h += '</div>';
+
+    if (tous.length === 3) {
+      h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">'
+        + '<button class="btn" id="fpBtnZip">\u2b07\ufe0f T\xe9l\xe9charger les 3 (ZIP)</button>'
+        + '<button class="btn small" id="fpBtnSauver">\ud83d\udcbe Enregistrer la fiche</button>'
+        + '</div>';
+    }
+    z.innerHTML = h;
+
+    z.querySelectorAll("[data-fp-dl]").forEach(function(b) {
+      b.onclick = function() { telechargerUne(parseInt(b.dataset.fpDl, 10)); };
+    });
+    var bz = $("fpBtnZip");
+    if (bz) bz.onclick = telechargerZip;
+    var bs = $("fpBtnSauver");
+    if (bs) bs.onclick = sauverFiche;
+  }
+
+  // ── Fiches sauvegardées ──────────────────────────────────────
+  function afficherFiches() {
+    var z = $("fpFichesListe");
+    if (!z) return;
+    if (!fpFiches.length) { z.innerHTML = ""; return; }
+    var h = '<div class="msr-titre">Fiches enregistr\xe9es <span class="estimate">('
+      + fpFiches.length + '/' + MAX_FICHES + ')</span></div>'
+      + '<div class="estimate" style="margin-bottom:8px;">Les liens expirent apr\xe8s quelques jours \u2014 t\xe9l\xe9charge tes images pour les conserver.</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px;">';
+    fpFiches.forEach(function(f, fi) {
+      h += '<div class="msr-bloc" style="display:flex;gap:10px;align-items:center;">'
+        + '<div style="flex:1;min-width:0;">'
+        + '<b>' + esc(f.nom || ("Fiche " + (fi + 1))) + '</b>'
+        + '<div class="estimate">' + new Date(f.date).toLocaleDateString("fr-FR")
+        + (f.tenue ? ' \u00b7 ' + esc(f.tenue.slice(0, 50)) : '') + '</div>'
+        + '<div style="display:flex;gap:5px;margin-top:5px;">'
+        + f.urls.map(function(u, i) {
+            return u ? '<img src="' + esc(u) + '" alt="' + esc(VUES[i].nom)
+              + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--line);">'
+              : "";
+          }).join("")
+        + '</div></div>'
+        + '<div style="display:flex;flex-direction:column;gap:4px;">'
+        + '<button class="btn small" data-fp-charge="' + fi + '">Utiliser</button>'
+        + '<button class="btn small" style="opacity:.7;" data-fp-del="' + fi + '">\ud83d\uddd1</button>'
+        + '</div></div>';
+    });
+    h += '</div>';
+    z.innerHTML = h;
+    z.querySelectorAll("[data-fp-charge]").forEach(function(b) {
+      b.onclick = function() { chargerFiche(parseInt(b.dataset.fpCharge, 10)); };
+    });
+    z.querySelectorAll("[data-fp-del]").forEach(function(b) {
+      b.onclick = function() { supprimerFiche(parseInt(b.dataset.fpDel, 10)); };
+    });
+  }
+
+  function chargerFiche(i) {
+    var f = fpFiches[i]; if (!f) return;
+    fpResultats = (f.urls || []).slice(0, 3);
+    while (fpResultats.length < 3) fpResultats.push(null);
+    afficherResultats();
+    majEtat('<span style="color:var(--ok)">\u2713 Fiche \u00ab ' + esc(f.nom || "sans nom")
+      + ' \u00bb charg\xe9e. Les images sont pr\xeates \xe0 servir de r\xe9f\xe9rence dans une sc\xe8ne.</span>');
+    panneau.querySelector("div").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function supprimerFiche(i) {
+    if (!confirm("Supprimer cette fiche ?")) return;
+    fpFiches.splice(i, 1);
+    sauverFiches();
+    afficherFiches();
+  }
+
+  function sauverFiche() {
+    var tous = fpResultats.filter(Boolean);
+    if (tous.length < 3) return;
+    var nom = prompt("Nom du personnage pour cette fiche :", "Personnage " + (fpFiches.length + 1));
+    if (nom === null) return;
+    var tenue = ($("fpTenueInput") || {}).value || "";
+    fpFiches.unshift({
+      id: Date.now().toString(36),
+      nom: (nom.trim() || ("Fiche " + (fpFiches.length + 1))),
+      date: new Date().toISOString(),
+      tenue: tenue,
+      urls: fpResultats.slice()
+    });
+    sauverFiches();
+    afficherFiches();
+    majEtat('<span style="color:var(--ok)">\u2713 Fiche enregistr\xe9e dans ce navigateur.</span>');
+  }
+
+  // ── Téléchargements ──────────────────────────────────────────
+  async function telechargerUne(i) {
+    var url = fpResultats[i]; if (!url) return;
+    try {
+      var resp = await fetch(url);
+      var blob = await resp.blob();
+      var burl = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = burl; a.download = "fp-" + VUES[i].court + ".jpg";
+      document.body.appendChild(a); a.click();
+      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(burl); }, 1200);
+    } catch (_) {
+      window.open(url, "_blank", "noopener");
+    }
+  }
+
+  async function telechargerZip() {
+    if (typeof JSZip === "undefined") {
+      alert("JSZip non disponible. T\xe9l\xe9charge chaque image s\xe9par\xe9ment.");
+      return;
+    }
+    var btn = $("fpBtnZip");
+    if (btn) { btn.disabled = true; btn.textContent = "\u23f3 Pr\xe9paration\u2026"; }
+    try {
+      var zip = new JSZip();
+      for (var i = 0; i < 3; i++) {
+        if (!fpResultats[i]) continue;
+        var resp = await fetch(fpResultats[i]);
+        var blob = await resp.blob();
+        zip.file("fp-" + VUES[i].court + ".jpg", blob);
+      }
+      var content = await zip.generateAsync({ type: "blob" });
+      var burl = URL.createObjectURL(content);
+      var a = document.createElement("a");
+      a.href = burl; a.download = "fiche-personnage.zip";
+      document.body.appendChild(a); a.click();
+      setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(burl); }, 1200);
+    } catch (err) {
+      alert("Erreur ZIP : " + err.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "\u2b07\ufe0f T\xe9l\xe9charger les 3 (ZIP)"; }
+    }
+  }
+
+  // ── Génération des 3 vues ────────────────────────────────────
+  async function generer() {
+    if (!fpPhoto || fpEnCours) return;
+    fpEnCours = true;
+    fpResultats = [null, null, null];
+    var tenue = ($("fpTenueInput") || {}).value || "";
+    var btnGen = $("fpBtnGen");
+    if (btnGen) btnGen.disabled = true;
+    afficherResultats();
+
+    try {
+      // ── Étape 0 : analyse IA de la photo (silencieuse si elle échoue) ──────
+      var description = "";
+      try {
+        majEtat('<span style="color:var(--dim)">\ud83d\udd0d Analyse de la photo\u2026</span>');
+        var vjob = await apiSubmit("openrouter/router/vision", {
+          model: "google/gemini-2.5-flash",
+          image_urls: [fpPhoto],
+          prompt: "D\xe9cris cette personne en une seule phrase courte, destin\xe9e \xe0 un prompt de g\xe9n\xe9ration d'image : genre (homme ou femme), tranche d'\xe2ge approximative, coiffure, barbe ou visage glabre, et un ou deux traits marquants du visage. R\xe9ponds uniquement par la description, sans introduction ni ponctuation superflue."
+        });
+        var vstUrl = vjob.status_url || ("https://queue.fal.run/openrouter/router/vision/requests/" + vjob.request_id + "/status");
+        var vrpUrl = vjob.response_url || ("https://queue.fal.run/openrouter/router/vision/requests/" + vjob.request_id);
+        for (var vi = 0; vi < 20; vi++) {
+          await sleep(2000);
+          var vsj = await apiPoll(vstUrl);
+          if (vsj.status === "COMPLETED") break;
+          if (vsj.status === "FAILED" || vsj.status === "ERROR") throw new Error("vision");
+        }
+        var vdata = await apiPoll(vrpUrl);
+        var vdesc = ((vdata.output || (vdata.response && vdata.response.output) || vdata.text || (vdata.response && vdata.response.text)) || "").trim().replace(/\.$/, "");
+        if (vdesc.length > 8) description = vdesc;
+      } catch (_) {
+        // Analyse échouée → description reste "" → génération continue normalement
+      }
+      // ────────────────────────────────────────────────────────────────────────
+
+      for (var i = 0; i < 3; i++) {
+        majEtat('<div style="display:flex;justify-content:center;">' + rondHtml("v" + i, "Vue " + (i + 1) + "/3 \u2014 " + VUES[i].nom + "\u2026") + '</div>');
+        var prompt = construirePrompt(VUES[i], description, tenue);
+        // Toujours utiliser nano-banana-pro/edit pour la qualité portrait
+        var path = (typeof nbModele === "function" && nbModele().indexOf("pro") >= 0)
+          ? nbModele()
+          : "fal-ai/nano-banana-pro/edit";
+        var job = await apiSubmit(path, {
+          prompt: prompt,
+          image_urls: [fpPhoto],
+          num_images: 1
+        });
+        var statusUrl = job.status_url
+          || ("https://queue.fal.run/" + path + "/requests/" + job.request_id + "/status");
+        var responseUrl = job.response_url
+          || ("https://queue.fal.run/" + path + "/requests/" + job.request_id);
+
+        var ok = false;
+        for (var essai = 0; essai < 50; essai++) {
+          await sleep(3000);
+          var sj = await apiPoll(statusUrl);
+          if (sj.status === "COMPLETED") { ok = true; break; }
+          if (sj.status === "FAILED" || sj.status === "ERROR")
+            throw new Error("Vue \u00ab " + VUES[i].nom + " \u00bb : g\xe9n\xe9ration \xe9chou\xe9e. R\xe9essaie.");
+          var etatEl = $("fp-etat-v" + i);
+          if (etatEl) etatEl.textContent = "Vue " + (i + 1) + "/3 \u2014 " + VUES[i].nom + "\u2026 (" + ((essai + 1) * 3) + " s)";
+        }
+        if (!ok) throw new Error("Vue \u00ab " + VUES[i].nom + " \u00bb : d\xe9lai d\xe9pass\xe9. R\xe9essaie.");
+
+        var data = await apiPoll(responseUrl);
+        var url = (data.images && data.images[0] && data.images[0].url)
+          || (data.response && data.response.images && data.response.images[0] && data.response.images[0].url);
+        if (!url) throw new Error("Vue \u00ab " + VUES[i].nom + " \u00bb : image introuvable.");
+        fpResultats[i] = url;
+        afficherResultats();
+      }
+
+      // Terminé — rond vert complet
+      majEtat('<div style="display:flex;justify-content:center;">'
+        + '<div class="rwRond rwRondFini" style="display:inline-flex;flex-direction:column;align-items:center;gap:6px;">'
+        + '<div style="position:relative;width:100px;height:100px;">'
+        + '<svg width="100" height="100" viewBox="0 0 132 132">'
+        + '<circle class="piste" cx="66" cy="66" r="58"></circle>'
+        + '<circle class="arc" cx="66" cy="66" r="58" stroke-dasharray="364.4" stroke-dashoffset="0"></circle>'
+        + '</svg>'
+        + '<div class="rwRondTexte"><div class="rwRondPct">\u2713</div></div></div>'
+        + '<div class="rwRondEtape">3 vues g\xe9n\xe9r\xe9es !</div></div></div>');
+
+    } catch (err) {
+      majEtat('<span class="err">\u2717 ' + esc(err.message) + '</span>');
+    } finally {
+      fpEnCours = false;
+      if (btnGen) btnGen.disabled = !fpPhoto;
+      afficherResultats();
+    }
+  }
+
+  // ── Câblage des événements ───────────────────────────────────
+  btnOuvrir.onclick = function() {
+    panneau.classList.toggle("hidden");
+    var ouvert = !panneau.classList.contains("hidden");
+    btnOuvrir.style.borderColor = ouvert ? "var(--ok)" : "var(--violet)";
+    btnOuvrir.style.color       = ouvert ? "var(--ok)" : "var(--violet)";
+    if (ouvert) panneau.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  var btnPhoto = $("fpBtnPhoto");
+  if (btnPhoto) btnPhoto.onclick = function() { inputFich.click(); };
+  var slot = $("fpSlot");
+  if (slot) slot.onclick = function() { inputFich.click(); };
+
+  inputFich.onchange = function(e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var img = new Image();
+    img.onload = function() {
+      var c = document.createElement("canvas");
+      var MAX_SIDE = 1024;
+      var scale = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
+      c.width  = Math.round(img.width  * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      fpPhoto = c.toDataURL("image/jpeg", 0.9);
+      fpResultats = [null, null, null];
+      afficherResultats();
+      majSlot();
+    };
+    img.onerror = function() { majEtat('<span class="err">\u26a0\ufe0f Image illisible.</span>'); };
+    img.src = URL.createObjectURL(f);
+    e.target.value = "";
+  };
+
+  var btnGen = $("fpBtnGen");
+  if (btnGen) btnGen.onclick = generer;
+
+  // Init
+  chargerFiches();
+  afficherFiches();
 })();
 </script>
 <!-- ═══ v41.152 · DISPOSITION « ATELIER » SUR ORDINATEUR (≥ 1100 px) ═══
