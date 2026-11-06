@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.178 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.179 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -2547,7 +2547,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.178</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.179</span>
 
   </footer>
 </div>
@@ -15934,6 +15934,404 @@ const SCENARIO_EXEMPLES = [
   };
   hfMaj();
 })();
+</script>
+<script>
+// v41.179 : 🧑‍🎤 HIGGSFIELD POUR LES CLIENTS — onglet « Admin Premium 5.0 », payé sur le solde Premium (FCFA).
+// Aucun PIN : un client n'a besoin que de son code StarClip. Le PRIX est toujours calculé par le Worker (jamais par l'app).
+// La liste des modèles et leurs réglages viennent du Worker (/premium/hf/catalogue) : un modèle ajouté au Worker
+// apparaît ici sans toucher à l'app. Le client voit le prix AVANT de lancer, puis le rond de progression qui tourne.
+var HFC = { cat: null, chargement: false, modele: null, recette: null, filtre: "tous", fichiers: {}, urls: {}, devis: null, enCours: false, minuteur: 0 };
+var HFC_PFX = "pm_higgsfield";
+// « Que veux-tu faire ? » : des raccourcis pour les clients qui ne connaissent pas les modèles. Chaque recette choisit le bon modèle,
+// renomme le champ des images et pré-remplit une consigne (modifiable). Une recette dont le modèle n'est pas au catalogue est masquée.
+var HFC_RECETTES = [
+  { id: "decor", ico: "🏙️", nom: "Changer le décor de ma vidéo", endpoint: "higgsfield/genjutsu/object-swap/v1.0",
+    aide: "Envoie ta vidéo et une image du lieu voulu : la personne, sa tenue, ses mouvements et la caméra restent, seul l'arrière-plan change. Ta vidéo doit faire au moins 4 secondes (taille minimale : 640 × 640).",
+    labels: { video_url: "Ta vidéo", image_urls: "Image du nouveau décor (le lieu voulu)", prompt: "Précision (facultatif)" },
+    prompt: "Replace the background and the location with the place shown in the reference image. Keep the person, their face, their outfit, their movement and the camera exactly as in the source video." },
+  { id: "decor2", ico: "🌆", nom: "Changer le décor (autre moteur : Seedance 2.5)", endpoint: "bytedance/seedance-2.5/video-edit",
+    aide: "Autre façon de changer le décor, avec Seedance 2.5 : ta vidéo est retravaillée avec l'image du lieu comme modèle. La durée et le format restent ceux de ta vidéo.",
+    labels: { video_url: "Ta vidéo", image_urls: "Image du nouveau décor (le lieu voulu)", prompt: "Décris le changement" },
+    prompt: "Replace the background with the location shown in the reference image 1. Keep the person, their outfit, their movement, the camera and the audio unchanged." },
+  { id: "personne", ico: "🧑‍🎤", nom: "Remplacer la personne de ma vidéo", endpoint: "higgsfield/genjutsu-light/motion-transfer/v1.0",
+    aide: "Économique : la personne est remplacée par celle de tes photos, le mouvement et la caméra sont gardés.", labels: {}, prompt: "" },
+  { id: "tenue", ico: "👔", nom: "Changer la tenue dans ma vidéo", endpoint: "higgsfield/genjutsu/object-swap/v1.0",
+    aide: "Envoie ta vidéo et une photo de la tenue voulue : seule la tenue change.",
+    labels: { video_url: "Ta vidéo", image_urls: "Photo de la tenue voulue", prompt: "Précision (facultatif)" },
+    prompt: "Replace the outfit of the person with the outfit shown in the reference image. Keep the face, the body, the movement, the background and the camera exactly as in the source video." },
+  { id: "perso", ico: "🎭", nom: "Nouveau personnage, même mouvement", endpoint: "higgsfield/genjutsu/motion-transfer/v1.0",
+    aide: "Qualité Pro : tout est refait (personnages, lieu), seuls le mouvement et la caméra de ta vidéo sont gardés.", labels: { image_urls: "Photos du nouveau personnage ou du nouveau lieu" }, prompt: "" },
+  { id: "style", ico: "🎨", nom: "Changer le style de ma vidéo", endpoint: "higgsfield/genjutsu/restyle/v1.0", aide: "", labels: {}, prompt: "" },
+  { id: "texte", ico: "🎬", nom: "Créer une vidéo à partir d'un texte", endpoint: "kling-video/v4.0/text-to-video", aide: "", labels: {}, prompt: "" },
+  { id: "photo", ico: "📸", nom: "Animer une photo", endpoint: "kling-video/v4.0/image-to-video", aide: "", labels: {}, prompt: "" },
+];
+function hfcEsc(t) { return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function hfcEl(id) { return document.getElementById(id); }
+async function hfcPost(route, corps) {
+  var r = await fetch(WORKER_URL + route, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
+  var d = await r.json().catch(function () { return {}; });
+  return { ok: r.ok, statut: r.status, d: d };
+}
+// ——— Mise en place : une tuile dans la liste des moteurs + un panneau (recréés si l'onglet est redessiné) ———
+function hfcMonter(box) {
+  var tuiles = hfcEl("pmTuiles");
+  if (!tuiles || hfcEl("pmPan_higgsfield")) return;
+  var t = document.createElement("div");
+  t.className = "pmTuile"; t.id = "hfcTuile"; t.setAttribute("style", "--pmc:#a3e635;");
+  t.innerHTML = '<div class="pmIco">🧑‍🎤</div><div class="pmNom">Higgsfield — tous les modèles</div>'
+    + '<div class="pmDesc">Kling 4.0, Seedance 2.5, Genjutsu Pro et Light (remplacer une personne), images et plus encore.</div>'
+    + '<div class="pmDes">prix affiché avant de lancer</div>';
+  t.onclick = hfcOuvrir;
+  tuiles.appendChild(t);
+  var p = document.createElement("div");
+  p.className = "hidden pmPan"; p.id = "pmPan_higgsfield";
+  p.setAttribute("style", "border:1px solid var(--line); border-top:4px solid #a3e635; border-radius:14px; padding:12px 14px; margin-top:12px;");
+  p.innerHTML = '<button class="chip pmRetour" id="hfcRetour" style="margin-bottom:10px;">← Tous les moteurs</button>'
+    + '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap;"><b style="font-size:18px;">🧑‍🎤 Higgsfield — tous les modèles</b>'
+    + '<span style="color:#fbbf24; font-weight:800;" id="hfcPrixTete">choisis un modèle</span></div>'
+    + '<div class="estimate" style="margin:2px 0 10px;">Choisis un modèle, ajoute tes fichiers, regarde le prix, puis lance. Rien n\'est débité avant ton accord.</div>'
+    + '<div class="pmPanneau"><div class="pmGauche">'
+    + '<div class="estimate hidden" id="hfcCodeAvert" style="border-left:3px solid #fbbf24; padding:8px 10px; margin-bottom:8px;">🔑 <b>Entre ton code StarClip</b> dans la case « Ton code » en haut de cette page, puis touche OK. Tu peux déjà regarder les modèles : le code sert à voir le prix et à lancer. <button class="btn small" id="hfcVersCode" style="margin-left:6px;">Aller à la case du code</button></div>'
+    + '<div class="label" style="margin-top:0;">Que veux-tu faire ?</div><div class="pmTuiles" id="hfcRecettes"></div>'
+    + '<div class="label">Ou choisis directement un modèle</div>'
+    + '<div class="chips" id="hfcFiltre"><button class="chip on" data-f="tous">Tous</button><button class="chip" data-f="video">🎬 Vidéo</button><button class="chip" data-f="image">🖼️ Image</button></div>'
+    + '<div class="pmTuiles" id="hfcCartes" style="margin-top:8px;"></div><select id="hfcModele" style="display:none;"></select>'
+    + '<div class="estimate" id="hfcAide" style="margin-top:6px;"></div>'
+    + '<div id="hfcChamps"></div>'
+    + '<button class="btn" id="hfcGo" style="margin-top:10px;" disabled>Choisis un modèle</button>'
+    + '<div class="estimate" style="margin-top:6px; color:var(--dim);">Si le moteur échoue ou refuse ton contenu, ton solde t\'est rendu automatiquement.</div>'
+    + '</div><div class="pmDroite"><div class="label" style="margin-top:0;">Résultat</div>'
+    + '<div class="rwRond hidden" id="pm_higgsfieldRond"><div style="position:relative; width:110px; height:110px; margin:0 auto;">'
+    + '<svg width="110" height="110" viewBox="0 0 132 132"><circle class="piste" cx="66" cy="66" r="58"></circle>'
+    + '<circle class="arc" id="pm_higgsfieldArc" cx="66" cy="66" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"></circle></svg>'
+    + '<div class="rwRondTexte"><div class="rwRondPct" id="pm_higgsfieldPct">0%</div><div class="rwRondChrono" id="pm_higgsfieldChrono">00:00</div></div></div>'
+    + '<div class="rwRondEtape" id="pm_higgsfieldEtape" style="text-align:center;">Préparation…</div></div>'
+    + '<div class="estimate" id="hfcInfo" style="margin-top:6px;"></div>'
+    + '<div id="hfcResultat"><div class="estimate" style="opacity:.7;">Ton résultat s\'affichera ici.</div></div>'
+    + '</div></div>';
+  box.appendChild(p);
+  hfcEl("hfcRetour").onclick = function () { if (typeof pmFermer === "function") pmFermer(); };
+  hfcEl("hfcFiltre").querySelectorAll(".chip").forEach(function (c) {
+    c.onclick = function () {
+      HFC.filtre = c.getAttribute("data-f");
+      hfcEl("hfcFiltre").querySelectorAll(".chip").forEach(function (x) { x.classList.toggle("on", x === c); });
+      hfcListe();
+    };
+  });
+  hfcEl("hfcModele").onchange = function () { HFC.recette = null; hfcRecettes(); hfcChoisir(this.value); };
+  hfcEl("hfcGo").onclick = hfcAction;
+  hfcEl("hfcVersCode").onclick = function () { var c = hfcEl("pmCode"); if (c) { try { c.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {} c.focus(); } };
+  hfcAvertCode();
+  if (HFC.cat) { hfcListe(); }
+}
+function hfcOuvrir() {
+  try { if (typeof pmModeStudio !== "undefined") { pmModeStudio = false; if (typeof pmStudioMaj === "function") pmStudioMaj(); } } catch (e) {}
+  var tuiles = hfcEl("pmTuiles"); if (tuiles) tuiles.classList.add("hidden");
+  document.querySelectorAll(".pmPan").forEach(function (p) { p.classList.toggle("hidden", p.id !== "pmPan_higgsfield"); });
+  try { document.getElementById("sec-premium").scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {}
+  hfcCharger();
+}
+async function hfcCharger() {
+  var info = hfcEl("hfcInfo");
+  hfcAvertCode();
+  if (HFC.cat) { hfcListe(); return; }
+  if (HFC.chargement) return;
+  HFC.chargement = true; info.textContent = "Chargement des modèles…";
+  try {
+    var r = await hfcPost("/premium/hf/catalogue", { code: getCode() || "" });
+    if (!r.ok || !r.d.modeles) { info.innerHTML = '<span class="err">' + hfcEsc(r.d.error || "Higgsfield est momentanément indisponible.") + "</span>"; return; }
+    HFC.cat = r.d.modeles; info.textContent = "";
+    if (typeof r.d.premium === "number" && typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: r.d.premium });
+    hfcListe();
+  } catch (e) { info.innerHTML = '<span class="err">Connexion impossible. Réessaie dans un instant.</span>'; }
+  finally { HFC.chargement = false; }
+}
+function hfcAvertCode() { var z = hfcEl("hfcCodeAvert"); if (z) z.classList.toggle("hidden", !!getCode()); }
+function hfcListe() {
+  var sel = hfcEl("hfcModele"); if (!sel || !HFC.cat) return;
+  var garde = HFC.modele && HFC.modele.endpoint;
+  var liste = HFC.cat.filter(function (m) { return HFC.filtre === "tous" || m.cat === HFC.filtre; });
+  sel.innerHTML = '<option value="">— Choisis un modèle —</option>' + liste.map(function (m) {
+    return '<option value="' + hfcEsc(m.endpoint) + '"' + (m.endpoint === garde ? " selected" : "") + ">" + hfcEsc((m.cat === "image" ? "🖼️ " : "🎬 ") + m.nom) + "</option>";
+  }).join("");
+  hfcCartes(liste);
+  hfcRecettes();
+  if (garde && !liste.some(function (m) { return m.endpoint === garde; })) { HFC.recette = null; hfcChoisir(""); hfcRecettes(); }
+}
+// Cartes visuelles, comme les autres moteurs : une image si le fichier vignette-hf-….jpg existe, sinon une grande icône.
+function hfcIcone(m) {
+  var e = m.endpoint;
+  if (/genjutsu-light/.test(e)) return ["🧑‍🎤", "#a3e635"];
+  if (/genjutsu/.test(e)) return ["🎭", "#a3e635"];
+  if (/kling/.test(e)) return ["🎞️", "#2dd4bf"];
+  if (/seedance/.test(e)) return ["🌟", "#f59e0b"];
+  if (/cinema/.test(e)) return ["🎥", "#c026d3"];
+  if (/ads-studio/.test(e)) return ["📣", "#fb923c"];
+  if (/soul/.test(e)) return ["✨", "#f472b6"];
+  if (/hailuo|minimax/.test(e)) return ["🌊", "#60a5fa"];
+  return [m.cat === "image" ? "🖼️" : "🎬", "#a78bfa"];
+}
+function hfcCourt(t, n) { t = String(t || ""); return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : t; }
+function hfcVignette(slug) { return '<img src="vignette-hf-' + hfcEsc(slug) + '.jpg" alt="" loading="lazy" decoding="async" onerror="this.style.display=\'none\'" style="width:100%; height:84px; object-fit:cover; border-radius:8px; margin-bottom:6px;">'; }
+function hfcCartes(liste) {
+  var zone = hfcEl("hfcCartes"); if (!zone) return;
+  zone.innerHTML = liste.map(function (m) {
+    var ic = hfcIcone(m), slug = m.endpoint.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
+    var prix = m.prix === "grille" && m.grille ? "dès " + hfcFmt(Math.min.apply(null, Object.keys(m.grille).map(function (k) { return m.grille[k]; }))) : "prix affiché avant de lancer";
+    return '<div class="pmTuile" data-e="' + hfcEsc(m.endpoint) + '" style="--pmc:' + ic[1] + ';">' + hfcVignette(slug)
+      + '<div class="pmIco">' + ic[0] + '</div><div class="pmNom">' + hfcEsc(m.nom) + '</div><div class="pmDesc">' + hfcEsc(hfcCourt(m.aide, 90)) + '</div><div class="pmDes">' + hfcEsc(prix) + "</div></div>";
+  }).join("") || '<div class="estimate">Aucun modèle dans cette catégorie.</div>';
+  zone.querySelectorAll(".pmTuile").forEach(function (c) {
+    c.onclick = function () { var e = c.getAttribute("data-e"); HFC.recette = null; hfcEl("hfcModele").value = e; hfcChoisir(e); hfcRecettes(); hfcVoirFormulaire(); };
+  });
+  hfcMarquer();
+}
+function hfcVoirFormulaire() { try { hfcEl("hfcAide").scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }
+function hfcMarquer() {
+  var z = document.querySelectorAll("#hfcCartes .pmTuile");
+  Array.prototype.forEach.call(z, function (c) { c.style.outline = HFC.modele && c.getAttribute("data-e") === HFC.modele.endpoint ? "2px solid #a3e635" : ""; });
+  var r = document.querySelectorAll("#hfcRecettes .pmTuile");
+  Array.prototype.forEach.call(r, function (c) { c.style.outline = HFC.recette && c.getAttribute("data-r") === HFC.recette.id ? "2px solid #a3e635" : ""; });
+}
+function hfcChoisir(endpoint) {
+  HFC.modele = (HFC.cat || []).find(function (m) { return m.endpoint === endpoint; }) || null;
+  HFC.fichiers = {}; HFC.urls = {}; HFC.devis = null;
+  var zone = hfcEl("hfcChamps"), aide = hfcEl("hfcAide");
+  hfcEl("hfcResultat").innerHTML = '<div class="estimate" style="opacity:.7;">Ton résultat s\'affichera ici.</div>';
+  rwRondMontrer(HFC_PFX, false);
+  if (!HFC.modele) { zone.innerHTML = ""; aide.textContent = ""; hfcMajBouton(); hfcMarquer(); return; }
+  var m = HFC.modele;
+  aide.textContent = (HFC.recette && HFC.recette.aide) || m.aide || "";
+  var haut = "", bas = "";
+  var noms = Object.keys(m.champs);
+  noms.sort(function (a, b) { return hfcRang(m, a) - hfcRang(m, b); });
+  noms.forEach(function (nom) {
+    var h = hfcChampHtml(m, nom, m.champs[nom]);
+    if (m.champs[nom].avance) bas += h; else haut += h;
+  });
+  var duree = "";
+  if (m.prix === "grille" && m.grille) {
+    duree = '<div class="label">Durée de ta vidéo (elle fixe le prix)</div><div class="chips" id="hfcDuree">'
+      + Object.keys(m.grille).map(function (s, i) { return '<button class="chip' + (i === 0 ? " on" : "") + '" data-s="' + s + '">jusqu\'à ' + s + " s</button>"; }).join("") + "</div>"
+      + '<div class="estimate" id="hfcDureeInfo"></div>';
+  }
+  zone.innerHTML = haut + duree + (bas ? '<details style="margin-top:8px;"><summary style="cursor:pointer;">⚙️ Réglages avancés</summary>' + bas + "</details>" : "");
+  hfcLier(); hfcMajBouton(); hfcMarquer();
+  noms.forEach(function (nom) { if (m.champs[nom].t === "uuid" && m.champs[nom].preset) hfcChargerStyles(nom); });
+  if (HFC.recette && HFC.recette.prompt && hfcEl("hfcC_prompt")) { hfcEl("hfcC_prompt").value = HFC.recette.prompt; hfcMajBouton(); }
+}
+// Dessine les recettes dont le modèle existe au catalogue ; la recette choisie est mise en avant.
+function hfcRecettes() {
+  var zone = hfcEl("hfcRecettes"); if (!zone || !HFC.cat) return;
+  zone.innerHTML = HFC_RECETTES.filter(function (r) { return HFC.cat.some(function (m) { return m.endpoint === r.endpoint; }); }).map(function (r) {
+    return '<div class="pmTuile" data-r="' + r.id + '" style="--pmc:#a3e635;">' + hfcVignette("recette-" + r.id)
+      + '<div class="pmIco">' + r.ico + '</div><div class="pmNom">' + hfcEsc(r.nom) + '</div><div class="pmDesc">' + hfcEsc(hfcCourt(r.aide || "", 90)) + "</div></div>";
+  }).join("");
+  zone.querySelectorAll(".pmTuile").forEach(function (c) {
+    c.onclick = function () {
+      var r = HFC_RECETTES.find(function (x) { return x.id === c.getAttribute("data-r"); }); if (!r) return;
+      HFC.recette = r; HFC.filtre = "tous";
+      hfcEl("hfcFiltre").querySelectorAll(".chip").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-f") === "tous"); });
+      hfcListe(); hfcEl("hfcModele").value = r.endpoint; hfcChoisir(r.endpoint); hfcVoirFormulaire();
+    };
+  });
+  hfcMarquer();
+}
+function hfcRang(m, nom) {   // médias d'abord, puis le texte, puis les réglages
+  var d = m.champs[nom];
+  if (d.t === "url" || d.t === "urls") return 0;
+  if (d.t === "txt") return 1;
+  return 2;
+}
+function hfcChampHtml(m, nom, d) {
+  var id = "hfcC_" + nom, req = (m.requis || []).indexOf(nom) >= 0;
+  var nomChamp = hfcLib(nom, d);
+  var lib = '<div class="label">' + hfcEsc(nomChamp) + (req ? " *" : "") + "</div>";
+  var st = "width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:10px 12px; font-size:15px;";
+  if (d.t === "url" || d.t === "urls") {
+    var accept = d.m === "video" ? "video/*" : d.m === "audio" ? "audio/*" : "image/*";
+    return lib + '<div class="chips"><button class="btn small" id="' + id + '_btn">📂 ' + (d.t === "urls" ? "Choisir des fichiers" : "Choisir le fichier") + "</button></div>"
+      + '<input type="file" id="' + id + '_in" accept="' + accept + '"' + (d.t === "urls" ? " multiple" : "") + ' style="display:none;">'
+      + '<div class="estimate" id="' + id + '_nom"></div>';
+  }
+  if (d.t === "txt") return lib + '<textarea id="' + id + '" placeholder="" style="' + st + ' min-height:' + (d.max > 400 ? 80 : 40) + 'px;"></textarea>';
+  if (d.t === "enum") return lib + '<select id="' + id + '" style="' + st + '">' + d.v.map(function (v) { return '<option value="' + hfcEsc(v) + '"' + (String(v) === String(d.d) ? " selected" : "") + ">" + hfcEsc(v) + "</option>"; }).join("") + "</select>";
+  if (d.t === "int" || d.t === "num") return lib + '<input type="number" id="' + id + '" min="' + d.min + '" max="' + d.max + '" step="' + (d.t === "int" ? 1 : "any") + '" value="' + (d.d != null ? d.d : "") + '" style="' + st + '">';
+  if (d.t === "bool") return '<label style="display:flex; gap:8px; align-items:center; margin-top:10px;"><input type="checkbox" id="' + id + '"' + (d.d ? " checked" : "") + "> " + hfcEsc(d.l || nom) + "</label>";
+  if (d.t === "uuid" && d.preset) return lib + '<select id="' + id + '" style="' + st + '"><option value="">Chargement des styles…</option></select><div id="' + id + '_apercu" style="margin-top:6px;"></div>';
+  if (d.t === "uuid" || d.t === "slug") return lib + '<input type="text" id="' + id + '" style="' + st + '">';
+  return "";
+}
+function hfcLier() {
+  var m = HFC.modele; if (!m) return;
+  Object.keys(m.champs).forEach(function (nom) {
+    var d = m.champs[nom], id = "hfcC_" + nom;
+    if (d.t === "url" || d.t === "urls") {
+      var btn = hfcEl(id + "_btn"), inp = hfcEl(id + "_in");
+      btn.onclick = function () { inp.click(); };
+      inp.onchange = function (e) {
+        var fs = Array.prototype.slice.call(e.target.files || [], 0, d.t === "urls" ? d.max : 1);
+        HFC.fichiers[nom] = fs; HFC.devis = null;
+        hfcEl(id + "_nom").textContent = fs.length ? "✓ " + fs.map(function (f) { return f.name; }).join(", ") : "";
+        if (d.m === "video" && fs[0] && m.prix === "grille") hfcMesurer(fs[0]);
+        hfcMajBouton();
+      };
+    } else {
+      var el = hfcEl(id);
+      if (el) { el.oninput = el.onchange = function () { HFC.devis = null; hfcMajBouton(); }; }
+    }
+  });
+  var du = hfcEl("hfcDuree");
+  if (du) du.querySelectorAll(".chip").forEach(function (c) {
+    c.onclick = function () { du.querySelectorAll(".chip").forEach(function (x) { x.classList.toggle("on", x === c); }); HFC.devis = null; hfcMajBouton(); };
+  });
+}
+function hfcMesurer(f) {   // choisit tout seul le palier de durée d'après la vidéo
+  var v = document.createElement("video"), u = URL.createObjectURL(f);
+  v.preload = "metadata";
+  v.onloadedmetadata = function () {
+    var s = v.duration; URL.revokeObjectURL(u);
+    var du = hfcEl("hfcDuree"); if (!du || !isFinite(s)) return;
+    var paliers = Array.prototype.map.call(du.querySelectorAll(".chip"), function (c) { return parseInt(c.getAttribute("data-s")); });
+    var pick = paliers.find(function (p) { return s <= p + 0.2; }) || paliers[paliers.length - 1];
+    du.querySelectorAll(".chip").forEach(function (c) { c.classList.toggle("on", parseInt(c.getAttribute("data-s")) === pick); });
+    var z = hfcEl("hfcDureeInfo"); if (z) z.textContent = "Ta vidéo dure environ " + Math.ceil(s) + " s : palier « jusqu'à " + pick + " s »." + (s > paliers[paliers.length - 1] ? " Seules les premières secondes seront utilisées." : "");
+    HFC.devis = null; hfcMajBouton();
+  };
+  v.onerror = function () { URL.revokeObjectURL(u); };
+  v.src = u;
+}
+// ——— Valeurs saisies → corps envoyé au Worker (les fichiers sont remplacés par leurs adresses après envoi) ———
+function hfcLireTexteEtReglages() {
+  var m = HFC.modele, p = {};
+  Object.keys(m.champs).forEach(function (nom) {
+    var d = m.champs[nom], el = hfcEl("hfcC_" + nom);
+    if (!el || d.t === "url" || d.t === "urls") return;
+    if (d.t === "bool") { p[nom] = !!el.checked; return; }
+    var v = String(el.value == null ? "" : el.value).trim();
+    if (v === "") return;
+    if (d.t === "int" || d.t === "num") { var n = Number(v); if (isFinite(n)) p[nom] = n; return; }
+    p[nom] = v;
+  });
+  return p;
+}
+function hfcManque() {
+  var m = HFC.modele; if (!m) return "Choisis un modèle";
+  if (!getCode()) return "Entre d'abord ton code StarClip en haut de la page";
+  var p = hfcLireTexteEtReglages();
+  for (var i = 0; i < (m.requis || []).length; i++) {
+    var nom = m.requis[i], d = m.champs[nom];
+    if (d.t === "url" || d.t === "urls") { if (!(HFC.fichiers[nom] || []).length) return "Ajoute : " + hfcLib(nom, d); }
+    else if (p[nom] === undefined) return "Remplis : " + hfcLib(nom, d);
+  }
+  if (m.unDe && !m.unDe.some(function (k) { return (HFC.fichiers[k] || []).length; })) return "Ajoute au moins un fichier de référence";
+  return "";
+}
+function hfcLib(nom, d) { return (HFC.recette && HFC.recette.labels && HFC.recette.labels[nom]) || d.l || nom; }
+function hfcFmt(n) { return typeof pmFmt === "function" ? pmFmt(n) : n + " FCFA"; }
+function hfcMajBouton() {
+  var b = hfcEl("hfcGo"), tete = hfcEl("hfcPrixTete"); if (!b) return;
+  var manque = hfcManque();
+  if (HFC.enCours) { b.disabled = true; b.textContent = "⏳ En cours…"; return; }
+  if (manque) { b.disabled = true; b.textContent = manque; if (tete) tete.textContent = HFC.modele ? "prix après tes fichiers" : "choisis un modèle"; return; }
+  b.disabled = false;
+  if (HFC.devis) { b.textContent = "👑 Lancer — " + hfcFmt(HFC.devis.prix); if (tete) tete.textContent = hfcFmt(HFC.devis.prix); }
+  else { b.textContent = "💰 Voir le prix"; if (tete) tete.textContent = "à calculer"; }
+}
+// Envoie les fichiers choisis (une seule fois chacun) et renvoie le corps complet.
+async function hfcConstruire(info) {
+  var m = HFC.modele, p = hfcLireTexteEtReglages(), noms = Object.keys(m.champs);
+  for (var i = 0; i < noms.length; i++) {
+    var nom = noms[i], d = m.champs[nom];
+    if (d.t !== "url" && d.t !== "urls") continue;
+    var fs = HFC.fichiers[nom] || []; if (!fs.length) continue;
+    var urls = [];
+    for (var j = 0; j < fs.length; j++) {
+      var f = fs[j], cle = f.name + "|" + f.size + "|" + f.lastModified;
+      if (!HFC.urls[cle]) { info("Envoi de « " + f.name + " »… (" + (j + 1) + "/" + fs.length + ")"); HFC.urls[cle] = await hebergerFichier(f, f.name); }
+      urls.push(HFC.urls[cle]);
+    }
+    p[nom] = d.t === "urls" ? urls : urls[0];
+  }
+  var duree = null, du = hfcEl("hfcDuree");
+  if (du) { var on = du.querySelector(".chip.on"); duree = on ? parseInt(on.getAttribute("data-s")) : null; }
+  return { endpoint: m.endpoint, payload: p, duree: duree };
+}
+async function hfcAction() {
+  if (HFC.enCours || !HFC.modele || hfcManque()) return;
+  if (window.SIM_GLOBAL) { hfcEl("hfcInfo").innerHTML = '<span class="err">Simulation sans frais active : désactive-la pour utiliser Higgsfield.</span>'; return; }
+  var info = function (t) { hfcEl("hfcInfo").textContent = t; };
+  HFC.enCours = true; hfcMajBouton();
+  try {
+    if (!HFC.devis) {                                   // 1er clic : calculer le prix
+      var corps = await hfcConstruire(info);
+      info("Calcul du prix…");
+      var r = await hfcPost("/premium/hf/devis", Object.assign({ code: getCode() }, corps));
+      if (!r.ok) throw new Error(r.d.error || "Prix indisponible, réessaie.");
+      HFC.devis = { prix: r.d.prix, corps: corps };
+      if (typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: r.d.premium });
+      info(r.d.suffisant ? "Prix calculé. Touche « Lancer » pour confirmer : ton solde sera débité de " + hfcFmt(r.d.prix) + "." : "Solde insuffisant : il faut " + hfcFmt(r.d.prix) + ". Recharge ton solde Premium (onglet Commander).");
+      if (!r.d.suffisant) HFC.devis = null;
+      return;
+    }
+    // 2e clic : confirmer et lancer
+    if (!confirm("Lancer ce rendu ? Ton solde Premium sera débité de " + hfcFmt(HFC.devis.prix) + ".\nSi le moteur échoue ou refuse ton contenu, tu es remboursé automatiquement.")) return;
+    var s = await hfcPost("/premium/hf/submit", Object.assign({ code: getCode() }, HFC.devis.corps));
+    if (!s.ok) { if (typeof s.d.premium === "number" && typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: s.d.premium }); throw new Error(s.d.error || "Lancement refusé."); }
+    if (typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: s.d.premium });
+    HFC.devis = null;
+    await hfcSuivre(s.d.request_id, info);
+  } catch (e) {
+    info(""); hfcEl("hfcInfo").innerHTML = '<span class="err">✗ ' + hfcEsc((e && e.message) || "Erreur") + "</span>";
+    rwRondEchec(HFC_PFX, "Échec");
+  } finally {
+    HFC.enCours = false; clearInterval(HFC.minuteur); hfcMajBouton();
+  }
+}
+async function hfcSuivre(id, info) {
+  rwDepart = Date.now(); rwRondMontrer(HFC_PFX, true); rwRondMaj(HFC_PFX, -1, "En file d'attente…");
+  clearInterval(HFC.minuteur); HFC.minuteur = setInterval(function () { rwRondChrono(HFC_PFX); }, 1000);
+  info("Rendu lancé. Le cercle qui tourne veut dire que le moteur travaille : ne relance pas.");
+  hfcEl("hfcResultat").innerHTML = "";
+  for (var k = 0; k < 720; k++) {
+    await new Promise(function (r) { setTimeout(r, 5000); });
+    var r = await hfcPost("/premium/hf/status", { code: getCode(), request_id: id });
+    if (!r.ok) { if (k > 5 && r.statut === 404) throw new Error(r.d.error || "Rendu introuvable."); continue; }
+    var d = r.d;
+    if (typeof d.premium === "number" && typeof pmAfficherSolde === "function") pmAfficherSolde({ premium: d.premium });
+    if (d.status === "completed") { hfcResultat(d); rwRondFini(HFC_PFX, "Terminé"); info("Terminé. Télécharge ton résultat : Higgsfield le garde quelques jours seulement."); return; }
+    if (d.status === "failed" || d.status === "nsfw" || d.status === "canceled") {
+      rwRondEchec(HFC_PFX, d.status === "nsfw" ? "Refusé" : "Échec");
+      info(""); hfcEl("hfcInfo").innerHTML = '<span class="err">' + hfcEsc(d.error || "Le rendu n'a pas abouti.") + "</span>" + (d.rembourse ? " <b>✓ Ton solde t'a été rendu (" + hfcFmt(d.prix) + ").</b>" : "");
+      return;
+    }
+    rwRondMaj(HFC_PFX, -1, d.status === "in_progress" ? "Le moteur travaille… (quelques minutes)" : "En file d'attente…");
+  }
+  throw new Error("Le moteur met plus de temps que prévu. Ton rendu reste visible dans ton compte Higgsfield du studio : contacte le studio sur WhatsApp avec ce numéro : " + id);
+}
+function hfcResultat(d) {
+  var h = "";
+  if (d.video && d.video.url) {
+    var u = hfcEsc(d.video.url);
+    h += '<video controls playsinline style="width:100%; border-radius:10px;" src="' + u + '"></video><div class="chips" style="margin-top:8px;"><a class="chip" href="' + u + '" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger la vidéo</a></div>';
+  }
+  (d.images || []).forEach(function (im, i) {
+    var u = hfcEsc(im.url);
+    h += '<div style="margin-top:8px;"><img src="' + u + '" alt="Image ' + (i + 1) + '" style="width:100%; border-radius:10px;"><div class="chips" style="margin-top:6px;"><a class="chip" href="' + u + '" download target="_blank" rel="noopener noreferrer">⬇️ Télécharger l\'image ' + (i + 1) + "</a></div></div>";
+  });
+  hfcEl("hfcResultat").innerHTML = h || '<div class="estimate">Terminé, mais aucun fichier n\'a été renvoyé.</div>';
+}
+// L'onglet Premium est redessiné à chaque ouverture : on remet la tuile et le panneau quand ils manquent.
+setInterval(function () {
+  var t = hfcEl("pmTuiles");
+  if (t && !hfcEl("pmPan_higgsfield") && t.parentNode) hfcMonter(t.parentNode);
+  var p = hfcEl("pmPan_higgsfield");
+  if (p && !p.classList.contains("hidden")) {
+    hfcAvertCode();
+    if (!HFC.cat && !HFC.chargement) hfcCharger();
+    else if (HFC.modele) hfcMajBouton();
+  }
+}, 1000);
 </script>
 <script src="i18n/i18n.js?v=41174" defer></script>
 <script src="naya/naya.js?v=41174" defer></script>
