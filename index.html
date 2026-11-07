@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.179 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.180 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -2547,7 +2547,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.179</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.180</span>
 
   </footer>
 </div>
@@ -4422,7 +4422,7 @@ document.getElementById("go").onclick = async () => {
       const els = construireElements();
       const prefixe = consigneIdentite(true);
       // Le préfixe compte dans la limite : on réserve sa place puis on coupe le reste.
-      const room = 2500 - prefixe.length - 5;
+      const room = 2300 - prefixe.length;
       payload = {
         prompt: prefixe + clipPrompt(prompt, room),
         image_urls: [stylePhotoUrl || photoDataUrl],
@@ -4433,7 +4433,7 @@ document.getElementById("go").onclick = async () => {
       };
     } else {
       payload = {
-        prompt: clipPrompt(prompt, 2495),
+        prompt: clipPrompt(prompt, 2300),
         image_url: stylePhotoUrl || photoDataUrl,
         duration: dur,
         negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, low quality, duplicated object, extra object, additional prop, second cigar, extra cigar, extra item in hand, multiplied accessory, new object appearing, second glass, two glasses, extra champagne glass, duplicated glass, glass brought to mouth by another person, mirrored edges, duplicated background, reflection artifacts, repeated scenery on sides, same face on two people, cloned face, twin faces, identical people, duplicated person, other people with the main person face, face copied onto another person" + (lipOptim ? ", microphone covering mouth, hand covering mouth, face turned away" : "") + buildFaceNegative(),
@@ -14600,7 +14600,7 @@ const SCENARIO_EXEMPLES = [
       else voix = segs.map((g, k) => (k ? "Then " + roleDe(g.c) : maj(roleDe(g.c))) + (k ? " answers" : " says") + " in French: \"" + g.texte + "\".").join(" ")
         + " Each person speaks only their own line" + (segs.length === 1 && persos.length > 1 ? ", the others listen silently" : "") + ". Natural calm voices, lips synchronized with the French words.";
       const txt = couper(intro + (decor ? "Setting: " + decor.desc.replace(/[,;.]?\s*(with\s+)?no\s+(people|persons?|humans?)\.?/gi, "").replace(/[.\s]+$/, "") + ". " : "")
-        + action + ". " + voix + " Cinematic photorealistic shot, smooth natural motion, no music, no subtitles, no on-screen text.", 2400);
+        + action + ". " + voix + " Cinematic photorealistic shot, smooth natural motion, no music, no subtitles, no on-screen text.", 2300);
       const mots = segs.reduce((n, g) => n + g.texte.split(/\s+/).length, 0);
       return {
         voix: true, mode: "image", path: "alibaba/happy-horse", dg: dg, mots: mots, trop: mots > (dg === 5 ? 14 : 30),
@@ -14645,7 +14645,7 @@ const SCENARIO_EXEMPLES = [
             + ". Keep each person's exact face, skin tone, hairstyle and outfit from their own references, never swap the people and never replace anyone with a lookalike. ";
         }
         const txt = couper(pre + (decor ? "Setting: " + decor.desc.replace(/[,;.]?\s*(with\s+)?no\s+(people|persons?|humans?)\.?/gi, "").replace(/[.\s]+$/, "") + ". " : "") + action
-          + ". Cinematic photorealistic shot, smooth natural camera and body motion, faces fully visible, eyes open, clean frame.", 2400);
+          + ". Cinematic photorealistic shot, smooth natural camera and body motion, faces fully visible, eyes open, clean frame.", 2300);
         const payload = { prompt: txt, image_urls: [base], duration: dg, aspect_ratio: p.format, generate_audio: false };
         if (els.length) payload.elements = els;
         return { path: MODELS.ref.path, payload: payload, dg: Number(dg) };
@@ -14654,7 +14654,7 @@ const SCENARIO_EXEMPLES = [
       return {
         path: MODELS[m].path, dg: Number(dg),
         payload: {
-          prompt: couper(action + ". Cinematic photorealistic shot, smooth natural motion, faces fully visible, eyes open.", 2400),
+          prompt: couper(action + ". Cinematic photorealistic shot, smooth natural motion, faces fully visible, eyes open.", 2300),
           image_url: s.depart, duration: dg,
           negative_prompt: "blurry, distorted face, extra fingers, identity change, glitch, watermark, text, subtitles, low quality",
         },
