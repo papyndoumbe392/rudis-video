@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.180 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.181 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -926,8 +926,10 @@
       <button class="chip on" data-model="eco" onclick="pickModel(this)">Éco</button>
       <button class="chip" data-model="pro" onclick="pickModel(this)">Pro (lip-sync)</button>
       <button class="chip" data-model="ref" onclick="pickModel(this)">⭐ Visage stable</button>
+      <button class="chip" data-model="k4" onclick="pickModel(this)">✨ Kling 4.0</button>
     </div>
     <div class="estimate" id="modelInfo" style="display:none; border-left:3px solid var(--violet); background:var(--up); border-radius:8px; padding:10px 12px; margin-top:8px;">⭐ <b>Visage stable :</b> le moteur ancre ton identité sur tes <b>photos de référence visage</b> (volet 1) — le visage ne change plus, même en marchant ou en dansant. Ajoute au moins 1 photo de référence pour utiliser ce mode.</div>
+    <div class="estimate" id="modelInfoK4" style="display:none; border-left:3px solid #7c3aed; background:var(--up); border-radius:8px; padding:10px 12px; margin-top:8px;">✨ <b>Kling 4.0 :</b> le moteur le plus récent de Kling — image → vidéo haute qualité, 5 à 30 s, 720p. <b>Réservé aux packs Pro.</b></div>
 
     <label style="display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:13px; color:var(--dim); cursor:pointer;">
       <input type="checkbox" id="lipOptim" checked style="margin-top:2px; accent-color:var(--gold);">
@@ -938,6 +940,9 @@
     <div class="chips">
       <button class="chip on" data-dur="5" onclick="pickDur(this)">5 secondes</button>
       <button class="chip" data-dur="10" onclick="pickDur(this)">10 secondes</button>
+      <button class="chip k4-dur" data-dur="15" onclick="pickDur(this)" style="display:none;">15 secondes</button>
+      <button class="chip k4-dur" data-dur="20" onclick="pickDur(this)" style="display:none;">20 secondes</button>
+      <button class="chip k4-dur" data-dur="30" onclick="pickDur(this)" style="display:none;">30 secondes</button>
     </div>
     <div class="estimate" id="estimate">Débité sur ton code StarClip au lancement</div>
   </section>
@@ -2402,6 +2407,7 @@
         <div class="chips" id="sdModeleChips">
           <button class="chip on" data-modele="seedance2_5">Seedance 2.5</button>
           <button class="chip" data-modele="seedance2">Seedance 2.0</button>
+          <button class="chip" data-modele="kling4">✨ Kling 4.0</button>
         </div>
         <div class="hint" id="sdModeleAide"></div>
       </div>
@@ -2547,7 +2553,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.180</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.181</span>
 
   </footer>
 </div>
@@ -2759,6 +2765,7 @@ const MODELS = {
   eco: { path: "fal-ai/kling-video/v2.1/standard/image-to-video", price5: 0.28, price10: 0.56 },
   pro: { path: "fal-ai/kling-video/v3/turbo/pro/image-to-video", perSec: 0.14 },
   ref: { path: "fal-ai/kling-video/o3/pro/reference-to-video", perSec: 0.112 }, // v33.1 : Kling 3.0 (o3), sans audio natif = même prix
+  k4: { path: "kling/v4/image-to-video", credits: { 5:1, 10:2, 15:3, 20:4, 30:6 } }, // v41.181 : Kling 4.0 (fal), réservé Pro
 };
 
 // ——— v34.8 : plan du client (eco / pro), renvoyé par le Worker sur /balance ———
@@ -3202,6 +3209,14 @@ function pickModel(el) {
   el.classList.add("on"); model = el.dataset.model;
   const mi = document.getElementById("modelInfo");
   if (mi) mi.style.display = (model === "ref") ? "block" : "none";
+  const miK4 = document.getElementById("modelInfoK4");
+  if (miK4) miK4.style.display = (model === "k4") ? "block" : "none";
+  // v41.181 : k4 → durées 15/20/30 s visibles ; autres modèles → masquées, reset à 5 s si nécessaire
+  document.querySelectorAll(".k4-dur").forEach(c => { c.style.display = (model === "k4") ? "" : "none"; });
+  if (model !== "k4" && (dur === "15" || dur === "20" || dur === "30")) {
+    dur = "5";
+    document.querySelectorAll("[data-dur]").forEach(c => c.classList.toggle("on", c.dataset.dur === "5"));
+  }
   refresh();
 }
 function pickDur(el) {
@@ -4383,7 +4398,7 @@ document.getElementById("go").onclick = async () => {
   // v33.9 : filet de sécurité absolu — Kling limite le prompt à 2500 caractères.
   // En mode ref, un préfixe (~240 car.) est ajouté ensuite : on garde une marge.
   // On coupe proprement à la fin d'un mot, jamais au milieu.
-  const PROMPT_MAX = model === "ref" ? 2240 : 2480;
+  const PROMPT_MAX = model === "ref" ? 2240 : model === "k4" ? 2300 : 2480;
   if (prompt.length > PROMPT_MAX) {
     let cut = prompt.slice(0, PROMPT_MAX - 1);
     const sp = cut.lastIndexOf(" ");
@@ -4431,6 +4446,19 @@ document.getElementById("go").onclick = async () => {
         aspect_ratio: aspect,
         generate_audio: false,
       };
+    } else if (model === "k4") {
+      // v41.181 : Kling 4.0 — image→vidéo via fal, réservé Pro
+      if (clientPlan !== "pro") {
+        setStatus("<span class='err'>✨ Kling 4.0 est réservé aux packs Pro — passe en pack Pro pour utiliser ce mode.<br>Kling 4.0 is for Pro packs only — upgrade to use it.</span>", 0);
+        document.getElementById("go").disabled = false;
+        return;
+      }
+      payload = {
+        prompt: clipPrompt(prompt, 2300),
+        start_image_url: stylePhotoUrl || photoDataUrl,
+        duration: parseInt(dur),
+        resolution: "720p",
+      };
     } else {
       payload = {
         prompt: clipPrompt(prompt, 2300),
@@ -4450,7 +4478,7 @@ document.getElementById("go").onclick = async () => {
       const sj = await apiPoll(statusUrl);
       pct = Math.min(pct + 3, 92);
       if (sj.status === "IN_QUEUE") setStatus(`En file d'attente (position ${sj.queue_position ?? "…"})…`, pct);
-      else if (sj.status === "IN_PROGRESS") setStatus("Le studio crée ta vidéo… (1 à 5 min)", pct);
+      else if (sj.status === "IN_PROGRESS") setStatus(`Le studio crée ta vidéo… (${model === "k4" ? "1 à 10 min" : "1 à 5 min"})`, pct);
       else if (sj.status === "COMPLETED") break;
       if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("La création a échoué côté serveur. Ton crédit n'est normalement pas débité. Réessaie.");
     }
@@ -7566,27 +7594,60 @@ const PM_MOTEURS = [
   { id: "stems", nom: "🎚️ Extraire les stems", fournisseur: "fal",
     desc: "Sépare une chanson en pistes : voix, batterie, basse, instruments. En MP3, WAV ou les deux.",
     durees: [0], prix: { 0: 499 }, stems: true },
+  // v41.181 : Kling 4.0 — deux moteurs, tarif 2D (résolution × durée)
+  { id: "kling4fal", nom: "✨ Kling 4.0 (fal)", fournisseur: "fal",
+    desc: "Le moteur le plus récent de Kling — image → vidéo haute qualité, 720p ou 1080p.",
+    durees: [5, 10, 15, 20, 30],
+    resolutions: ["720p", "1080p"],
+    prixResol: {
+      "720p":  { 5: 1999, 10: 3999, 15: 5999, 20: 7999, 30: 11999 },
+      "1080p": { 5: 2999, 10: 5999, 15: 8499, 20: 11499, 30: 16999 },
+    },
+    photo: true },
+  { id: "kling4rw", nom: "✨ Kling 4.0 (Runway)", fournisseur: "runway",
+    desc: "Kling 4.0 via Runway — image → vidéo haute qualité, 720p ou 1080p.",
+    durees: [5, 10, 15, 20, 30],
+    resolutions: ["720p", "1080p"],
+    prixResol: {
+      "720p":  { 5: 1999, 10: 3999, 15: 5999, 20: 7999, 30: 11999 },
+      "1080p": { 5: 2999, 10: 5999, 15: 8499, 20: 11499, 30: 16999 },
+    },
+    photo: true },
 ];
 // v41.123 : couleur du liseré de chaque carreau.
-const PM_COULEURS = { demo: "#fb923c", seedance2: "#22c55e", seedance25: "#f59e0b", aleph: "#60a5fa", multishot: "#a78bfa", chanson: "#f472b6", chansonPro: "#c026d3", stems: "#14b8a6" };
+const PM_COULEURS = { demo: "#fb923c", seedance2: "#22c55e", seedance25: "#f59e0b", aleph: "#60a5fa", multishot: "#a78bfa", chanson: "#f472b6", chansonPro: "#c026d3", stems: "#14b8a6", kling4fal: "#7c3aed", kling4rw: "#0ea5e9" };
 const PM_ALEPH_PRIX = { 5: 3499, 10: 5499 };
 let pmSel = {};   // { [id]: { duree, photo:File, video:File } }
 const pmChChoix = { demo: { genre: null, voix: null, langue: null, ambiance: null },
                      chanson: { genre: null, voix: null, langue: null, ambiance: null },
                      chansonPro: { genre: null, voix: null, langue: null, ambiance: null } };   // v41.123
-PM_MOTEURS.forEach(m => { pmSel[m.id] = { duree: m.durees.length ? m.durees[0] : null }; });
+PM_MOTEURS.forEach(m => { pmSel[m.id] = { duree: m.durees.length ? m.durees[0] : null, resol: m.resolutions ? m.resolutions[0] : null }; });
 
 function pmPrix(m) {
   if (m.id === "aleph") return PM_ALEPH_PRIX[pmSel.aleph.duree] || null;
   if (m.demo && pmSel.demo.mode !== "reference") return 999;   // v41.126 : reprise
+  if (m.prixResol) {
+    const resol = pmSel[m.id].resol || (m.resolutions && m.resolutions[0]);
+    return (m.prixResol[resol] || {})[pmSel[m.id].duree] || null;
+  }
   return m.prix[pmSel[m.id].duree];
 }
 function pmFmt(fcfa) { return fcfa ? fcfa.toLocaleString("fr-FR") + " FCFA" : "…"; }
 
 function pmCarte(m) {
+  // v41.181 : moteurs à tarif 2D (résolution × durée)
+  const resolHtml = m.prixResol && m.resolutions
+    ? `<div class="label">Résolution / Resolution</div><div class="chips" id="pmResol_${m.id}">` +
+      m.resolutions.map(r => `<button class="chip${r === pmSel[m.id].resol ? " on" : ""}" data-pmr="${r}">${r}</button>`).join("") +
+      `</div>`
+    : "";
   const dureesHtml = m.durees.length > 1
-    ? `<div class="chips" id="pmDur_${m.id}">` + m.durees.map(d =>
-        `<button class="chip${d === pmSel[m.id].duree ? " on" : ""}" data-pmd="${d}">${m.libDuree ? m.libDuree[d] : d + " s"} · ${pmFmt(m.prix[d])}</button>`).join("") + `</div>`
+    ? `<div class="chips" id="pmDur_${m.id}">` + m.durees.map(d => {
+        const prixLabel = m.prixResol
+          ? pmFmt((m.prixResol[pmSel[m.id].resol || m.resolutions[0]] || {})[d])
+          : pmFmt(m.prix[d]);
+        return `<button class="chip${d === pmSel[m.id].duree ? " on" : ""}" data-pmd="${d}">${m.libDuree ? m.libDuree[d] : d + " s"} · ${prixLabel}</button>`;
+      }).join("") + `</div>`
     : "";
   const media = m.demo
     ? `<div class="label">Ce que tu veux</div>
@@ -7666,6 +7727,7 @@ function pmCarte(m) {
     <div class="estimate" style="margin:2px 0 10px;">${m.desc}</div>
     <div class="pmPanneau">
       <div class="pmGauche">
+        ${resolHtml}
         ${dureesHtml}
         ${media}
         ${texte}
@@ -7695,7 +7757,11 @@ function pmCarte(m) {
 }
 
 function pmTuile(m) {
-  const vals = m.id === "aleph" ? Object.values(PM_ALEPH_PRIX) : m.demo ? [999, 1999, 3999] : Object.values(m.prix);
+  // v41.181 : pour les moteurs prixResol, utilise les prix 720p comme référence de départ
+  const vals = m.id === "aleph" ? Object.values(PM_ALEPH_PRIX)
+    : m.demo ? [999, 1999, 3999]
+    : m.prixResol ? Object.values(m.prixResol[m.resolutions[0]] || {})
+    : Object.values(m.prix);
   const min = Math.min(...vals);
   const [ico, ...reste] = m.nom.split(" ");
   return `<div class="pmTuile" data-pmouvre="${m.id}" style="--pmc:${PM_COULEURS[m.id] || "#7c3aed"};">
@@ -8050,6 +8116,64 @@ async function pmLancer(id) {
       result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
         <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
       info.innerHTML = `<span style="color:var(--ok)">✓ Mini-clip prêt !</span>`; rwRondFini(pfx, "✓ Mini-clip prêt !");
+
+    } else if (id === "kling4fal") {
+      // v41.181 : Kling 4.0 via fal — image → vidéo, tarif 2D (résol × durée)
+      if (!s.photo) throw new Error("Choisis d'abord une photo.");
+      const resol = s.resol || "720p";
+      maj("Lecture de la photo…");
+      const uri = await pmDataUri(s.photo);
+      const payload = { prompt, start_image_url: uri, duration: s.duree, resolution: resol };
+      maj("Envoi au studio…");
+      const job = await pmSubmit("kling4fal", s.duree, resol, payload);
+      const statusUrl = job.status_url || `https://queue.fal.run/kling/v4/image-to-video/requests/${job.request_id}/status`;
+      const responseUrl = job.response_url || `https://queue.fal.run/kling/v4/image-to-video/requests/${job.request_id}`;
+      for (let i = 0; i < 150; i++) {
+        await new Promise(r => setTimeout(r, 4000));
+        const sj = await apiPoll(statusUrl);
+        if (sj.status === "COMPLETED") break;
+        if (sj.status === "FAILED" || sj.status === "ERROR") throw new Error("Le moteur a refusé la création.");
+        maj(sj.status === "IN_PROGRESS" ? "Kling 4.0 travaille… (1 à 10 min)" : "En file d'attente…");
+      }
+      const data = await apiPoll(responseUrl);
+      const out = data.video?.url || data.response?.video?.url || data.output?.video?.url;
+      if (!out) throw new Error("Vidéo introuvable dans la réponse.");
+      result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
+        <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`; rwRondFini(pfx, "✓ Vidéo prête !");
+
+    } else if (id === "kling4rw") {
+      // v41.181 : Kling 4.0 via Runway — image → vidéo, tarif 2D (résol × durée)
+      if (!s.photo) throw new Error("Choisis d'abord une photo.");
+      const resol = s.resol || "720p";
+      maj("Lecture de la photo…");
+      const uri = await pmDataUri(s.photo);
+      const ratio = resol === "1080p" ? "auto_1080p" : "auto_720p";
+      const payload = { promptImage: uri, promptText: prompt, ratio, audio: false };
+      maj("Envoi au studio…");
+      const t = await pmSubmit("kling4rw", s.duree, resol, payload);
+      let fin;
+      try {
+        fin = await pmAttendreRunway(t.id, info);
+      } catch (eRw) {
+        // v41.181-fix : Runway a accepté la tâche mais l'a ensuite échouée — tenter un remboursement automatique.
+        let msgRembours = null;
+        try {
+          const rRef = await fetch(WORKER_URL + "/refund", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: getCode(), request_id: t.id }),
+          });
+          const dRef = await rRef.json().catch(() => ({}));
+          if (rRef.ok && dRef.ok)
+            msgRembours = "La vidéo a échoué — ton solde Admin Premium a été remboursé (" + (dRef.rembourse_fcfa || 0).toLocaleString("fr-FR") + " FCFA remis). · Creation failed — your Premium balance was refunded.";
+        } catch (_) {}
+        throw new Error(msgRembours || eRw.message);
+      }
+      const out = Array.isArray(fin.output) ? fin.output[0] : (fin.output && fin.output.url) || null;
+      if (!out) throw new Error("Vidéo introuvable dans la réponse.");
+      result.innerHTML = `<video controls playsinline style="width:100%; border-radius:10px; margin-top:10px;" src="${out}"></video>
+        <a class="btn small" href="${out}" download target="_blank" rel="noopener" style="margin-top:6px; display:inline-block; text-decoration:none;">⬇️ Télécharger</a>`;
+      info.innerHTML = `<span style="color:var(--ok)">✓ Vidéo prête !</span>`; rwRondFini(pfx, "✓ Vidéo prête !");
 
     } else if (id === "demo") {
       // v41.126 : 🎙️ AMÉLIORER MA DÉMO — Reprise (garde mélodie + paroles)
@@ -8441,6 +8565,21 @@ async function pmLancer(id) {
     if (box2) box2.querySelectorAll(".chip").forEach(c => c.onclick = () => {
       pmSel[m.id].duree = parseInt(c.dataset.pmd);
       box2.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x === c));
+      pmMaj(m.id);
+    });
+    // v41.181 : résolution (moteurs prixResol)
+    const boxR = document.getElementById("pmResol_" + m.id);
+    if (boxR) boxR.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+      pmSel[m.id].resol = c.dataset.pmr;
+      boxR.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x === c));
+      // Met à jour les labels de durée avec les nouveaux prix
+      const dur2 = document.getElementById("pmDur_" + m.id);
+      if (dur2 && m.prixResol) dur2.querySelectorAll(".chip").forEach(ch => {
+        const d = parseInt(ch.dataset.pmd);
+        const p = (m.prixResol[pmSel[m.id].resol] || {})[d];
+        ch.textContent = d + " s · " + pmFmt(p);
+        if (d === pmSel[m.id].duree) ch.classList.add("on"); else ch.classList.remove("on");
+      });
       pmMaj(m.id);
     });
     if (m.video) {
@@ -10792,6 +10931,22 @@ const SD_MOTEURS = {
     crRef: { "480p": 10, "720p": 15, "1080p": 34 },
     crMin: 144,   // minimum 4 secondes × 36 crédits
   },
+  // v41.181 : Kling 4.0 — image → vidéo via Runway, PIN Studio uniquement
+  "kling4": {
+    nom: "Kling 4.0",
+    sousTitre: "Image → vidéo Kling 4.0 via Runway. 720p ou 1080p, 5 à 30 s. Une image de départ.",
+    dureeMin: 5, dureeMax: 30,
+    durees: [5, 10, 15, 20, 30],  // durées entières imposées par Runway
+    promptMax: 2300,
+    maxImages: 1, maxVideos: 0, maxAudios: 0,
+    audioMaxS: 0, videoMaxS: 0,
+    aMode: false,
+    imageOnly: true,   // mode Photo obligatoire, mode Vidéo masqué
+    ratios: null,      // Runway choisit automatiquement : auto_720p / auto_1080p
+    crS: null,         // facturation Runway, pas de crédit Studio calculé côté client
+    crRef: null,
+    crMin: 0,
+  },
 };
 let sdModele = "seedance2_5";                  // moteur courant
 function sdMoteur() { return SD_MOTEURS[sdModele]; }
@@ -10819,9 +10974,15 @@ function sdMajDurees() {
   const d = document.getElementById("sdDuree"), avant = Number(d.value) || 5;
   const m = sdMoteur();
   d.innerHTML = "";
-  for (let i = m.dureeMin; i <= m.dureeMax; i++)
-    d.innerHTML += '<option value="' + i + '">' + i + " secondes</option>";
-  d.value = String(Math.min(Math.max(avant, m.dureeMin), m.dureeMax));
+  if (m.durees) {
+    // v41.181 : liste discrète (ex. Kling 4 : 5,10,15,20,30)
+    m.durees.forEach(v => { d.innerHTML += '<option value="' + v + '">' + v + " secondes</option>"; });
+    d.value = String(m.durees.includes(avant) ? avant : m.durees[0]);
+  } else {
+    for (let i = m.dureeMin; i <= m.dureeMax; i++)
+      d.innerHTML += '<option value="' + i + '">' + i + " secondes</option>";
+    d.value = String(Math.min(Math.max(avant, m.dureeMin), m.dureeMax));
+  }
 }
 // v41.51 : bascule de moteur. Tout se réaligne — durées, ratios, limites
 // de références, compteur de caractères — puis on recalcule le prix.
@@ -10831,8 +10992,12 @@ function sdMajMoteur() {
   const m = sdMoteur();
   document.getElementById("sdModeleAide").innerHTML =
     "<b style='color:var(--gold)'>" + m.nom + "</b> — " + m.sousTitre
-    + "<br>Durée " + m.dureeMin + " à " + m.dureeMax + " s · prompt " + m.promptMax.toLocaleString("fr-FR")
-    + " caractères · jusqu'à " + m.maxImages + " images, " + m.maxAudios + " audios de référence.";
+    + (m.imageOnly ? "" : "<br>Durée " + m.dureeMin + " à " + m.dureeMax + " s · prompt " + m.promptMax.toLocaleString("fr-FR")
+    + " caractères · jusqu'à " + m.maxImages + " images, " + m.maxAudios + " audios de référence.");
+  // v41.181 : Kling 4.0 — masque le mode Vidéo (imageOnly)
+  const sdModeCard = document.getElementById("sdModeChips") && document.getElementById("sdModeChips").closest(".card");
+  if (sdModeCard) sdModeCard.style.display = m.imageOnly ? "none" : "";
+  if (m.imageOnly && sdMode !== "photo") { sdMode = "photo"; sdMajMode(); }
   sdMajDurees();
   sdMajRatios();
   rwMajCompteur("sd");
@@ -10858,7 +11023,14 @@ function sdMajMoteur() {
 function sdMajRatios() {
   const sel = document.getElementById("sdRatio"), avant = sel.value;
   sel.innerHTML = "";
-  for (const [nom, val] of Object.entries(sdRatios()[sdRes]))
+  const ratios = sdRatios();
+  if (!ratios) {
+    // v41.181 : Kling 4.0 — Runway choisit automatiquement selon la résolution
+    sel.innerHTML = '<option value="auto">Auto (choisi par Runway selon la résolution)</option>';
+    return;
+  }
+  const table = ratios[sdRes] || {};
+  for (const [nom, val] of Object.entries(table))
     sel.innerHTML += '<option value="' + val + '">' + nom + "  (" + val.replace(":", " × ") + ")</option>";
   if (avant) { const i = Array.from(sel.options).findIndex(o => o.text.startsWith(avant.split(" ")[0])); if (i >= 0) sel.selectedIndex = i; }
   else sel.selectedIndex = 1;   // 16:9 par défaut
@@ -10867,6 +11039,7 @@ function sdMajRatios() {
 // (10 / 15 / 34 selon la résolution), en plus des secondes de sortie.
 function sdCredits() {
   const m = sdMoteur();
+  if (!m.crS) return 0;   // v41.181 : Kling 4.0 — pas de crédit Studio, facturation Runway
   const sortie = Number(document.getElementById("sdDuree").value) * m.crS[sdRes];
   const refs = Math.ceil(sdSecondesVideo() * m.crRef[sdRes]);
   return Math.max(m.crMin, sortie + refs);
@@ -10874,20 +11047,28 @@ function sdCredits() {
 // Ce qui manque pour pouvoir lancer. Chaîne vide = tout est prêt.
 function sdManque() {
   if (!document.getElementById("sdPrompt").value.trim()) return "Écris d'abord ta scène à l'étape ②";
+  const m = sdMoteur();
+  if (m.imageOnly) {
+    if (!sdRefs.length) return "Ajoute au moins une image à l'étape ①";
+    if (sdRes === "480p") return "Kling 4.0 ne supporte pas la 480p — choisis 720p ou 1080p";
+    return "";
+  }
   if (sdMode === "photo" && !sdRefs.length) return "Ajoute au moins une image à l'étape ①";
   if (sdMode === "video" && !sdVideo) return "Importe la vidéo de départ à l'étape ①";
   if (sdSecondesAudio() > sdAudioMaxS() + 0.5)
-    return "Tes audios font " + sdSecondesAudio().toFixed(1) + " s — " + sdMoteur().nom + " accepte " + sdAudioMaxS() + " s";
+    return "Tes audios font " + sdSecondesAudio().toFixed(1) + " s — " + m.nom + " accepte " + sdAudioMaxS() + " s";
   if (sdMode === "video" && sdSecondesVideo() > sdVideoMaxS() + 0.5)
-    return "Tes vidéos font " + sdSecondesVideo().toFixed(1) + " s en tout — " + sdVideoMaxS() + " s maximum pour " + sdMoteur().nom;
+    return "Tes vidéos font " + sdSecondesVideo().toFixed(1) + " s en tout — " + sdVideoMaxS() + " s maximum pour " + m.nom;
   return "";
 }
 function sdRefresh() {
   const manque = sdManque();
   const b = document.getElementById("sdGo");
   b.disabled = !!manque;
+  const sdCr = sdCredits();
   b.textContent = manque ? manque
-    : "✨ Créer avec Seedance 2.5 — " + sdCredits() + " crédits (≈ " + (sdCredits() / 100).toFixed(2) + " $)";
+    : sdCr ? ("✨ Créer avec " + sdMoteur().nom + " — " + sdCr + " crédits (≈ " + (sdCr / 100).toFixed(2) + " $)")
+    : ("✨ Créer avec " + sdMoteur().nom + " — débit Runway Studio");
   const secV = sdSecondesVideo();
   const detail = [
     sdRes,
@@ -10895,9 +11076,10 @@ function sdRefresh() {
     sdRefs.length + " image(s) de référence (gratuites)",
   ];
   if (sdAudios.length) detail.push(sdAudios.length + " audio(s) de référence (gratuits)");
-  if (secV > 0) detail.push("<b style='color:var(--gold)'>" + secV.toFixed(1) + " s de vidéo de référence facturée à " + sdMoteur().crRef[sdRes] + " cr/s</b>");
+  if (secV > 0 && sdMoteur().crRef) detail.push("<b style='color:var(--gold)'>" + secV.toFixed(1) + " s de vidéo de référence facturée à " + sdMoteur().crRef[sdRes] + " cr/s</b>");
+  const sdCr2 = sdCredits();
   document.getElementById("sdCout").innerHTML = detail.join(" · ")
-    + " · <b style='color:var(--gold)'>" + sdCredits() + " crédits Studio ≈ " + (sdCredits() / 100).toFixed(2) + " $</b>";
+    + (sdCr2 ? " · <b style='color:var(--gold)'>" + sdCr2 + " crédits Studio ≈ " + (sdCr2 / 100).toFixed(2) + " $</b>" : " · <b style='color:var(--gold)'>débit Runway Studio</b>");
 }
 // ——— Bascule entre les deux modes ———
 function sdMajMode() {
@@ -13834,12 +14016,28 @@ document.getElementById("sdGo").onclick = async () => {
       videos_reference: videosUri.length, audios_reference: audiosUri.length,
     });
 
-    const payload = sdMode === "video"
-      ? sdPayloadVideo({ model: sdModele, promptText: sdPromptPret, videoUri: videoUri, images: imagesUri, videos: videosUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked })
-      : sdPayloadPhoto({ model: sdModele, promptText: sdPromptPret, images: imagesUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked });
+    let payload, rwEndpoint;
+    if (sdModele === "kling4") {
+      // v41.181 : Kling 4.0 — image → vidéo via Runway, une image obligatoire
+      if (!imagesUri.length) throw new Error("Kling 4.0 a besoin d'une image de départ.");
+      const kling4Ratio = sdRes === "1080p" ? "auto_1080p" : "auto_720p";
+      payload = {
+        model: "kling_4",
+        promptImage: imagesUri[0],   // ⚠️ chaîne URL, PAS tableau d'objets
+        ratio: kling4Ratio,
+        duration: duree,
+      };
+      if (sdPromptPret) payload.promptText = sdPromptPret;
+      rwEndpoint = "image_to_video";
+    } else {
+      payload = sdMode === "video"
+        ? sdPayloadVideo({ model: sdModele, promptText: sdPromptPret, videoUri: videoUri, images: imagesUri, videos: videosUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked })
+        : sdPayloadPhoto({ model: sdModele, promptText: sdPromptPret, images: imagesUri, audios: audiosUri, ratio: ratio, duration: duree, audio: document.getElementById("sdAudio").checked });
+      rwEndpoint = sdMode === "video" ? "video_to_video" : "image_to_video";
+    }
     rwLog("sdJournal", "PAYLOAD (médias masqués)", sdPayloadLisible(payload));
     setSt("Étape 2/3 · Création de la tâche…", -1);
-    const t = await rwSubmit(sdMode === "video" ? "video_to_video" : "image_to_video", payload);
+    const t = await rwSubmit(rwEndpoint, payload);
     rwLog("sdJournal", "TÂCHE CRÉÉE", { id: t.id, estimatedCost: t.estimatedCost });
     setSt("Étape 3/3 · Traitement du Studio…", -1);
     const fin = await rwAttendre(t.id, "sdJournal", setSt, 15);
@@ -13858,8 +14056,9 @@ document.getElementById("sdGo").onclick = async () => {
     // v41.47 : « Nouvelle génération » est le SEUL geste qui efface le travail
     // précédent. Tant qu'on ne clique pas dessus, tout reste en place.
     document.getElementById("sdNouvelle").onclick = () => rwNouvelleGeneration("sd");
-    rwRondFini("sd", "Terminé · " + (window.SIM_GLOBAL ? "simulation, 0 crédit" : sdCredits() + " crédits Studio"));
-    setSt("<span class='okc'>✓ Terminé ! " + (window.SIM_GLOBAL ? "🧪 Simulation : 0 crédit utilisé." : sdCredits() + " crédits Studio utilisés.") + "</span>", 100);
+    const sdCrFin = sdCredits();
+    rwRondFini("sd", "Terminé · " + (window.SIM_GLOBAL ? "simulation, 0 crédit" : sdCrFin ? sdCrFin + " crédits Studio" : "Runway Studio"));
+    setSt("<span class='okc'>✓ Terminé ! " + (window.SIM_GLOBAL ? "🧪 Simulation : 0 crédit utilisé." : sdCrFin ? sdCrFin + " crédits Studio utilisés." : "Généré via Runway Studio.") + "</span>", 100);
   } catch (e) {
     rwRondEchec("sd", e.message);
     setSt(`<span class="err">✗ ${e.message}</span>`, 0);
