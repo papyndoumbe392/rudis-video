@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.181 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.182 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -2553,7 +2553,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.181</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.182</span>
 
   </footer>
 </div>
@@ -5934,7 +5934,7 @@ document.getElementById("dvGarderFormat").onclick = () => {
 };
 
 // v41.35 : conversion SUR PLACE en 16:9 via le même moteur que le volet 🔄 Format
-// (fal-ai/luma-dream-machine/ray-2-flash/reframe, qui reconstruit les bords au lieu de couper).
+// (v41.182 : fal-ai/ltx-2.3/reframe, qui reconstruit les bords au lieu de couper).
 // La vidéo convertie remplace la vidéo source du volet Décor : le client enchaîne sans rien refaire.
 document.getElementById("dvConvertirBtn").onclick = async () => {
   const btn = document.getElementById("dvConvertirBtn");
@@ -5955,7 +5955,7 @@ document.getElementById("dvConvertirBtn").onclick = async () => {
       url = await hebergerFichier(dvVideo.file, "aconvertir.mp4");
     }
     setSt("Envoi au studio…", 10);
-    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: "16:9" });
+    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: "16:9", resolution: "720p" }, { source_seconds: Math.round(dvDuree * 10) / 10 });   // v41.182 : LTX exige la résolution + la durée mesurée
     const statusUrl = job.status_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}`;
 
@@ -6720,10 +6720,10 @@ window.__msReady = true;
 msRender();
 
 // ═══════════ v36.6 : CHANGER LE FORMAT (Luma Reframe) ═══════════
-// Modèle fal-ai/luma-dream-machine/ray-2-flash/reframe — paramètres video_url + aspect_ratio.
+// v41.182 : modèle fal-ai/ltx-2.3/reframe — paramètres video_url + aspect_ratio + resolution (720p = 2 crédits), et source_seconds (durée mesurée, 30 s max) côté Worker.
 // Il reconstruit réellement les bords manquants, contrairement à un simple recadrage.
 // Coût studio ~0,20 $/s (3 $ pour 15 s) → facturé 2 vidéos du code, comme le multi-plans.
-const RF_MODEL = "fal-ai/luma-dream-machine/ray-2-flash/reframe";
+const RF_MODEL = "fal-ai/ltx-2.3/reframe";   // v41.182 : remplace Luma Ray 2 Flash Reframe, retiré par fal (404) — voir Worker v5.66
 let rfSource = null;    // URL fal (dernière vidéo) ou null si fichier importé
 let rfFile = null;      // fichier importé, hébergé au lancement
 let rfDur = 0;
@@ -6850,7 +6850,7 @@ document.getElementById("rfGo").onclick = async () => {
     // de suite au lieu d'attendre la fin de la conversion.
     rfSetStatus("Envoi au studio… format demandé : <b>" + rfRatio + "</b>"
       + (rfSrcRatio ? " (source " + rfSrcRatio + ")" : ""), 10);
-    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: rfRatio });
+    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: rfRatio, resolution: "720p" }, { source_seconds: Math.round(rfDur * 10) / 10 });   // v41.182 : LTX exige la résolution + la durée mesurée
     rfJobEnCours = job.request_id || null;
     const statusUrl = job.status_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}`;
