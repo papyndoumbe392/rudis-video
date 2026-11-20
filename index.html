@@ -5,7 +5,7 @@
 <!-- v41.162 : langue de l'interface choisie par le client (mémorisée), posée avant tout affichage. -->
 <script>try { var l = localStorage.getItem("starclip_langue"); if (/^(fr|en|es|de)$/.test(l || "")) document.documentElement.setAttribute("lang", l); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>StarClip AI Studio v41.182 · par Studio Rudis, Douala.</title>
+<title>StarClip AI Studio v41.183 · par Studio Rudis, Douala.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -2553,7 +2553,7 @@
     <!-- v41.47 : version en JAUNE VIF. C'est LA référence officielle (jamais
          l'onglet du navigateur) : elle doit se lire d'un coup d'œil après chaque
          déploiement, pas se deviner dans un gris pâle. -->
-    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.182</span>
+    <span style="color:#ffd400; font-weight:800; font-size:14px; letter-spacing:.4px;"> · v41.183</span>
 
   </footer>
 </div>
@@ -5955,7 +5955,7 @@ document.getElementById("dvConvertirBtn").onclick = async () => {
       url = await hebergerFichier(dvVideo.file, "aconvertir.mp4");
     }
     setSt("Envoi au studio…", 10);
-    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: "16:9", resolution: "720p" }, { source_seconds: Math.round(dvDuree * 10) / 10 });   // v41.182 : LTX exige la résolution + la durée mesurée
+    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: "16:9", resolution: "720p" }, { source_seconds: rfSecondesPourWorker(dvDuree) });   // v41.182 : LTX exige la résolution + la durée mesurée
     const statusUrl = job.status_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}`;
 
@@ -6727,6 +6727,9 @@ const RF_MODEL = "fal-ai/ltx-2.3/reframe";   // v41.182 : remplace Luma Ray 2 Fl
 let rfSource = null;    // URL fal (dernière vidéo) ou null si fichier importé
 let rfFile = null;      // fichier importé, hébergé au lancement
 let rfDur = 0;
+// v41.183 : une vidéo « de 30 s » mesure souvent 30,03 s ; le Worker refuse tout ce qui dépasse 30 s pile. L'app tolère déjà jusqu'à 30,5 s :
+// on envoie donc 30 pour ces vidéos à quelques centièmes près (LTX accepte jusqu'à 60 s, aucun risque côté moteur).
+function rfSecondesPourWorker(d) { return (d > 30 && d <= 30.5) ? 30 : Math.round(d * 10) / 10; }
 let rfRatio = "9:16";
 let rfJobEnCours = null;
 // v41.51 : format RÉEL de la vidéo importée, mesuré dans le navigateur.
@@ -6850,7 +6853,7 @@ document.getElementById("rfGo").onclick = async () => {
     // de suite au lieu d'attendre la fin de la conversion.
     rfSetStatus("Envoi au studio… format demandé : <b>" + rfRatio + "</b>"
       + (rfSrcRatio ? " (source " + rfSrcRatio + ")" : ""), 10);
-    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: rfRatio, resolution: "720p" }, { source_seconds: Math.round(rfDur * 10) / 10 });   // v41.182 : LTX exige la résolution + la durée mesurée
+    const job = await apiSubmit(RF_MODEL, { video_url: url, aspect_ratio: rfRatio, resolution: "720p" }, { source_seconds: rfSecondesPourWorker(rfDur) });   // v41.182 : LTX exige la résolution + la durée mesurée
     rfJobEnCours = job.request_id || null;
     const statusUrl = job.status_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}/status`;
     const responseUrl = job.response_url || `https://queue.fal.run/${RF_MODEL}/requests/${job.request_id}`;
